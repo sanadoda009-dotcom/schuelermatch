@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registrieren – SchülerMatch</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+
+<nav>
+  <a href="index.html" class="logo"><span class="logo-mark">SM</span> SchülerMatch</a>
+  <div class="nav-links"></div>
+  <a href="login.html" class="btn btn-outline">Login</a>
+</nav>
+
+<main class="auth-main">
+  <div class="auth-box">
+    <h2>Account erstellen</h2>
+    <p class="sub">Kostenlos – dauert 2 Minuten.</p>
+
+    <div class="role-tabs">
+      <div class="role-tab active" id="tab-schueler" onclick="setRole('schueler')">Ich bin Schüler</div>
+      <div class="role-tab" id="tab-firma" onclick="setRole('firma')">Ich bin Arbeitgeber</div>
+    </div>
+
+    <form id="register-form" data-role="schueler">
+      <div class="form-group">
+        <label for="name">Vorname</label>
+        <input type="text" id="name" placeholder="Dein Vorname" required>
+      </div>
+
+      <!-- Nur für Schüler -->
+      <div id="schueler-fields">
+        <div class="form-group">
+          <label for="alter">Alter</label>
+          <select id="alter">
+            <option value="">Bitte wählen</option>
+            <option>13</option><option>14</option><option>15</option>
+            <option>16</option><option>17</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="ort">Wohnort / PLZ</label>
+          <input type="text" id="ort" placeholder="z.B. München oder 80331">
+        </div>
+      </div>
+
+      <!-- Nur für Firmen -->
+      <div id="firma-fields" style="display:none;">
+        <div class="form-group">
+          <label for="firma-name">Firmenname</label>
+          <input type="text" id="firma-name" placeholder="Deine Firma GmbH">
+        </div>
+        <div class="form-group">
+          <label for="firma-ort">Standort</label>
+          <input type="text" id="firma-ort" placeholder="z.B. Berlin">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="reg-email">E-Mail</label>
+        <input type="email" id="reg-email" placeholder="deine@email.de" required>
+      </div>
+      <div class="form-group">
+        <label for="reg-password">Passwort</label>
+        <input type="password" id="reg-password" placeholder="Min. 8 Zeichen" required>
+      </div>
+
+      <button type="submit" class="btn btn-green btn-full" style="margin-top:8px;">Account erstellen</button>
+    </form>
+
+    <p class="auth-switch">Bereits registriert? <a href="login.html">Einloggen</a></p>
+  </div>
+</main>
+
+<script src="js/auth.js"></script>
+<script>
+  function setRole(role) {
+    document.getElementById('tab-schueler').classList.toggle('active', role === 'schueler');
+    document.getElementById('tab-firma').classList.toggle('active', role === 'firma');
+    document.getElementById('schueler-fields').style.display = role === 'schueler' ? 'block' : 'none';
+    document.getElementById('firma-fields').style.display = role === 'firma' ? 'block' : 'none';
+    document.getElementById('register-form').dataset.role = role;
+  }
+
+  // URL-Parameter auslesen: register.html?rolle=firma
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('rolle') === 'firma') setRole('firma');
+</script>
+</body>
+</html>
