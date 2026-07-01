@@ -56,7 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return
       }
 
-      showSuccess(registerForm, 'Fast fertig! Bitte bestätige deine E-Mail-Adresse.')
+      // Weiterleitung je nach Rolle
+      window.location.href = role === 'firma' ? 'dashboard-firma.html' : 'dashboard-schueler.html'
     })
   }
 })
