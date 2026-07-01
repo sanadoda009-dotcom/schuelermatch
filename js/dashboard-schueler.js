@@ -7,6 +7,8 @@ import { initSidebar } from './sidebar.js'
 let profile
 let bloecke = []
 let aktuelleBewerbung = null // { jobId, btn, zeugnisDatei }
+let alleJobs = []
+let beworbenIds = new Set()
 
 async function init() {
   profile = await requireAuth('schueler')
@@ -74,6 +76,9 @@ async function init() {
   renderVerifyStatus()
   renderBlockEditor()
   renderCvPreview()
+
+  document.getElementById('filter-suche').addEventListener('input', wendeJobFilterAn)
+  document.getElementById('filter-ort').addEventListener('input', wendeJobFilterAn)
 
   await ladeJobs()
 }
@@ -420,9 +425,38 @@ async function ladeJobs() {
     .from('bewerbungen')
     .select('job_id')
     .eq('schueler_id', profile.id)
-  const beworbenIds = new Set((bewerbungen || []).map(b => b.job_id))
+  beworbenIds = new Set((bewerbungen || []).map(b => b.job_id))
 
   renderStats(jobs.length, beworbenIds.size)
+
+  alleJobs = jobs
+  wendeJobFilterAn()
+}
+
+function wendeJobFilterAn() {
+  const suche = document.getElementById('filter-suche').value.trim().toLowerCase()
+  const ort = document.getElementById('filter-ort').value.trim().toLowerCase()
+
+  const gefiltert = alleJobs.filter(job => {
+    if (suche && !(job.titel || '').toLowerCase().includes(suche)) return false
+    if (ort && !(job.ort || '').toLowerCase().includes(ort)) return false
+    return true
+  })
+
+  renderJobs(gefiltert)
+}
+
+function renderJobs(jobs) {
+  const grid = document.getElementById('jobs-grid')
+
+  if (!jobs.length) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
+        <p>Keine Jobs passen zu diesem Filter.</p>
+      </div>`
+    return
+  }
 
   grid.innerHTML = jobs.map(job => `
     <div class="job-card">
