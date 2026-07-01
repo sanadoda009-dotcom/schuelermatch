@@ -34,9 +34,24 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault()
       const email = document.getElementById('reg-email').value
       const password = document.getElementById('reg-password').value
-      const name = document.getElementById('name').value
       const role = registerForm.dataset.role || 'schueler'
       const btn = registerForm.querySelector('button[type=submit]')
+
+      let name, alter, ort
+
+      if (role === 'firma') {
+        name = document.getElementById('firma-name').value
+        ort = document.getElementById('firma-ort').value
+      } else {
+        name = document.getElementById('name').value
+        alter = document.getElementById('alter').value
+        ort = document.getElementById('ort').value
+
+        if (!document.getElementById('eltern-einwilligung').checked) {
+          showError(registerForm, 'Bitte bestätige die Einwilligung deiner Eltern.')
+          return
+        }
+      }
 
       btn.textContent = 'Wird erstellt...'
       btn.disabled = true
@@ -45,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         email,
         password,
         options: {
-          data: { name, role }
+          data: { name, role, alter_jahre: alter ? parseInt(alter) : null, ort }
         }
       })
 

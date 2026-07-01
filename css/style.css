@@ -225,6 +225,9 @@ section { padding: 80px 24px; }
   font-size: 0.88rem; transition: all 0.15s;
 }
 .role-tab.active { border-color: var(--match-green); background: rgba(0,200,150,0.08); color: var(--match-green-dark); }
+.consent-group { background: var(--paper); border-radius: 10px; padding: 14px; }
+.consent-label { display: flex; align-items: flex-start; gap: 10px; font-weight: 500; font-size: 0.85rem; cursor: pointer; }
+.consent-label input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; accent-color: var(--match-green); cursor: pointer; }
 
 /* JOBS LIST */
 .jobs-page { max-width: 1120px; margin: 0 auto; padding: 40px 24px; }
