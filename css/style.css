@@ -259,6 +259,15 @@ section { padding: 80px 24px; }
 .job-meta span { display: flex; align-items: center; gap: 5px; }
 .meta-icon { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.75; }
 
+/* DASHBOARD STATS */
+.stats-row { display: flex; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
+.stat-box {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px 22px; min-width: 140px;
+}
+.stat-box b { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; color: var(--ink); }
+.stat-box span { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--ink-soft); }
+
 /* EMPTY STATES */
 .empty-state {
   grid-column: 1 / -1; text-align: center; padding: 60px 24px;

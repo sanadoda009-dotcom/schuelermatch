@@ -63,6 +63,7 @@ async function ladeJobs() {
   const { data: jobs, error } = await query.order('erstellt_am', { ascending: false })
 
   if (error || !jobs?.length) {
+    renderStats(0, 0)
     grid.innerHTML = `
       <div class="empty-state">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
@@ -76,6 +77,8 @@ async function ladeJobs() {
     .select('job_id')
     .eq('schueler_id', profile.id)
   const beworbenIds = new Set((bewerbungen || []).map(b => b.job_id))
+
+  renderStats(jobs.length, beworbenIds.size)
 
   grid.innerHTML = jobs.map(job => `
     <div class="job-card">
@@ -116,6 +119,13 @@ async function bewerben(jobId, btn) {
   btn.textContent = 'Bereits beworben'
   btn.classList.remove('btn-green')
   btn.classList.add('btn-outline')
+}
+
+function renderStats(matchCount, beworbenCount) {
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-box"><b>${matchCount}</b><span>Passende Jobs</span></div>
+    <div class="stat-box"><b>${beworbenCount}</b><span>Deine Bewerbungen</span></div>
+  `
 }
 
 function escapeHtml(str) {

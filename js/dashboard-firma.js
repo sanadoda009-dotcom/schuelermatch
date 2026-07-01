@@ -131,6 +131,7 @@ async function ladeEigeneJobs() {
     .order('erstellt_am', { ascending: false })
 
   if (error || !jobs?.length) {
+    renderStats(0, 0)
     list.innerHTML = `
       <div class="empty-state">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
@@ -143,6 +144,8 @@ async function ladeEigeneJobs() {
     .from('bewerbungen')
     .select('job_id, bewerber:schueler_id(name, email, ort, alter_jahre)')
     .in('job_id', jobs.map(j => j.id))
+
+  renderStats(jobs.length, bewerbungen?.length || 0)
 
   const bewerberByJob = {}
   ;(bewerbungen || []).forEach(b => {
@@ -189,6 +192,13 @@ async function ladeEigeneJobs() {
   list.querySelectorAll('[data-delete]').forEach(btn => {
     btn.addEventListener('click', () => loescheJob(btn.dataset.delete))
   })
+}
+
+function renderStats(jobCount, bewerbungCount) {
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-box"><b>${jobCount}</b><span>Aktive Jobs</span></div>
+    <div class="stat-box"><b>${bewerbungCount}</b><span>Bewerbungen gesamt</span></div>
+  `
 }
 
 function escapeHtml(str) {
