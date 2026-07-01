@@ -408,6 +408,46 @@ footer .logo { color: white; }
   .cv-preview { position: static; }
 }
 
+/* BLOCK EDITOR (Lebenslauf-Bausteine) */
+.block-list { display: flex; flex-direction: column; gap: 14px; margin: 24px 0; }
+.block-item {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px;
+}
+.block-item-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.block-type-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase;
+  color: var(--ink-soft); background: var(--card); border: 1px solid var(--line);
+  padding: 3px 8px; border-radius: 6px;
+}
+.block-item-controls { margin-left: auto; display: flex; gap: 4px; }
+.block-item-controls button {
+  background: none; border: 1px solid var(--line); border-radius: 6px; width: 28px; height: 28px;
+  cursor: pointer; font-size: 0.85rem; color: var(--ink-soft);
+}
+.block-item-controls button:hover { background: var(--card); }
+.block-item input[type="text"], .block-item textarea {
+  width: 100%; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 8px;
+  font-family: 'Inter', sans-serif; font-size: 0.9rem; background: var(--card); margin-bottom: 8px;
+}
+.block-item textarea { min-height: 90px; resize: vertical; }
+.block-image-preview { max-width: 100%; border-radius: 10px; margin-top: 8px; display: block; }
+.block-add-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.block-add-btn { padding: 9px 16px; font-size: 0.85rem; }
+
+/* MODAL (Bewerbungsformular) */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(22,26,31,0.45);
+  z-index: 100; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--card); border-radius: 22px; padding: 32px; max-width: 520px; width: 100%;
+  max-height: 90vh; overflow-y: auto; box-shadow: 0 30px 70px rgba(22,26,31,0.25);
+}
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.modal-close { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--ink-soft); padding: 4px 8px; }
+.modal-close:hover { color: var(--ink); }
+
 /* AUTH MESSAGES */
 .auth-msg {
   padding: 12px 14px; border-radius: 10px;

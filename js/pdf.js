@@ -2,8 +2,7 @@
 // Nutzt html2pdf.js (per <script> in der HTML-Seite eingebunden).
 
 export function ladeLebenslaufAlsPdf(daten) {
-  const { name, alter_jahre, ort, email, foto_url, schule, klasse, faehigkeiten, erfahrung, ueber_mich, motivationsschreiben } = daten
-  const tags = (faehigkeiten || '').split(',').map(t => t.trim()).filter(Boolean)
+  const { name, alter_jahre, ort, email, foto_url, schule, klasse, bloecke, motivationsschreiben } = daten
 
   const el = document.createElement('div')
   el.style.cssText = 'width:210mm; padding:18mm; font-family: Arial, Helvetica, sans-serif; color:#161a1f; box-sizing:border-box;'
@@ -20,14 +19,8 @@ export function ladeLebenslaufAlsPdf(daten) {
       </div>
     </div>
 
-    ${abschnitt('Motivationsschreiben', motivationsschreiben)}
-    ${abschnitt('Über mich', ueber_mich)}
-    ${abschnitt('Erfahrung', erfahrung)}
-    ${tags.length ? `
-      <div style="margin-bottom:22px;">
-        <h3 style="font-size:13px; text-transform:uppercase; letter-spacing:0.5px; color:#00a87d; margin-bottom:10px;">Fähigkeiten</h3>
-        <div>${tags.map(t => `<span style="display:inline-block; background:#faf8f4; border:1px solid #e7e3da; border-radius:6px; padding:4px 10px; font-size:12px; margin:0 6px 6px 0;">${escapeHtml(t)}</span>`).join('')}</div>
-      </div>` : ''}
+    ${motivationsschreiben ? abschnitt('Motivationsschreiben', motivationsschreiben) : ''}
+    ${(bloecke || []).map(renderBlockFuerPdf).join('')}
 
     <p style="margin-top:40px; font-size:10px; color:#9aa0a8;">Erstellt über SchülerMatch · schuelermatch.de</p>
   `
@@ -47,6 +40,30 @@ export function ladeLebenslaufAlsPdf(daten) {
   }).save().then(() => {
     document.body.removeChild(el)
   })
+}
+
+function renderBlockFuerPdf(b) {
+  if (b.typ === 'text') {
+    return b.inhalt ? abschnitt(b.titel || 'Abschnitt', b.inhalt) : ''
+  }
+  if (b.typ === 'skills') {
+    const tags = (b.tags || '').split(',').map(t => t.trim()).filter(Boolean)
+    if (!tags.length) return ''
+    return `
+      <div style="margin-bottom:22px;">
+        <h3 style="font-size:13px; text-transform:uppercase; letter-spacing:0.5px; color:#00a87d; margin-bottom:10px;">${escapeHtml(b.titel || 'Fähigkeiten')}</h3>
+        <div>${tags.map(t => `<span style="display:inline-block; background:#faf8f4; border:1px solid #e7e3da; border-radius:6px; padding:4px 10px; font-size:12px; margin:0 6px 6px 0;">${escapeHtml(t)}</span>`).join('')}</div>
+      </div>`
+  }
+  if (b.typ === 'bild') {
+    if (!b.bild_url) return ''
+    return `
+      <div style="margin-bottom:22px;">
+        ${b.titel ? `<h3 style="font-size:13px; text-transform:uppercase; letter-spacing:0.5px; color:#00a87d; margin-bottom:10px;">${escapeHtml(b.titel)}</h3>` : ''}
+        <img src="${b.bild_url}" style="max-width:100%; border-radius:8px;" crossorigin="anonymous">
+      </div>`
+  }
+  return ''
 }
 
 function abschnitt(titel, text) {

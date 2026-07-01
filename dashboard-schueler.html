@@ -45,56 +45,42 @@
     <div class="cv-builder">
       <div class="cv-editor">
         <h3 style="margin-bottom:6px;">Dein Lebenslauf</h3>
-        <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:20px;">Fülle das einmal aus – Firmen sehen das automatisch bei jeder Bewerbung.</p>
-        <form id="lebenslauf-form">
-          <div class="form-group">
-            <label>Profilbild</label>
-            <div class="photo-upload-row">
-              <div class="cv-photo-preview" id="cv-photo-preview"></div>
-              <div>
-                <input type="file" id="cv-foto" accept="image/*" style="display:none;">
-                <button type="button" id="cv-foto-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Foto hochladen</button>
-                <p class="mono" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">JPG/PNG, max. 3 MB</p>
-              </div>
+        <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:20px;">Baue deinen Lebenslauf aus eigenen Abschnitten – ganz wie du willst.</p>
+
+        <div class="form-group">
+          <label>Profilbild</label>
+          <div class="photo-upload-row">
+            <div class="cv-photo-preview" id="cv-photo-preview"></div>
+            <div>
+              <input type="file" id="cv-foto" accept="image/*" style="display:none;">
+              <button type="button" id="cv-foto-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Foto hochladen</button>
+              <p class="mono" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">JPG/PNG, max. 3 MB</p>
             </div>
           </div>
-          <div class="form-group">
-            <label for="cv-schule">Schule</label>
-            <input type="text" id="cv-schule" placeholder="z.B. Gymnasium München-Nord" required>
-          </div>
-          <div class="form-group">
-            <label for="cv-klasse">Klasse</label>
-            <select id="cv-klasse" required>
-              <option value="">Bitte wählen</option>
-              <option>5. Klasse</option><option>6. Klasse</option><option>7. Klasse</option>
-              <option>8. Klasse</option><option>9. Klasse</option><option>10. Klasse</option>
-              <option>11. Klasse</option><option>12. Klasse</option><option>13. Klasse</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="cv-faehigkeiten">Fähigkeiten (Komma-getrennt)</label>
-            <input type="text" id="cv-faehigkeiten" placeholder="z.B. Zuverlässig, Teamfähig, Excel">
-          </div>
-          <div class="form-group">
-            <label for="cv-erfahrung">Bisherige Erfahrung (Nebenjobs, Praktika, Ehrenamt)</label>
-            <textarea id="cv-erfahrung" placeholder="z.B. Nachhilfe für meinen Bruder, Ferienjob im Supermarkt..."></textarea>
-          </div>
-          <div class="form-group">
-            <label for="cv-ueber-mich">Über mich</label>
-            <textarea id="cv-ueber-mich" placeholder="Was macht dich aus? Warum sollte man dich einstellen?"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="cv-motivation">Motivationsschreiben</label>
-            <textarea id="cv-motivation" placeholder="Warum interessierst du dich für Minijobs? Was ist dir wichtig?" style="min-height:120px;"></textarea>
-          </div>
-          <div class="form-group">
-            <label>Zeugnis (optional)</label>
-            <input type="file" id="cv-zeugnis" accept="image/*,application/pdf" style="display:none;">
-            <button type="button" id="cv-zeugnis-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Zeugnis hochladen</button>
-            <p class="mono" id="cv-zeugnis-status" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">Kein Zeugnis hochgeladen</p>
-          </div>
-          <button type="submit" class="btn btn-green">Lebenslauf speichern</button>
-        </form>
+        </div>
+        <div class="form-group">
+          <label for="cv-schule">Schule</label>
+          <input type="text" id="cv-schule" placeholder="z.B. Gymnasium München-Nord">
+        </div>
+        <div class="form-group">
+          <label for="cv-klasse">Klasse</label>
+          <select id="cv-klasse">
+            <option value="">Bitte wählen</option>
+            <option>5. Klasse</option><option>6. Klasse</option><option>7. Klasse</option>
+            <option>8. Klasse</option><option>9. Klasse</option><option>10. Klasse</option>
+            <option>11. Klasse</option><option>12. Klasse</option><option>13. Klasse</option>
+          </select>
+        </div>
+
+        <div class="block-list" id="block-list"></div>
+
+        <div class="block-add-row">
+          <button type="button" class="btn btn-outline block-add-btn" data-add="text">+ Textabschnitt</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="skills">+ Fähigkeiten</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="bild">+ Bild</button>
+        </div>
+
+        <button type="button" id="cv-save-btn" class="btn btn-green" style="margin-top:22px;">Lebenslauf speichern</button>
       </div>
 
       <div>
@@ -161,6 +147,29 @@
   </div>
 
 </main>
+
+<div class="modal-overlay" id="bewerbung-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="bewerbung-job-titel">Job</h3>
+      <button type="button" class="modal-close" id="bewerbung-close" aria-label="Schließen">✕</button>
+    </div>
+    <p id="bewerbung-firma-name" style="color:var(--ink-soft); font-size:0.9rem; margin-bottom:20px;"></p>
+    <form id="bewerbung-form">
+      <div class="form-group">
+        <label for="bewerbung-motivation">Motivationsschreiben</label>
+        <textarea id="bewerbung-motivation" placeholder="Warum passt du gut zu diesem Job?" style="min-height:140px;" required></textarea>
+      </div>
+      <div class="form-group">
+        <label>Zeugnis (optional)</label>
+        <input type="file" id="bewerbung-zeugnis" accept="image/*,application/pdf" style="display:none;">
+        <button type="button" id="bewerbung-zeugnis-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Zeugnis anhängen</button>
+        <p class="mono" id="bewerbung-zeugnis-status" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">Kein Zeugnis ausgewählt</p>
+      </div>
+      <button type="submit" class="btn btn-green btn-full" style="margin-top:8px;">Bewerbung absenden</button>
+    </form>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script type="module" src="js/dashboard-schueler.js"></script>

@@ -145,7 +145,7 @@ async function ladeEigeneJobs() {
 
   const { data: bewerbungen } = await supabase
     .from('bewerbungen')
-    .select('job_id, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, erfahrung, ueber_mich, faehigkeiten, foto_url, zeugnis_url, motivationsschreiben)')
+    .select('job_id, motivationsschreiben, zeugnis_url, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, foto_url, lebenslauf_bloecke)')
     .in('job_id', jobs.map(j => j.id))
 
   renderStats(jobs.length, bewerbungen?.length || 0)
@@ -153,11 +153,11 @@ async function ladeEigeneJobs() {
   const bewerberByJob = {}
   ;(bewerbungen || []).forEach(b => {
     if (!bewerberByJob[b.job_id]) bewerberByJob[b.job_id] = []
-    bewerberByJob[b.job_id].push(b.bewerber)
+    bewerberByJob[b.job_id].push(b)
   })
 
   list.innerHTML = jobs.map(job => {
-    const bewerber = bewerberByJob[job.id] || []
+    const bewerbungenFuerJob = bewerberByJob[job.id] || []
     return `
     <div class="job-card">
       <div class="job-card-top">
@@ -175,14 +175,14 @@ async function ladeEigeneJobs() {
         <button class="btn btn-outline" style="flex:1; padding:9px; color:var(--coral);" data-delete="${job.id}">Löschen</button>
       </div>
       <div class="bewerber-list">
-        <p class="bewerber-title">${bewerber.length} Bewerbung(en)</p>
-        ${bewerber.map((b, idx) => `
+        <p class="bewerber-title">${bewerbungenFuerJob.length} Bewerbung(en)</p>
+        ${bewerbungenFuerJob.map((b, idx) => `
           <div class="bewerber-item">
             <div style="display:flex; gap:10px; align-items:center;">
-              <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${b.foto_url ? `background-image:url(${b.foto_url})` : ''}">${b.foto_url ? '' : escapeHtml((b.name || '?')[0].toUpperCase())}</div>
+              <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${b.bewerber.foto_url ? `background-image:url(${b.bewerber.foto_url})` : ''}">${b.bewerber.foto_url ? '' : escapeHtml((b.bewerber.name || '?')[0].toUpperCase())}</div>
               <div>
-                <strong>${escapeHtml(b.name || 'Unbekannt')}</strong>, ${b.alter_jahre || '?'} Jahre – ${escapeHtml(b.ort || '')}<br>
-                <a href="mailto:${escapeHtml(b.email || '')}" class="mono">${escapeHtml(b.email || '')}</a>
+                <strong>${escapeHtml(b.bewerber.name || 'Unbekannt')}</strong>, ${b.bewerber.alter_jahre || '?'} Jahre – ${escapeHtml(b.bewerber.ort || '')}<br>
+                <a href="mailto:${escapeHtml(b.bewerber.email || '')}" class="mono">${escapeHtml(b.bewerber.email || '')}</a>
               </div>
             </div>
             <div style="display:flex; gap:8px; margin-top:10px;">
@@ -209,7 +209,7 @@ async function ladeEigeneJobs() {
       const b = bewerberByJob[btn.dataset.pdfJob][btn.dataset.pdfIdx]
       btn.disabled = true
       btn.textContent = 'Wird erstellt...'
-      ladeLebenslaufAlsPdf(b).finally(() => {
+      ladeLebenslaufAlsPdf({ ...b.bewerber, motivationsschreiben: b.motivationsschreiben }).finally(() => {
         btn.disabled = false
         btn.textContent = 'Lebenslauf (PDF)'
       })
