@@ -1,10 +1,6 @@
-// Supabase-Verbindung
-// Später: Diese Werte aus deinem Supabase-Dashboard eintragen
-// https://supabase.com → Projekt → Settings → API
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-const SUPABASE_URL = 'DEINE_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'DEIN_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://blufrvuskqiloslyxjkx.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_R0aH-kk1w4m1Umo5jCjV9Q_sM9-rt_8'
 
-// Sobald du Supabase eingerichtet hast, diesen Import aktivieren:
-// import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-// export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
