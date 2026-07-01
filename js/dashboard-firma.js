@@ -142,7 +142,7 @@ async function ladeEigeneJobs() {
 
   const { data: bewerbungen } = await supabase
     .from('bewerbungen')
-    .select('job_id, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, erfahrung, ueber_mich)')
+    .select('job_id, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, erfahrung, ueber_mich, faehigkeiten, foto_url)')
     .in('job_id', jobs.map(j => j.id))
 
   renderStats(jobs.length, bewerbungen?.length || 0)
@@ -173,15 +173,23 @@ async function ladeEigeneJobs() {
       </div>
       <div class="bewerber-list">
         <p class="bewerber-title">${bewerber.length} Bewerbung(en)</p>
-        ${bewerber.map(b => `
+        ${bewerber.map(b => {
+          const tags = (b.faehigkeiten || '').split(',').map(t => t.trim()).filter(Boolean)
+          return `
           <div class="bewerber-item">
-            <strong>${escapeHtml(b.name || 'Unbekannt')}</strong>, ${b.alter_jahre || '?'} Jahre – ${escapeHtml(b.ort || '')}<br>
-            <a href="mailto:${escapeHtml(b.email || '')}" class="mono">${escapeHtml(b.email || '')}</a>
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
+              <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${b.foto_url ? `background-image:url(${b.foto_url})` : ''}">${b.foto_url ? '' : escapeHtml((b.name || '?')[0].toUpperCase())}</div>
+              <div>
+                <strong>${escapeHtml(b.name || 'Unbekannt')}</strong>, ${b.alter_jahre || '?'} Jahre – ${escapeHtml(b.ort || '')}<br>
+                <a href="mailto:${escapeHtml(b.email || '')}" class="mono">${escapeHtml(b.email || '')}</a>
+              </div>
+            </div>
             ${b.schule ? `<div class="cv-block"><strong>Schule:</strong> ${escapeHtml(b.schule)}${b.klasse ? ', ' + escapeHtml(b.klasse) : ''}</div>` : ''}
+            ${tags.length ? `<div class="cv-block cv-tags">${tags.map(t => `<span class="cv-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
             ${b.erfahrung ? `<div class="cv-block"><strong>Erfahrung:</strong> ${escapeHtml(b.erfahrung)}</div>` : ''}
             ${b.ueber_mich ? `<div class="cv-block"><strong>Über sich:</strong> ${escapeHtml(b.ueber_mich)}</div>` : ''}
           </div>
-        `).join('')}
+        `}).join('')}
       </div>
     </div>
   `}).join('')

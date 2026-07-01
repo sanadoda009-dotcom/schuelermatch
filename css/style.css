@@ -320,6 +320,58 @@ footer .logo { color: white; }
   border-radius: var(--radius); padding: 32px; max-width: 640px;
 }
 
+/* CV BUILDER (Lebenslauf) */
+.cv-builder { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+.cv-editor {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 32px;
+}
+.photo-upload-row { display: flex; align-items: center; gap: 16px; }
+.cv-photo-preview {
+  width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--match-green), var(--indigo));
+  background-size: cover; background-position: center;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: 1.3rem;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.cv-preview {
+  position: sticky; top: 20px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 22px; padding: 34px;
+  box-shadow: 0 20px 50px rgba(22,26,31,0.1);
+}
+.cv-preview-header { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; }
+.cv-preview-photo {
+  width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--match-green), var(--indigo));
+  background-size: cover; background-position: center;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: 1.5rem;
+  font-family: 'Space Grotesk', sans-serif;
+}
+.cv-preview-name { font-size: 1.3rem; }
+.cv-preview-school { font-size: 0.85rem; color: var(--ink-soft); margin-top: 3px; }
+.cv-preview-section { margin-bottom: 20px; }
+.cv-preview-section h4 {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--match-green-dark); margin-bottom: 8px;
+}
+.cv-preview-section p { font-size: 0.9rem; color: var(--ink); line-height: 1.6; margin: 0; }
+.cv-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.cv-tag {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+  background: var(--paper); border: 1px solid var(--line);
+  padding: 4px 10px; border-radius: 6px; color: var(--ink-soft);
+}
+.cv-preview-empty { color: var(--ink-soft); font-size: 0.9rem; font-style: italic; }
+
+@media (max-width: 880px) {
+  .cv-builder { grid-template-columns: 1fr; }
+  .cv-preview { position: static; }
+}
+
 /* AUTH MESSAGES */
 .auth-msg {
   padding: 12px 14px; border-radius: 10px;

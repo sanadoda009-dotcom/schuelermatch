@@ -53,33 +53,52 @@
     </form>
   </div>
 
-  <div class="post-job-box" id="lebenslauf-box" style="display:none; margin-bottom:40px;">
-    <h3 style="margin-bottom:6px;">Dein Lebenslauf</h3>
-    <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:20px;">Fülle das einmal aus – Firmen sehen das automatisch bei jeder Bewerbung.</p>
-    <form id="lebenslauf-form">
-      <div class="form-group">
-        <label for="cv-schule">Schule</label>
-        <input type="text" id="cv-schule" placeholder="z.B. Gymnasium München-Nord" required>
-      </div>
-      <div class="form-group">
-        <label for="cv-klasse">Klasse</label>
-        <select id="cv-klasse" required>
-          <option value="">Bitte wählen</option>
-          <option>5. Klasse</option><option>6. Klasse</option><option>7. Klasse</option>
-          <option>8. Klasse</option><option>9. Klasse</option><option>10. Klasse</option>
-          <option>11. Klasse</option><option>12. Klasse</option><option>13. Klasse</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="cv-erfahrung">Bisherige Erfahrung (Nebenjobs, Praktika, Ehrenamt)</label>
-        <textarea id="cv-erfahrung" placeholder="z.B. Nachhilfe für meinen Bruder, Ferienjob im Supermarkt..."></textarea>
-      </div>
-      <div class="form-group">
-        <label for="cv-ueber-mich">Über mich</label>
-        <textarea id="cv-ueber-mich" placeholder="Was macht dich aus? Warum sollte man dich einstellen?"></textarea>
-      </div>
-      <button type="submit" class="btn btn-green">Lebenslauf speichern</button>
-    </form>
+  <div class="cv-builder" id="lebenslauf-box" style="display:none; margin-bottom:40px;">
+    <div class="cv-editor">
+      <h3 style="margin-bottom:6px;">Dein Lebenslauf</h3>
+      <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:20px;">Fülle das einmal aus – Firmen sehen das automatisch bei jeder Bewerbung.</p>
+      <form id="lebenslauf-form">
+        <div class="form-group">
+          <label>Profilbild</label>
+          <div class="photo-upload-row">
+            <div class="cv-photo-preview" id="cv-photo-preview"></div>
+            <div>
+              <input type="file" id="cv-foto" accept="image/*" style="display:none;">
+              <button type="button" id="cv-foto-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Foto hochladen</button>
+              <p class="mono" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">JPG/PNG, max. 3 MB</p>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cv-schule">Schule</label>
+          <input type="text" id="cv-schule" placeholder="z.B. Gymnasium München-Nord" required>
+        </div>
+        <div class="form-group">
+          <label for="cv-klasse">Klasse</label>
+          <select id="cv-klasse" required>
+            <option value="">Bitte wählen</option>
+            <option>5. Klasse</option><option>6. Klasse</option><option>7. Klasse</option>
+            <option>8. Klasse</option><option>9. Klasse</option><option>10. Klasse</option>
+            <option>11. Klasse</option><option>12. Klasse</option><option>13. Klasse</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cv-faehigkeiten">Fähigkeiten (Komma-getrennt)</label>
+          <input type="text" id="cv-faehigkeiten" placeholder="z.B. Zuverlässig, Teamfähig, Excel">
+        </div>
+        <div class="form-group">
+          <label for="cv-erfahrung">Bisherige Erfahrung (Nebenjobs, Praktika, Ehrenamt)</label>
+          <textarea id="cv-erfahrung" placeholder="z.B. Nachhilfe für meinen Bruder, Ferienjob im Supermarkt..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="cv-ueber-mich">Über mich</label>
+          <textarea id="cv-ueber-mich" placeholder="Was macht dich aus? Warum sollte man dich einstellen?"></textarea>
+        </div>
+        <button type="submit" class="btn btn-green">Lebenslauf speichern</button>
+      </form>
+    </div>
+
+    <div class="cv-preview" id="cv-preview"></div>
   </div>
 
   <div class="jobs-grid" id="jobs-grid">

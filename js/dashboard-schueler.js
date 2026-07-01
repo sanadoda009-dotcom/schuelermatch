@@ -23,16 +23,116 @@ async function init() {
 
   document.getElementById('cv-schule').value = profile.schule || ''
   document.getElementById('cv-klasse').value = profile.klasse || ''
+  document.getElementById('cv-faehigkeiten').value = profile.faehigkeiten || ''
   document.getElementById('cv-erfahrung').value = profile.erfahrung || ''
   document.getElementById('cv-ueber-mich').value = profile.ueber_mich || ''
+  setzePhotoPreview(profile.foto_url)
 
   document.getElementById('toggle-lebenslauf-btn').addEventListener('click', () => {
     const box = document.getElementById('lebenslauf-box')
-    box.style.display = box.style.display === 'none' ? 'block' : 'none'
+    box.style.display = box.style.display === 'none' ? 'grid' : 'none'
+    renderCvPreview()
   })
   document.getElementById('lebenslauf-form').addEventListener('submit', speichereLebenslauf)
+  document.getElementById('lebenslauf-form').addEventListener('input', renderCvPreview)
+
+  document.getElementById('cv-foto-btn').addEventListener('click', () => document.getElementById('cv-foto').click())
+  document.getElementById('cv-foto').addEventListener('change', ladeFotoHoch)
+
+  renderCvPreview()
 
   await ladeJobs()
+}
+
+function setzePhotoPreview(url) {
+  const box = document.getElementById('cv-photo-preview')
+  if (url) {
+    box.style.backgroundImage = `url(${url})`
+    box.textContent = ''
+  } else {
+    box.style.backgroundImage = ''
+    box.textContent = (profile.name || '?')[0].toUpperCase()
+  }
+}
+
+async function ladeFotoHoch(e) {
+  const file = e.target.files[0]
+  if (!file) return
+
+  if (file.size > 3 * 1024 * 1024) {
+    alert('Das Bild ist zu groß (max. 3 MB).')
+    return
+  }
+
+  const btn = document.getElementById('cv-foto-btn')
+  btn.disabled = true
+  btn.textContent = 'Wird hochgeladen...'
+
+  const ext = file.name.split('.').pop()
+  const path = `${profile.id}/avatar.${ext}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(path, file, { upsert: true })
+
+  if (uploadError) {
+    alert('Fehler beim Hochladen: ' + uploadError.message)
+    btn.disabled = false
+    btn.textContent = 'Foto hochladen'
+    return
+  }
+
+  const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+  const foto_url = data.publicUrl + '?t=' + Date.now()
+
+  const { error: updateError } = await supabase.from('profiles').update({ foto_url }).eq('id', profile.id)
+
+  btn.disabled = false
+  btn.textContent = 'Foto hochladen'
+
+  if (updateError) {
+    alert('Fehler beim Speichern: ' + updateError.message)
+    return
+  }
+
+  profile.foto_url = foto_url
+  setzePhotoPreview(foto_url)
+  renderCvPreview()
+}
+
+function renderCvPreview() {
+  const name = profile.name || 'Dein Name'
+  const schule = document.getElementById('cv-schule').value
+  const klasse = document.getElementById('cv-klasse').value
+  const faehigkeiten = document.getElementById('cv-faehigkeiten').value
+  const erfahrung = document.getElementById('cv-erfahrung').value
+  const ueberMich = document.getElementById('cv-ueber-mich').value
+  const fotoUrl = profile.foto_url
+
+  const tags = faehigkeiten.split(',').map(t => t.trim()).filter(Boolean)
+
+  document.getElementById('cv-preview').innerHTML = `
+    <div class="cv-preview-header">
+      <div class="cv-preview-photo" style="${fotoUrl ? `background-image:url(${fotoUrl})` : ''}">${fotoUrl ? '' : escapeHtml(name[0]?.toUpperCase() || '?')}</div>
+      <div>
+        <div class="cv-preview-name">${escapeHtml(name)}</div>
+        <div class="cv-preview-school">${escapeHtml(schule || 'Schule noch nicht angegeben')}${klasse ? ' · ' + escapeHtml(klasse) : ''}</div>
+      </div>
+    </div>
+    ${tags.length ? `
+      <div class="cv-preview-section">
+        <h4>Fähigkeiten</h4>
+        <div class="cv-tags">${tags.map(t => `<span class="cv-tag">${escapeHtml(t)}</span>`).join('')}</div>
+      </div>` : ''}
+    <div class="cv-preview-section">
+      <h4>Erfahrung</h4>
+      ${erfahrung ? `<p>${escapeHtml(erfahrung)}</p>` : '<p class="cv-preview-empty">Noch keine Angaben</p>'}
+    </div>
+    <div class="cv-preview-section">
+      <h4>Über mich</h4>
+      ${ueberMich ? `<p>${escapeHtml(ueberMich)}</p>` : '<p class="cv-preview-empty">Noch keine Angaben</p>'}
+    </div>
+  `
 }
 
 async function speichereLebenslauf(e) {
@@ -44,6 +144,7 @@ async function speichereLebenslauf(e) {
   const updates = {
     schule: document.getElementById('cv-schule').value,
     klasse: document.getElementById('cv-klasse').value,
+    faehigkeiten: document.getElementById('cv-faehigkeiten').value,
     erfahrung: document.getElementById('cv-erfahrung').value,
     ueber_mich: document.getElementById('cv-ueber-mich').value
   }
