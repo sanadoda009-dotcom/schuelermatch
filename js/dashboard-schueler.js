@@ -217,28 +217,32 @@ function renderCvPreview() {
   `
 }
 
-async function speichereLebenslauf() {
-  const btn = document.getElementById('cv-save-btn')
-  btn.disabled = true
-  btn.textContent = 'Speichert...'
-
+async function persistiereLebenslauf() {
   const updates = {
     schule: document.getElementById('cv-schule').value,
     klasse: document.getElementById('cv-klasse').value,
     lebenslauf_bloecke: bloecke
   }
-
   const { error } = await supabase.from('profiles').update(updates).eq('id', profile.id)
+  if (!error) profile = { ...profile, ...updates }
+  return !error
+}
+
+async function speichereLebenslauf() {
+  const btn = document.getElementById('cv-save-btn')
+  btn.disabled = true
+  btn.textContent = 'Speichert...'
+
+  const ok = await persistiereLebenslauf()
 
   btn.disabled = false
   btn.textContent = 'Lebenslauf speichern'
 
-  if (error) {
-    alert('Fehler: ' + error.message)
+  if (!ok) {
+    alert('Fehler beim Speichern.')
     return
   }
 
-  profile = { ...profile, ...updates }
   alert('Lebenslauf gespeichert!')
 }
 
@@ -444,12 +448,15 @@ async function ladeJobs() {
   })
 }
 
-function oeffneBewerbungsModal(jobId, jobTitel, btn) {
+async function oeffneBewerbungsModal(jobId, jobTitel, btn) {
   if (!profile.verifiziert) {
     alert('Du musst dich erst als Schüler verifizieren, bevor du dich bewerben kannst.')
     document.querySelector('.sidebar-item[data-view="verifizierung"]').click()
     return
   }
+
+  // Lebenslauf-Stand vor der Prüfung sichern, damit Firmen immer den aktuellen Stand sehen
+  await persistiereLebenslauf()
 
   if (!lebenslaufVollstaendig()) {
     alert('Bitte fülle zuerst deinen Lebenslauf aus (Schule + mind. ein Abschnitt), bevor du dich bewirbst.')

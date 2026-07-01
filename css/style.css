@@ -230,6 +230,17 @@ section { padding: 80px 24px; }
 .consent-label { display: flex; align-items: flex-start; gap: 10px; font-weight: 500; font-size: 0.85rem; cursor: pointer; }
 .consent-label input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; accent-color: var(--match-green); cursor: pointer; }
 
+/* JOB FILTER */
+.filter-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+.filter-row input, .filter-row select {
+  padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px;
+  font-family: 'Inter', sans-serif; font-size: 0.9rem; background: var(--card); color: var(--ink);
+  outline: none; transition: border-color 0.15s;
+}
+.filter-row input:focus, .filter-row select:focus { border-color: var(--match-green); }
+.filter-row input { flex: 1; min-width: 180px; }
+.filter-row select { min-width: 160px; }
+
 /* JOBS LIST */
 .jobs-page { max-width: 1120px; margin: 0 auto; padding: 40px 24px; }
 .jobs-header { margin-bottom: 32px; }
