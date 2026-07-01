@@ -253,6 +253,7 @@ section { padding: 80px 24px; }
 }
 .job-card h3 { font-size: 1.05rem; margin-bottom: 4px; }
 .job-card .company-name { font-size: 0.88rem; color: var(--ink-soft); margin-bottom: 12px; }
+.job-description { font-size: 0.85rem; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.5; }
 .job-meta { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.82rem; color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; }
 
 /* FOOTER */

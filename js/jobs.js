@@ -22,6 +22,7 @@ async function ladeJobs() {
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
       <p class="company-name">${escapeHtml(job.ort || '')}</p>
+      ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
       <div class="job-meta">
         <span>${job.stundenlohn ? job.stundenlohn + ' €/Std' : ''}</span>
         <span>${escapeHtml(job.verfuegbarkeit || '')}</span>
