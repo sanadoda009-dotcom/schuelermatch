@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mein Dashboard – SchülerMatch</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo"><span class="logo-mark">SM</span> SchülerMatch</a>
+  <div class="nav-links">
+    <span id="user-name" class="mono"></span>
+  </div>
+  <button id="logout-btn" class="btn btn-outline">Logout</button>
+</nav>
+
+<main class="jobs-page">
+  <div class="jobs-header">
+    <h1>Deine Matches</h1>
+    <p style="color:var(--ink-soft);">Jobs die zu deinem Alter passen.</p>
+  </div>
+
+  <div class="jobs-grid" id="jobs-grid">
+    <p>Lade Jobs...</p>
+  </div>
+</main>
+
+<script type="module" src="js/dashboard-schueler.js"></script>
+</body>
+</html>

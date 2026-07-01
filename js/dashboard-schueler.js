@@ -1,0 +1,83 @@
+import { supabase } from './supabase.js'
+import { requireAuth, logout } from './session.js'
+
+let profile
+
+async function init() {
+  profile = await requireAuth('schueler')
+  if (!profile) return
+
+  document.getElementById('user-name').textContent = profile.name || 'Schüler'
+  document.getElementById('logout-btn').addEventListener('click', logout)
+
+  await ladeJobs()
+}
+
+async function ladeJobs() {
+  const grid = document.getElementById('jobs-grid')
+
+  let query = supabase.from('jobs').select('*').eq('aktiv', true)
+  if (profile.alter_jahre) {
+    query = query.lte('mindestalter', profile.alter_jahre)
+  }
+
+  const { data: jobs, error } = await query.order('erstellt_am', { ascending: false })
+
+  if (error || !jobs?.length) {
+    grid.innerHTML = '<p style="color:var(--ink-soft);">Aktuell keine passenden Jobs verfügbar.</p>'
+    return
+  }
+
+  const { data: bewerbungen } = await supabase
+    .from('bewerbungen')
+    .select('job_id')
+    .eq('schueler_id', profile.id)
+  const beworbenIds = new Set((bewerbungen || []).map(b => b.job_id))
+
+  grid.innerHTML = jobs.map(job => `
+    <div class="job-card">
+      <div class="job-card-top">
+        <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
+        <span class="job-badge">ab ${job.mindestalter} J.</span>
+      </div>
+      <h3>${escapeHtml(job.titel)}</h3>
+      <p class="company-name">${escapeHtml(job.ort || '')}</p>
+      <div class="job-meta">
+        <span>${job.stundenlohn ? job.stundenlohn + ' €/Std' : ''}</span>
+        <span>${escapeHtml(job.verfuegbarkeit || '')}</span>
+      </div>
+      <button class="btn ${beworbenIds.has(job.id) ? 'btn-outline' : 'btn-green'} btn-full" style="margin-top:14px;" data-job-id="${job.id}" ${beworbenIds.has(job.id) ? 'disabled' : ''}>
+        ${beworbenIds.has(job.id) ? 'Bereits beworben' : 'Jetzt bewerben'}
+      </button>
+    </div>
+  `).join('')
+
+  grid.querySelectorAll('button[data-job-id]').forEach(btn => {
+    btn.addEventListener('click', () => bewerben(btn.dataset.jobId, btn))
+  })
+}
+
+async function bewerben(jobId, btn) {
+  btn.disabled = true
+  btn.textContent = 'Wird gesendet...'
+
+  const { error } = await supabase.from('bewerbungen').insert({ job_id: jobId, schueler_id: profile.id })
+
+  if (error) {
+    btn.textContent = 'Fehler – nochmal versuchen'
+    btn.disabled = false
+    return
+  }
+
+  btn.textContent = 'Bereits beworben'
+  btn.classList.remove('btn-green')
+  btn.classList.add('btn-outline')
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div')
+  div.textContent = str
+  return div.innerHTML
+}
+
+init()

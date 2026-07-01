@@ -229,6 +229,12 @@ footer .logo { color: white; }
   padding: 10px 16px; font-size: 0.85rem; font-family: 'IBM Plex Mono', monospace;
 }
 
+/* POST JOB BOX (Firmen-Dashboard) */
+.post-job-box {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 32px; max-width: 640px;
+}
+
 /* AUTH MESSAGES */
 .auth-msg {
   padding: 12px 14px; border-radius: 10px;

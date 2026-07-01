@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firmen-Dashboard – SchülerMatch</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo"><span class="logo-mark">SM</span> SchülerMatch</a>
+  <div class="nav-links">
+    <span id="user-name" class="mono"></span>
+  </div>
+  <button id="logout-btn" class="btn btn-outline">Logout</button>
+</nav>
+
+<main class="jobs-page">
+  <div class="jobs-header">
+    <h1>Job posten</h1>
+    <p style="color:var(--ink-soft);">Kostenlos, in wenigen Minuten online.</p>
+  </div>
+
+  <div class="post-job-box">
+    <form id="job-form">
+      <div class="form-group">
+        <label for="job-titel">Job-Titel</label>
+        <input type="text" id="job-titel" placeholder="z.B. Eisverkäufer/in (Sa/So)" required>
+      </div>
+      <div class="form-group">
+        <label for="job-beschreibung">Beschreibung</label>
+        <input type="text" id="job-beschreibung" placeholder="Kurze Beschreibung der Aufgabe">
+      </div>
+      <div class="form-group">
+        <label for="job-ort">Ort</label>
+        <input type="text" id="job-ort" placeholder="z.B. München" required>
+      </div>
+      <div class="form-group">
+        <label for="job-lohn">Stundenlohn (€)</label>
+        <input type="number" id="job-lohn" placeholder="z.B. 12" step="0.5">
+      </div>
+      <div class="form-group">
+        <label for="job-mindestalter">Mindestalter</label>
+        <select id="job-mindestalter">
+          <option value="13">13</option>
+          <option value="14">14</option>
+          <option value="15" selected>15</option>
+          <option value="16">16</option>
+          <option value="17">17</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="job-verfuegbarkeit">Verfügbarkeit</label>
+        <input type="text" id="job-verfuegbarkeit" placeholder="z.B. Sa-So oder Flexibel">
+      </div>
+      <button type="submit" class="btn btn-green">Job posten</button>
+    </form>
+  </div>
+
+  <div class="jobs-header" style="margin-top:56px;">
+    <h1 style="font-size:1.5rem;">Deine Jobs</h1>
+  </div>
+  <div class="jobs-grid" id="meine-jobs">
+    <p>Lade...</p>
+  </div>
+</main>
+
+<script type="module" src="js/dashboard-firma.js"></script>
+</body>
+</html>
