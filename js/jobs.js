@@ -27,17 +27,20 @@ async function ladeJobs() {
   document.getElementById('filter-suche').addEventListener('input', wendeFilterAn)
   document.getElementById('filter-ort').addEventListener('input', wendeFilterAn)
   document.getElementById('filter-alter').addEventListener('change', wendeFilterAn)
+  document.getElementById('filter-gehalt').addEventListener('change', wendeFilterAn)
 }
 
 function wendeFilterAn() {
   const suche = document.getElementById('filter-suche').value.trim().toLowerCase()
   const ort = document.getElementById('filter-ort').value.trim().toLowerCase()
   const alter = parseInt(document.getElementById('filter-alter').value) || null
+  const gehalt = parseFloat(document.getElementById('filter-gehalt').value) || null
 
   const gefiltert = alleJobs.filter(job => {
     if (suche && !(job.titel || '').toLowerCase().includes(suche)) return false
     if (ort && !(job.ort || '').toLowerCase().includes(ort)) return false
     if (alter && job.mindestalter > alter) return false
+    if (gehalt && !(job.stundenlohn >= gehalt)) return false
     return true
   })
 

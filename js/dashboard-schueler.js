@@ -40,7 +40,7 @@ async function init() {
       ]
 
   document.querySelectorAll('.block-add-btn').forEach(btn => {
-    btn.addEventListener('click', () => neuerBlock(btn.dataset.add))
+    btn.addEventListener('click', () => neuerBlock(btn.dataset.add, btn.dataset.titel))
   })
 
   document.getElementById('cv-save-btn').addEventListener('click', speichereLebenslauf)
@@ -79,6 +79,7 @@ async function init() {
 
   document.getElementById('filter-suche').addEventListener('input', wendeJobFilterAn)
   document.getElementById('filter-ort').addEventListener('input', wendeJobFilterAn)
+  document.getElementById('filter-gehalt').addEventListener('change', wendeJobFilterAn)
 
   await ladeJobs()
 }
@@ -95,8 +96,8 @@ function cryptoId() {
 
 /* ---------- BLOCK-EDITOR ---------- */
 
-function neuerBlock(typ) {
-  const basis = { id: cryptoId(), typ, titel: '' }
+function neuerBlock(typ, titel) {
+  const basis = { id: cryptoId(), typ, titel: titel || '' }
   if (typ === 'text') basis.inhalt = ''
   if (typ === 'skills') basis.tags = ''
   if (typ === 'bild') basis.bild_url = ''
@@ -145,7 +146,10 @@ function renderBlockEditor() {
       ${b.typ === 'skills' ? `<input type="text" class="block-tags-input" placeholder="Komma-getrennt, z.B. Zuverlässig, Teamfähig" value="${escapeHtml(b.tags || '')}">` : ''}
       ${b.typ === 'bild' ? `
         <input type="file" class="block-bild-input" accept="image/*" style="display:none;">
-        <button type="button" class="btn btn-outline block-bild-btn" style="padding:8px 14px; font-size:0.82rem;">Bild auswählen</button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-outline block-bild-btn" style="padding:8px 14px; font-size:0.82rem;">${b.bild_url ? 'Bild ändern' : 'Bild auswählen'}</button>
+          ${b.bild_url ? `<button type="button" class="btn btn-outline block-bild-remove" style="padding:8px 14px; font-size:0.82rem; color:var(--coral);">Entfernen</button>` : ''}
+        </div>
         ${b.bild_url ? `<img src="${b.bild_url}" class="block-image-preview">` : ''}
       ` : ''}
     </div>
@@ -168,6 +172,11 @@ function renderBlockEditor() {
       bildBtn.addEventListener('click', () => bildInput.click())
       bildInput.addEventListener('change', (e) => ladeBlockBildHoch(id, e.target.files[0]))
     }
+    el.querySelector('.block-bild-remove')?.addEventListener('click', () => {
+      block.bild_url = ''
+      renderBlockEditor()
+      renderCvPreview()
+    })
   })
 }
 
@@ -198,14 +207,14 @@ function renderCvPreview() {
 
   const blockHtml = bloecke.map(b => {
     if (b.typ === 'text') {
-      return `<div class="cv-preview-section">${b.titel ? `<h4>${escapeHtml(b.titel)}</h4>` : ''}${b.inhalt ? `<p>${escapeHtml(b.inhalt)}</p>` : '<p class="cv-preview-empty">Noch keine Angaben</p>'}</div>`
+      return `<div class="cv-preview-section"><h4>${ICONS.text}${escapeHtml(b.titel || 'Abschnitt')}</h4>${b.inhalt ? `<p>${escapeHtml(b.inhalt)}</p>` : '<p class="cv-preview-empty">Noch keine Angaben</p>'}</div>`
     }
     if (b.typ === 'skills') {
       const tags = (b.tags || '').split(',').map(t => t.trim()).filter(Boolean)
-      return `<div class="cv-preview-section"><h4>${escapeHtml(b.titel || 'Fähigkeiten')}</h4>${tags.length ? `<div class="cv-tags">${tags.map(t => `<span class="cv-tag">${escapeHtml(t)}</span>`).join('')}</div>` : '<p class="cv-preview-empty">Noch keine Angaben</p>'}</div>`
+      return `<div class="cv-preview-section"><h4>${ICONS.tag}${escapeHtml(b.titel || 'Fähigkeiten')}</h4>${tags.length ? `<div class="cv-tags">${tags.map(t => `<span class="cv-tag">${escapeHtml(t)}</span>`).join('')}</div>` : '<p class="cv-preview-empty">Noch keine Angaben</p>'}</div>`
     }
     if (b.typ === 'bild') {
-      return `<div class="cv-preview-section">${b.titel ? `<h4>${escapeHtml(b.titel)}</h4>` : ''}${b.bild_url ? `<img src="${b.bild_url}" style="max-width:100%; border-radius:10px;">` : '<p class="cv-preview-empty">Noch kein Bild hochgeladen</p>'}</div>`
+      return `<div class="cv-preview-section"><h4>${ICONS.image}${escapeHtml(b.titel || 'Bild')}</h4>${b.bild_url ? `<img src="${b.bild_url}" class="cv-preview-image">` : '<p class="cv-preview-empty">Noch kein Bild hochgeladen</p>'}</div>`
     }
     return ''
   }).join('')
@@ -220,6 +229,28 @@ function renderCvPreview() {
     </div>
     ${blockHtml}
   `
+
+  aktualisiereFortschritt()
+}
+
+function aktualisiereFortschritt() {
+  const schule = document.getElementById('cv-schule').value.trim()
+  const hatAbschnitt = bloecke.some(b =>
+    (b.typ === 'text' && b.inhalt?.trim()) ||
+    (b.typ === 'skills' && b.tags?.trim()) ||
+    (b.typ === 'bild' && b.bild_url)
+  )
+
+  const items = [
+    { label: 'Profilbild', done: Boolean(profile.foto_url) },
+    { label: 'Schule', done: Boolean(schule) },
+    { label: 'Min. 1 Abschnitt', done: hatAbschnitt },
+    { label: 'Verifizierung', done: Boolean(profile.verifiziert) }
+  ]
+
+  document.getElementById('cv-progress').innerHTML = items.map(i => `
+    <span class="cv-progress-item ${i.done ? 'done' : ''}">${i.done ? '✓' : '○'} ${i.label}</span>
+  `).join('')
 }
 
 async function persistiereLebenslauf() {
@@ -436,10 +467,12 @@ async function ladeJobs() {
 function wendeJobFilterAn() {
   const suche = document.getElementById('filter-suche').value.trim().toLowerCase()
   const ort = document.getElementById('filter-ort').value.trim().toLowerCase()
+  const gehalt = parseFloat(document.getElementById('filter-gehalt').value) || null
 
   const gefiltert = alleJobs.filter(job => {
     if (suche && !(job.titel || '').toLowerCase().includes(suche)) return false
     if (ort && !(job.ort || '').toLowerCase().includes(ort)) return false
+    if (gehalt && !(job.stundenlohn >= gehalt)) return false
     return true
   })
 

@@ -444,8 +444,11 @@ footer .logo { color: white; }
 .cv-preview-section h4 {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; text-transform: uppercase;
   letter-spacing: 0.5px; color: var(--match-green-dark); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
 }
+.section-icon { width: 14px; height: 14px; flex-shrink: 0; }
 .cv-preview-section p { font-size: 0.9rem; color: var(--ink); line-height: 1.6; margin: 0; }
+.cv-preview-image { width: 100%; max-height: 220px; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); display: block; }
 .cv-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .cv-tag {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
@@ -481,9 +484,17 @@ footer .logo { color: white; }
   font-family: 'Inter', sans-serif; font-size: 0.9rem; background: var(--card); margin-bottom: 8px;
 }
 .block-item textarea { min-height: 90px; resize: vertical; }
-.block-image-preview { max-width: 100%; border-radius: 10px; margin-top: 8px; display: block; }
+.block-image-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px; margin-top: 8px; display: block; border: 1px solid var(--line); }
 .block-add-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .block-add-btn { padding: 9px 16px; font-size: 0.85rem; }
+
+/* CV FORTSCHRITT */
+.cv-progress { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.cv-progress-item {
+  display: flex; align-items: center; gap: 5px; font-size: 0.75rem; font-family: 'IBM Plex Mono', monospace;
+  padding: 6px 12px; border-radius: 100px; border: 1px solid var(--line); color: var(--ink-soft); background: var(--paper);
+}
+.cv-progress-item.done { border-color: rgba(0,200,150,0.35); background: rgba(0,200,150,0.08); color: var(--match-green-dark); }
 
 /* MODAL (Bewerbungsformular) */
 .modal-overlay {

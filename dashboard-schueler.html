@@ -37,7 +37,15 @@
     </div>
     <div class="filter-row">
       <input type="text" id="filter-suche" placeholder="Job-Titel durchsuchen...">
-      <input type="text" id="filter-ort" placeholder="Ort (z.B. München)">
+      <input type="text" id="filter-ort" placeholder="Stadt (z.B. München)">
+      <select id="filter-gehalt">
+        <option value="">Jeder Lohn</option>
+        <option value="8">ab 8 €/Std</option>
+        <option value="10">ab 10 €/Std</option>
+        <option value="12">ab 12 €/Std</option>
+        <option value="14">ab 14 €/Std</option>
+        <option value="16">ab 16 €/Std</option>
+      </select>
     </div>
     <div class="jobs-grid" id="jobs-grid">
       <p>Lade Jobs...</p>
@@ -49,7 +57,9 @@
     <div class="cv-builder">
       <div class="cv-editor">
         <h3 style="margin-bottom:6px;">Dein Lebenslauf</h3>
-        <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:20px;">Baue deinen Lebenslauf aus eigenen Abschnitten – ganz wie du willst.</p>
+        <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:16px;">Baue deinen Lebenslauf aus eigenen Abschnitten – ganz wie du willst.</p>
+
+        <div class="cv-progress" id="cv-progress"></div>
 
         <div class="form-group">
           <label>Profilbild</label>
@@ -79,9 +89,12 @@
         <div class="block-list" id="block-list"></div>
 
         <div class="block-add-row">
-          <button type="button" class="btn btn-outline block-add-btn" data-add="text">+ Textabschnitt</button>
-          <button type="button" class="btn btn-outline block-add-btn" data-add="skills">+ Fähigkeiten</button>
-          <button type="button" class="btn btn-outline block-add-btn" data-add="bild">+ Bild</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="">+ Textabschnitt</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="skills" data-titel="Fähigkeiten">+ Fähigkeiten</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="skills" data-titel="Sprachen">+ Sprachen</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="skills" data-titel="Interessen">+ Interessen</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Ausbildung & Praktika">+ Ausbildung</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="bild" data-titel="">+ Bild</button>
         </div>
 
         <button type="button" id="cv-save-btn" class="btn btn-green" style="margin-top:22px;">Lebenslauf speichern</button>
