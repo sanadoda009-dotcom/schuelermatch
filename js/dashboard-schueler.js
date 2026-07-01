@@ -10,6 +10,44 @@ async function init() {
   document.getElementById('user-name').textContent = profile.name || 'Schüler'
   document.getElementById('logout-btn').addEventListener('click', logout)
 
+  document.getElementById('profile-name').value = profile.name || ''
+  document.getElementById('profile-alter').value = profile.alter_jahre || 15
+  document.getElementById('profile-ort').value = profile.ort || ''
+
+  document.getElementById('toggle-profile-btn').addEventListener('click', () => {
+    const box = document.getElementById('profile-box')
+    box.style.display = box.style.display === 'none' ? 'block' : 'none'
+  })
+  document.getElementById('profile-form').addEventListener('submit', speichereProfil)
+
+  await ladeJobs()
+}
+
+async function speichereProfil(e) {
+  e.preventDefault()
+  const btn = e.target.querySelector('button[type=submit]')
+  btn.disabled = true
+  btn.textContent = 'Speichert...'
+
+  const updates = {
+    name: document.getElementById('profile-name').value,
+    alter_jahre: parseInt(document.getElementById('profile-alter').value),
+    ort: document.getElementById('profile-ort').value
+  }
+
+  const { error } = await supabase.from('profiles').update(updates).eq('id', profile.id)
+
+  btn.disabled = false
+  btn.textContent = 'Speichern'
+
+  if (error) {
+    alert('Fehler: ' + error.message)
+    return
+  }
+
+  profile = { ...profile, ...updates }
+  document.getElementById('user-name').textContent = profile.name
+  document.getElementById('profile-box').style.display = 'none'
   await ladeJobs()
 }
 

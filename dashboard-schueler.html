@@ -19,8 +19,34 @@
 
 <main class="jobs-page">
   <div class="jobs-header">
-    <h1>Deine Matches</h1>
-    <p style="color:var(--ink-soft);">Jobs die zu deinem Alter passen.</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <div>
+        <h1>Deine Matches</h1>
+        <p style="color:var(--ink-soft);">Jobs die zu deinem Alter passen.</p>
+      </div>
+      <button id="toggle-profile-btn" class="btn btn-outline">Profil bearbeiten</button>
+    </div>
+  </div>
+
+  <div class="post-job-box" id="profile-box" style="display:none; margin-bottom:40px;">
+    <form id="profile-form">
+      <div class="form-group">
+        <label for="profile-name">Vorname</label>
+        <input type="text" id="profile-name" required>
+      </div>
+      <div class="form-group">
+        <label for="profile-alter">Alter</label>
+        <select id="profile-alter">
+          <option value="13">13</option><option value="14">14</option><option value="15">15</option>
+          <option value="16">16</option><option value="17">17</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="profile-ort">Wohnort / PLZ</label>
+        <input type="text" id="profile-ort">
+      </div>
+      <button type="submit" class="btn btn-green">Speichern</button>
+    </form>
   </div>
 
   <div class="jobs-grid" id="jobs-grid">
