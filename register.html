@@ -35,17 +35,17 @@
       <div id="schueler-fields">
         <div class="form-group">
           <label for="alter">Alter</label>
-          <select id="alter">
+          <select id="alter" onchange="toggleEinwilligung()">
             <option value="">Bitte wählen</option>
-            <option>13</option><option>14</option><option>15</option>
-            <option>16</option><option>17</option>
+            <option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+            <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
           </select>
         </div>
         <div class="form-group">
           <label for="ort">Wohnort / PLZ</label>
           <input type="text" id="ort" placeholder="z.B. München oder 80331">
         </div>
-        <div class="form-group consent-group">
+        <div class="form-group consent-group" id="consent-group">
           <label class="consent-label">
             <input type="checkbox" id="eltern-einwilligung">
             Ich habe die Erlaubnis meiner Eltern bzw. Erziehungsberechtigten, mich hier zu registrieren.
@@ -99,6 +99,12 @@
   // URL-Parameter auslesen: register.html?rolle=firma
   const params = new URLSearchParams(window.location.search);
   if (params.get('rolle') === 'firma') setRole('firma');
+
+  function toggleEinwilligung() {
+    const alter = parseInt(document.getElementById('alter').value);
+    const zeigen = !alter || alter < 16;
+    document.getElementById('consent-group').style.display = zeigen ? 'block' : 'none';
+  }
 </script>
 </body>
 </html>

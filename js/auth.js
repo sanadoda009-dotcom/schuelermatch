@@ -47,7 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
         alter = document.getElementById('alter').value
         ort = document.getElementById('ort').value
 
-        if (!document.getElementById('eltern-einwilligung').checked) {
+        const braucht16 = !alter || parseInt(alter) < 16
+        if (braucht16 && !document.getElementById('eltern-einwilligung').checked) {
           showError(registerForm, 'Bitte bestätige die Einwilligung deiner Eltern.')
           return
         }
