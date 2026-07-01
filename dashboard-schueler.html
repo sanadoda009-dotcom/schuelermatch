@@ -30,6 +30,15 @@
     <div class="stats-row" id="stats-row"></div>
   </div>
 
+  <div class="verify-banner" id="verify-banner"></div>
+
+  <div class="post-job-box" id="verify-box" style="display:none; margin-bottom:40px; max-width:640px;">
+    <h3 style="margin-bottom:6px;">Als Schüler verifizieren</h3>
+    <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:20px;">Lade ein Foto deines Schülerausweises hoch. Wir prüfen das manuell und schalten dich danach frei – dauert meist 1-2 Tage.</p>
+    <input type="file" id="ausweis-datei" accept="image/*,application/pdf" style="display:none;">
+    <button type="button" id="ausweis-btn" class="btn btn-green">Schülerausweis hochladen</button>
+  </div>
+
   <div class="post-job-box" id="profile-box" style="display:none; margin-bottom:40px;">
     <form id="profile-form">
       <div class="form-group">
@@ -94,11 +103,24 @@
           <label for="cv-ueber-mich">Über mich</label>
           <textarea id="cv-ueber-mich" placeholder="Was macht dich aus? Warum sollte man dich einstellen?"></textarea>
         </div>
+        <div class="form-group">
+          <label for="cv-motivation">Motivationsschreiben</label>
+          <textarea id="cv-motivation" placeholder="Warum interessierst du dich für Minijobs? Was ist dir wichtig?" style="min-height:120px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Zeugnis (optional)</label>
+          <input type="file" id="cv-zeugnis" accept="image/*,application/pdf" style="display:none;">
+          <button type="button" id="cv-zeugnis-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Zeugnis hochladen</button>
+          <p class="mono" id="cv-zeugnis-status" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">Kein Zeugnis hochgeladen</p>
+        </div>
         <button type="submit" class="btn btn-green">Lebenslauf speichern</button>
       </form>
     </div>
 
-    <div class="cv-preview" id="cv-preview"></div>
+    <div>
+      <div class="cv-preview" id="cv-preview"></div>
+      <button type="button" id="cv-download-btn" class="btn btn-dark btn-full" style="margin-top:14px;">Als PDF herunterladen</button>
+    </div>
   </div>
 
   <div class="jobs-grid" id="jobs-grid">
@@ -106,6 +128,7 @@
   </div>
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script type="module" src="js/dashboard-schueler.js"></script>
 </body>
 </html>

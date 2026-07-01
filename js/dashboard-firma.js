@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
+import { ladeLebenslaufAlsPdf } from './pdf.js'
 
 let profile
 let editingJobId = null
@@ -142,7 +143,7 @@ async function ladeEigeneJobs() {
 
   const { data: bewerbungen } = await supabase
     .from('bewerbungen')
-    .select('job_id, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, erfahrung, ueber_mich, faehigkeiten, foto_url)')
+    .select('job_id, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, erfahrung, ueber_mich, faehigkeiten, foto_url, zeugnis_url, motivationsschreiben)')
     .in('job_id', jobs.map(j => j.id))
 
   renderStats(jobs.length, bewerbungen?.length || 0)
@@ -173,23 +174,21 @@ async function ladeEigeneJobs() {
       </div>
       <div class="bewerber-list">
         <p class="bewerber-title">${bewerber.length} Bewerbung(en)</p>
-        ${bewerber.map(b => {
-          const tags = (b.faehigkeiten || '').split(',').map(t => t.trim()).filter(Boolean)
-          return `
+        ${bewerber.map((b, idx) => `
           <div class="bewerber-item">
-            <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
+            <div style="display:flex; gap:10px; align-items:center;">
               <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${b.foto_url ? `background-image:url(${b.foto_url})` : ''}">${b.foto_url ? '' : escapeHtml((b.name || '?')[0].toUpperCase())}</div>
               <div>
                 <strong>${escapeHtml(b.name || 'Unbekannt')}</strong>, ${b.alter_jahre || '?'} Jahre – ${escapeHtml(b.ort || '')}<br>
                 <a href="mailto:${escapeHtml(b.email || '')}" class="mono">${escapeHtml(b.email || '')}</a>
               </div>
             </div>
-            ${b.schule ? `<div class="cv-block"><strong>Schule:</strong> ${escapeHtml(b.schule)}${b.klasse ? ', ' + escapeHtml(b.klasse) : ''}</div>` : ''}
-            ${tags.length ? `<div class="cv-block cv-tags">${tags.map(t => `<span class="cv-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
-            ${b.erfahrung ? `<div class="cv-block"><strong>Erfahrung:</strong> ${escapeHtml(b.erfahrung)}</div>` : ''}
-            ${b.ueber_mich ? `<div class="cv-block"><strong>Über sich:</strong> ${escapeHtml(b.ueber_mich)}</div>` : ''}
+            <div style="display:flex; gap:8px; margin-top:10px;">
+              <button class="btn btn-dark" style="flex:1; padding:8px; font-size:0.82rem;" data-pdf-job="${job.id}" data-pdf-idx="${idx}">Lebenslauf (PDF)</button>
+              ${b.zeugnis_url ? `<button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem;" data-zeugnis-job="${job.id}" data-zeugnis-idx="${idx}">Zeugnis</button>` : ''}
+            </div>
           </div>
-        `}).join('')}
+        `).join('')}
       </div>
     </div>
   `}).join('')
@@ -202,6 +201,32 @@ async function ladeEigeneJobs() {
   })
   list.querySelectorAll('[data-delete]').forEach(btn => {
     btn.addEventListener('click', () => loescheJob(btn.dataset.delete))
+  })
+  list.querySelectorAll('[data-pdf-job]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const b = bewerberByJob[btn.dataset.pdfJob][btn.dataset.pdfIdx]
+      btn.disabled = true
+      btn.textContent = 'Wird erstellt...'
+      ladeLebenslaufAlsPdf(b).finally(() => {
+        btn.disabled = false
+        btn.textContent = 'Lebenslauf (PDF)'
+      })
+    })
+  })
+  list.querySelectorAll('[data-zeugnis-job]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const b = bewerberByJob[btn.dataset.zeugnisJob][btn.dataset.zeugnisIdx]
+      btn.disabled = true
+      btn.textContent = 'Lädt...'
+      const { data, error } = await supabase.storage.from('zeugnisse').createSignedUrl(b.zeugnis_url, 60)
+      btn.disabled = false
+      btn.textContent = 'Zeugnis'
+      if (error) {
+        alert('Fehler: ' + error.message)
+        return
+      }
+      window.open(data.signedUrl, '_blank')
+    })
   })
 }
 

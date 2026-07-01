@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
+import { ladeLebenslaufAlsPdf } from './pdf.js'
 
 let profile
 
@@ -26,7 +27,9 @@ async function init() {
   document.getElementById('cv-faehigkeiten').value = profile.faehigkeiten || ''
   document.getElementById('cv-erfahrung').value = profile.erfahrung || ''
   document.getElementById('cv-ueber-mich').value = profile.ueber_mich || ''
+  document.getElementById('cv-motivation').value = profile.motivationsschreiben || ''
   setzePhotoPreview(profile.foto_url)
+  setzeZeugnisStatus()
 
   document.getElementById('toggle-lebenslauf-btn').addEventListener('click', () => {
     const box = document.getElementById('lebenslauf-box')
@@ -39,9 +42,105 @@ async function init() {
   document.getElementById('cv-foto-btn').addEventListener('click', () => document.getElementById('cv-foto').click())
   document.getElementById('cv-foto').addEventListener('change', ladeFotoHoch)
 
+  document.getElementById('cv-zeugnis-btn').addEventListener('click', () => document.getElementById('cv-zeugnis').click())
+  document.getElementById('cv-zeugnis').addEventListener('change', ladeZeugnisHoch)
+
+  document.getElementById('cv-download-btn').addEventListener('click', () => {
+    ladeLebenslaufAlsPdf({ ...profile, motivationsschreiben: document.getElementById('cv-motivation').value })
+  })
+
+  document.getElementById('ausweis-btn').addEventListener('click', () => document.getElementById('ausweis-datei').click())
+  document.getElementById('ausweis-datei').addEventListener('change', ladeAusweisHoch)
+
+  renderVerifyBanner()
   renderCvPreview()
 
   await ladeJobs()
+}
+
+function renderVerifyBanner() {
+  const banner = document.getElementById('verify-banner')
+  const verifyBox = document.getElementById('verify-box')
+
+  if (profile.verifiziert) {
+    banner.innerHTML = `<div class="verify-badge verify-badge--ok">✓ Als Schüler verifiziert</div>`
+    verifyBox.style.display = 'none'
+  } else if (profile.schuelerausweis_url) {
+    banner.innerHTML = `<div class="verify-badge verify-badge--pending">⏳ Verifizierung ausstehend – wir prüfen deinen Ausweis</div>`
+    verifyBox.style.display = 'none'
+  } else {
+    banner.innerHTML = `<div class="verify-badge verify-badge--missing">⚠ Noch nicht verifiziert – erforderlich um dich zu bewerben</div>`
+    verifyBox.style.display = 'block'
+  }
+}
+
+async function ladeAusweisHoch(e) {
+  const file = e.target.files[0]
+  if (!file) return
+
+  const btn = document.getElementById('ausweis-btn')
+  btn.disabled = true
+  btn.textContent = 'Wird hochgeladen...'
+
+  const ext = file.name.split('.').pop()
+  const path = `${profile.id}/ausweis.${ext}`
+
+  const { error: uploadError } = await supabase.storage.from('verifizierung').upload(path, file, { upsert: true })
+
+  btn.disabled = false
+  btn.textContent = 'Schülerausweis hochladen'
+
+  if (uploadError) {
+    alert('Fehler beim Hochladen: ' + uploadError.message)
+    return
+  }
+
+  const { error: updateError } = await supabase.from('profiles').update({ schuelerausweis_url: path }).eq('id', profile.id)
+
+  if (updateError) {
+    alert('Fehler beim Speichern: ' + updateError.message)
+    return
+  }
+
+  profile.schuelerausweis_url = path
+  renderVerifyBanner()
+  alert('Danke! Wir prüfen deinen Ausweis und schalten dich bald frei.')
+}
+
+function setzeZeugnisStatus() {
+  document.getElementById('cv-zeugnis-status').textContent = profile.zeugnis_url ? 'Zeugnis hochgeladen ✓' : 'Kein Zeugnis hochgeladen'
+}
+
+async function ladeZeugnisHoch(e) {
+  const file = e.target.files[0]
+  if (!file) return
+
+  const btn = document.getElementById('cv-zeugnis-btn')
+  btn.disabled = true
+  btn.textContent = 'Wird hochgeladen...'
+
+  const ext = file.name.split('.').pop()
+  const path = `${profile.id}/zeugnis.${ext}`
+
+  const { error: uploadError } = await supabase.storage.from('zeugnisse').upload(path, file, { upsert: true })
+
+  btn.disabled = false
+  btn.textContent = 'Zeugnis hochladen'
+
+  if (uploadError) {
+    alert('Fehler beim Hochladen: ' + uploadError.message)
+    return
+  }
+
+  const { error: updateError } = await supabase.from('profiles').update({ zeugnis_url: path }).eq('id', profile.id)
+
+  if (updateError) {
+    alert('Fehler beim Speichern: ' + updateError.message)
+    return
+  }
+
+  profile.zeugnis_url = path
+  setzeZeugnisStatus()
 }
 
 function setzePhotoPreview(url) {
@@ -107,6 +206,7 @@ function renderCvPreview() {
   const faehigkeiten = document.getElementById('cv-faehigkeiten').value
   const erfahrung = document.getElementById('cv-erfahrung').value
   const ueberMich = document.getElementById('cv-ueber-mich').value
+  const motivation = document.getElementById('cv-motivation').value
   const fotoUrl = profile.foto_url
 
   const tags = faehigkeiten.split(',').map(t => t.trim()).filter(Boolean)
@@ -132,6 +232,10 @@ function renderCvPreview() {
       <h4>Über mich</h4>
       ${ueberMich ? `<p>${escapeHtml(ueberMich)}</p>` : '<p class="cv-preview-empty">Noch keine Angaben</p>'}
     </div>
+    <div class="cv-preview-section">
+      <h4>Motivationsschreiben</h4>
+      ${motivation ? `<p>${escapeHtml(motivation)}</p>` : '<p class="cv-preview-empty">Noch keine Angaben</p>'}
+    </div>
   `
 }
 
@@ -146,7 +250,8 @@ async function speichereLebenslauf(e) {
     klasse: document.getElementById('cv-klasse').value,
     faehigkeiten: document.getElementById('cv-faehigkeiten').value,
     erfahrung: document.getElementById('cv-erfahrung').value,
-    ueber_mich: document.getElementById('cv-ueber-mich').value
+    ueber_mich: document.getElementById('cv-ueber-mich').value,
+    motivationsschreiben: document.getElementById('cv-motivation').value
   }
 
   const { error } = await supabase.from('profiles').update(updates).eq('id', profile.id)
@@ -248,9 +353,16 @@ async function ladeJobs() {
 }
 
 async function bewerben(jobId, btn) {
+  if (!profile.verifiziert) {
+    alert('Du musst dich erst als Schüler verifizieren, bevor du dich bewerben kannst.')
+    document.getElementById('verify-box').style.display = 'block'
+    document.getElementById('verify-box').scrollIntoView({ behavior: 'smooth' })
+    return
+  }
+
   if (!lebenslaufVollstaendig()) {
     alert('Bitte fülle zuerst deinen Lebenslauf aus, bevor du dich bewirbst.')
-    document.getElementById('lebenslauf-box').style.display = 'block'
+    document.getElementById('lebenslauf-box').style.display = 'grid'
     document.getElementById('lebenslauf-box').scrollIntoView({ behavior: 'smooth' })
     document.getElementById('cv-schule').focus()
     return

@@ -260,6 +260,15 @@ section { padding: 80px 24px; }
 .job-meta span { display: flex; align-items: center; gap: 5px; }
 .meta-icon { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.75; }
 
+/* VERIFIZIERUNG */
+.verify-badge {
+  padding: 12px 18px; border-radius: 12px; font-size: 0.88rem; font-weight: 600;
+  margin: 18px 0 0;
+}
+.verify-badge--ok { background: rgba(0,200,150,0.1); color: var(--match-green-dark); border: 1px solid rgba(0,200,150,0.25); }
+.verify-badge--pending { background: rgba(255,193,7,0.12); color: #a67c00; border: 1px solid rgba(255,193,7,0.3); }
+.verify-badge--missing { background: rgba(255,107,74,0.1); color: var(--coral); border: 1px solid rgba(255,107,74,0.25); }
+
 /* DASHBOARD STATS */
 .stats-row { display: flex; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
 .stat-box {
