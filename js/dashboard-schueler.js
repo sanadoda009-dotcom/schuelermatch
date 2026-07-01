@@ -21,7 +21,49 @@ async function init() {
   })
   document.getElementById('profile-form').addEventListener('submit', speichereProfil)
 
+  document.getElementById('cv-schule').value = profile.schule || ''
+  document.getElementById('cv-klasse').value = profile.klasse || ''
+  document.getElementById('cv-erfahrung').value = profile.erfahrung || ''
+  document.getElementById('cv-ueber-mich').value = profile.ueber_mich || ''
+
+  document.getElementById('toggle-lebenslauf-btn').addEventListener('click', () => {
+    const box = document.getElementById('lebenslauf-box')
+    box.style.display = box.style.display === 'none' ? 'block' : 'none'
+  })
+  document.getElementById('lebenslauf-form').addEventListener('submit', speichereLebenslauf)
+
   await ladeJobs()
+}
+
+async function speichereLebenslauf(e) {
+  e.preventDefault()
+  const btn = e.target.querySelector('button[type=submit]')
+  btn.disabled = true
+  btn.textContent = 'Speichert...'
+
+  const updates = {
+    schule: document.getElementById('cv-schule').value,
+    klasse: document.getElementById('cv-klasse').value,
+    erfahrung: document.getElementById('cv-erfahrung').value,
+    ueber_mich: document.getElementById('cv-ueber-mich').value
+  }
+
+  const { error } = await supabase.from('profiles').update(updates).eq('id', profile.id)
+
+  btn.disabled = false
+  btn.textContent = 'Lebenslauf speichern'
+
+  if (error) {
+    alert('Fehler: ' + error.message)
+    return
+  }
+
+  profile = { ...profile, ...updates }
+  document.getElementById('lebenslauf-box').style.display = 'none'
+}
+
+function lebenslaufVollstaendig() {
+  return Boolean(profile.schule && profile.klasse)
 }
 
 async function speichereProfil(e) {
@@ -105,6 +147,14 @@ async function ladeJobs() {
 }
 
 async function bewerben(jobId, btn) {
+  if (!lebenslaufVollstaendig()) {
+    alert('Bitte fülle zuerst deinen Lebenslauf aus, bevor du dich bewirbst.')
+    document.getElementById('lebenslauf-box').style.display = 'block'
+    document.getElementById('lebenslauf-box').scrollIntoView({ behavior: 'smooth' })
+    document.getElementById('cv-schule').focus()
+    return
+  }
+
   btn.disabled = true
   btn.textContent = 'Wird gesendet...'
 

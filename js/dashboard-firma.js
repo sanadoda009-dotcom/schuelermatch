@@ -142,7 +142,7 @@ async function ladeEigeneJobs() {
 
   const { data: bewerbungen } = await supabase
     .from('bewerbungen')
-    .select('job_id, bewerber:schueler_id(name, email, ort, alter_jahre)')
+    .select('job_id, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, erfahrung, ueber_mich)')
     .in('job_id', jobs.map(j => j.id))
 
   renderStats(jobs.length, bewerbungen?.length || 0)
@@ -177,6 +177,9 @@ async function ladeEigeneJobs() {
           <div class="bewerber-item">
             <strong>${escapeHtml(b.name || 'Unbekannt')}</strong>, ${b.alter_jahre || '?'} Jahre – ${escapeHtml(b.ort || '')}<br>
             <a href="mailto:${escapeHtml(b.email || '')}" class="mono">${escapeHtml(b.email || '')}</a>
+            ${b.schule ? `<div class="cv-block"><strong>Schule:</strong> ${escapeHtml(b.schule)}${b.klasse ? ', ' + escapeHtml(b.klasse) : ''}</div>` : ''}
+            ${b.erfahrung ? `<div class="cv-block"><strong>Erfahrung:</strong> ${escapeHtml(b.erfahrung)}</div>` : ''}
+            ${b.ueber_mich ? `<div class="cv-block"><strong>Über sich:</strong> ${escapeHtml(b.ueber_mich)}</div>` : ''}
           </div>
         `).join('')}
       </div>

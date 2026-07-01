@@ -209,13 +209,14 @@ section { padding: 80px 24px; }
 .auth-box .sub { color: var(--ink-soft); font-size: 0.95rem; margin-bottom: 28px; }
 .form-group { margin-bottom: 18px; }
 .form-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 7px; }
-.form-group input, .form-group select {
+.form-group input, .form-group select, .form-group textarea {
   width: 100%; padding: 12px 14px; border: 1.5px solid var(--line);
   border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem;
   background: var(--paper); color: var(--ink); outline: none;
   transition: border-color 0.15s;
 }
-.form-group input:focus, .form-group select:focus { border-color: var(--match-green); }
+.form-group textarea { resize: vertical; min-height: 80px; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--match-green); }
 .auth-switch { margin-top: 20px; text-align: center; font-size: 0.9rem; color: var(--ink-soft); }
 .auth-switch a { color: var(--match-green-dark); font-weight: 600; }
 .role-tabs { display: flex; gap: 10px; margin-bottom: 28px; }
@@ -311,6 +312,7 @@ footer .logo { color: white; }
 .bewerber-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--ink-soft); margin-bottom: 10px; }
 .bewerber-item { font-size: 0.85rem; padding: 10px; background: var(--paper); border-radius: 8px; margin-bottom: 8px; }
 .bewerber-item a { color: var(--match-green-dark); }
+.cv-block { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 0.82rem; }
 
 /* POST JOB BOX (Firmen-Dashboard) */
 .post-job-box {
