@@ -9,123 +9,157 @@
 <body>
 
 <nav>
+  <button class="hamburger-btn" id="sidebar-toggle" aria-label="Menü öffnen">☰</button>
   <a href="index.html" class="logo"><span class="logo-mark">SM</span> SchülerMatch</a>
   <div class="nav-links">
     <span id="user-name" class="mono"></span>
   </div>
   <button id="logout-btn" class="btn btn-outline">Logout</button>
 </nav>
-<script src="js/nav.js"></script>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<aside class="sidebar" id="sidebar">
+  <button class="sidebar-item active" data-view="jobs">Jobs</button>
+  <button class="sidebar-item" data-view="lebenslauf">Lebenslauf</button>
+  <button class="sidebar-item" data-view="verifizierung">Verifizierung</button>
+  <button class="sidebar-item" data-view="profil">Profil</button>
+</aside>
 
 <main class="jobs-page">
-  <div class="jobs-header">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-      <div>
-        <h1>Deine Matches</h1>
-        <p style="color:var(--ink-soft);">Jobs die zu deinem Alter passen.</p>
-      </div>
-      <button id="toggle-lebenslauf-btn" class="btn btn-outline">Lebenslauf</button>
-      <button id="toggle-profile-btn" class="btn btn-outline">Profil bearbeiten</button>
+
+  <!-- JOBS -->
+  <div class="dashboard-view active" id="view-jobs">
+    <div class="jobs-header">
+      <h1>Deine Matches</h1>
+      <p style="color:var(--ink-soft);">Jobs die zu deinem Alter passen.</p>
+      <div class="stats-row" id="stats-row"></div>
+      <div class="verify-banner" id="verify-banner"></div>
     </div>
-    <div class="stats-row" id="stats-row"></div>
+    <div class="jobs-grid" id="jobs-grid">
+      <p>Lade Jobs...</p>
+    </div>
   </div>
 
-  <div class="verify-banner" id="verify-banner"></div>
-
-  <div class="post-job-box" id="verify-box" style="display:none; margin-bottom:40px; max-width:640px;">
-    <h3 style="margin-bottom:6px;">Als Schüler verifizieren</h3>
-    <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:20px;">Lade ein Foto deines Schülerausweises hoch. Wir prüfen das manuell und schalten dich meist innerhalb weniger Stunden frei.</p>
-    <input type="file" id="ausweis-datei" accept="image/*,application/pdf" style="display:none;">
-    <button type="button" id="ausweis-btn" class="btn btn-green">Schülerausweis hochladen</button>
-  </div>
-
-  <div class="post-job-box" id="profile-box" style="display:none; margin-bottom:40px;">
-    <form id="profile-form">
-      <div class="form-group">
-        <label for="profile-name">Vorname</label>
-        <input type="text" id="profile-name" required>
-      </div>
-      <div class="form-group">
-        <label for="profile-alter">Alter</label>
-        <select id="profile-alter">
-          <option value="10">10</option><option value="11">11</option><option value="12">12</option>
-          <option value="13">13</option><option value="14">14</option><option value="15">15</option>
-          <option value="16">16</option><option value="17">17</option><option value="18">18</option>
-          <option value="19">19</option><option value="20">20</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="profile-ort">Wohnort / PLZ</label>
-        <input type="text" id="profile-ort">
-      </div>
-      <button type="submit" class="btn btn-green">Speichern</button>
-    </form>
-  </div>
-
-  <div class="cv-builder" id="lebenslauf-box" style="display:none; margin-bottom:40px;">
-    <div class="cv-editor">
-      <h3 style="margin-bottom:6px;">Dein Lebenslauf</h3>
-      <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:20px;">Fülle das einmal aus – Firmen sehen das automatisch bei jeder Bewerbung.</p>
-      <form id="lebenslauf-form">
-        <div class="form-group">
-          <label>Profilbild</label>
-          <div class="photo-upload-row">
-            <div class="cv-photo-preview" id="cv-photo-preview"></div>
-            <div>
-              <input type="file" id="cv-foto" accept="image/*" style="display:none;">
-              <button type="button" id="cv-foto-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Foto hochladen</button>
-              <p class="mono" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">JPG/PNG, max. 3 MB</p>
+  <!-- LEBENSLAUF -->
+  <div class="dashboard-view" id="view-lebenslauf">
+    <div class="cv-builder">
+      <div class="cv-editor">
+        <h3 style="margin-bottom:6px;">Dein Lebenslauf</h3>
+        <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:20px;">Fülle das einmal aus – Firmen sehen das automatisch bei jeder Bewerbung.</p>
+        <form id="lebenslauf-form">
+          <div class="form-group">
+            <label>Profilbild</label>
+            <div class="photo-upload-row">
+              <div class="cv-photo-preview" id="cv-photo-preview"></div>
+              <div>
+                <input type="file" id="cv-foto" accept="image/*" style="display:none;">
+                <button type="button" id="cv-foto-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Foto hochladen</button>
+                <p class="mono" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">JPG/PNG, max. 3 MB</p>
+              </div>
             </div>
           </div>
+          <div class="form-group">
+            <label for="cv-schule">Schule</label>
+            <input type="text" id="cv-schule" placeholder="z.B. Gymnasium München-Nord" required>
+          </div>
+          <div class="form-group">
+            <label for="cv-klasse">Klasse</label>
+            <select id="cv-klasse" required>
+              <option value="">Bitte wählen</option>
+              <option>5. Klasse</option><option>6. Klasse</option><option>7. Klasse</option>
+              <option>8. Klasse</option><option>9. Klasse</option><option>10. Klasse</option>
+              <option>11. Klasse</option><option>12. Klasse</option><option>13. Klasse</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="cv-faehigkeiten">Fähigkeiten (Komma-getrennt)</label>
+            <input type="text" id="cv-faehigkeiten" placeholder="z.B. Zuverlässig, Teamfähig, Excel">
+          </div>
+          <div class="form-group">
+            <label for="cv-erfahrung">Bisherige Erfahrung (Nebenjobs, Praktika, Ehrenamt)</label>
+            <textarea id="cv-erfahrung" placeholder="z.B. Nachhilfe für meinen Bruder, Ferienjob im Supermarkt..."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="cv-ueber-mich">Über mich</label>
+            <textarea id="cv-ueber-mich" placeholder="Was macht dich aus? Warum sollte man dich einstellen?"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="cv-motivation">Motivationsschreiben</label>
+            <textarea id="cv-motivation" placeholder="Warum interessierst du dich für Minijobs? Was ist dir wichtig?" style="min-height:120px;"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Zeugnis (optional)</label>
+            <input type="file" id="cv-zeugnis" accept="image/*,application/pdf" style="display:none;">
+            <button type="button" id="cv-zeugnis-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Zeugnis hochladen</button>
+            <p class="mono" id="cv-zeugnis-status" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">Kein Zeugnis hochgeladen</p>
+          </div>
+          <button type="submit" class="btn btn-green">Lebenslauf speichern</button>
+        </form>
+      </div>
+
+      <div>
+        <div class="cv-preview" id="cv-preview"></div>
+        <button type="button" id="cv-download-btn" class="btn btn-dark btn-full" style="margin-top:14px;">Als PDF herunterladen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERIFIZIERUNG -->
+  <div class="dashboard-view" id="view-verifizierung">
+    <div class="jobs-header">
+      <h1 style="font-size:1.6rem;">Verifizierung</h1>
+      <p style="color:var(--ink-soft);">Damit stellen wir sicher, dass hier wirklich nur Schüler unterwegs sind.</p>
+      <div id="verify-banner-2"></div>
+    </div>
+
+    <div class="post-job-box" style="max-width:640px;">
+      <h3 style="margin-bottom:6px;">Option 1: Schülerausweis</h3>
+      <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:16px;">Lade ein Foto deines Schülerausweises hoch.</p>
+      <input type="file" id="ausweis-datei" accept="image/*,application/pdf" style="display:none;">
+      <button type="button" id="ausweis-btn" class="btn btn-green">Schülerausweis hochladen</button>
+      <p class="mono" id="ausweis-status" style="font-size:0.75rem; color:var(--ink-soft); margin-top:8px;"></p>
+
+      <hr style="border:none; border-top:1px solid var(--line); margin:28px 0;">
+
+      <h3 style="margin-bottom:6px;">Option 2: Schulbestätigung</h3>
+      <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:16px;">Hast du keinen Schülerausweis? Lade stattdessen eine Bestätigung deiner Schule hoch (z.B. vom Sekretariat unterschrieben).</p>
+      <input type="file" id="bestaetigung-datei" accept="image/*,application/pdf" style="display:none;">
+      <button type="button" id="bestaetigung-btn" class="btn btn-outline">Schulbestätigung hochladen</button>
+      <p class="mono" id="bestaetigung-status" style="font-size:0.75rem; color:var(--ink-soft); margin-top:8px;"></p>
+
+      <p style="color:var(--ink-soft); font-size:0.82rem; margin-top:24px;">Wir prüfen deine Unterlagen manuell und schalten dich meist innerhalb weniger Stunden frei.</p>
+    </div>
+  </div>
+
+  <!-- PROFIL -->
+  <div class="dashboard-view" id="view-profil">
+    <div class="jobs-header">
+      <h1 style="font-size:1.6rem;">Profil</h1>
+    </div>
+    <div class="post-job-box">
+      <form id="profile-form">
+        <div class="form-group">
+          <label for="profile-name">Vorname</label>
+          <input type="text" id="profile-name" required>
         </div>
         <div class="form-group">
-          <label for="cv-schule">Schule</label>
-          <input type="text" id="cv-schule" placeholder="z.B. Gymnasium München-Nord" required>
-        </div>
-        <div class="form-group">
-          <label for="cv-klasse">Klasse</label>
-          <select id="cv-klasse" required>
-            <option value="">Bitte wählen</option>
-            <option>5. Klasse</option><option>6. Klasse</option><option>7. Klasse</option>
-            <option>8. Klasse</option><option>9. Klasse</option><option>10. Klasse</option>
-            <option>11. Klasse</option><option>12. Klasse</option><option>13. Klasse</option>
+          <label for="profile-alter">Alter</label>
+          <select id="profile-alter">
+            <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+            <option value="13">13</option><option value="14">14</option><option value="15">15</option>
+            <option value="16">16</option><option value="17">17</option><option value="18">18</option>
+            <option value="19">19</option><option value="20">20</option>
           </select>
         </div>
         <div class="form-group">
-          <label for="cv-faehigkeiten">Fähigkeiten (Komma-getrennt)</label>
-          <input type="text" id="cv-faehigkeiten" placeholder="z.B. Zuverlässig, Teamfähig, Excel">
+          <label for="profile-ort">Wohnort / PLZ</label>
+          <input type="text" id="profile-ort">
         </div>
-        <div class="form-group">
-          <label for="cv-erfahrung">Bisherige Erfahrung (Nebenjobs, Praktika, Ehrenamt)</label>
-          <textarea id="cv-erfahrung" placeholder="z.B. Nachhilfe für meinen Bruder, Ferienjob im Supermarkt..."></textarea>
-        </div>
-        <div class="form-group">
-          <label for="cv-ueber-mich">Über mich</label>
-          <textarea id="cv-ueber-mich" placeholder="Was macht dich aus? Warum sollte man dich einstellen?"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="cv-motivation">Motivationsschreiben</label>
-          <textarea id="cv-motivation" placeholder="Warum interessierst du dich für Minijobs? Was ist dir wichtig?" style="min-height:120px;"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Zeugnis (optional)</label>
-          <input type="file" id="cv-zeugnis" accept="image/*,application/pdf" style="display:none;">
-          <button type="button" id="cv-zeugnis-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Zeugnis hochladen</button>
-          <p class="mono" id="cv-zeugnis-status" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">Kein Zeugnis hochgeladen</p>
-        </div>
-        <button type="submit" class="btn btn-green">Lebenslauf speichern</button>
+        <button type="submit" class="btn btn-green">Speichern</button>
       </form>
     </div>
-
-    <div>
-      <div class="cv-preview" id="cv-preview"></div>
-      <button type="button" id="cv-download-btn" class="btn btn-dark btn-full" style="margin-top:14px;">Als PDF herunterladen</button>
-    </div>
   </div>
 
-  <div class="jobs-grid" id="jobs-grid">
-    <p>Lade Jobs...</p>
-  </div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>

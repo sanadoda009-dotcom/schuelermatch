@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
+import { initSidebar } from './sidebar.js'
 
 let profile
 
@@ -12,16 +13,15 @@ async function init() {
   document.getElementById('user-name').textContent = profile.name || 'Schüler'
   document.getElementById('logout-btn').addEventListener('click', logout)
 
+  initSidebar(zeigeView)
+
+  // Profil
   document.getElementById('profile-name').value = profile.name || ''
   document.getElementById('profile-alter').value = profile.alter_jahre || 15
   document.getElementById('profile-ort').value = profile.ort || ''
-
-  document.getElementById('toggle-profile-btn').addEventListener('click', () => {
-    const box = document.getElementById('profile-box')
-    box.style.display = box.style.display === 'none' ? 'block' : 'none'
-  })
   document.getElementById('profile-form').addEventListener('submit', speichereProfil)
 
+  // Lebenslauf
   document.getElementById('cv-schule').value = profile.schule || ''
   document.getElementById('cv-klasse').value = profile.klasse || ''
   document.getElementById('cv-faehigkeiten').value = profile.faehigkeiten || ''
@@ -31,116 +31,84 @@ async function init() {
   setzePhotoPreview(profile.foto_url)
   setzeZeugnisStatus()
 
-  document.getElementById('toggle-lebenslauf-btn').addEventListener('click', () => {
-    const box = document.getElementById('lebenslauf-box')
-    box.style.display = box.style.display === 'none' ? 'grid' : 'none'
-    renderCvPreview()
-  })
   document.getElementById('lebenslauf-form').addEventListener('submit', speichereLebenslauf)
   document.getElementById('lebenslauf-form').addEventListener('input', renderCvPreview)
-
   document.getElementById('cv-foto-btn').addEventListener('click', () => document.getElementById('cv-foto').click())
   document.getElementById('cv-foto').addEventListener('change', ladeFotoHoch)
-
   document.getElementById('cv-zeugnis-btn').addEventListener('click', () => document.getElementById('cv-zeugnis').click())
   document.getElementById('cv-zeugnis').addEventListener('change', ladeZeugnisHoch)
-
   document.getElementById('cv-download-btn').addEventListener('click', () => {
     ladeLebenslaufAlsPdf({ ...profile, motivationsschreiben: document.getElementById('cv-motivation').value })
   })
 
+  // Verifizierung
   document.getElementById('ausweis-btn').addEventListener('click', () => document.getElementById('ausweis-datei').click())
-  document.getElementById('ausweis-datei').addEventListener('change', ladeAusweisHoch)
+  document.getElementById('ausweis-datei').addEventListener('change', (e) => ladeVerifizierungsDokument(e, 'ausweis', 'schuelerausweis_url'))
+  document.getElementById('bestaetigung-btn').addEventListener('click', () => document.getElementById('bestaetigung-datei').click())
+  document.getElementById('bestaetigung-datei').addEventListener('change', (e) => ladeVerifizierungsDokument(e, 'bestaetigung', 'schulbestaetigung_url'))
 
-  renderVerifyBanner()
+  renderVerifyStatus()
   renderCvPreview()
 
   await ladeJobs()
 }
 
-function renderVerifyBanner() {
-  const banner = document.getElementById('verify-banner')
-  const verifyBox = document.getElementById('verify-box')
-
-  if (profile.verifiziert) {
-    banner.innerHTML = `<div class="verify-badge verify-badge--ok">✓ Als Schüler verifiziert</div>`
-    verifyBox.style.display = 'none'
-  } else if (profile.schuelerausweis_url) {
-    banner.innerHTML = `<div class="verify-badge verify-badge--pending">⏳ Verifizierung ausstehend – wir prüfen deinen Ausweis</div>`
-    verifyBox.style.display = 'none'
-  } else {
-    banner.innerHTML = `<div class="verify-badge verify-badge--missing">⚠ Noch nicht verifiziert – erforderlich um dich zu bewerben</div>`
-    verifyBox.style.display = 'block'
-  }
+function zeigeView(view) {
+  document.querySelectorAll('.dashboard-view').forEach(v => v.classList.remove('active'))
+  document.getElementById('view-' + view).classList.add('active')
+  if (view === 'lebenslauf') renderCvPreview()
 }
 
-async function ladeAusweisHoch(e) {
+function renderVerifyStatus() {
+  let badgeHtml
+  if (profile.verifiziert) {
+    badgeHtml = `<div class="verify-badge verify-badge--ok">✓ Als Schüler verifiziert</div>`
+  } else if (profile.schuelerausweis_url || profile.schulbestaetigung_url) {
+    badgeHtml = `<div class="verify-badge verify-badge--pending">⏳ Verifizierung ausstehend – wir prüfen deine Unterlagen</div>`
+  } else {
+    badgeHtml = `<div class="verify-badge verify-badge--missing">⚠ Noch nicht verifiziert – erforderlich um dich zu bewerben</div>`
+  }
+  document.getElementById('verify-banner').innerHTML = badgeHtml
+  document.getElementById('verify-banner-2').innerHTML = badgeHtml
+
+  document.getElementById('ausweis-status').textContent = profile.schuelerausweis_url ? 'Hochgeladen ✓' : ''
+  document.getElementById('bestaetigung-status').textContent = profile.schulbestaetigung_url ? 'Hochgeladen ✓' : ''
+}
+
+async function ladeVerifizierungsDokument(e, dateiname, spalte) {
   const file = e.target.files[0]
   if (!file) return
 
-  const btn = document.getElementById('ausweis-btn')
+  const btnId = dateiname === 'ausweis' ? 'ausweis-btn' : 'bestaetigung-btn'
+  const btnText = dateiname === 'ausweis' ? 'Schülerausweis hochladen' : 'Schulbestätigung hochladen'
+  const btn = document.getElementById(btnId)
+
   btn.disabled = true
   btn.textContent = 'Wird hochgeladen...'
 
   const ext = file.name.split('.').pop()
-  const path = `${profile.id}/ausweis.${ext}`
+  const path = `${profile.id}/${dateiname}.${ext}`
 
   const { error: uploadError } = await supabase.storage.from('verifizierung').upload(path, file, { upsert: true })
 
   btn.disabled = false
-  btn.textContent = 'Schülerausweis hochladen'
+  btn.textContent = btnText
 
   if (uploadError) {
     alert('Fehler beim Hochladen: ' + uploadError.message)
     return
   }
 
-  const { error: updateError } = await supabase.from('profiles').update({ schuelerausweis_url: path }).eq('id', profile.id)
+  const { error: updateError } = await supabase.from('profiles').update({ [spalte]: path }).eq('id', profile.id)
 
   if (updateError) {
     alert('Fehler beim Speichern: ' + updateError.message)
     return
   }
 
-  profile.schuelerausweis_url = path
-  renderVerifyBanner()
-  alert('Danke! Wir prüfen deinen Ausweis und schalten dich bald frei.')
-}
-
-function setzeZeugnisStatus() {
-  document.getElementById('cv-zeugnis-status').textContent = profile.zeugnis_url ? 'Zeugnis hochgeladen ✓' : 'Kein Zeugnis hochgeladen'
-}
-
-async function ladeZeugnisHoch(e) {
-  const file = e.target.files[0]
-  if (!file) return
-
-  const btn = document.getElementById('cv-zeugnis-btn')
-  btn.disabled = true
-  btn.textContent = 'Wird hochgeladen...'
-
-  const ext = file.name.split('.').pop()
-  const path = `${profile.id}/zeugnis.${ext}`
-
-  const { error: uploadError } = await supabase.storage.from('zeugnisse').upload(path, file, { upsert: true })
-
-  btn.disabled = false
-  btn.textContent = 'Zeugnis hochladen'
-
-  if (uploadError) {
-    alert('Fehler beim Hochladen: ' + uploadError.message)
-    return
-  }
-
-  const { error: updateError } = await supabase.from('profiles').update({ zeugnis_url: path }).eq('id', profile.id)
-
-  if (updateError) {
-    alert('Fehler beim Speichern: ' + updateError.message)
-    return
-  }
-
-  profile.zeugnis_url = path
-  setzeZeugnisStatus()
+  profile[spalte] = path
+  renderVerifyStatus()
+  alert('Danke! Wir prüfen deine Unterlagen und schalten dich bald frei.')
 }
 
 function setzePhotoPreview(url) {
@@ -197,6 +165,42 @@ async function ladeFotoHoch(e) {
   profile.foto_url = foto_url
   setzePhotoPreview(foto_url)
   renderCvPreview()
+}
+
+function setzeZeugnisStatus() {
+  document.getElementById('cv-zeugnis-status').textContent = profile.zeugnis_url ? 'Zeugnis hochgeladen ✓' : 'Kein Zeugnis hochgeladen'
+}
+
+async function ladeZeugnisHoch(e) {
+  const file = e.target.files[0]
+  if (!file) return
+
+  const btn = document.getElementById('cv-zeugnis-btn')
+  btn.disabled = true
+  btn.textContent = 'Wird hochgeladen...'
+
+  const ext = file.name.split('.').pop()
+  const path = `${profile.id}/zeugnis.${ext}`
+
+  const { error: uploadError } = await supabase.storage.from('zeugnisse').upload(path, file, { upsert: true })
+
+  btn.disabled = false
+  btn.textContent = 'Zeugnis hochladen'
+
+  if (uploadError) {
+    alert('Fehler beim Hochladen: ' + uploadError.message)
+    return
+  }
+
+  const { error: updateError } = await supabase.from('profiles').update({ zeugnis_url: path }).eq('id', profile.id)
+
+  if (updateError) {
+    alert('Fehler beim Speichern: ' + updateError.message)
+    return
+  }
+
+  profile.zeugnis_url = path
+  setzeZeugnisStatus()
 }
 
 function renderCvPreview() {
@@ -265,7 +269,7 @@ async function speichereLebenslauf(e) {
   }
 
   profile = { ...profile, ...updates }
-  document.getElementById('lebenslauf-box').style.display = 'none'
+  alert('Lebenslauf gespeichert!')
 }
 
 function lebenslaufVollstaendig() {
@@ -296,7 +300,6 @@ async function speichereProfil(e) {
 
   profile = { ...profile, ...updates }
   document.getElementById('user-name').textContent = profile.name
-  document.getElementById('profile-box').style.display = 'none'
   await ladeJobs()
 }
 
@@ -355,15 +358,13 @@ async function ladeJobs() {
 async function bewerben(jobId, btn) {
   if (!profile.verifiziert) {
     alert('Du musst dich erst als Schüler verifizieren, bevor du dich bewerben kannst.')
-    document.getElementById('verify-box').style.display = 'block'
-    document.getElementById('verify-box').scrollIntoView({ behavior: 'smooth' })
+    document.querySelector('.sidebar-item[data-view="verifizierung"]').click()
     return
   }
 
   if (!lebenslaufVollstaendig()) {
     alert('Bitte fülle zuerst deinen Lebenslauf aus, bevor du dich bewirbst.')
-    document.getElementById('lebenslauf-box').style.display = 'grid'
-    document.getElementById('lebenslauf-box').scrollIntoView({ behavior: 'smooth' })
+    document.querySelector('.sidebar-item[data-view="lebenslauf"]').click()
     document.getElementById('cv-schule').focus()
     return
   }

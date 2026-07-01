@@ -9,91 +9,103 @@
 <body>
 
 <nav>
+  <button class="hamburger-btn" id="sidebar-toggle" aria-label="Menü öffnen">☰</button>
   <a href="index.html" class="logo"><span class="logo-mark">SM</span> SchülerMatch</a>
   <div class="nav-links">
     <span id="user-name" class="mono"></span>
   </div>
   <button id="logout-btn" class="btn btn-outline">Logout</button>
 </nav>
-<script src="js/nav.js"></script>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<aside class="sidebar" id="sidebar">
+  <button class="sidebar-item active" data-view="jobs">Jobs verwalten</button>
+  <button class="sidebar-item" data-view="profil">Firmenprofil</button>
+</aside>
 
 <main class="jobs-page">
-  <div class="jobs-header">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-      <div>
-        <h1>Job posten</h1>
-        <p style="color:var(--ink-soft);">Kostenlos, in wenigen Minuten online.</p>
-      </div>
-      <button id="toggle-profile-btn" class="btn btn-outline">Firmenprofil bearbeiten</button>
+
+  <!-- JOBS -->
+  <div class="dashboard-view active" id="view-jobs">
+    <div class="jobs-header">
+      <h1>Job posten</h1>
+      <p style="color:var(--ink-soft);">Kostenlos, in wenigen Minuten online.</p>
+      <div class="stats-row" id="stats-row"></div>
     </div>
-    <div class="stats-row" id="stats-row"></div>
+
+    <div class="post-job-box">
+      <form id="job-form">
+        <div class="form-group">
+          <label for="job-titel">Job-Titel</label>
+          <input type="text" id="job-titel" placeholder="z.B. Eisverkäufer/in (Sa/So)" required>
+        </div>
+        <div class="form-group">
+          <label for="job-beschreibung">Beschreibung</label>
+          <input type="text" id="job-beschreibung" placeholder="Kurze Beschreibung der Aufgabe">
+        </div>
+        <div class="form-group">
+          <label for="job-ort">Ort</label>
+          <input type="text" id="job-ort" placeholder="z.B. München" required>
+        </div>
+        <div class="form-group">
+          <label for="job-lohn">Stundenlohn (€)</label>
+          <input type="number" id="job-lohn" placeholder="z.B. 12" step="0.5">
+        </div>
+        <div class="form-group">
+          <label for="job-mindestalter">Mindestalter</label>
+          <select id="job-mindestalter">
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14">14</option>
+            <option value="15" selected>15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="job-verfuegbarkeit">Verfügbarkeit</label>
+          <input type="text" id="job-verfuegbarkeit" placeholder="z.B. Sa-So oder Flexibel">
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button type="submit" class="btn btn-green">Job posten</button>
+          <button type="button" id="cancel-edit-btn" class="btn btn-outline" style="display:none;">Abbrechen</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="jobs-header" style="margin-top:56px;">
+      <h1 style="font-size:1.5rem;">Deine Jobs</h1>
+    </div>
+    <div class="jobs-grid" id="meine-jobs">
+      <p>Lade...</p>
+    </div>
   </div>
 
-  <div class="post-job-box" id="profile-box" style="display:none; margin-bottom:40px;">
-    <form id="profile-form">
-      <div class="form-group">
-        <label for="profile-name">Firmenname</label>
-        <input type="text" id="profile-name" required>
-      </div>
-      <div class="form-group">
-        <label for="profile-ort">Standort</label>
-        <input type="text" id="profile-ort">
-      </div>
-      <button type="submit" class="btn btn-green">Speichern</button>
-    </form>
+  <!-- FIRMENPROFIL -->
+  <div class="dashboard-view" id="view-profil">
+    <div class="jobs-header">
+      <h1 style="font-size:1.6rem;">Firmenprofil</h1>
+    </div>
+    <div class="post-job-box">
+      <form id="profile-form">
+        <div class="form-group">
+          <label for="profile-name">Firmenname</label>
+          <input type="text" id="profile-name" required>
+        </div>
+        <div class="form-group">
+          <label for="profile-ort">Standort</label>
+          <input type="text" id="profile-ort">
+        </div>
+        <button type="submit" class="btn btn-green">Speichern</button>
+      </form>
+    </div>
   </div>
 
-  <div class="post-job-box">
-    <form id="job-form">
-      <div class="form-group">
-        <label for="job-titel">Job-Titel</label>
-        <input type="text" id="job-titel" placeholder="z.B. Eisverkäufer/in (Sa/So)" required>
-      </div>
-      <div class="form-group">
-        <label for="job-beschreibung">Beschreibung</label>
-        <input type="text" id="job-beschreibung" placeholder="Kurze Beschreibung der Aufgabe">
-      </div>
-      <div class="form-group">
-        <label for="job-ort">Ort</label>
-        <input type="text" id="job-ort" placeholder="z.B. München" required>
-      </div>
-      <div class="form-group">
-        <label for="job-lohn">Stundenlohn (€)</label>
-        <input type="number" id="job-lohn" placeholder="z.B. 12" step="0.5">
-      </div>
-      <div class="form-group">
-        <label for="job-mindestalter">Mindestalter</label>
-        <select id="job-mindestalter">
-          <option value="10">10</option>
-          <option value="11">11</option>
-          <option value="12">12</option>
-          <option value="13">13</option>
-          <option value="14">14</option>
-          <option value="15" selected>15</option>
-          <option value="16">16</option>
-          <option value="17">17</option>
-          <option value="18">18</option>
-          <option value="19">19</option>
-          <option value="20">20</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="job-verfuegbarkeit">Verfügbarkeit</label>
-        <input type="text" id="job-verfuegbarkeit" placeholder="z.B. Sa-So oder Flexibel">
-      </div>
-      <div style="display:flex; gap:10px;">
-        <button type="submit" class="btn btn-green">Job posten</button>
-        <button type="button" id="cancel-edit-btn" class="btn btn-outline" style="display:none;">Abbrechen</button>
-      </div>
-    </form>
-  </div>
-
-  <div class="jobs-header" style="margin-top:56px;">
-    <h1 style="font-size:1.5rem;">Deine Jobs</h1>
-  </div>
-  <div class="jobs-grid" id="meine-jobs">
-    <p>Lade...</p>
-  </div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>

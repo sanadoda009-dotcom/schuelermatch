@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
+import { initSidebar } from './sidebar.js'
 
 let profile
 let editingJobId = null
@@ -17,11 +18,12 @@ async function init() {
 
   document.getElementById('profile-name').value = profile.name || ''
   document.getElementById('profile-ort').value = profile.ort || ''
-  document.getElementById('toggle-profile-btn').addEventListener('click', () => {
-    const box = document.getElementById('profile-box')
-    box.style.display = box.style.display === 'none' ? 'block' : 'none'
-  })
   document.getElementById('profile-form').addEventListener('submit', speichereProfil)
+
+  initSidebar((view) => {
+    document.querySelectorAll('.dashboard-view').forEach(v => v.classList.remove('active'))
+    document.getElementById('view-' + view).classList.add('active')
+  })
 
   await ladeEigeneJobs()
 }
@@ -49,7 +51,7 @@ async function speichereProfil(e) {
 
   profile = { ...profile, ...updates }
   document.getElementById('user-name').textContent = profile.name
-  document.getElementById('profile-box').style.display = 'none'
+  alert('Firmenprofil gespeichert!')
 }
 
 function sammleFormular() {
