@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.textContent = 'Wird erstellt...'
       btn.disabled = true
 
-      const { error } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -49,14 +49,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       })
 
-      if (error) {
-        showError(registerForm, error.message)
+      if (signUpError) {
+        showError(registerForm, signUpError.message)
         btn.textContent = 'Account erstellen'
         btn.disabled = false
         return
       }
 
-      // Weiterleitung je nach Rolle
+      // Direkt einloggen nach Registrierung
+      const { error: loginError } = await supabase.auth.signInWithPassword({ email, password })
+
+      if (loginError) {
+        showError(registerForm, 'Account erstellt! Bitte logge dich jetzt ein.')
+        btn.textContent = 'Account erstellen'
+        btn.disabled = false
+        return
+      }
+
       window.location.href = role === 'firma' ? 'dashboard-firma.html' : 'dashboard-schueler.html'
     })
   }
