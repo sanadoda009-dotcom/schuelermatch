@@ -56,24 +56,38 @@
   </div>
 </header>
 
+<section class="wrap">
+  <div class="section-head reveal">
+    <span class="eyebrow-light">Gerade online</span>
+    <h2>Echte Jobs, keine Platzhalter.</h2>
+    <p>Ein Ausschnitt der aktuell verfügbaren Minijobs.</p>
+  </div>
+  <div class="preview-jobs-grid" id="preview-jobs-grid">
+    <p style="text-align:center; grid-column:1/-1; color:var(--ink-soft);">Lade Jobs...</p>
+  </div>
+  <div class="preview-jobs-footer reveal">
+    <a href="jobs.html" class="btn btn-outline">Alle Jobs ansehen →</a>
+  </div>
+</section>
+
 <section id="wie" class="wrap">
-  <div class="section-head">
+  <div class="section-head reveal">
     <span class="eyebrow-light">Ablauf</span>
     <h2>Matching statt endlosem Scrollen.</h2>
     <p>Drei Schritte, dann übernimmt der Algorithmus den Rest.</p>
   </div>
   <div class="steps">
-    <div class="step-card">
+    <div class="step-card reveal">
       <div class="step-num">01</div>
       <h3>Profil anlegen</h3>
       <p>Alter, Verfügbarkeit, Interessen – in 2 Minuten fertig.</p>
     </div>
-    <div class="step-card">
+    <div class="step-card reveal reveal-d1">
       <div class="step-num">02</div>
       <h3>Matches erhalten</h3>
       <p>Wir zeigen dir nur Jobs, die wirklich zu dir passen – nach Ort, Zeit und Alter gefiltert.</p>
     </div>
-    <div class="step-card">
+    <div class="step-card reveal reveal-d2">
       <div class="step-num">03</div>
       <h3>Direkt verbinden</h3>
       <p>Ein Klick, die Firma meldet sich bei dir. Kein Anschreiben nötig.</p>
@@ -83,7 +97,7 @@
 
 <section id="tracks" class="wrap">
   <div class="tracks">
-    <div class="track-card students" id="schueler">
+    <div class="track-card students reveal" id="schueler">
       <span class="tag">FÜR SCHÜLER</span>
       <h3>Für dich immer kostenlos.</h3>
       <ul>
@@ -94,7 +108,7 @@
       </ul>
       <a href="register.html?rolle=schueler" class="btn btn-green">Account erstellen</a>
     </div>
-    <div class="track-card employers" id="firmen">
+    <div class="track-card employers reveal reveal-d1" id="firmen">
       <span class="tag">FÜR ARBEITGEBER</span>
       <h3>Schüler aus deiner Region erreichen.</h3>
       <ul>
@@ -104,6 +118,42 @@
         <li><span class="check">✓</span> Klare Hinweise zu Jugendarbeitsschutz inklusive</li>
       </ul>
       <a href="register.html?rolle=firma" class="btn btn-dark">Job kostenlos posten</a>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="section-head reveal">
+    <span class="eyebrow-light">Fragen</span>
+    <h2>Häufig gefragt.</h2>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item reveal">
+      <button class="faq-question" type="button">Ist SchülerMatch wirklich kostenlos?<span class="faq-icon">+</span></button>
+      <div class="faq-answer"><p>Ja, für Schüler ist die Nutzung dauerhaft kostenlos – keine versteckten Kosten, kein Abo. Auch Firmen können in der Startphase kostenlos Jobs posten.</p></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-question" type="button">Brauche ich die Erlaubnis meiner Eltern?<span class="faq-icon">+</span></button>
+      <div class="faq-answer"><p>Wenn du jünger als 16 bist, ja – das schreibt die DSGVO vor. Bei der Registrierung bestätigst du das mit einer Checkbox. Ab 16 kannst du dich eigenständig anmelden.</p></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-question" type="button">Wie funktioniert die Verifizierung?<span class="faq-icon">+</span></button>
+      <div class="faq-answer"><p>Du lädst ein Foto deines Schülerausweises oder einer Schulbestätigung hoch. Wir prüfen das manuell und schalten dich meist innerhalb weniger Stunden frei – so bleibt die Plattform wirklich nur für Schüler.</p></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-question" type="button">Wie sicher sind meine Daten?<span class="faq-icon">+</span></button>
+      <div class="faq-answer"><p>Deine Daten liegen auf Servern in der EU und werden nur für das Matching verwendet. Firmen sehen deinen Lebenslauf erst, nachdem du dich beworben hast. Details in unserer <a href="datenschutz.html" style="text-decoration:underline;">Datenschutzerklärung</a>.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta-section wrap">
+  <div class="final-cta reveal">
+    <h2>Bereit für deinen ersten Minijob?</h2>
+    <p>Kostenlos registrieren, Lebenslauf ausfüllen, loslegen.</p>
+    <div class="hero-ctas">
+      <a href="register.html?rolle=schueler" class="btn btn-green">Job finden →</a>
+      <a href="register.html?rolle=firma" class="btn btn-outline" style="border-color:rgba(255,255,255,0.3); color:white;">Ich biete einen Job an</a>
     </div>
   </div>
 </section>
@@ -123,5 +173,8 @@
   <div class="footer-bottom wrap">© 2026 SchülerMatch</div>
 </footer>
 
+<script type="module" src="js/jobs-preview.js"></script>
+<script src="js/reveal.js"></script>
+<script src="js/faq.js"></script>
 </body>
 </html>
