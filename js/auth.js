@@ -75,6 +75,7 @@ function showError(form, msg) {
   removeMsg(form)
   const el = document.createElement('p')
   el.className = 'auth-msg auth-msg--error'
+  el.setAttribute('role', 'alert')
   el.textContent = msg
   form.prepend(el)
 }
@@ -83,6 +84,7 @@ function showSuccess(form, msg) {
   removeMsg(form)
   const el = document.createElement('p')
   el.className = 'auth-msg auth-msg--success'
+  el.setAttribute('role', 'status')
   el.textContent = msg
   form.prepend(el)
 }

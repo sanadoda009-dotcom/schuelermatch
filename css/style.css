@@ -55,6 +55,42 @@ nav {
 .btn-green:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,200,150,0.35); }
 .btn-outline { background: transparent; border: 1.5px solid var(--line); color: var(--ink); }
 .btn-full { width: 100%; text-align: center; padding: 14px; font-size: 1rem; }
+.btn:active { transform: scale(0.97); }
+
+/* FOCUS STATES (Accessibility) */
+a:focus-visible, button:focus-visible, .btn:focus-visible {
+  outline: 2px solid var(--match-green-dark); outline-offset: 2px; border-radius: 8px;
+}
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--match-green);
+  box-shadow: 0 0 0 3px rgba(0,200,150,0.18);
+}
+
+/* NAV TOGGLE (mobile hamburger) */
+.nav-toggle {
+  display: none; flex-direction: column; gap: 5px;
+  background: none; border: none; cursor: pointer; padding: 8px;
+}
+.nav-toggle span { width: 22px; height: 2px; background: var(--ink); border-radius: 2px; transition: transform 0.2s, opacity 0.2s; }
+.nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle.open span:nth-child(2) { opacity: 0; }
+.nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ENTRANCE ANIMATIONS */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero-grid > div:first-child { animation: fadeInUp 0.7s ease both; }
+.match-stage { animation: fadeInUp 0.7s ease 0.1s both; }
+.step-card { animation: fadeInUp 0.6s ease both; }
+.step-card:nth-child(2) { animation-delay: 0.1s; }
+.step-card:nth-child(3) { animation-delay: 0.2s; }
+.track-card { animation: fadeInUp 0.6s ease both; }
+.job-card { animation: fadeInUp 0.5s ease both; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-grid > div:first-child, .match-stage, .step-card, .track-card, .job-card { animation: none; }
+}
 
 /* HERO */
 .hero { padding: 60px 24px 40px; }
@@ -250,6 +286,16 @@ footer .logo { color: white; }
   .match-stage { height: 340px; }
   .match-card { width: 180px; padding: 16px; }
   .steps, .tracks { grid-template-columns: 1fr; }
-  .nav-links { display: none; }
+
+  nav { position: relative; flex-wrap: wrap; }
+  .nav-toggle { display: flex; }
+  .nav-links {
+    display: none; position: absolute; top: 100%; left: 24px; right: 24px;
+    flex-direction: column; gap: 4px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 12px; box-shadow: 0 12px 30px rgba(22,26,31,0.12); z-index: 10;
+  }
+  .nav-links.open { display: flex; }
+  .nav-links a { padding: 10px 12px; border-radius: 8px; }
+  .nav-links a:hover { background: var(--paper); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
