@@ -209,7 +209,7 @@ async function ladeEigeneJobs() {
       const b = bewerberByJob[btn.dataset.pdfJob][btn.dataset.pdfIdx]
       btn.disabled = true
       btn.textContent = 'Wird erstellt...'
-      ladeLebenslaufAlsPdf({ ...b.bewerber, motivationsschreiben: b.motivationsschreiben }).finally(() => {
+      ladeLebenslaufAlsPdf({ ...b.bewerber, bloecke: b.bewerber.lebenslauf_bloecke, motivationsschreiben: b.motivationsschreiben }).finally(() => {
         btn.disabled = false
         btn.textContent = 'Lebenslauf (PDF)'
       })
