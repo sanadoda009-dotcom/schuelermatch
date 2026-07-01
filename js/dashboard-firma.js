@@ -58,13 +58,18 @@ async function ladeEigeneJobs() {
 
   const { data: bewerbungen } = await supabase
     .from('bewerbungen')
-    .select('job_id')
+    .select('job_id, bewerber:schueler_id(name, email, ort, alter_jahre)')
     .in('job_id', jobs.map(j => j.id))
 
-  const counts = {}
-  ;(bewerbungen || []).forEach(b => { counts[b.job_id] = (counts[b.job_id] || 0) + 1 })
+  const bewerberByJob = {}
+  ;(bewerbungen || []).forEach(b => {
+    if (!bewerberByJob[b.job_id]) bewerberByJob[b.job_id] = []
+    bewerberByJob[b.job_id].push(b.bewerber)
+  })
 
-  list.innerHTML = jobs.map(job => `
+  list.innerHTML = jobs.map(job => {
+    const bewerber = bewerberByJob[job.id] || []
+    return `
     <div class="job-card">
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
@@ -75,10 +80,18 @@ async function ladeEigeneJobs() {
       <div class="job-meta">
         <span>${job.stundenlohn ? job.stundenlohn + ' €/Std' : ''}</span>
         <span>${escapeHtml(job.verfuegbarkeit || '')}</span>
-        <span>${counts[job.id] || 0} Bewerbung(en)</span>
+      </div>
+      <div class="bewerber-list">
+        <p class="bewerber-title">${bewerber.length} Bewerbung(en)</p>
+        ${bewerber.map(b => `
+          <div class="bewerber-item">
+            <strong>${escapeHtml(b.name || 'Unbekannt')}</strong>, ${b.alter_jahre || '?'} Jahre – ${escapeHtml(b.ort || '')}<br>
+            <a href="mailto:${escapeHtml(b.email || '')}" class="mono">${escapeHtml(b.email || '')}</a>
+          </div>
+        `).join('')}
       </div>
     </div>
-  `).join('')
+  `}).join('')
 }
 
 function escapeHtml(str) {
