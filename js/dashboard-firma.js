@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { requireAuth, logout } from './session.js'
 
 let profile
+let editingJobId = null
 
 async function init() {
   profile = await requireAuth('firma')
@@ -9,36 +10,79 @@ async function init() {
 
   document.getElementById('user-name').textContent = profile.name || 'Firma'
   document.getElementById('logout-btn').addEventListener('click', logout)
-  document.getElementById('job-form').addEventListener('submit', erstelleJob)
+  document.getElementById('job-form').addEventListener('submit', speichereJob)
+  document.getElementById('cancel-edit-btn').addEventListener('click', beendeBearbeitung)
 
   await ladeEigeneJobs()
 }
 
-async function erstelleJob(e) {
-  e.preventDefault()
-  const btn = e.target.querySelector('button[type=submit]')
-  btn.disabled = true
-  btn.textContent = 'Wird gepostet...'
-
-  const { error } = await supabase.from('jobs').insert({
-    firma_id: profile.id,
+function sammleFormular() {
+  return {
     titel: document.getElementById('job-titel').value,
     beschreibung: document.getElementById('job-beschreibung').value,
     ort: document.getElementById('job-ort').value,
     stundenlohn: parseFloat(document.getElementById('job-lohn').value) || null,
     mindestalter: parseInt(document.getElementById('job-mindestalter').value) || 13,
     verfuegbarkeit: document.getElementById('job-verfuegbarkeit').value
-  })
+  }
+}
+
+async function speichereJob(e) {
+  e.preventDefault()
+  const btn = e.target.querySelector('button[type=submit]')
+  btn.disabled = true
+  btn.textContent = editingJobId ? 'Wird gespeichert...' : 'Wird gepostet...'
+
+  const daten = sammleFormular()
+  let error
+
+  if (editingJobId) {
+    ;({ error } = await supabase.from('jobs').update(daten).eq('id', editingJobId))
+  } else {
+    ;({ error } = await supabase.from('jobs').insert({ ...daten, firma_id: profile.id }))
+  }
 
   btn.disabled = false
-  btn.textContent = 'Job posten'
 
   if (error) {
     alert('Fehler: ' + error.message)
+    btn.textContent = editingJobId ? 'Job aktualisieren' : 'Job posten'
     return
   }
 
-  e.target.reset()
+  beendeBearbeitung()
+  await ladeEigeneJobs()
+}
+
+function starteBearbeitung(job) {
+  editingJobId = job.id
+  document.getElementById('job-titel').value = job.titel || ''
+  document.getElementById('job-beschreibung').value = job.beschreibung || ''
+  document.getElementById('job-ort').value = job.ort || ''
+  document.getElementById('job-lohn').value = job.stundenlohn || ''
+  document.getElementById('job-mindestalter').value = job.mindestalter || 15
+  document.getElementById('job-verfuegbarkeit').value = job.verfuegbarkeit || ''
+
+  const submitBtn = document.querySelector('#job-form button[type=submit]')
+  submitBtn.textContent = 'Job aktualisieren'
+  document.getElementById('cancel-edit-btn').style.display = 'inline-block'
+  document.querySelector('.post-job-box').scrollIntoView({ behavior: 'smooth' })
+}
+
+function beendeBearbeitung() {
+  editingJobId = null
+  document.getElementById('job-form').reset()
+  document.querySelector('#job-form button[type=submit]').textContent = 'Job posten'
+  document.getElementById('cancel-edit-btn').style.display = 'none'
+}
+
+async function loescheJob(jobId) {
+  if (!confirm('Diesen Job wirklich löschen? Das kann nicht rückgängig gemacht werden.')) return
+  const { error } = await supabase.from('jobs').delete().eq('id', jobId)
+  if (error) {
+    alert('Fehler beim Löschen: ' + error.message)
+    return
+  }
   await ladeEigeneJobs()
 }
 
@@ -81,6 +125,10 @@ async function ladeEigeneJobs() {
         <span>${job.stundenlohn ? job.stundenlohn + ' €/Std' : ''}</span>
         <span>${escapeHtml(job.verfuegbarkeit || '')}</span>
       </div>
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button class="btn btn-outline" style="flex:1; padding:9px;" data-edit="${job.id}">Bearbeiten</button>
+        <button class="btn btn-outline" style="flex:1; padding:9px; color:var(--coral);" data-delete="${job.id}">Löschen</button>
+      </div>
       <div class="bewerber-list">
         <p class="bewerber-title">${bewerber.length} Bewerbung(en)</p>
         ${bewerber.map(b => `
@@ -92,6 +140,16 @@ async function ladeEigeneJobs() {
       </div>
     </div>
   `}).join('')
+
+  list.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const job = jobs.find(j => j.id === btn.dataset.edit)
+      starteBearbeitung(job)
+    })
+  })
+  list.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', () => loescheJob(btn.dataset.delete))
+  })
 }
 
 function escapeHtml(str) {
