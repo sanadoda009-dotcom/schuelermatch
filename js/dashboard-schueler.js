@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { requireAuth, logout } from './session.js'
+import { ICONS } from './icons.js'
 
 let profile
 
@@ -62,7 +63,11 @@ async function ladeJobs() {
   const { data: jobs, error } = await query.order('erstellt_am', { ascending: false })
 
   if (error || !jobs?.length) {
-    grid.innerHTML = '<p style="color:var(--ink-soft);">Aktuell keine passenden Jobs verfügbar.</p>'
+    grid.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
+        <p>Aktuell keine passenden Jobs verfügbar. Schau bald wieder vorbei!</p>
+      </div>`
     return
   }
 
@@ -76,14 +81,14 @@ async function ladeJobs() {
     <div class="job-card">
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
-        <span class="job-badge">ab ${job.mindestalter} J.</span>
+        <span class="job-badge">${ICONS.age} ab ${job.mindestalter} J.</span>
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
-      <p class="company-name">${escapeHtml(job.ort || '')}</p>
+      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}</p>
       ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
       <div class="job-meta">
-        <span>${job.stundenlohn ? job.stundenlohn + ' €/Std' : ''}</span>
-        <span>${escapeHtml(job.verfuegbarkeit || '')}</span>
+        ${job.stundenlohn ? `<span>${ICONS.money} ${job.stundenlohn} €/Std</span>` : ''}
+        ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
       </div>
       <button class="btn ${beworbenIds.has(job.id) ? 'btn-outline' : 'btn-green'} btn-full" style="margin-top:14px;" data-job-id="${job.id}" ${beworbenIds.has(job.id) ? 'disabled' : ''}>
         ${beworbenIds.has(job.id) ? 'Bereits beworben' : 'Jetzt bewerben'}
