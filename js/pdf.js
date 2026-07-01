@@ -26,20 +26,40 @@ export function ladeLebenslaufAlsPdf(daten) {
   `
 
   el.id = 'pdf-render-temp'
-  el.style.position = 'fixed'
-  el.style.top = '-99999px'
-  document.body.appendChild(el)
+  el.style.background = '#ffffff'
+
+  // Wichtig: html2canvas rendert Elemente, die extrem weit ausserhalb des
+  // Bildschirms liegen, manchmal nicht korrekt (leere PDF). Ein moderater
+  // Versatz mit position:absolute ist zuverlässiger als position:fixed mit
+  // riesigem Offset.
+  const wrapper = document.createElement('div')
+  wrapper.style.cssText = 'position:absolute; left:-10000px; top:0; width:210mm; background:#ffffff;'
+  wrapper.appendChild(el)
+  document.body.appendChild(wrapper)
 
   const dateiname = `Lebenslauf_${(name || 'Schueler').replace(/\s+/g, '_')}.pdf`
 
-  return html2pdf().from(el).set({
+  return warteAufBilder(el).then(() => html2pdf().from(el).set({
     margin: 0,
     filename: dateiname,
-    html2canvas: { scale: 2, useCORS: true },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).save().then(() => {
-    document.body.removeChild(el)
+  }).save()).finally(() => {
+    document.body.removeChild(wrapper)
   })
+}
+
+function warteAufBilder(container) {
+  const bilder = Array.from(container.querySelectorAll('img'))
+  if (!bilder.length) return Promise.resolve()
+
+  return Promise.all(bilder.map(img => {
+    if (img.complete) return Promise.resolve()
+    return new Promise(resolve => {
+      img.addEventListener('load', resolve, { once: true })
+      img.addEventListener('error', resolve, { once: true })
+    })
+  }))
 }
 
 function renderBlockFuerPdf(b) {
