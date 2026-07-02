@@ -9,8 +9,20 @@ function lieseUrlParameter() {
   const params = new URLSearchParams(window.location.search)
   const q = params.get('q')
   const kat = params.get('kategorie')
+  const jobId = params.get('job')
   if (q) document.getElementById('filter-suche').value = q
   if (kat) setzeKategorie(kat)
+  if (jobId) oeffneDetail(jobId)
+}
+
+function istNeu(job) {
+  return job.erstellt_am && (Date.now() - new Date(job.erstellt_am).getTime()) < 72 * 3600 * 1000
+}
+
+function passtZurSuche(job, suche) {
+  if (!suche) return true
+  return [job.titel, job.beschreibung, job.kategorie, job.ort]
+    .some(feld => (feld || '').toLowerCase().includes(suche))
 }
 
 function setzeKategorie(kat) {
@@ -72,7 +84,7 @@ function wendeFilterAn() {
   const sortierung = document.getElementById('sortierung').value
 
   const gefiltert = alleJobs.filter(job => {
-    if (suche && !(job.titel || '').toLowerCase().includes(suche)) return false
+    if (!passtZurSuche(job, suche)) return false
     if (ort && !(job.ort || '').toLowerCase().includes(ort)) return false
     if (alter && job.mindestalter > alter) return false
     if (gehalt && !(job.stundenlohn >= gehalt)) return false
@@ -99,6 +111,7 @@ function renderJobs(jobs) {
 
   grid.innerHTML = jobs.map(job => `
     <div class="job-card job-card--clickable" data-detail="${job.id}" role="button" tabindex="0" aria-label="Details zu ${escapeHtml(job.titel)}">
+      ${istNeu(job) ? '<span class="neu-badge">NEU</span>' : ''}
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
         <span class="job-badge">${ICONS.age} ab ${job.mindestalter} J.</span>
@@ -132,7 +145,20 @@ function oeffneDetail(jobId) {
       ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
     </div>
     ${job.beschreibung ? `<p style="font-size:0.95rem; line-height:1.7; color:var(--ink); white-space:pre-wrap;">${escapeHtml(job.beschreibung)}</p>` : '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'}
+    <button type="button" class="share-btn" id="detail-share" style="margin-top:16px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Link kopieren
+    </button>
   `
+  document.getElementById('detail-share').addEventListener('click', async (e) => {
+    const link = `${location.origin}${location.pathname}?job=${job.id}`
+    try {
+      await navigator.clipboard.writeText(link)
+      e.currentTarget.textContent = '✓ Kopiert!'
+    } catch {
+      prompt('Link zum Kopieren:', link)
+    }
+  })
   document.getElementById('job-detail-overlay').classList.add('open')
 }
 

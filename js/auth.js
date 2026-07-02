@@ -24,6 +24,39 @@ document.addEventListener('DOMContentLoaded', () => {
     wrap.appendChild(toggle)
   })
 
+  // Passwort-Staerke-Anzeige (nur Registrierung)
+  const regPw = document.getElementById('reg-password')
+  if (regPw) {
+    const meter = document.createElement('div')
+    meter.className = 'pw-meter'
+    meter.innerHTML = '<div></div>'
+    const label = document.createElement('span')
+    label.className = 'pw-meter-label'
+    regPw.closest('.form-group').append(meter, label)
+
+    regPw.addEventListener('input', () => {
+      const pw = regPw.value
+      let punkte = 0
+      if (pw.length >= 8) punkte++
+      if (pw.length >= 12) punkte++
+      if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) punkte++
+      if (/\d/.test(pw) || /[^A-Za-z0-9]/.test(pw)) punkte++
+
+      const stufen = [
+        { breite: '10%', farbe: '#ff6b4a', text: 'Zu kurz (min. 8 Zeichen)' },
+        { breite: '35%', farbe: '#ff6b4a', text: 'Schwach' },
+        { breite: '60%', farbe: '#f0b429', text: 'Okay' },
+        { breite: '80%', farbe: '#00c896', text: 'Gut' },
+        { breite: '100%', farbe: '#00a87d', text: 'Stark' }
+      ]
+      const s = stufen[pw.length < 8 ? 0 : punkte]
+      meter.firstElementChild.style.width = pw ? s.breite : '0'
+      meter.firstElementChild.style.background = s.farbe
+      label.textContent = pw ? s.text : ''
+      label.style.color = s.farbe
+    })
+  }
+
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault()

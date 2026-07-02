@@ -46,6 +46,10 @@ async function init() {
     btn.addEventListener('click', () => neuerBlock(btn.dataset.add, btn.dataset.titel))
   })
 
+  document.querySelectorAll('.cv-template-chip').forEach(chip => {
+    chip.addEventListener('click', () => wendeVorlageAn(chip.dataset.vorlage))
+  })
+
   document.getElementById('cv-save-btn').addEventListener('click', speichereLebenslauf)
   document.getElementById('cv-foto-btn').addEventListener('click', () => document.getElementById('cv-foto').click())
   document.getElementById('cv-foto').addEventListener('change', ladeFotoHoch)
@@ -103,6 +107,45 @@ async function init() {
   })
 
   await ladeJobs()
+}
+
+/* ---------- CV-VORLAGEN & FORMULIERUNGSHILFE ---------- */
+
+const CV_VORLAGEN = {
+  'erster-job': [
+    { typ: 'text', titel: 'Über mich', inhalt: 'Ich bin motiviert, lerne schnell und suche meinen ersten Nebenjob, um eigenes Geld zu verdienen und Erfahrung zu sammeln.' },
+    { typ: 'skills', titel: 'Fähigkeiten', tags: 'Zuverlässig, Pünktlich, Freundlich, Lernbereit' },
+    { typ: 'text', titel: 'Erfahrung', inhalt: 'Noch keine Berufserfahrung – dafür packe ich zu Hause regelmäßig mit an (z.B. Einkaufen, Aufräumen, auf Geschwister aufpassen).' }
+  ],
+  'nachhilfe': [
+    { typ: 'text', titel: 'Über mich', inhalt: 'Ich erkläre gerne und habe Geduld – besonders in Mathe und Deutsch helfe ich jüngeren Schülern gern weiter.' },
+    { typ: 'skills', titel: 'Stärkste Fächer', tags: 'Mathe, Deutsch, Englisch' },
+    { typ: 'text', titel: 'Erfahrung', inhalt: 'Ich habe schon meinen Geschwistern und Mitschülern bei Hausaufgaben geholfen und sie auf Prüfungen vorbereitet.' },
+    { typ: 'skills', titel: 'Fähigkeiten', tags: 'Geduldig, Erklärt verständlich, Zuverlässig' }
+  ],
+  'praktisch': [
+    { typ: 'text', titel: 'Über mich', inhalt: 'Ich arbeite gerne praktisch und mit den Händen – ob Garten, Haushalt oder Botengänge, auf mich ist Verlass.' },
+    { typ: 'skills', titel: 'Fähigkeiten', tags: 'Körperlich fit, Sorgfältig, Selbstständig, Pünktlich' },
+    { typ: 'text', titel: 'Erfahrung', inhalt: 'Regelmäßige Gartenarbeit bei Nachbarn, Einkäufe für die Familie und kleinere Reparaturen zu Hause.' }
+  ]
+}
+
+const FORMULIERUNGS_BEISPIELE = [
+  'Ich bin ein offener und freundlicher Mensch, der gerne Neues lernt.',
+  'Auf mich kann man sich verlassen – wenn ich etwas zusage, halte ich es.',
+  'In meiner Freizeit mache ich Sport im Verein, dadurch bin ich teamfähig und diszipliniert.',
+  'Ich übernehme gerne Verantwortung und arbeite sorgfältig.'
+]
+
+function wendeVorlageAn(name) {
+  const vorlage = CV_VORLAGEN[name]
+  if (!vorlage) return
+  const hatInhalt = bloecke.some(b => b.inhalt?.trim() || b.tags?.trim() || b.bild_url)
+  if (hatInhalt && !confirm('Die Vorlage ersetzt deine bisherigen Abschnitte. Fortfahren?')) return
+
+  bloecke = vorlage.map(b => ({ ...b, id: cryptoId() }))
+  renderBlockEditor()
+  renderCvPreview()
 }
 
 function zeigeView(view) {
@@ -163,7 +206,7 @@ function renderBlockEditor() {
           <button type="button" data-delete title="Löschen">✕</button>
         </div>
       </div>
-      ${b.typ === 'text' ? `<textarea class="block-inhalt-input" placeholder="Dein Text...">${escapeHtml(b.inhalt || '')}</textarea>` : ''}
+      ${b.typ === 'text' ? `<textarea class="block-inhalt-input" placeholder="Dein Text...">${escapeHtml(b.inhalt || '')}</textarea><button type="button" class="tipp-btn" title="Beispielsatz einfügen">💡 Formulierungshilfe</button>` : ''}
       ${b.typ === 'skills' ? `<input type="text" class="block-tags-input" placeholder="Komma-getrennt, z.B. Zuverlässig, Teamfähig" value="${escapeHtml(b.tags || '')}">` : ''}
       ${b.typ === 'bild' ? `
         <input type="file" class="block-bild-input" accept="image/*" style="display:none;">
@@ -196,6 +239,13 @@ function renderBlockEditor() {
     el.querySelector('.block-bild-remove')?.addEventListener('click', () => {
       block.bild_url = ''
       renderBlockEditor()
+      renderCvPreview()
+    })
+    el.querySelector('.tipp-btn')?.addEventListener('click', () => {
+      const beispiel = FORMULIERUNGS_BEISPIELE[Math.floor(Math.random() * FORMULIERUNGS_BEISPIELE.length)]
+      const feld = el.querySelector('.block-inhalt-input')
+      block.inhalt = (block.inhalt ? block.inhalt.trim() + ' ' : '') + beispiel
+      feld.value = block.inhalt
       renderCvPreview()
     })
   })
@@ -272,6 +322,10 @@ function aktualisiereFortschritt() {
   document.getElementById('cv-progress').innerHTML = items.map(i => `
     <span class="cv-progress-item ${i.done ? 'done' : ''}">${i.done ? '✓' : '○'} ${i.label}</span>
   `).join('')
+
+  const prozent = Math.round(items.filter(i => i.done).length / items.length * 100)
+  document.getElementById('cv-progress-fill').style.width = prozent + '%'
+  document.getElementById('cv-progress-label').textContent = prozent + '% vollständig'
 }
 
 async function persistiereLebenslauf() {
@@ -496,7 +550,7 @@ function wendeJobFilterAn() {
   const sortierung = document.getElementById('sortierung').value
 
   let gefiltert = alleJobs.filter(job => {
-    if (suche && !(job.titel || '').toLowerCase().includes(suche)) return false
+    if (suche && ![job.titel, job.beschreibung, job.kategorie, job.ort].some(f => (f || '').toLowerCase().includes(suche))) return false
     if (ort && !(job.ort || '').toLowerCase().includes(ort)) return false
     if (gehalt && !(job.stundenlohn >= gehalt)) return false
     if (kategorie && job.kategorie !== kategorie) return false
@@ -548,6 +602,7 @@ function renderJobs(jobs) {
 
   grid.innerHTML = jobs.map(job => `
     <div class="job-card job-card--clickable" data-detail="${job.id}">
+      ${job.erstellt_am && (Date.now() - new Date(job.erstellt_am).getTime()) < 72 * 3600 * 1000 ? '<span class="neu-badge">NEU</span>' : ''}
       <button class="merken-btn ${gemerkteIds.has(job.id) ? 'gemerkt' : ''}" data-merken="${job.id}" aria-label="Job merken" title="Job merken">${herzSvg}</button>
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>

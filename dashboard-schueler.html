@@ -77,7 +77,15 @@
         <h3 style="margin-bottom:6px;">Dein Lebenslauf</h3>
         <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:16px;">Baue deinen Lebenslauf aus eigenen Abschnitten – ganz wie du willst.</p>
 
-        <div class="cv-progress" id="cv-progress"></div>
+        <div class="cv-templates" id="cv-templates">
+          <button type="button" class="cv-template-chip" data-vorlage="erster-job">🚀 Vorlage: Mein erster Job</button>
+          <button type="button" class="cv-template-chip" data-vorlage="nachhilfe">📚 Vorlage: Nachhilfe-Profi</button>
+          <button type="button" class="cv-template-chip" data-vorlage="praktisch">🛠 Vorlage: Praktisch & Zuverlässig</button>
+        </div>
+
+        <div class="cv-progress-bar"><div id="cv-progress-fill" style="width:0%"></div></div>
+        <span class="cv-progress-label" id="cv-progress-label">0% vollständig</span>
+        <div class="cv-progress" id="cv-progress" style="margin-top:10px;"></div>
 
         <div class="form-group">
           <label>Profilbild</label>
