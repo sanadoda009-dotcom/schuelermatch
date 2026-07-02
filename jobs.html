@@ -68,6 +68,8 @@
     </select>
   </div>
 
+  <p class="jobs-count mono" id="jobs-count"></p>
+
   <div class="jobs-grid" id="jobs-grid">
     <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
   </div>
@@ -79,11 +81,23 @@
     <div class="footer-links">
       <a href="impressum.html">Impressum</a>
       <a href="datenschutz.html">Datenschutz</a>
+      <a href="jugendarbeitsschutz.html">Jugendarbeitsschutz</a>
       <a href="mailto:sanadoda009@gmail.com">Kontakt</a>
     </div>
   </div>
   <div class="footer-bottom wrap">© 2026 SchülerMatch</div>
 </footer>
+
+<div class="modal-overlay" id="job-detail-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="detail-titel">Job</h3>
+      <button type="button" class="modal-close" id="detail-close" aria-label="Schließen">✕</button>
+    </div>
+    <div id="detail-body"></div>
+    <a href="register.html?rolle=schueler" class="btn btn-green btn-full" style="margin-top:20px;">Kostenlos registrieren & bewerben</a>
+  </div>
+</div>
 
 <script type="module" src="js/jobs.js"></script>
 

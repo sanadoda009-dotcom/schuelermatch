@@ -161,19 +161,20 @@ async function ladeEigeneJobs() {
   list.innerHTML = jobs.map(job => {
     const bewerbungenFuerJob = bewerberByJob[job.id] || []
     return `
-    <div class="job-card">
+    <div class="job-card" style="${job.aktiv ? '' : 'opacity:0.65;'}">
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
-        <span class="job-badge">${ICONS.age} ab ${job.mindestalter} J.</span>
+        <span class="job-badge ${job.aktiv ? '' : 'job-badge--pausiert'}">${job.aktiv ? `${ICONS.age} ab ${job.mindestalter} J.` : '⏸ Pausiert'}</span>
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
-      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}</p>
+      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
       <div class="job-meta">
         ${job.stundenlohn ? `<span>${ICONS.money} ${job.stundenlohn} €/Std</span>` : ''}
         ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
       </div>
       <div style="display:flex; gap:8px; margin-top:14px;">
         <button class="btn btn-outline" style="flex:1; padding:9px;" data-edit="${job.id}">Bearbeiten</button>
+        <button class="btn btn-outline" style="flex:1; padding:9px;" data-pause="${job.id}" data-aktiv="${job.aktiv}">${job.aktiv ? 'Pausieren' : 'Aktivieren'}</button>
         <button class="btn btn-outline" style="flex:1; padding:9px; color:var(--coral);" data-delete="${job.id}">Löschen</button>
       </div>
       <div class="bewerber-list">
@@ -211,6 +212,19 @@ async function ladeEigeneJobs() {
   })
   list.querySelectorAll('[data-delete]').forEach(btn => {
     btn.addEventListener('click', () => loescheJob(btn.dataset.delete))
+  })
+  list.querySelectorAll('[data-pause]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true
+      const neuerWert = btn.dataset.aktiv !== 'true'
+      const { error } = await supabase.from('jobs').update({ aktiv: neuerWert }).eq('id', btn.dataset.pause)
+      if (error) {
+        alert('Fehler: ' + error.message)
+        btn.disabled = false
+        return
+      }
+      await ladeEigeneJobs()
+    })
   })
   list.querySelectorAll('[data-pdf-job]').forEach(btn => {
     btn.addEventListener('click', () => {

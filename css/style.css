@@ -329,6 +329,9 @@ section { padding: 130px 24px; }
 .merken-btn svg { width: 18px; height: 18px; stroke: var(--ink-soft); fill: none; stroke-width: 1.8; transition: fill 0.15s, stroke 0.15s; }
 .merken-btn.gemerkt svg { fill: var(--coral); stroke: var(--coral); }
 .job-card { position: relative; }
+.job-card--clickable { cursor: pointer; }
+.jobs-count { font-size: 0.78rem; color: var(--ink-soft); margin: 0 0 16px; }
+.job-badge--pausiert { background: rgba(255,193,7,0.12); color: #a67c00; }
 
 /* SIDEBAR NAVIGATION */
 .hamburger-btn {

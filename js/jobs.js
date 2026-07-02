@@ -62,6 +62,8 @@ function wendeFilterAn() {
 
 function renderJobs(jobs) {
   const grid = document.getElementById('jobs-grid')
+  const zaehler = document.getElementById('jobs-count')
+  if (zaehler) zaehler.textContent = `${jobs.length} Job${jobs.length === 1 ? '' : 's'} gefunden`
 
   if (!jobs.length) {
     grid.innerHTML = `
@@ -73,7 +75,7 @@ function renderJobs(jobs) {
   }
 
   grid.innerHTML = jobs.map(job => `
-    <div class="job-card">
+    <div class="job-card job-card--clickable" data-detail="${job.id}" role="button" tabindex="0" aria-label="Details zu ${escapeHtml(job.titel)}">
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
         <span class="job-badge">${ICONS.age} ab ${job.mindestalter} J.</span>
@@ -87,7 +89,36 @@ function renderJobs(jobs) {
       </div>
     </div>
   `).join('')
+
+  grid.querySelectorAll('[data-detail]').forEach(karte => {
+    karte.addEventListener('click', () => oeffneDetail(karte.dataset.detail))
+    karte.addEventListener('keydown', e => { if (e.key === 'Enter') oeffneDetail(karte.dataset.detail) })
+  })
 }
+
+function oeffneDetail(jobId) {
+  const job = alleJobs.find(j => j.id === jobId)
+  if (!job) return
+
+  document.getElementById('detail-titel').textContent = job.titel
+  document.getElementById('detail-body').innerHTML = `
+    <p class="company-name" style="margin-top:4px;">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
+    <div class="job-meta" style="margin:14px 0;">
+      <span>${ICONS.age} ab ${job.mindestalter} Jahren</span>
+      ${job.stundenlohn ? `<span>${ICONS.money} ${job.stundenlohn} €/Std</span>` : ''}
+      ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
+    </div>
+    ${job.beschreibung ? `<p style="font-size:0.95rem; line-height:1.7; color:var(--ink); white-space:pre-wrap;">${escapeHtml(job.beschreibung)}</p>` : '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'}
+  `
+  document.getElementById('job-detail-overlay').classList.add('open')
+}
+
+document.getElementById('detail-close')?.addEventListener('click', () => {
+  document.getElementById('job-detail-overlay').classList.remove('open')
+})
+document.getElementById('job-detail-overlay')?.addEventListener('click', (e) => {
+  if (e.target.id === 'job-detail-overlay') e.target.classList.remove('open')
+})
 
 function escapeHtml(str) {
   const div = document.createElement('div')
