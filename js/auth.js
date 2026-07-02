@@ -4,6 +4,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('login-form')
   const registerForm = document.getElementById('register-form')
 
+  // Passwort anzeigen/verbergen
+  document.querySelectorAll('input[type="password"]').forEach(input => {
+    const wrap = document.createElement('div')
+    wrap.className = 'pw-wrap'
+    input.parentNode.insertBefore(wrap, input)
+    wrap.appendChild(input)
+
+    const toggle = document.createElement('button')
+    toggle.type = 'button'
+    toggle.className = 'pw-toggle'
+    toggle.textContent = 'Anzeigen'
+    toggle.setAttribute('aria-label', 'Passwort anzeigen')
+    toggle.addEventListener('click', () => {
+      const sichtbar = input.type === 'text'
+      input.type = sichtbar ? 'password' : 'text'
+      toggle.textContent = sichtbar ? 'Anzeigen' : 'Verbergen'
+    })
+    wrap.appendChild(toggle)
+  })
+
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault()

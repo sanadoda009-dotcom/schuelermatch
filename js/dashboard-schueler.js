@@ -76,6 +76,13 @@ async function init() {
     document.getElementById('bewerbung-zeugnis-status').textContent = e.target.files[0]?.name || 'Kein Zeugnis ausgewählt'
   })
 
+  document.getElementById('detail-close').addEventListener('click', () => {
+    document.getElementById('job-detail-overlay').classList.remove('open')
+  })
+  document.getElementById('job-detail-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'job-detail-overlay') e.target.classList.remove('open')
+  })
+
   renderVerifyStatus()
   renderBlockEditor()
   renderCvPreview()
@@ -540,7 +547,7 @@ function renderJobs(jobs) {
   const herzSvg = '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.9-9.5-9.2C1.1 8.2 3 5 6.2 5c1.9 0 3.4 1 4.3 2.4l1.5 2.1 1.5-2.1C14.4 6 15.9 5 17.8 5 21 5 22.9 8.2 21.5 11.3c-2 4.3-9.5 9.2-9.5 9.2z"/></svg>'
 
   grid.innerHTML = jobs.map(job => `
-    <div class="job-card">
+    <div class="job-card job-card--clickable" data-detail="${job.id}">
       <button class="merken-btn ${gemerkteIds.has(job.id) ? 'gemerkt' : ''}" data-merken="${job.id}" aria-label="Job merken" title="Job merken">${herzSvg}</button>
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
@@ -565,6 +572,42 @@ function renderJobs(jobs) {
   grid.querySelectorAll('button[data-merken]').forEach(btn => {
     btn.addEventListener('click', () => toggleMerken(btn.dataset.merken, btn))
   })
+  grid.querySelectorAll('[data-detail]').forEach(karte => {
+    karte.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return // Buttons (Merken/Bewerben) nicht abfangen
+      oeffneDetail(karte.dataset.detail)
+    })
+  })
+}
+
+function oeffneDetail(jobId) {
+  const job = alleJobs.find(j => j.id === jobId)
+  if (!job) return
+
+  document.getElementById('detail-titel').textContent = job.titel
+  document.getElementById('detail-body').innerHTML = `
+    <p class="company-name" style="margin-top:4px;">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
+    <div class="job-meta" style="margin:14px 0;">
+      <span>${ICONS.age} ab ${job.mindestalter} Jahren</span>
+      ${job.stundenlohn ? `<span>${ICONS.money} ${job.stundenlohn} €/Std</span>` : ''}
+      ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
+    </div>
+    ${job.beschreibung ? `<p style="font-size:0.95rem; line-height:1.7; color:var(--ink); white-space:pre-wrap;">${escapeHtml(job.beschreibung)}</p>` : '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'}
+  `
+
+  const btn = document.getElementById('detail-bewerben-btn')
+  const beworben = beworbenIds.has(job.id)
+  btn.textContent = beworben ? schuelerStatusLabel(bewerbungsStatus[job.id]) : 'Jetzt bewerben'
+  btn.disabled = beworben
+  btn.className = beworben ? 'btn btn-outline btn-full' : 'btn btn-green btn-full'
+  btn.style.marginTop = '20px'
+  btn.onclick = beworben ? null : () => {
+    document.getElementById('job-detail-overlay').classList.remove('open')
+    const kartenBtn = document.querySelector(`button[data-job-id="${job.id}"]`)
+    oeffneBewerbungsModal(job.id, job.titel, kartenBtn)
+  }
+
+  document.getElementById('job-detail-overlay').classList.add('open')
 }
 
 async function oeffneBewerbungsModal(jobId, jobTitel, btn) {

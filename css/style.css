@@ -555,6 +555,16 @@ footer .logo { color: white; }
 .modal-close { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--ink-soft); padding: 4px 8px; }
 .modal-close:hover { color: var(--ink); }
 
+/* PASSWORT-TOGGLE */
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 86px; }
+.pw-toggle {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink-soft);
+}
+.pw-toggle:hover { color: var(--ink); }
+
 /* AUTH MESSAGES */
 .auth-msg {
   padding: 12px 14px; border-radius: 10px;
