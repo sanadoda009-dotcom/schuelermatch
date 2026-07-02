@@ -9,6 +9,11 @@ const SEITEN_ENDE = 275
 export async function ladeLebenslaufAlsPdf(daten) {
   const { name, alter_jahre, ort, email, foto_url, schule, klasse, bloecke, motivationsschreiben } = daten
 
+  if (!window.jspdf) {
+    alert('PDF-Bibliothek nicht geladen – bitte Seite neu laden (Strg+Shift+R).')
+    return
+  }
+
   const { jsPDF } = window.jspdf
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   let y = 20
