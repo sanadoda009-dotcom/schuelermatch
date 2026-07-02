@@ -32,8 +32,24 @@
     <p style="color:var(--ink-soft);">Alle Jobs sind jugendschutzgeprüft und kostenlos für Schüler.</p>
   </div>
 
+  <div class="search-hero">
+    <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3" stroke-linecap="round"/></svg>
+    <input type="text" id="filter-suche" placeholder="Welchen Job suchst du? z.B. Nachhilfe, Eisverkauf...">
+  </div>
+
+  <div class="pill-row" id="kategorie-pills">
+    <button type="button" class="pill active" data-kat="">Alle</button>
+    <button type="button" class="pill" data-kat="Verkauf">Verkauf</button>
+    <button type="button" class="pill" data-kat="Nachhilfe">Nachhilfe</button>
+    <button type="button" class="pill" data-kat="Gastronomie">Gastronomie</button>
+    <button type="button" class="pill" data-kat="Lieferung & Kurier">Lieferung & Kurier</button>
+    <button type="button" class="pill" data-kat="Babysitten">Babysitten</button>
+    <button type="button" class="pill" data-kat="Haushalt & Garten">Haushalt & Garten</button>
+    <button type="button" class="pill" data-kat="Büro & Organisation">Büro & Organisation</button>
+    <button type="button" class="pill" data-kat="Sonstiges">Sonstiges</button>
+  </div>
+
   <div class="filter-row">
-    <input type="text" id="filter-suche" placeholder="Job-Titel durchsuchen...">
     <input type="text" id="filter-ort" placeholder="Stadt (z.B. München)">
     <select id="filter-alter">
       <option value="">Alle Altersgruppen</option>
@@ -49,17 +65,6 @@
       <option value="12">ab 12 €/Std</option>
       <option value="14">ab 14 €/Std</option>
       <option value="16">ab 16 €/Std</option>
-    </select>
-    <select id="filter-kategorie">
-      <option value="">Alle Kategorien</option>
-      <option>Verkauf</option>
-      <option>Nachhilfe</option>
-      <option>Gastronomie</option>
-      <option>Lieferung & Kurier</option>
-      <option>Babysitten</option>
-      <option>Haushalt & Garten</option>
-      <option>Büro & Organisation</option>
-      <option>Sonstiges</option>
     </select>
     <select id="sortierung">
       <option value="neueste">Neueste zuerst</option>

@@ -2,6 +2,23 @@ import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
 
 let alleJobs = []
+let aktiveKategorie = ''
+
+// Deep-Links: jobs.html?q=nachhilfe&kategorie=Nachhilfe
+function lieseUrlParameter() {
+  const params = new URLSearchParams(window.location.search)
+  const q = params.get('q')
+  const kat = params.get('kategorie')
+  if (q) document.getElementById('filter-suche').value = q
+  if (kat) setzeKategorie(kat)
+}
+
+function setzeKategorie(kat) {
+  aktiveKategorie = kat
+  document.querySelectorAll('#kategorie-pills .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.kat === kat)
+  })
+}
 
 async function ladeJobs() {
   const grid = document.getElementById('jobs-grid')
@@ -22,14 +39,21 @@ async function ladeJobs() {
   }
 
   alleJobs = jobs
-  renderJobs(alleJobs)
 
   document.getElementById('filter-suche').addEventListener('input', wendeFilterAn)
   document.getElementById('filter-ort').addEventListener('input', wendeFilterAn)
   document.getElementById('filter-alter').addEventListener('change', wendeFilterAn)
   document.getElementById('filter-gehalt').addEventListener('change', wendeFilterAn)
-  document.getElementById('filter-kategorie').addEventListener('change', wendeFilterAn)
   document.getElementById('sortierung').addEventListener('change', wendeFilterAn)
+  document.querySelectorAll('#kategorie-pills .pill').forEach(p => {
+    p.addEventListener('click', () => {
+      setzeKategorie(p.dataset.kat)
+      wendeFilterAn()
+    })
+  })
+
+  lieseUrlParameter()
+  wendeFilterAn()
 }
 
 function sortiereJobs(jobs, modus) {
@@ -45,7 +69,6 @@ function wendeFilterAn() {
   const ort = document.getElementById('filter-ort').value.trim().toLowerCase()
   const alter = parseInt(document.getElementById('filter-alter').value) || null
   const gehalt = parseFloat(document.getElementById('filter-gehalt').value) || null
-  const kategorie = document.getElementById('filter-kategorie').value
   const sortierung = document.getElementById('sortierung').value
 
   const gefiltert = alleJobs.filter(job => {
@@ -53,7 +76,7 @@ function wendeFilterAn() {
     if (ort && !(job.ort || '').toLowerCase().includes(ort)) return false
     if (alter && job.mindestalter > alter) return false
     if (gehalt && !(job.stundenlohn >= gehalt)) return false
-    if (kategorie && job.kategorie !== kategorie) return false
+    if (aktiveKategorie && job.kategorie !== aktiveKategorie) return false
     return true
   })
 
@@ -84,7 +107,7 @@ function renderJobs(jobs) {
       <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
       ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
       <div class="job-meta">
-        ${job.stundenlohn ? `<span>${ICONS.money} ${job.stundenlohn} €/Std</span>` : ''}
+        ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
         ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
       </div>
     </div>
@@ -105,7 +128,7 @@ function oeffneDetail(jobId) {
     <p class="company-name" style="margin-top:4px;">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
     <div class="job-meta" style="margin:14px 0;">
       <span>${ICONS.age} ab ${job.mindestalter} Jahren</span>
-      ${job.stundenlohn ? `<span>${ICONS.money} ${job.stundenlohn} €/Std</span>` : ''}
+      ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
       ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
     </div>
     ${job.beschreibung ? `<p style="font-size:0.95rem; line-height:1.7; color:var(--ink); white-space:pre-wrap;">${escapeHtml(job.beschreibung)}</p>` : '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'}

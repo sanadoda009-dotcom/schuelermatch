@@ -33,8 +33,12 @@
       <span class="eyebrow">● kostenlos für Schüler · immer</span>
       <h1>Der richtige Minijob.<br>Direkt <span class="accent">gematcht</span>.</h1>
       <p class="lead">SchülerMatch verbindet Schüler der 5. bis 13. Klasse mit geprüften Arbeitgebern in der Nähe – passend zu Alter, Zeit und Interessen. Kein endloses Suchen, kein Kleingedrucktes.</p>
-      <div class="hero-ctas">
-        <a href="register.html?rolle=schueler" class="btn btn-green">Job finden →</a>
+      <form class="search-hero" action="jobs.html" method="get" style="margin-top:28px;">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3" stroke-linecap="round"/></svg>
+        <input type="text" name="q" placeholder="Welchen Job suchst du? z.B. Nachhilfe, Babysitten...">
+      </form>
+      <div class="hero-ctas" style="margin-top:16px;">
+        <a href="register.html?rolle=schueler" class="btn btn-green">Kostenlos registrieren →</a>
         <a href="register.html?rolle=firma" class="btn btn-outline">Ich biete einen Job an</a>
       </div>
       <div class="trust-row">
@@ -61,6 +65,23 @@
     </div>
   </div>
 </header>
+
+<section class="wrap" style="padding-top:60px; padding-bottom:60px;">
+  <div class="section-head reveal">
+    <span class="eyebrow-light">Kategorien</span>
+    <h2>Was willst du machen?</h2>
+  </div>
+  <div class="kat-grid reveal">
+    <a class="kat-tile" href="jobs.html?kategorie=Verkauf"><span class="kat-icon"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg></span>Verkauf</a>
+    <a class="kat-tile" href="jobs.html?kategorie=Nachhilfe"><span class="kat-icon"><svg viewBox="0 0 24 24"><path d="M4 5h7a2 2 0 012 2v12a2 2 0 00-2-2H4V5zM20 5h-7a2 2 0 00-2 2v12a2 2 0 012-2h7V5z"/></svg></span>Nachhilfe</a>
+    <a class="kat-tile" href="jobs.html?kategorie=Gastronomie"><span class="kat-icon"><svg viewBox="0 0 24 24"><path d="M5 9h11v6a4 4 0 01-4 4H9a4 4 0 01-4-4V9zM16 10h2a2 2 0 010 4h-2"/></svg></span>Gastronomie</a>
+    <a class="kat-tile" href="jobs.html?kategorie=Lieferung %26 Kurier"><span class="kat-icon"><svg viewBox="0 0 24 24"><circle cx="6.5" cy="17" r="3"/><circle cx="17.5" cy="17" r="3"/><path d="M6.5 17h6l3-9h4M9 8h4"/></svg></span>Lieferung & Kurier</a>
+    <a class="kat-tile" href="jobs.html?kategorie=Babysitten"><span class="kat-icon"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.3-8.7-8C2.1 9.3 3.6 6.5 6.4 6.5c1.8 0 3.1 1 4 2.3L12 11l1.6-2.2c.9-1.3 2.2-2.3 4-2.3 2.8 0 4.3 2.8 3.1 5.5C19 15.7 12 20 12 20z"/></svg></span>Babysitten</a>
+    <a class="kat-tile" href="jobs.html?kategorie=Haushalt %26 Garten"><span class="kat-icon"><svg viewBox="0 0 24 24"><path d="M12 20c-4 0-7-3-7-7 0-5 7-9 7-9s7 4 7 9c0 4-3 7-7 7z"/><path d="M12 20v-8"/></svg></span>Haushalt & Garten</a>
+    <a class="kat-tile" href="jobs.html?kategorie=Büro %26 Organisation"><span class="kat-icon"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/></svg></span>Büro & Organisation</a>
+    <a class="kat-tile" href="jobs.html?kategorie=Sonstiges"><span class="kat-icon"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 8.7l5.4-.8L12 3z"/></svg></span>Sonstiges</a>
+  </div>
+</section>
 
 <section class="wrap">
   <div class="section-head reveal">
