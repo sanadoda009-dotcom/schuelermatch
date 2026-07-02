@@ -1,103 +1,120 @@
-// Erzeugt einen professionell aussehenden Lebenslauf als PDF-Download.
-// Nutzt html2pdf.js (per <script> in der HTML-Seite eingebunden).
+// Erzeugt einen Lebenslauf als PDF-Download.
+// Schreibt Text direkt ins PDF (jsPDF) statt die HTML-Ansicht zu screenshotten –
+// das ist deterministisch und kann nicht "leer" ausfallen wie html2canvas.
 
-export function ladeLebenslaufAlsPdf(daten) {
+const RAND = 20
+const BREITE = 170 // A4 (210mm) minus 2x Rand
+const SEITEN_ENDE = 275
+
+export async function ladeLebenslaufAlsPdf(daten) {
   const { name, alter_jahre, ort, email, foto_url, schule, klasse, bloecke, motivationsschreiben } = daten
 
-  const el = document.createElement('div')
-  el.style.cssText = 'width:210mm; padding:18mm; font-family: Arial, Helvetica, sans-serif; color:#161a1f; box-sizing:border-box;'
-  el.innerHTML = `
-    <div style="display:flex; align-items:center; gap:22px; border-bottom:3px solid #00c896; padding-bottom:20px; margin-bottom:26px;">
-      ${foto_url
-        ? `<img src="${foto_url}" style="width:100px; height:100px; border-radius:50%; object-fit:cover;" crossorigin="anonymous">`
-        : `<div style="width:100px; height:100px; border-radius:50%; background:#2b2f8f; color:#fff; display:flex; align-items:center; justify-content:center; font-size:38px; font-weight:bold;">${escapeHtml((name || '?')[0]?.toUpperCase() || '?')}</div>`
+  const { jsPDF } = window.jspdf
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  let y = 20
+
+  // Kopfbereich: Foto (falls ladbar) + Name + Basisdaten
+  let textX = RAND
+  const foto = foto_url ? await bildAlsJpeg(foto_url, 400) : null
+  if (foto) {
+    doc.addImage(foto.dataUrl, 'JPEG', RAND, y, 28, 28)
+    textX = RAND + 34
+  }
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(20)
+  doc.setTextColor(22, 26, 31)
+  doc.text(name || 'Unbekannt', textX, y + 9)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10.5)
+  doc.setTextColor(90, 98, 112)
+  const zeile2 = [schule, klasse, alter_jahre ? alter_jahre + ' Jahre' : null].filter(Boolean).join(' · ')
+  if (zeile2) doc.text(zeile2, textX, y + 16)
+  const zeile3 = [ort, email].filter(Boolean).join(' · ')
+  if (zeile3) doc.text(zeile3, textX, y + 22)
+
+  y = Math.max(y + 28, y + 24) + 6
+  doc.setDrawColor(0, 200, 150)
+  doc.setLineWidth(1)
+  doc.line(RAND, y, RAND + BREITE, y)
+  y += 10
+
+  // Abschnitte
+  if (motivationsschreiben) {
+    y = textAbschnitt(doc, y, 'Motivationsschreiben', motivationsschreiben)
+  }
+
+  for (const b of (bloecke || [])) {
+    if (b.typ === 'text' && b.inhalt?.trim()) {
+      y = textAbschnitt(doc, y, b.titel || 'Abschnitt', b.inhalt)
+    } else if (b.typ === 'skills') {
+      const tags = (b.tags || '').split(',').map(t => t.trim()).filter(Boolean)
+      if (tags.length) y = textAbschnitt(doc, y, b.titel || 'Fähigkeiten', tags.join('  ·  '))
+    } else if (b.typ === 'bild' && b.bild_url) {
+      const bild = await bildAlsJpeg(b.bild_url, 800)
+      if (bild) {
+        const wMm = Math.min(90, BREITE)
+        const hMm = wMm * (bild.h / bild.w)
+        if (y + hMm > SEITEN_ENDE) { doc.addPage(); y = 20 }
+        if (b.titel) y = abschnittsTitel(doc, y, b.titel)
+        doc.addImage(bild.dataUrl, 'JPEG', RAND, y, wMm, hMm)
+        y += hMm + 10
       }
-      <div>
-        <h1 style="margin:0; font-size:28px;">${escapeHtml(name || 'Unbekannt')}</h1>
-        <p style="margin:6px 0 0; color:#5a6270; font-size:14px;">${escapeHtml(schule || '')}${klasse ? ' · ' + escapeHtml(klasse) : ''}${alter_jahre ? ' · ' + alter_jahre + ' Jahre' : ''}</p>
-        <p style="margin:4px 0 0; color:#5a6270; font-size:13px;">${escapeHtml(ort || '')}${email ? ' · ' + escapeHtml(email) : ''}</p>
-      </div>
-    </div>
+    }
+  }
 
-    ${motivationsschreiben ? abschnitt('Motivationsschreiben', motivationsschreiben) : ''}
-    ${(bloecke || []).map(renderBlockFuerPdf).join('')}
-
-    <p style="margin-top:40px; font-size:10px; color:#9aa0a8;">Erstellt über SchülerMatch · schuelermatch.de</p>
-  `
-
-  el.id = 'pdf-render-temp'
-  el.style.background = '#ffffff'
-
-  // Wichtig: html2canvas rendert Elemente, die extrem weit ausserhalb des
-  // Bildschirms liegen, manchmal nicht korrekt (leere PDF). Ein moderater
-  // Versatz mit position:absolute ist zuverlässiger als position:fixed mit
-  // riesigem Offset.
-  const wrapper = document.createElement('div')
-  wrapper.style.cssText = 'position:absolute; left:-10000px; top:0; width:210mm; background:#ffffff;'
-  wrapper.appendChild(el)
-  document.body.appendChild(wrapper)
+  // Fusszeile
+  doc.setFontSize(8)
+  doc.setTextColor(154, 160, 168)
+  doc.text('Erstellt über SchülerMatch · schuelermatch.de', RAND, 288)
 
   const dateiname = `Lebenslauf_${(name || 'Schueler').replace(/\s+/g, '_')}.pdf`
-
-  return warteAufBilder(el).then(() => html2pdf().from(el).set({
-    margin: 0,
-    filename: dateiname,
-    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).save()).finally(() => {
-    document.body.removeChild(wrapper)
-  })
+  doc.save(dateiname)
 }
 
-function warteAufBilder(container) {
-  const bilder = Array.from(container.querySelectorAll('img'))
-  if (!bilder.length) return Promise.resolve()
-
-  return Promise.all(bilder.map(img => {
-    if (img.complete) return Promise.resolve()
-    return new Promise(resolve => {
-      img.addEventListener('load', resolve, { once: true })
-      img.addEventListener('error', resolve, { once: true })
-    })
-  }))
+function abschnittsTitel(doc, y, titel) {
+  if (y > SEITEN_ENDE - 15) { doc.addPage(); y = 20 }
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9.5)
+  doc.setTextColor(0, 168, 125)
+  doc.text(titel.toUpperCase(), RAND, y)
+  return y + 6
 }
 
-function renderBlockFuerPdf(b) {
-  if (b.typ === 'text') {
-    return b.inhalt ? abschnitt(b.titel || 'Abschnitt', b.inhalt) : ''
+function textAbschnitt(doc, y, titel, text) {
+  y = abschnittsTitel(doc, y, titel)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10.5)
+  doc.setTextColor(22, 26, 31)
+
+  const zeilen = doc.splitTextToSize(text, BREITE)
+  for (const zeile of zeilen) {
+    if (y > SEITEN_ENDE) { doc.addPage(); y = 20 }
+    doc.text(zeile, RAND, y)
+    y += 5.2
   }
-  if (b.typ === 'skills') {
-    const tags = (b.tags || '').split(',').map(t => t.trim()).filter(Boolean)
-    if (!tags.length) return ''
-    return `
-      <div style="margin-bottom:22px;">
-        <h3 style="font-size:13px; text-transform:uppercase; letter-spacing:0.5px; color:#00a87d; margin-bottom:10px;">${escapeHtml(b.titel || 'Fähigkeiten')}</h3>
-        <div>${tags.map(t => `<span style="display:inline-block; background:#faf8f4; border:1px solid #e7e3da; border-radius:6px; padding:4px 10px; font-size:12px; margin:0 6px 6px 0;">${escapeHtml(t)}</span>`).join('')}</div>
-      </div>`
-  }
-  if (b.typ === 'bild') {
-    if (!b.bild_url) return ''
-    return `
-      <div style="margin-bottom:22px;">
-        ${b.titel ? `<h3 style="font-size:13px; text-transform:uppercase; letter-spacing:0.5px; color:#00a87d; margin-bottom:10px;">${escapeHtml(b.titel)}</h3>` : ''}
-        <img src="${b.bild_url}" style="max-width:100%; border-radius:8px;" crossorigin="anonymous">
-      </div>`
-  }
-  return ''
+  return y + 8
 }
 
-function abschnitt(titel, text) {
-  if (!text) return ''
-  return `
-    <div style="margin-bottom:22px;">
-      <h3 style="font-size:13px; text-transform:uppercase; letter-spacing:0.5px; color:#00a87d; margin-bottom:8px;">${escapeHtml(titel)}</h3>
-      <p style="font-size:13px; line-height:1.6; margin:0; white-space:pre-wrap;">${escapeHtml(text)}</p>
-    </div>
-  `
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div')
-  div.textContent = str
-  return div.innerHTML
+// Laedt ein Bild und wandelt es (egal welches Format) in JPEG-DataURL um.
+// Gibt null zurueck wenn das Bild nicht ladbar ist – der Rest des PDFs entsteht trotzdem.
+async function bildAlsJpeg(url, maxBreitePx) {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return null
+    const blob = await res.blob()
+    const bmp = await createImageBitmap(blob)
+    const scale = Math.min(1, maxBreitePx / bmp.width)
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.round(bmp.width * scale)
+    canvas.height = Math.round(bmp.height * scale)
+    const ctx = canvas.getContext('2d')
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height)
+    return { dataUrl: canvas.toDataURL('image/jpeg', 0.85), w: canvas.width, h: canvas.height }
+  } catch {
+    return null
+  }
 }
