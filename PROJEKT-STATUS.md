@@ -83,8 +83,12 @@ Neu dazugekommen — Claude hat jetzt direkten MCP-Zugriff auf Supabase (SQL/Mig
 
 **Hinweis**: Firmenname/Logo auf öffentlichen Job-Karten wurde NICHT umgesetzt — die dafür nötige Änderung (Firmenprofile öffentlich lesbar ODER Firmenname am Job speichern) wurde vom Nutzer/Sicherheitssystem abgelehnt. Falls gewünscht, braucht es eine explizite Entscheidung: Variante A (RLS-Policy: Firmenprofile lesbar) oder Variante B (firma_name-Spalte an jobs, beim Posten befüllt).
 
+## Update Block 3 (2. Juli 2026)
+- **Job-Detail-Modal auch im Schüler-Dashboard**: Klick auf Karte (nicht auf Buttons) öffnet Details; Bewerben-Button im Modal führt direkt zum Bewerbungsformular bzw. zeigt den Status, falls schon beworben.
+- **Passwort anzeigen/verbergen**-Toggle auf Login- und Registrierungs-Seite.
+- **Kategorie-Chips** jetzt auch auf den Vorschau-Karten der Startseite.
+
 ## Ideen für später (noch nicht gebaut)
 - Firmenname/Logo auf Job-Karten (siehe Hinweis oben — braucht Entscheidung)
 - Automatisierte/schnellere Verifizierung (würde bezahlte KI-API + eigene Backend-Funktion brauchen)
 - E-Mail-Benachrichtigung an Schüler bei Statusänderung der Bewerbung
-- Job-Detail-Modal auch im Schüler-Dashboard
