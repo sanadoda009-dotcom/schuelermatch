@@ -147,7 +147,7 @@ async function ladeEigeneJobs() {
 
   const { data: bewerbungen } = await supabase
     .from('bewerbungen')
-    .select('job_id, motivationsschreiben, zeugnis_url, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, foto_url, lebenslauf_bloecke)')
+    .select('id, status, job_id, motivationsschreiben, zeugnis_url, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, foto_url, lebenslauf_bloecke)')
     .in('job_id', jobs.map(j => j.id))
 
   renderStats(jobs.length, bewerbungen?.length || 0)
@@ -183,7 +183,8 @@ async function ladeEigeneJobs() {
             <div style="display:flex; gap:10px; align-items:center;">
               <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${b.bewerber.foto_url ? `background-image:url(${b.bewerber.foto_url})` : ''}">${b.bewerber.foto_url ? '' : escapeHtml((b.bewerber.name || '?')[0].toUpperCase())}</div>
               <div>
-                <strong>${escapeHtml(b.bewerber.name || 'Unbekannt')}</strong>, ${b.bewerber.alter_jahre || '?'} Jahre – ${escapeHtml(b.bewerber.ort || '')}<br>
+                <strong>${escapeHtml(b.bewerber.name || 'Unbekannt')}</strong>, ${b.bewerber.alter_jahre || '?'} Jahre – ${escapeHtml(b.bewerber.ort || '')}
+                <span class="status-badge status-${escapeHtml(b.status || 'ausstehend')}">${statusLabel(b.status)}</span><br>
                 <a href="mailto:${escapeHtml(b.bewerber.email || '')}" class="mono">${escapeHtml(b.bewerber.email || '')}</a>
               </div>
             </div>
@@ -191,6 +192,11 @@ async function ladeEigeneJobs() {
               <button class="btn btn-dark" style="flex:1; padding:8px; font-size:0.82rem;" data-pdf-job="${job.id}" data-pdf-idx="${idx}">Lebenslauf (PDF)</button>
               ${b.zeugnis_url ? `<button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem;" data-zeugnis-job="${job.id}" data-zeugnis-idx="${idx}">Zeugnis</button>` : ''}
             </div>
+            ${(b.status || 'ausstehend') === 'ausstehend' ? `
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button class="btn btn-green" style="flex:1; padding:8px; font-size:0.82rem;" data-status-id="${b.id}" data-status-wert="angenommen">Annehmen</button>
+              <button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem; color:var(--coral);" data-status-id="${b.id}" data-status-wert="abgelehnt">Ablehnen</button>
+            </div>` : ''}
           </div>
         `).join('')}
       </div>
@@ -232,6 +238,27 @@ async function ladeEigeneJobs() {
       window.open(data.signedUrl, '_blank')
     })
   })
+  list.querySelectorAll('[data-status-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true
+      const { error } = await supabase
+        .from('bewerbungen')
+        .update({ status: btn.dataset.statusWert })
+        .eq('id', btn.dataset.statusId)
+      if (error) {
+        alert('Fehler: ' + error.message)
+        btn.disabled = false
+        return
+      }
+      await ladeEigeneJobs()
+    })
+  })
+}
+
+function statusLabel(status) {
+  if (status === 'angenommen') return '✓ Angenommen'
+  if (status === 'abgelehnt') return 'Abgelehnt'
+  return 'Ausstehend'
 }
 
 function renderStats(jobCount, bewerbungCount) {

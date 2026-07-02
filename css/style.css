@@ -428,6 +428,13 @@ footer .logo { color: white; }
 .bewerber-item { font-size: 0.85rem; padding: 10px; background: var(--paper); border-radius: 8px; margin-bottom: 8px; }
 .bewerber-item a { color: var(--match-green-dark); }
 .cv-block { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 0.82rem; }
+.status-badge {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+  padding: 2px 8px; border-radius: 100px; margin-left: 6px; white-space: nowrap;
+}
+.status-ausstehend { background: rgba(255,193,7,0.12); color: #a67c00; border: 1px solid rgba(255,193,7,0.3); }
+.status-angenommen { background: rgba(0,200,150,0.1); color: var(--match-green-dark); border: 1px solid rgba(0,200,150,0.25); }
+.status-abgelehnt { background: rgba(255,107,74,0.1); color: var(--coral); border: 1px solid rgba(255,107,74,0.25); }
 
 /* POST JOB BOX (Firmen-Dashboard) */
 .post-job-box {

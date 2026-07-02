@@ -11,6 +11,7 @@ let alleJobs = []
 let beworbenIds = new Set()
 let gemerkteIds = new Set()
 let nurGemerkte = false
+let bewerbungsStatus = {}
 
 async function init() {
   profile = await requireAuth('schueler')
@@ -466,10 +467,12 @@ async function ladeJobs() {
   }
 
   const [{ data: bewerbungen }, { data: gemerkte }] = await Promise.all([
-    supabase.from('bewerbungen').select('job_id').eq('schueler_id', profile.id),
+    supabase.from('bewerbungen').select('job_id, status').eq('schueler_id', profile.id),
     supabase.from('gemerkte_jobs').select('job_id').eq('schueler_id', profile.id)
   ])
   beworbenIds = new Set((bewerbungen || []).map(b => b.job_id))
+  bewerbungsStatus = {}
+  ;(bewerbungen || []).forEach(b => { bewerbungsStatus[b.job_id] = b.status || 'ausstehend' })
   gemerkteIds = new Set((gemerkte || []).map(g => g.job_id))
 
   renderStats(jobs.length, beworbenIds.size)
@@ -549,7 +552,7 @@ function renderJobs(jobs) {
         ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
       </div>
       <button class="btn ${beworbenIds.has(job.id) ? 'btn-outline' : 'btn-green'} btn-full" style="margin-top:14px;" data-job-id="${job.id}" data-job-titel="${escapeHtml(job.titel)}" ${beworbenIds.has(job.id) ? 'disabled' : ''}>
-        ${beworbenIds.has(job.id) ? 'Bereits beworben' : 'Jetzt bewerben'}
+        ${beworbenIds.has(job.id) ? schuelerStatusLabel(bewerbungsStatus[job.id]) : 'Jetzt bewerben'}
       </button>
     </div>
   `).join('')
@@ -635,6 +638,12 @@ async function sendeBewerbung(e) {
 
   schliesseModal()
   await ladeJobs()
+}
+
+function schuelerStatusLabel(status) {
+  if (status === 'angenommen') return '🎉 Angenommen – die Firma meldet sich!'
+  if (status === 'abgelehnt') return 'Leider abgelehnt'
+  return 'Beworben – Antwort ausstehend'
 }
 
 function renderStats(matchCount, beworbenCount) {
