@@ -63,7 +63,18 @@ Kostenlose Matching-Plattform für Minijobs: Schüler (5.–13. Klasse, ~10–20
 - PDF-Export bei Firma-Ansicht leer (Feldname-Mismatch `lebenslauf_bloecke` vs `bloecke`)
 - Storage-Bucket-Policy erlaubte Auflisten aller Dateien (Sicherheitslücke, behoben)
 
+## Update (2. Juli 2026, autonomer Arbeitsblock)
+Neu dazugekommen — Claude hat jetzt direkten MCP-Zugriff auf Supabase (SQL/Migrationen selbst ausführbar) und Vercel (Deployments prüfbar):
+- **Job-Kategorien**: 8 Kategorien (Verkauf, Nachhilfe, Gastronomie, Lieferung & Kurier, Babysitten, Haushalt & Garten, Büro & Organisation, Sonstiges). Firma wählt beim Posten, Chip auf Job-Karten, Filter auf jobs.html + Schüler-Dashboard.
+- **Sortierung**: Neueste / Höchster Lohn / Niedrigstes Mindestalter.
+- **Merkliste**: Herz-Button auf Job-Karten im Schüler-Dashboard, "♡ Gemerkte"-Toggle im Filter. Tabelle `gemerkte_jobs` mit RLS.
+- **Bewerbungs-Status**: Firma kann Bewerbungen annehmen/ablehnen (Buttons + Badge), Schüler sieht Status direkt auf der Job-Karte ("Beworben – Antwort ausstehend" / "🎉 Angenommen" / "Leider abgelehnt"). UPDATE-Policy für Firmen auf `bewerbungen`.
+- **SEO**: Meta-Description + OpenGraph-Tags auf index.html und jobs.html.
+- **Sicherheit**: `handle_new_user` gehärtet (fester search_path, EXECUTE für anon/authenticated/public entzogen). Supabase-Advisor ist sauber bis auf "Leaked Password Protection" (nur im Pro-Plan verfügbar).
+
 ## Ideen für später (noch nicht gebaut)
-- "Merken"-Button für Jobs (Bookmark-Funktion)
 - Job aktiv/inaktiv statt nur löschen
+- Job-Detailseite/-Modal mit vollständiger Beschreibung
+- Firmen-Logo-Upload (statt Anfangsbuchstabe)
 - Automatisierte/schnellere Verifizierung (würde bezahlte KI-API + eigene Backend-Funktion brauchen)
+- E-Mail-Benachrichtigung an Schüler bei Statusänderung der Bewerbung
