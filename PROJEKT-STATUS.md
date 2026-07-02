@@ -72,9 +72,19 @@ Neu dazugekommen — Claude hat jetzt direkten MCP-Zugriff auf Supabase (SQL/Mig
 - **SEO**: Meta-Description + OpenGraph-Tags auf index.html und jobs.html.
 - **Sicherheit**: `handle_new_user` gehärtet (fester search_path, EXECUTE für anon/authenticated/public entzogen). Supabase-Advisor ist sauber bis auf "Leaked Password Protection" (nur im Pro-Plan verfügbar).
 
+## Update Block 2 (2. Juli 2026)
+- **Job-Detail-Modal** auf jobs.html: Klick auf Karte öffnet Popup mit voller Beschreibung + Registrieren-CTA (auch per Tastatur/Enter erreichbar).
+- **Job pausieren/aktivieren**: Firma kann Jobs offline nehmen ohne zu löschen (Badge "⏸ Pausiert", Karte ausgegraut). Pausierte Jobs verschwinden automatisch aus allen öffentlichen Listen (aktiv=true-Filter existierte schon).
+- **Ergebnis-Zähler** ("X Jobs gefunden") auf jobs.html und im Schüler-Dashboard.
+- **Jugendarbeitsschutz-Seite** (jugendarbeitsschutz.html): JArbSchG einfach erklärt nach Altersgruppen, im Footer verlinkt (Link zeigte vorher ins Leere).
+- **Sticky Navigation** mit Blur-Effekt auf allen Seiten.
+- **Mobile**: Filterleiste stapelt sich auf schmalen Screens sauber untereinander.
+- Kategorie-Chip jetzt auch auf Firma-Jobkarten.
+
+**Hinweis**: Firmenname/Logo auf öffentlichen Job-Karten wurde NICHT umgesetzt — die dafür nötige Änderung (Firmenprofile öffentlich lesbar ODER Firmenname am Job speichern) wurde vom Nutzer/Sicherheitssystem abgelehnt. Falls gewünscht, braucht es eine explizite Entscheidung: Variante A (RLS-Policy: Firmenprofile lesbar) oder Variante B (firma_name-Spalte an jobs, beim Posten befüllt).
+
 ## Ideen für später (noch nicht gebaut)
-- Job aktiv/inaktiv statt nur löschen
-- Job-Detailseite/-Modal mit vollständiger Beschreibung
-- Firmen-Logo-Upload (statt Anfangsbuchstabe)
+- Firmenname/Logo auf Job-Karten (siehe Hinweis oben — braucht Entscheidung)
 - Automatisierte/schnellere Verifizierung (würde bezahlte KI-API + eigene Backend-Funktion brauchen)
 - E-Mail-Benachrichtigung an Schüler bei Statusänderung der Bewerbung
+- Job-Detail-Modal auch im Schüler-Dashboard

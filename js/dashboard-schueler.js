@@ -525,6 +525,8 @@ async function toggleMerken(jobId, btn) {
 
 function renderJobs(jobs) {
   const grid = document.getElementById('jobs-grid')
+  const zaehler = document.getElementById('jobs-count')
+  if (zaehler) zaehler.textContent = `${jobs.length} Job${jobs.length === 1 ? '' : 's'} gefunden`
 
   if (!jobs.length) {
     grid.innerHTML = `
