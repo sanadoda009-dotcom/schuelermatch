@@ -28,6 +28,16 @@ async function ladeJobs() {
   document.getElementById('filter-ort').addEventListener('input', wendeFilterAn)
   document.getElementById('filter-alter').addEventListener('change', wendeFilterAn)
   document.getElementById('filter-gehalt').addEventListener('change', wendeFilterAn)
+  document.getElementById('filter-kategorie').addEventListener('change', wendeFilterAn)
+  document.getElementById('sortierung').addEventListener('change', wendeFilterAn)
+}
+
+function sortiereJobs(jobs, modus) {
+  const kopie = [...jobs]
+  if (modus === 'lohn') kopie.sort((a, b) => (b.stundenlohn || 0) - (a.stundenlohn || 0))
+  else if (modus === 'alter') kopie.sort((a, b) => (a.mindestalter || 0) - (b.mindestalter || 0))
+  // 'neueste' entspricht der Reihenfolge aus der Datenbank
+  return kopie
 }
 
 function wendeFilterAn() {
@@ -35,16 +45,19 @@ function wendeFilterAn() {
   const ort = document.getElementById('filter-ort').value.trim().toLowerCase()
   const alter = parseInt(document.getElementById('filter-alter').value) || null
   const gehalt = parseFloat(document.getElementById('filter-gehalt').value) || null
+  const kategorie = document.getElementById('filter-kategorie').value
+  const sortierung = document.getElementById('sortierung').value
 
   const gefiltert = alleJobs.filter(job => {
     if (suche && !(job.titel || '').toLowerCase().includes(suche)) return false
     if (ort && !(job.ort || '').toLowerCase().includes(ort)) return false
     if (alter && job.mindestalter > alter) return false
     if (gehalt && !(job.stundenlohn >= gehalt)) return false
+    if (kategorie && job.kategorie !== kategorie) return false
     return true
   })
 
-  renderJobs(gefiltert)
+  renderJobs(sortiereJobs(gefiltert, sortierung))
 }
 
 function renderJobs(jobs) {
@@ -66,7 +79,7 @@ function renderJobs(jobs) {
         <span class="job-badge">${ICONS.age} ab ${job.mindestalter} J.</span>
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
-      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}</p>
+      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
       ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
       <div class="job-meta">
         ${job.stundenlohn ? `<span>${ICONS.money} ${job.stundenlohn} €/Std</span>` : ''}

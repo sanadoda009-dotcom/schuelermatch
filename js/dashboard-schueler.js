@@ -9,6 +9,8 @@ let bloecke = []
 let aktuelleBewerbung = null // { jobId, btn, zeugnisDatei }
 let alleJobs = []
 let beworbenIds = new Set()
+let gemerkteIds = new Set()
+let nurGemerkte = false
 
 async function init() {
   profile = await requireAuth('schueler')
@@ -80,6 +82,17 @@ async function init() {
   document.getElementById('filter-suche').addEventListener('input', wendeJobFilterAn)
   document.getElementById('filter-ort').addEventListener('input', wendeJobFilterAn)
   document.getElementById('filter-gehalt').addEventListener('change', wendeJobFilterAn)
+  document.getElementById('filter-kategorie').addEventListener('change', wendeJobFilterAn)
+  document.getElementById('sortierung').addEventListener('change', wendeJobFilterAn)
+  document.getElementById('merkliste-toggle').addEventListener('click', () => {
+    nurGemerkte = !nurGemerkte
+    const btn = document.getElementById('merkliste-toggle')
+    btn.textContent = nurGemerkte ? '♥ Gemerkte' : '♡ Gemerkte'
+    btn.setAttribute('aria-pressed', nurGemerkte)
+    btn.classList.toggle('btn-green', nurGemerkte)
+    btn.classList.toggle('btn-outline', !nurGemerkte)
+    wendeJobFilterAn()
+  })
 
   await ladeJobs()
 }
@@ -452,11 +465,12 @@ async function ladeJobs() {
     return
   }
 
-  const { data: bewerbungen } = await supabase
-    .from('bewerbungen')
-    .select('job_id')
-    .eq('schueler_id', profile.id)
+  const [{ data: bewerbungen }, { data: gemerkte }] = await Promise.all([
+    supabase.from('bewerbungen').select('job_id').eq('schueler_id', profile.id),
+    supabase.from('gemerkte_jobs').select('job_id').eq('schueler_id', profile.id)
+  ])
   beworbenIds = new Set((bewerbungen || []).map(b => b.job_id))
+  gemerkteIds = new Set((gemerkte || []).map(g => g.job_id))
 
   renderStats(jobs.length, beworbenIds.size)
 
@@ -468,15 +482,42 @@ function wendeJobFilterAn() {
   const suche = document.getElementById('filter-suche').value.trim().toLowerCase()
   const ort = document.getElementById('filter-ort').value.trim().toLowerCase()
   const gehalt = parseFloat(document.getElementById('filter-gehalt').value) || null
+  const kategorie = document.getElementById('filter-kategorie').value
+  const sortierung = document.getElementById('sortierung').value
 
-  const gefiltert = alleJobs.filter(job => {
+  let gefiltert = alleJobs.filter(job => {
     if (suche && !(job.titel || '').toLowerCase().includes(suche)) return false
     if (ort && !(job.ort || '').toLowerCase().includes(ort)) return false
     if (gehalt && !(job.stundenlohn >= gehalt)) return false
+    if (kategorie && job.kategorie !== kategorie) return false
+    if (nurGemerkte && !gemerkteIds.has(job.id)) return false
     return true
   })
 
+  if (sortierung === 'lohn') {
+    gefiltert = [...gefiltert].sort((a, b) => (b.stundenlohn || 0) - (a.stundenlohn || 0))
+  }
+
   renderJobs(gefiltert)
+}
+
+async function toggleMerken(jobId, btn) {
+  const istGemerkt = gemerkteIds.has(jobId)
+  btn.disabled = true
+
+  if (istGemerkt) {
+    const { error } = await supabase.from('gemerkte_jobs')
+      .delete().eq('schueler_id', profile.id).eq('job_id', jobId)
+    if (!error) gemerkteIds.delete(jobId)
+  } else {
+    const { error } = await supabase.from('gemerkte_jobs')
+      .insert({ schueler_id: profile.id, job_id: jobId })
+    if (!error) gemerkteIds.add(jobId)
+  }
+
+  btn.disabled = false
+  btn.classList.toggle('gemerkt', gemerkteIds.has(jobId))
+  if (nurGemerkte) wendeJobFilterAn()
 }
 
 function renderJobs(jobs) {
@@ -486,19 +527,22 @@ function renderJobs(jobs) {
     grid.innerHTML = `
       <div class="empty-state">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
-        <p>Keine Jobs passen zu diesem Filter.</p>
+        <p>${nurGemerkte ? 'Du hast noch keine Jobs gemerkt. Klick auf das Herz bei einem Job!' : 'Keine Jobs passen zu diesem Filter.'}</p>
       </div>`
     return
   }
 
+  const herzSvg = '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.9-9.5-9.2C1.1 8.2 3 5 6.2 5c1.9 0 3.4 1 4.3 2.4l1.5 2.1 1.5-2.1C14.4 6 15.9 5 17.8 5 21 5 22.9 8.2 21.5 11.3c-2 4.3-9.5 9.2-9.5 9.2z"/></svg>'
+
   grid.innerHTML = jobs.map(job => `
     <div class="job-card">
+      <button class="merken-btn ${gemerkteIds.has(job.id) ? 'gemerkt' : ''}" data-merken="${job.id}" aria-label="Job merken" title="Job merken">${herzSvg}</button>
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
-        <span class="job-badge">${ICONS.age} ab ${job.mindestalter} J.</span>
+        <span class="job-badge" style="margin-right:44px;">${ICONS.age} ab ${job.mindestalter} J.</span>
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
-      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}</p>
+      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
       ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
       <div class="job-meta">
         ${job.stundenlohn ? `<span>${ICONS.money} ${job.stundenlohn} €/Std</span>` : ''}
@@ -512,6 +556,9 @@ function renderJobs(jobs) {
 
   grid.querySelectorAll('button[data-job-id]').forEach(btn => {
     btn.addEventListener('click', () => oeffneBewerbungsModal(btn.dataset.jobId, btn.dataset.jobTitel, btn))
+  })
+  grid.querySelectorAll('button[data-merken]').forEach(btn => {
+    btn.addEventListener('click', () => toggleMerken(btn.dataset.merken, btn))
   })
 }
 

@@ -58,6 +58,7 @@ function sammleFormular() {
   return {
     titel: document.getElementById('job-titel').value,
     beschreibung: document.getElementById('job-beschreibung').value,
+    kategorie: document.getElementById('job-kategorie').value || null,
     ort: document.getElementById('job-ort').value,
     stundenlohn: parseFloat(document.getElementById('job-lohn').value) || null,
     mindestalter: parseInt(document.getElementById('job-mindestalter').value) || 13,
@@ -96,6 +97,7 @@ function starteBearbeitung(job) {
   editingJobId = job.id
   document.getElementById('job-titel').value = job.titel || ''
   document.getElementById('job-beschreibung').value = job.beschreibung || ''
+  document.getElementById('job-kategorie').value = job.kategorie || ''
   document.getElementById('job-ort').value = job.ort || ''
   document.getElementById('job-lohn').value = job.stundenlohn || ''
   document.getElementById('job-mindestalter').value = job.mindestalter || 15
