@@ -257,7 +257,7 @@ function renderBlockEditor() {
         </div>
       </div>
       ${b.typ === 'text' ? `<textarea class="block-inhalt-input" placeholder="Dein Text...">${escapeHtml(b.inhalt || '')}</textarea><button type="button" class="tipp-btn" title="Beispielsatz einfügen">💡 Formulierungshilfe</button>` : ''}
-      ${b.typ === 'skills' ? `<input type="text" class="block-tags-input" placeholder="Komma-getrennt, z.B. Zuverlässig, Teamfähig" value="${escapeHtml(b.tags || '')}">` : ''}
+      ${b.typ === 'skills' ? `<input type="text" class="block-tags-input" placeholder="Komma-getrennt, z.B. Sport, Musik, Technik, Lesen" value="${escapeHtml(b.tags || '')}">` : ''}
       ${b.typ === 'bild' ? `
         <input type="file" class="block-bild-input" accept="image/*" style="display:none;">
         <div style="display:flex; gap:8px;">
@@ -753,9 +753,9 @@ function renderJobs(jobs) {
         ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
         ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
       </div>
-      <button class="btn ${beworbenIds.has(job.id) ? 'btn-outline' : 'btn-green'} btn-full" style="margin-top:14px;" data-job-id="${job.id}" data-job-titel="${escapeHtml(job.titel)}" ${beworbenIds.has(job.id) ? 'disabled' : ''}>
-        ${beworbenIds.has(job.id) ? schuelerStatusLabel(bewerbungsStatus[job.id]) : 'Jetzt bewerben'}
-      </button>
+      ${beworbenIds.has(job.id)
+        ? `<div class="job-status job-status--${bewerbungsStatus[job.id] || 'ausstehend'}">${schuelerStatusLabel(bewerbungsStatus[job.id])}</div>`
+        : `<button class="btn btn-green btn-full" style="margin-top:14px;" data-job-id="${job.id}" data-job-titel="${escapeHtml(job.titel)}">Jetzt bewerben</button>`}
     </div>
   `).join('')
 
@@ -792,8 +792,9 @@ function oeffneDetail(jobId) {
   const beworben = beworbenIds.has(job.id)
   btn.textContent = beworben ? schuelerStatusLabel(bewerbungsStatus[job.id]) : 'Jetzt bewerben'
   btn.disabled = beworben
-  btn.className = beworben ? 'btn btn-outline btn-full' : 'btn btn-green btn-full'
+  btn.className = beworben ? `job-status job-status--${bewerbungsStatus[job.id] || 'ausstehend'}` : 'btn btn-green btn-full'
   btn.style.marginTop = '20px'
+  btn.style.width = '100%'
   btn.onclick = beworben ? null : () => {
     document.getElementById('job-detail-overlay').classList.remove('open')
     const kartenBtn = document.querySelector(`button[data-job-id="${job.id}"]`)
@@ -880,8 +881,8 @@ async function sendeBewerbung(e) {
 
 function schuelerStatusLabel(status) {
   if (status === 'angenommen') return '🎉 Angenommen – die Firma meldet sich!'
-  if (status === 'abgelehnt') return 'Leider abgelehnt'
-  return 'Beworben – Antwort ausstehend'
+  if (status === 'abgelehnt') return 'Diesmal nicht geklappt – dranbleiben!'
+  return '⏳ Beworben – Antwort ausstehend'
 }
 
 function renderStats(matchCount, beworbenCount) {

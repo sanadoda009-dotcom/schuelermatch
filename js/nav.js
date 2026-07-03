@@ -6,3 +6,11 @@ document.querySelectorAll('.nav-toggle').forEach(btn => {
     btn.setAttribute('aria-expanded', isOpen)
   })
 })
+
+// Header beim Scrollen solide machen (kein Durchscheinen des Inhalts)
+const nav = document.querySelector('nav')
+if (nav) {
+  const pruefeScroll = () => nav.classList.toggle('scrolled', window.scrollY > 8)
+  pruefeScroll()
+  window.addEventListener('scroll', pruefeScroll, { passive: true })
+}

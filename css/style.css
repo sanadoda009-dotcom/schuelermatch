@@ -48,9 +48,15 @@ nav {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 24px; max-width: 1120px; margin: 0 auto;
   position: sticky; top: 0; z-index: 30;
-  background: rgba(250,248,244,0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--paper);
+  transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border-bottom: 1px solid transparent;
+}
+/* Beim Scrollen: voll deckend + Schatten, damit nichts durchscheint */
+nav.scrolled {
+  background: var(--card);
+  border-bottom-color: var(--line);
+  box-shadow: 0 4px 20px rgba(22,26,31,0.06);
 }
 .logo { display: flex; align-items: center; gap: 9px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.35rem; }
 .logo-mark {
@@ -393,6 +399,16 @@ section { padding: 130px 24px; }
 .merken-btn.gemerkt svg { fill: var(--coral); stroke: var(--coral); }
 .job-card { position: relative; }
 .job-card--clickable { cursor: pointer; }
+
+/* BEWERBUNGS-STATUS (kein Button, sondern Status-Anzeige) */
+.job-status {
+  margin-top: 14px; padding: 11px 14px; border-radius: 12px; text-align: center;
+  font-size: 0.85rem; font-weight: 600; font-family: 'Inter', sans-serif;
+  border: 1px dashed var(--line); cursor: default; box-sizing: border-box;
+}
+.job-status--ausstehend { background: rgba(255,193,7,0.08); color: #a67c00; border-color: rgba(255,193,7,0.3); }
+.job-status--angenommen { background: rgba(0,200,150,0.08); color: var(--match-green-dark); border-color: rgba(0,200,150,0.3); }
+.job-status--abgelehnt { background: var(--paper); color: var(--ink-soft); border-color: var(--line); }
 .jobs-count { font-size: 0.78rem; color: var(--ink-soft); margin: 0 0 16px; }
 .job-badge--pausiert { background: rgba(255,193,7,0.12); color: #a67c00; }
 
