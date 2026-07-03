@@ -516,8 +516,45 @@ function renderVerifyStatus() {
   document.getElementById('verify-banner').innerHTML = badgeHtml
   document.getElementById('verify-banner-2').innerHTML = badgeHtml
 
-  document.getElementById('ausweis-status').textContent = profile.schuelerausweis_url ? 'Hochgeladen ✓' : ''
-  document.getElementById('bestaetigung-status').textContent = profile.schulbestaetigung_url ? 'Hochgeladen ✓' : ''
+  setzeDokStatus('ausweis-status', profile.schuelerausweis_url, 'schuelerausweis_url')
+  setzeDokStatus('bestaetigung-status', profile.schulbestaetigung_url, 'schulbestaetigung_url')
+}
+
+function setzeDokStatus(elId, pfad, spalte) {
+  const el = document.getElementById(elId)
+  if (!pfad) { el.innerHTML = ''; return }
+  el.innerHTML = `Hochgeladen ✓ · <button type="button" class="dok-loeschen" data-pfad="${escapeHtml(pfad)}" data-spalte="${spalte}" style="background:none;border:none;color:var(--coral);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;padding:0;text-decoration:underline;">Dokument löschen</button>`
+  el.querySelector('.dok-loeschen').addEventListener('click', loescheDokument)
+}
+
+// Löscht das hochgeladene Verifizierungs-Dokument aus dem Storage + leert den DB-Pfad.
+// Der Verifizierungs-Status (verifiziert) bleibt erhalten.
+async function loescheDokument(e) {
+  const btn = e.currentTarget
+  const pfad = btn.dataset.pfad
+  const spalte = btn.dataset.spalte
+  if (!confirm('Dieses Dokument endgültig löschen? Dein Verifizierungs-Status bleibt erhalten.')) return
+
+  btn.disabled = true
+  btn.textContent = 'Wird gelöscht...'
+
+  // 1) Datei aus dem privaten Storage entfernen
+  const { error: storageError } = await supabase.storage.from('verifizierung').remove([pfad])
+  if (storageError) {
+    alert('Fehler beim Löschen der Datei: ' + storageError.message)
+    btn.disabled = false; btn.textContent = 'Dokument löschen'
+    return
+  }
+
+  // 2) Pfad in der Datenbank leeren, damit kein toter Verweis bleibt
+  const { error: dbError } = await supabase.from('profiles').update({ [spalte]: null }).eq('id', profile.id)
+  if (dbError) {
+    alert('Datei gelöscht, aber DB-Pfad konnte nicht geleert werden: ' + dbError.message)
+    return
+  }
+
+  profile[spalte] = null
+  renderVerifyStatus()
 }
 
 async function ladeVerifizierungsDokument(e, dateiname, spalte) {
