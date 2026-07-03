@@ -21,6 +21,7 @@ async function init() {
   document.getElementById('logout-btn').addEventListener('click', logout)
 
   initSidebar(zeigeView)
+  aktualisiereSidebarUser()
 
   // Profil
   document.getElementById('profile-name').value = profile.name || ''
@@ -152,6 +153,42 @@ function zeigeView(view) {
   document.querySelectorAll('.dashboard-view').forEach(v => v.classList.remove('active'))
   document.getElementById('view-' + view).classList.add('active')
   if (view === 'lebenslauf') renderCvPreview()
+  if (view === 'abzeichen') renderAbzeichen()
+}
+
+function aktualisiereSidebarUser() {
+  const avatar = document.getElementById('sidebar-avatar')
+  if (profile.foto_url) { avatar.style.backgroundImage = `url(${profile.foto_url})`; avatar.textContent = '' }
+  else avatar.textContent = (profile.name || '?')[0].toUpperCase()
+  document.getElementById('sidebar-name').textContent = profile.name || 'Schüler'
+  document.getElementById('sidebar-status').textContent = profile.verifiziert ? '✓ verifiziert' : 'nicht verifiziert'
+}
+
+function renderAbzeichen() {
+  const hatFoto = Boolean(profile.foto_url)
+  const cvVoll = lebenslaufVollstaendig()
+  const beworben = beworbenIds.size
+  const gemerkt = gemerkteIds.size
+  const angenommen = Object.values(bewerbungsStatus).some(s => s === 'angenommen')
+
+  const liste = [
+    { icon: '🎓', name: 'Willkommen', beschr: 'Account erstellt', erreicht: true },
+    { icon: '📸', name: 'Gesicht zeigen', beschr: 'Profilbild hochgeladen', erreicht: hatFoto },
+    { icon: '✅', name: 'Verifiziert', beschr: 'Als Schüler bestätigt', erreicht: Boolean(profile.verifiziert) },
+    { icon: '📄', name: 'Bereit', beschr: 'Lebenslauf ausgefüllt', erreicht: cvVoll },
+    { icon: '🚀', name: 'Erste Bewerbung', beschr: 'Auf 1 Job beworben', erreicht: beworben >= 1 },
+    { icon: '🔥', name: 'Fleißig', beschr: 'Auf 3 Jobs beworben', erreicht: beworben >= 3 },
+    { icon: '⭐', name: 'Sammler', beschr: '3 Jobs gemerkt', erreicht: gemerkt >= 3 },
+    { icon: '🏆', name: 'Angenommen!', beschr: 'Eine Zusage erhalten', erreicht: angenommen }
+  ]
+
+  document.getElementById('abzeichen-grid').innerHTML = liste.map(a => `
+    <div class="abzeichen ${a.erreicht ? 'erreicht' : ''}">
+      <span class="icon">${a.icon}</span>
+      <b>${a.name}</b>
+      <span>${a.beschr}</span>
+    </div>
+  `).join('')
 }
 
 function cryptoId() {
@@ -473,6 +510,7 @@ async function ladeFotoHoch(e) {
 
   profile.foto_url = foto_url
   setzePhotoPreview(foto_url)
+  aktualisiereSidebarUser()
   renderCvPreview()
 }
 
@@ -502,6 +540,7 @@ async function speichereProfil(e) {
 
   profile = { ...profile, ...updates }
   document.getElementById('user-name').textContent = profile.name
+  aktualisiereSidebarUser()
   await ladeJobs()
 }
 
@@ -751,6 +790,8 @@ function renderStats(matchCount, beworbenCount) {
     <div class="stat-box"><b>${matchCount}</b><span>Passende Jobs</span></div>
     <div class="stat-box"><b>${beworbenCount}</b><span>Deine Bewerbungen</span></div>
   `
+  const neu = alleJobs.filter(j => j.erstellt_am && (Date.now() - new Date(j.erstellt_am).getTime()) < 72 * 3600 * 1000).length
+  document.getElementById('badge-jobs').textContent = neu > 0 ? neu : ''
 }
 
 function escapeHtml(str) {

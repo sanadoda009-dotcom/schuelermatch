@@ -413,15 +413,63 @@ section { padding: 130px 24px; }
   transition: left 0.25s ease; box-shadow: 8px 0 30px rgba(22,26,31,0.08);
 }
 .sidebar.open { left: 0; }
-.sidebar-item {
-  text-align: left; background: none; border: none; padding: 13px 16px;
-  border-radius: 10px; font-weight: 600; font-size: 0.95rem; cursor: pointer;
-  color: var(--ink); font-family: 'Inter', sans-serif;
+.sidebar-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--ink-soft); padding: 6px 16px; margin-top: 8px;
 }
+.sidebar-item {
+  position: relative; display: flex; align-items: center; gap: 12px;
+  text-align: left; background: none; border: none; padding: 12px 16px;
+  border-radius: 12px; font-weight: 600; font-size: 0.95rem; cursor: pointer;
+  color: var(--ink); font-family: 'Inter', sans-serif; transition: background 0.15s, color 0.15s;
+}
+.sidebar-item svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
 .sidebar-item:hover { background: var(--paper); }
 .sidebar-item.active { background: rgba(0,200,150,0.1); color: var(--match-green-dark); }
+.sidebar-item.active::before {
+  content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 20px; background: var(--match-green); border-radius: 0 3px 3px 0;
+}
+.sidebar-item .sidebar-badge {
+  margin-left: auto; background: var(--coral); color: #fff;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; font-weight: 500;
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 100px;
+  display: flex; align-items: center; justify-content: center;
+}
+.sidebar-badge:empty { display: none; }
+.sidebar-user {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 8px;
+  border-radius: 12px; background: var(--paper); border: 1px solid var(--line);
+}
+.sidebar-user .cv-photo-preview { width: 36px; height: 36px; font-size: 0.9rem; }
+.sidebar-user b { font-size: 0.88rem; display: block; }
+.sidebar-user span { font-size: 0.72rem; color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; }
+
 .dashboard-view { display: none; }
 .dashboard-view.active { display: block; }
+
+/* GAMIFICATION – ABZEICHEN */
+.abzeichen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.abzeichen {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 20px 16px; text-align: center; transition: transform 0.15s;
+}
+.abzeichen.erreicht { border-color: rgba(0,200,150,0.4); background: rgba(0,200,150,0.05); }
+.abzeichen.erreicht:hover { transform: translateY(-3px); }
+.abzeichen .icon { font-size: 2rem; display: block; margin-bottom: 8px; filter: grayscale(1) opacity(0.35); }
+.abzeichen.erreicht .icon { filter: none; }
+.abzeichen b { font-size: 0.9rem; display: block; margin-bottom: 3px; }
+.abzeichen span { font-size: 0.75rem; color: var(--ink-soft); line-height: 1.4; }
+
+/* BEWERBER-AMPEL */
+.ampel { display: inline-flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 500; padding: 3px 9px; border-radius: 100px; margin-left: 6px; }
+.ampel-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.ampel-gruen { background: rgba(0,200,150,0.1); color: var(--match-green-dark); }
+.ampel-gruen .ampel-dot { background: var(--match-green); }
+.ampel-gelb { background: rgba(240,180,41,0.12); color: #a67c00; }
+.ampel-gelb .ampel-dot { background: #f0b429; }
+.ampel-rot { background: rgba(255,107,74,0.1); color: var(--coral); }
+.ampel-rot .ampel-dot { background: var(--coral); }
 
 /* VERIFIZIERUNG */
 .verify-badge {

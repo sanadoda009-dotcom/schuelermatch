@@ -25,7 +25,23 @@ async function init() {
     document.getElementById('view-' + view).classList.add('active')
   })
 
+  const avatar = document.getElementById('sidebar-avatar')
+  avatar.textContent = (profile.name || '?')[0].toUpperCase()
+  document.getElementById('sidebar-name').textContent = profile.name || 'Firma'
+
   await ladeEigeneJobs()
+}
+
+// Bewerber-Ampel: bewertet auf einen Blick, wie gut ein Bewerber passt.
+function bewerberAmpel(bewerber, job) {
+  const verifiziert = Boolean(bewerber.verifiziert)
+  const alterPasst = !job.mindestalter || (bewerber.alter_jahre && bewerber.alter_jahre >= job.mindestalter)
+  const cvVoll = Array.isArray(bewerber.lebenslauf_bloecke) && bewerber.lebenslauf_bloecke.some(b => b.inhalt?.trim() || b.tags?.trim() || b.bild_url)
+
+  const punkte = [verifiziert, alterPasst, cvVoll].filter(Boolean).length
+  if (punkte === 3) return { klasse: 'ampel-gruen', text: 'Top-Match' }
+  if (punkte === 2) return { klasse: 'ampel-gelb', text: 'Passt teils' }
+  return { klasse: 'ampel-rot', text: 'Prüfen' }
 }
 
 async function speichereProfil(e) {
@@ -147,10 +163,12 @@ async function ladeEigeneJobs() {
 
   const { data: bewerbungen } = await supabase
     .from('bewerbungen')
-    .select('id, status, job_id, motivationsschreiben, zeugnis_url, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, foto_url, lebenslauf_bloecke)')
+    .select('id, status, job_id, motivationsschreiben, zeugnis_url, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, foto_url, lebenslauf_bloecke, verifiziert)')
     .in('job_id', jobs.map(j => j.id))
 
   renderStats(jobs.length, bewerbungen?.length || 0)
+  const offen = (bewerbungen || []).filter(b => (b.status || 'ausstehend') === 'ausstehend').length
+  document.getElementById('badge-bewerbungen').textContent = offen > 0 ? offen : ''
 
   const bewerberByJob = {}
   ;(bewerbungen || []).forEach(b => {
@@ -185,6 +203,7 @@ async function ladeEigeneJobs() {
               <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${b.bewerber.foto_url ? `background-image:url(${b.bewerber.foto_url})` : ''}">${b.bewerber.foto_url ? '' : escapeHtml((b.bewerber.name || '?')[0].toUpperCase())}</div>
               <div>
                 <strong>${escapeHtml(b.bewerber.name || 'Unbekannt')}</strong>, ${b.bewerber.alter_jahre || '?'} Jahre – ${escapeHtml(b.bewerber.ort || '')}
+                <span class="ampel ${bewerberAmpel(b.bewerber, job).klasse}"><span class="ampel-dot"></span>${bewerberAmpel(b.bewerber, job).text}</span>
                 <span class="status-badge status-${escapeHtml(b.status || 'ausstehend')}">${statusLabel(b.status)}</span><br>
                 <a href="mailto:${escapeHtml(b.bewerber.email || '')}" class="mono">${escapeHtml(b.bewerber.email || '')}</a>
               </div>
