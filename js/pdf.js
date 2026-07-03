@@ -56,6 +56,38 @@ export async function ladeLebenslaufAlsPdf(daten) {
     } else if (b.typ === 'skills') {
       const tags = (b.tags || '').split(',').map(t => t.trim()).filter(Boolean)
       if (tags.length) y = textAbschnitt(doc, y, b.titel || 'Fähigkeiten', tags.join('  ·  '))
+    } else if (b.typ === 'sprachen') {
+      const sprachen = (b.sprachen || []).filter(s => s.name?.trim())
+      if (sprachen.length) {
+        y = abschnittsTitel(doc, y, b.titel || 'Sprachen')
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5); doc.setTextColor(22, 26, 31)
+        for (const s of sprachen) {
+          if (y > SEITEN_ENDE) { doc.addPage(); y = 20 }
+          doc.text(`${s.name}`, RAND, y)
+          doc.setTextColor(0, 168, 125)
+          doc.text(s.niveau || '', RAND + BREITE, y, { align: 'right' })
+          doc.setTextColor(22, 26, 31)
+          y += 6
+        }
+        y += 6
+      }
+    } else if (b.typ === 'skillbar') {
+      const skills = (b.skills || []).filter(s => s.name?.trim())
+      if (skills.length) {
+        y = abschnittsTitel(doc, y, b.titel || 'Fähigkeiten')
+        for (const s of skills) {
+          if (y > SEITEN_ENDE) { doc.addPage(); y = 20 }
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5); doc.setTextColor(22, 26, 31)
+          doc.text(s.name, RAND, y)
+          const barY = y + 2
+          doc.setFillColor(231, 227, 218)
+          doc.roundedRect(RAND, barY, BREITE, 2.4, 1.2, 1.2, 'F')
+          doc.setFillColor(0, 200, 150)
+          doc.roundedRect(RAND, barY, BREITE * ((s.wert || 0) / 100), 2.4, 1.2, 1.2, 'F')
+          y += 10
+        }
+        y += 4
+      }
     } else if (b.typ === 'bild' && b.bild_url) {
       const bild = await bildAlsJpeg(b.bild_url, 800)
       if (bild) {

@@ -677,6 +677,33 @@ footer .logo { color: white; }
 .pw-meter > div { height: 100%; width: 0; border-radius: 100px; transition: width 0.25s, background 0.25s; }
 .pw-meter-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; margin-top: 4px; display: block; }
 
+/* ZEILEN-EDITOR (Sprachen / Skill-Regler) */
+.zeilen-editor { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.zeilen-editor input[type="text"] { flex: 1; margin-bottom: 0 !important; }
+.zeilen-editor input[type="range"] { flex: 1; accent-color: var(--match-green); }
+.zeilen-editor select { padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); font-family: 'Inter', sans-serif; font-size: 0.85rem; }
+.skill-wert-label { font-size: 0.72rem; color: var(--ink-soft); min-width: 38px; text-align: right; }
+.zeile-weg { background: none; border: 1px solid var(--line); border-radius: 6px; width: 28px; height: 28px; cursor: pointer; color: var(--ink-soft); flex-shrink: 0; }
+.zeile-weg:hover { border-color: var(--coral); color: var(--coral); }
+
+/* CV-VORSCHAU: SPRACHEN-BADGES */
+.cv-sprachen { display: flex; flex-wrap: wrap; gap: 8px; }
+.cv-sprache-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 100px;
+  padding: 5px 6px 5px 12px; font-size: 0.82rem; color: var(--ink);
+}
+.cv-sprache-badge b {
+  background: var(--match-green); color: var(--ink); font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 100px;
+}
+
+/* CV-VORSCHAU: SKILL-BALKEN */
+.cv-skillbar { margin-bottom: 10px; }
+.cv-skillbar-top { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; }
+.cv-skillbar-track { height: 7px; background: var(--paper); border: 1px solid var(--line); border-radius: 100px; overflow: hidden; }
+.cv-skillbar-track > div { height: 100%; background: linear-gradient(90deg, var(--match-green), var(--indigo)); border-radius: 100px; transition: width 0.3s; }
+
 /* CV FORTSCHRITT */
 .cv-progress { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
 .cv-progress-item {

@@ -214,8 +214,8 @@ async function ladeEigeneJobs() {
             </div>
             ${(b.status || 'ausstehend') === 'ausstehend' ? `
             <div style="display:flex; gap:8px; margin-top:8px;">
-              <button class="btn btn-green" style="flex:1; padding:8px; font-size:0.82rem;" data-status-id="${b.id}" data-status-wert="angenommen">Annehmen</button>
-              <button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem; color:var(--coral);" data-status-id="${b.id}" data-status-wert="abgelehnt">Ablehnen</button>
+              <button class="btn btn-green" style="flex:1; padding:8px; font-size:0.82rem;" data-status-id="${b.id}" data-status-wert="angenommen" data-email="${escapeHtml(b.bewerber.email || '')}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}">Annehmen</button>
+              <button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem; color:var(--coral);" data-status-id="${b.id}" data-status-wert="abgelehnt" data-email="${escapeHtml(b.bewerber.email || '')}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}">Ablehnen</button>
             </div>` : ''}
           </div>
         `).join('')}
@@ -274,18 +274,40 @@ async function ladeEigeneJobs() {
   list.querySelectorAll('[data-status-id]').forEach(btn => {
     btn.addEventListener('click', async () => {
       btn.disabled = true
+      const wert = btn.dataset.statusWert
       const { error } = await supabase
         .from('bewerbungen')
-        .update({ status: btn.dataset.statusWert })
+        .update({ status: wert })
         .eq('id', btn.dataset.statusId)
       if (error) {
         alert('Fehler: ' + error.message)
         btn.disabled = false
         return
       }
+      antwortMailAnbieten(wert, btn.dataset.email, btn.dataset.name, btn.dataset.jobtitel)
       await ladeEigeneJobs()
     })
   })
+}
+
+// Höfliche, vorformulierte Antwort-Mail (Zeit sparen für Arbeitgeber)
+function antwortMailAnbieten(status, email, name, jobtitel) {
+  if (!email) return
+  const vorname = (name || '').split(' ')[0] || 'Hallo'
+  let betreff, text
+  if (status === 'angenommen') {
+    betreff = `Deine Bewerbung bei uns – ${jobtitel}`
+    text = `Hallo ${vorname},\n\nvielen Dank für deine Bewerbung als "${jobtitel}"! Wir würden dich gerne kennenlernen. Melde dich bitte kurz, wann es dir zeitlich passt.\n\nViele Grüße\n${profile.name || ''}`
+  } else {
+    betreff = `Deine Bewerbung – ${jobtitel}`
+    text = `Hallo ${vorname},\n\nvielen Dank für dein Interesse an der Stelle "${jobtitel}" und die Mühe mit deiner Bewerbung. Wir haben uns diesmal für jemand anderen entschieden – das sagt nichts über dich aus, wir hatten viele gute Bewerbungen.\n\nBleib dran, du findest bestimmt bald etwas Passendes!\n\nViele Grüße\n${profile.name || ''}`
+  }
+  const mailto = `mailto:${email}?subject=${encodeURIComponent(betreff)}&body=${encodeURIComponent(text)}`
+  if (confirm(status === 'angenommen'
+    ? 'Bewerber angenommen! Möchtest du ihm direkt eine Zusage-Mail schreiben? (Text ist vorbereitet)'
+    : 'Bewerber abgelehnt. Möchtest du ihm eine höfliche Absage-Mail schreiben? (Text ist vorbereitet)')) {
+    window.location.href = mailto
+  }
 }
 
 function statusLabel(status) {

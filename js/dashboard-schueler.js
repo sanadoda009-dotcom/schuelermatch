@@ -43,6 +43,9 @@ async function init() {
         { id: cryptoId(), typ: 'text', titel: 'Erfahrung', inhalt: '' }
       ]
 
+  // Ungespeicherten Entwurf aus dem Browser wiederherstellen (falls vorhanden)
+  const wiederhergestellt = ladeEntwurf()
+
   document.querySelectorAll('.block-add-btn').forEach(btn => {
     btn.addEventListener('click', () => neuerBlock(btn.dataset.add, btn.dataset.titel))
   })
@@ -202,9 +205,17 @@ function neuerBlock(typ, titel) {
   if (typ === 'text') basis.inhalt = ''
   if (typ === 'skills') basis.tags = ''
   if (typ === 'bild') basis.bild_url = ''
+  if (typ === 'sprachen') basis.sprachen = [{ name: '', niveau: 'B1' }]
+  if (typ === 'skillbar') basis.skills = [{ name: '', wert: 60 }]
   bloecke.push(basis)
   renderBlockEditor()
   renderCvPreview()
+}
+
+const CEFR_NIVEAUS = ['Muttersprache', 'C2', 'C1', 'B2', 'B1', 'A2', 'A1']
+function cefrProzent(niveau) {
+  const map = { 'Muttersprache': 100, 'C2': 100, 'C1': 85, 'B2': 70, 'B1': 55, 'A2': 40, 'A1': 25 }
+  return map[niveau] || 50
 }
 
 function verschiebeBlock(id, richtung) {
@@ -224,7 +235,9 @@ function loescheBlock(id) {
 
 function typLabel(typ) {
   if (typ === 'text') return 'Text'
-  if (typ === 'skills') return 'Fähigkeiten'
+  if (typ === 'skills') return 'Tags'
+  if (typ === 'skillbar') return 'Skill-Regler'
+  if (typ === 'sprachen') return 'Sprachen'
   if (typ === 'bild') return 'Bild'
   return typ
 }
@@ -253,6 +266,29 @@ function renderBlockEditor() {
         </div>
         ${b.bild_url ? `<img src="${b.bild_url}" class="block-image-preview">` : ''}
       ` : ''}
+      ${b.typ === 'sprachen' ? `
+        ${(b.sprachen || []).map((s, i) => `
+          <div class="zeilen-editor">
+            <input type="text" class="sprache-name" data-i="${i}" placeholder="z.B. Deutsch" value="${escapeHtml(s.name || '')}">
+            <select class="sprache-niveau" data-i="${i}">
+              ${CEFR_NIVEAUS.map(n => `<option ${s.niveau === n ? 'selected' : ''}>${n}</option>`).join('')}
+            </select>
+            <button type="button" class="zeile-weg" data-i="${i}" title="Entfernen">✕</button>
+          </div>
+        `).join('')}
+        <button type="button" class="tipp-btn sprache-add">+ Sprache hinzufügen</button>
+      ` : ''}
+      ${b.typ === 'skillbar' ? `
+        ${(b.skills || []).map((s, i) => `
+          <div class="zeilen-editor">
+            <input type="text" class="skill-name" data-i="${i}" placeholder="z.B. Teamfähigkeit" value="${escapeHtml(s.name || '')}">
+            <input type="range" class="skill-wert" data-i="${i}" min="0" max="100" step="10" value="${s.wert ?? 60}">
+            <span class="skill-wert-label mono">${s.wert ?? 60}%</span>
+            <button type="button" class="zeile-weg" data-i="${i}" title="Entfernen">✕</button>
+          </div>
+        `).join('')}
+        <button type="button" class="tipp-btn skill-add">+ Fähigkeit hinzufügen</button>
+      ` : ''}
     </div>
   `).join('')
 
@@ -278,13 +314,35 @@ function renderBlockEditor() {
       renderBlockEditor()
       renderCvPreview()
     })
-    el.querySelector('.tipp-btn')?.addEventListener('click', () => {
+    el.querySelector('.tipp-btn:not(.sprache-add):not(.skill-add)')?.addEventListener('click', () => {
       const beispiel = FORMULIERUNGS_BEISPIELE[Math.floor(Math.random() * FORMULIERUNGS_BEISPIELE.length)]
       const feld = el.querySelector('.block-inhalt-input')
       block.inhalt = (block.inhalt ? block.inhalt.trim() + ' ' : '') + beispiel
       feld.value = block.inhalt
       renderCvPreview()
     })
+
+    // Sprachen-Editor
+    el.querySelectorAll('.sprache-name').forEach(inp => inp.addEventListener('input', e => { block.sprachen[e.target.dataset.i].name = e.target.value; renderCvPreview() }))
+    el.querySelectorAll('.sprache-niveau').forEach(sel => sel.addEventListener('change', e => { block.sprachen[e.target.dataset.i].niveau = e.target.value; renderCvPreview() }))
+    el.querySelector('.sprache-add')?.addEventListener('click', () => { block.sprachen.push({ name: '', niveau: 'B1' }); renderBlockEditor(); renderCvPreview() })
+
+    // Skill-Regler-Editor
+    el.querySelectorAll('.skill-name').forEach(inp => inp.addEventListener('input', e => { block.skills[e.target.dataset.i].name = e.target.value; renderCvPreview() }))
+    el.querySelectorAll('.skill-wert').forEach(rng => rng.addEventListener('input', e => {
+      block.skills[e.target.dataset.i].wert = parseInt(e.target.value)
+      e.target.nextElementSibling.textContent = e.target.value + '%'
+      renderCvPreview()
+    }))
+    el.querySelector('.skill-add')?.addEventListener('click', () => { block.skills.push({ name: '', wert: 60 }); renderBlockEditor(); renderCvPreview() })
+
+    // Zeile entfernen (Sprachen & Skills)
+    el.querySelectorAll('.zeile-weg').forEach(btn => btn.addEventListener('click', e => {
+      const i = parseInt(e.target.dataset.i)
+      if (block.typ === 'sprachen') block.sprachen.splice(i, 1)
+      if (block.typ === 'skillbar') block.skills.splice(i, 1)
+      renderBlockEditor(); renderCvPreview()
+    }))
   })
 }
 
@@ -324,6 +382,14 @@ function renderCvPreview() {
     if (b.typ === 'bild') {
       return `<div class="cv-preview-section"><h4>${ICONS.image}${escapeHtml(b.titel || 'Bild')}</h4>${b.bild_url ? `<img src="${b.bild_url}" class="cv-preview-image">` : '<p class="cv-preview-empty">Noch kein Bild hochgeladen</p>'}</div>`
     }
+    if (b.typ === 'sprachen') {
+      const sprachen = (b.sprachen || []).filter(s => s.name?.trim())
+      return `<div class="cv-preview-section"><h4>${ICONS.tag}${escapeHtml(b.titel || 'Sprachen')}</h4>${sprachen.length ? `<div class="cv-sprachen">${sprachen.map(s => `<span class="cv-sprache-badge">${escapeHtml(s.name)}<b>${escapeHtml(s.niveau)}</b></span>`).join('')}</div>` : '<p class="cv-preview-empty">Noch keine Angaben</p>'}</div>`
+    }
+    if (b.typ === 'skillbar') {
+      const skills = (b.skills || []).filter(s => s.name?.trim())
+      return `<div class="cv-preview-section"><h4>${ICONS.tag}${escapeHtml(b.titel || 'Fähigkeiten')}</h4>${skills.length ? skills.map(s => `<div class="cv-skillbar"><div class="cv-skillbar-top"><span>${escapeHtml(s.name)}</span></div><div class="cv-skillbar-track"><div style="width:${s.wert}%"></div></div></div>`).join('') : '<p class="cv-preview-empty">Noch keine Angaben</p>'}</div>`
+    }
     return ''
   }).join('')
 
@@ -339,15 +405,40 @@ function renderCvPreview() {
   `
 
   aktualisiereFortschritt()
+  autoSave()
+}
+
+function autoSaveKey() { return `cv-draft-${profile.id}` }
+
+function autoSave() {
+  try {
+    const entwurf = {
+      schule: document.getElementById('cv-schule').value,
+      klasse: document.getElementById('cv-klasse').value,
+      bloecke,
+      zeit: Date.now()
+    }
+    localStorage.setItem(autoSaveKey(), JSON.stringify(entwurf))
+    const hint = document.getElementById('autosave-hint')
+    if (hint) hint.textContent = '✓ Automatisch zwischengespeichert'
+  } catch {}
+}
+
+function ladeEntwurf() {
+  try {
+    const roh = localStorage.getItem(autoSaveKey())
+    if (!roh) return false
+    const e = JSON.parse(roh)
+    if (Array.isArray(e.bloecke) && e.bloecke.length) bloecke = e.bloecke
+    if (e.schule) document.getElementById('cv-schule').value = e.schule
+    if (e.klasse) document.getElementById('cv-klasse').value = e.klasse
+    return true
+  } catch { return false }
 }
 
 function aktualisiereFortschritt() {
   const schule = document.getElementById('cv-schule').value.trim()
-  const hatAbschnitt = bloecke.some(b =>
-    (b.typ === 'text' && b.inhalt?.trim()) ||
-    (b.typ === 'skills' && b.tags?.trim()) ||
-    (b.typ === 'bild' && b.bild_url)
-  )
+  const hatAbschnitt = blockHatInhalt()
 
   const items = [
     { label: 'Profilbild', done: Boolean(profile.foto_url) },
@@ -391,16 +482,24 @@ async function speichereLebenslauf() {
     return
   }
 
+  try { localStorage.removeItem(autoSaveKey()) } catch {}
+  const hint = document.getElementById('autosave-hint')
+  if (hint) hint.textContent = '✓ Gespeichert'
   alert('Lebenslauf gespeichert!')
 }
 
-function lebenslaufVollstaendig() {
-  const hatInhalt = bloecke.some(b =>
+function blockHatInhalt() {
+  return bloecke.some(b =>
     (b.typ === 'text' && b.inhalt?.trim()) ||
     (b.typ === 'skills' && b.tags?.trim()) ||
-    (b.typ === 'bild' && b.bild_url)
+    (b.typ === 'bild' && b.bild_url) ||
+    (b.typ === 'sprachen' && (b.sprachen || []).some(s => s.name?.trim())) ||
+    (b.typ === 'skillbar' && (b.skills || []).some(s => s.name?.trim()))
   )
-  return Boolean(profile.schule && hatInhalt)
+}
+
+function lebenslaufVollstaendig() {
+  return Boolean(profile.schule && blockHatInhalt())
 }
 
 /* ---------- VERIFIZIERUNG ---------- */
