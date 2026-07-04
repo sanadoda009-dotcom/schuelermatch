@@ -4,6 +4,7 @@ import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
 import { initSidebar } from './sidebar.js'
 import { toast } from './toast.js'
+import { ladeChat } from './chat.js'
 
 let profile
 let editingJobId = null
@@ -29,6 +30,13 @@ async function init() {
   const avatar = document.getElementById('sidebar-avatar')
   avatar.textContent = (profile.name || '?')[0].toUpperCase()
   document.getElementById('sidebar-name').textContent = profile.name || 'Firma'
+
+  const chatClose = () => {
+    document.getElementById('chat-overlay').classList.remove('open')
+    if (firmaChatCleanup) { firmaChatCleanup(); firmaChatCleanup = null }
+  }
+  document.getElementById('chat-close').addEventListener('click', chatClose)
+  document.getElementById('chat-overlay').addEventListener('click', e => { if (e.target.id === 'chat-overlay') chatClose() })
 
   await ladeEigeneJobs()
 }
@@ -220,6 +228,8 @@ async function ladeEigeneJobs() {
               <button class="btn btn-green" style="flex:1; padding:8px; font-size:0.82rem;" data-status-id="${b.id}" data-status-wert="angenommen" data-email="${escapeHtml(b.bewerber.email || '')}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}">Annehmen</button>
               <button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem; color:var(--coral);" data-status-id="${b.id}" data-status-wert="abgelehnt" data-email="${escapeHtml(b.bewerber.email || '')}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}">Ablehnen</button>
             </div>` : ''}
+            ${b.status === 'angenommen' ? `
+            <button class="btn btn-green btn-full" style="margin-top:8px; padding:8px; font-size:0.82rem;" data-chat="${b.id}" data-chat-name="${escapeHtml(b.bewerber.name || 'Bewerber')}">💬 Nachricht schreiben</button>` : ''}
           </div>
         `).join('')}
       </div>
@@ -274,6 +284,9 @@ async function ladeEigeneJobs() {
       window.open(data.signedUrl, '_blank')
     })
   })
+  list.querySelectorAll('[data-chat]').forEach(btn => {
+    btn.addEventListener('click', () => oeffneFirmaChat(btn.dataset.chat, btn.dataset.chatName))
+  })
   list.querySelectorAll('[data-status-id]').forEach(btn => {
     btn.addEventListener('click', async () => {
       btn.disabled = true
@@ -318,6 +331,14 @@ function statusLabel(status) {
   if (status === 'angenommen') return '✓ Angenommen'
   if (status === 'abgelehnt') return 'Abgelehnt'
   return 'Ausstehend'
+}
+
+let firmaChatCleanup = null
+async function oeffneFirmaChat(bewerbungId, name) {
+  document.getElementById('chat-name').textContent = name
+  document.getElementById('chat-overlay').classList.add('open')
+  if (firmaChatCleanup) { firmaChatCleanup(); firmaChatCleanup = null }
+  firmaChatCleanup = await ladeChat(document.getElementById('firma-chat-inner'), bewerbungId, profile.id)
 }
 
 function renderStats(jobCount, bewerbungCount) {

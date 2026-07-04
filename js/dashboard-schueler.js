@@ -4,6 +4,7 @@ import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
 import { initSidebar } from './sidebar.js'
 import { toast } from './toast.js'
+import { ladeChat, zaehleUngelesen } from './chat.js'
 
 let profile
 let bloecke = []
@@ -112,6 +113,7 @@ async function init() {
   })
 
   await ladeJobs()
+  aktualisiereNachrichtenBadge()
 }
 
 /* ---------- CV-VORLAGEN & FORMULIERUNGSHILFE ---------- */
@@ -158,6 +160,71 @@ function zeigeView(view) {
   document.getElementById('view-' + view).classList.add('active')
   if (view === 'lebenslauf') renderCvPreview()
   if (view === 'abzeichen') renderAbzeichen()
+  if (view === 'nachrichten') renderKonversationen()
+  else if (chatCleanup) { chatCleanup(); chatCleanup = null }
+}
+
+/* ---------- NACHRICHTEN ---------- */
+
+let chatCleanup = null
+
+async function aktualisiereNachrichtenBadge() {
+  const n = await zaehleUngelesen(profile.id)
+  const el = document.getElementById('badge-nachrichten')
+  if (el) el.textContent = n > 0 ? n : ''
+}
+
+async function renderKonversationen() {
+  const container = document.getElementById('konv-container')
+  document.getElementById('chat-container').innerHTML = ''
+  container.style.display = 'block'
+  container.innerHTML = '<div class="skeleton-card" style="height:70px;"></div>'
+
+  const { data } = await supabase.from('bewerbungen')
+    .select('id, job:job_id(titel)')
+    .eq('schueler_id', profile.id)
+    .eq('status', 'angenommen')
+    .order('erstellt_am', { ascending: false })
+
+  if (!data || !data.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 10h32v22H16l-8 8V10z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <p>Noch keine Chats. Sobald eine Firma deine Bewerbung annimmt, kannst du hier sicher schreiben.</p>
+      </div>`
+    return
+  }
+
+  container.innerHTML = `<div class="konv-liste">${data.map(b => `
+    <button class="konv-item" data-bewerbung="${b.id}" data-titel="${escapeHtml(b.job?.titel || 'Job')}">
+      <div class="cv-photo-preview" style="background:linear-gradient(135deg,var(--match-green),var(--indigo));">💬</div>
+      <div><b>${escapeHtml(b.job?.titel || 'Job')}</b><span>Angenommen · Chat öffnen</span></div>
+    </button>`).join('')}</div>`
+
+  container.querySelectorAll('.konv-item').forEach(btn =>
+    btn.addEventListener('click', () => oeffneChat(btn.dataset.bewerbung, btn.dataset.titel)))
+}
+
+async function oeffneChat(bewerbungId, titel) {
+  if (chatCleanup) { chatCleanup(); chatCleanup = null }
+  document.getElementById('konv-container').style.display = 'none'
+  const cc = document.getElementById('chat-container')
+  cc.innerHTML = `
+    <div class="chat-box">
+      <div class="chat-kopf">
+        <div class="cv-photo-preview" style="background:linear-gradient(135deg,var(--match-green),var(--indigo));">💬</div>
+        <b>${escapeHtml(titel)}</b>
+        <button type="button" class="zurueck">← Zurück</button>
+      </div>
+      <div id="chat-inner"></div>
+    </div>`
+  cc.querySelector('.zurueck').addEventListener('click', () => {
+    if (chatCleanup) { chatCleanup(); chatCleanup = null }
+    renderKonversationen()
+    aktualisiereNachrichtenBadge()
+  })
+  chatCleanup = await ladeChat(cc.querySelector('#chat-inner'), bewerbungId, profile.id)
+  setTimeout(aktualisiereNachrichtenBadge, 500)
 }
 
 function aktualisiereSidebarUser() {
