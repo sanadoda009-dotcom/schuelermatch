@@ -208,6 +208,10 @@ async function ladeEigeneJobs() {
         ${job.stundenlohn ? `<span>${ICONS.money} ${job.stundenlohn} €/Std</span>` : ''}
         ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
       </div>
+      <div class="job-insights">
+        <span>👁 <b>${job.aufrufe || 0}</b> Aufrufe</span>
+        <span>📨 <b>${bewerbungenFuerJob.length}</b> Bewerbung${bewerbungenFuerJob.length === 1 ? '' : 'en'}</span>
+      </div>
       <div style="display:flex; gap:8px; margin-top:14px;">
         <button class="btn btn-outline" style="flex:1; padding:9px;" data-edit="${job.id}">Bearbeiten</button>
         <button class="btn btn-outline" style="flex:1; padding:9px;" data-pause="${job.id}" data-aktiv="${job.aktiv}">${job.aktiv ? 'Pausieren' : 'Aktivieren'}</button>

@@ -136,6 +136,8 @@ function oeffneDetail(jobId) {
   const job = alleJobs.find(j => j.id === jobId)
   if (!job) return
 
+  supabase.rpc('job_aufruf_zaehlen', { p_job: jobId }) // Aufruf zählen (Fehler ignorieren)
+
   document.getElementById('detail-titel').textContent = job.titel
   document.getElementById('detail-body').innerHTML = `
     <p class="company-name" style="margin-top:4px;">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
