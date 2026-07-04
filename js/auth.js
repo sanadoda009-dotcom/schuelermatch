@@ -92,19 +92,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
       let name, alter, ort
 
+      // Freundliche Inline-Validierung
+      feldFehlerWeg(registerForm)
+      let fehler = false
+      const emailFeld = document.getElementById('reg-email')
+      const pwFeld = document.getElementById('reg-password')
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { feldFehler(emailFeld, 'Bitte gib eine gültige E-Mail ein.'); fehler = true }
+      if (password.length < 8) { feldFehler(pwFeld, 'Mindestens 8 Zeichen.'); fehler = true }
+
       if (role === 'firma') {
         name = document.getElementById('firma-name').value
         ort = document.getElementById('firma-ort').value
+        if (!name.trim()) { feldFehler(document.getElementById('firma-name'), 'Bitte gib den Firmennamen ein.'); fehler = true }
       } else {
         name = document.getElementById('name').value
         alter = document.getElementById('alter').value
         ort = document.getElementById('ort').value
+        if (!name.trim()) { feldFehler(document.getElementById('name'), 'Bitte gib deinen Vornamen ein.'); fehler = true }
+        if (!alter) { feldFehler(document.getElementById('alter'), 'Bitte wähle dein Alter.'); fehler = true }
 
         const braucht16 = !alter || parseInt(alter) < 16
         if (braucht16 && !document.getElementById('eltern-einwilligung').checked) {
-          showError(registerForm, 'Bitte bestätige die Einwilligung deiner Eltern.')
-          return
+          feldFehler(document.getElementById('eltern-einwilligung'), 'Bitte bestätige die Einwilligung deiner Eltern.'); fehler = true
         }
+      }
+
+      if (fehler) {
+        registerForm.querySelector('.invalid')?.focus()
+        return
       }
 
       btn.textContent = 'Wird erstellt...'
@@ -139,6 +154,28 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
 })
+
+// Freundliche Inline-Feldfehler (rot umrandet + Text darunter)
+function feldFehler(input, msg) {
+  if (!input) return
+  input.classList.add('invalid')
+  const gruppe = input.closest('.form-group') || input.parentElement
+  gruppe.querySelector('.field-error')?.remove()
+  const hinweis = document.createElement('p')
+  hinweis.className = 'field-error'
+  hinweis.setAttribute('role', 'alert')
+  hinweis.textContent = msg
+  gruppe.appendChild(hinweis)
+  input.addEventListener('input', () => {
+    input.classList.remove('invalid')
+    gruppe.querySelector('.field-error')?.remove()
+  }, { once: true })
+}
+
+function feldFehlerWeg(form) {
+  form.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'))
+  form.querySelectorAll('.field-error').forEach(el => el.remove())
+}
 
 function showError(form, msg) {
   removeMsg(form)

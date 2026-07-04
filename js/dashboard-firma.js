@@ -3,6 +3,7 @@ import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
 import { initSidebar } from './sidebar.js'
+import { toast } from './toast.js'
 
 let profile
 let editingJobId = null
@@ -67,7 +68,7 @@ async function speichereProfil(e) {
 
   profile = { ...profile, ...updates }
   document.getElementById('user-name').textContent = profile.name
-  alert('Firmenprofil gespeichert!')
+  toast('Firmenprofil gespeichert!')
 }
 
 function sammleFormular() {
@@ -105,7 +106,9 @@ async function speichereJob(e) {
     return
   }
 
+  const warBearbeitung = Boolean(editingJobId)
   beendeBearbeitung()
+  toast(warBearbeitung ? 'Job aktualisiert' : 'Job veröffentlicht! 🎉')
   await ladeEigeneJobs()
 }
 
@@ -284,6 +287,7 @@ async function ladeEigeneJobs() {
         btn.disabled = false
         return
       }
+      toast(wert === 'angenommen' ? 'Bewerber angenommen ✓' : 'Bewerber abgelehnt')
       antwortMailAnbieten(wert, btn.dataset.email, btn.dataset.name, btn.dataset.jobtitel)
       await ladeEigeneJobs()
     })

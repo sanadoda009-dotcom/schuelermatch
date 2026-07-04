@@ -3,6 +3,7 @@ import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
 import { initSidebar } from './sidebar.js'
+import { toast } from './toast.js'
 
 let profile
 let bloecke = []
@@ -485,7 +486,7 @@ async function speichereLebenslauf() {
   try { localStorage.removeItem(autoSaveKey()) } catch {}
   const hint = document.getElementById('autosave-hint')
   if (hint) hint.textContent = '✓ Gespeichert'
-  alert('Lebenslauf gespeichert!')
+  toast('Lebenslauf gespeichert!')
 }
 
 function blockHatInhalt() {
@@ -555,6 +556,7 @@ async function loescheDokument(e) {
 
   profile[spalte] = null
   renderVerifyStatus()
+  toast('Dokument gelöscht')
 }
 
 async function ladeVerifizierungsDokument(e, dateiname, spalte) {
@@ -755,7 +757,9 @@ async function toggleMerken(jobId, btn) {
   }
 
   btn.disabled = false
-  btn.classList.toggle('gemerkt', gemerkteIds.has(jobId))
+  const jetztGemerkt = gemerkteIds.has(jobId)
+  btn.classList.toggle('gemerkt', jetztGemerkt)
+  toast(jetztGemerkt ? 'Job gemerkt ❤' : 'Job entfernt')
   if (nurGemerkte) wendeJobFilterAn()
 }
 
@@ -913,6 +917,7 @@ async function sendeBewerbung(e) {
   jobBtn.classList.add('btn-outline')
 
   schliesseModal()
+  toast('Bewerbung abgeschickt! 🚀')
   await ladeJobs()
 }
 

@@ -505,6 +505,41 @@ section { padding: 130px 24px; }
 .stat-box b { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; color: var(--ink); }
 .stat-box span { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--ink-soft); }
 
+/* SO SCHÜTZEN WIR DICH */
+.schutz-grid { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.schutz-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 30px; }
+.schutz-icon {
+  width: 48px; height: 48px; border-radius: 12px; margin-bottom: 16px;
+  background: rgba(0,200,150,0.1); color: var(--match-green-dark);
+  display: flex; align-items: center; justify-content: center;
+}
+.schutz-icon svg { width: 24px; height: 24px; }
+.schutz-card h3 { font-size: 1.1rem; margin-bottom: 8px; }
+.schutz-card p { font-size: 0.92rem; color: var(--ink-soft); margin: 0; line-height: 1.6; }
+@media (max-width: 880px) { .schutz-grid { grid-template-columns: 1fr; } }
+
+/* TOAST-NACHRICHTEN */
+.toast-container {
+  position: fixed; top: 20px; right: 20px; z-index: 200;
+  display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+}
+.toast {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--ink); color: #fff; padding: 13px 18px; border-radius: 12px;
+  font-size: 0.9rem; font-weight: 500; box-shadow: 0 12px 30px rgba(22,26,31,0.25);
+  opacity: 0; transform: translateX(20px); transition: opacity 0.3s, transform 0.3s;
+  max-width: 340px;
+}
+.toast.sichtbar { opacity: 1; transform: translateX(0); }
+.toast-icon {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700;
+}
+.toast--ok .toast-icon { background: var(--match-green); color: var(--ink); }
+.toast--fehler .toast-icon { background: var(--coral); color: #fff; }
+.toast--info .toast-icon { background: #f0b429; color: var(--ink); }
+@media (max-width: 640px) { .toast-container { left: 12px; right: 12px; top: 12px; } .toast { max-width: none; } }
+
 /* SKELETON LOADER */
 .skeleton-card {
   height: 210px; border-radius: var(--radius); border: 1px solid var(--line);
@@ -751,6 +786,14 @@ footer .logo { color: white; }
   font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink-soft);
 }
 .pw-toggle:hover { color: var(--ink); }
+
+/* INLINE-FELDFEHLER */
+.form-group input.invalid, .form-group select.invalid {
+  border-color: var(--coral);
+  box-shadow: 0 0 0 3px rgba(255,107,74,0.12);
+}
+.field-error { color: var(--coral); font-size: 0.78rem; margin: 6px 0 0; }
+.consent-label input.invalid { outline: 2px solid var(--coral); outline-offset: 2px; }
 
 /* AUTH MESSAGES */
 .auth-msg {
