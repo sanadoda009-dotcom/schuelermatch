@@ -128,7 +128,14 @@ Braucht zuerst eine Token-Umstrukturierung (semantische Farb-Ebene --bg/--surfac
 - Sinn: sichere Kontaktaufnahme über die Plattform statt private Handynummern (Minderjährigenschutz).
 - Chat-Label = Job-Titel (Firmen-/Schülernamen werden aus Datenschutzgründen nicht quer sichtbar gemacht).
 
-## Block 3 – noch offen: B) Benachrichtigungs-Glocke im Header + optional E-Mail (Resend), C) echte Job-Detailseite mit eigener URL, D) Arbeitgeber-Dashboard mit Aufruf-Zähler, E) Umkreis-Filter (Geo) + Arbeitszeit-Filter.
+## Block 3 – KOMPLETT (2. Juli 2026)
+- **A) Nachrichten-System** ✅ (siehe oben)
+- **B) Benachrichtigungs-Glocke** ✅ im Header beider Dashboards (neue Nachrichten, Statusentscheidungen, neue Bewerbungen), Dropdown + roter Badge, alle 20s aktualisiert. Gesehen-Status in localStorage. E-Mail via Resend bewusst NICHT gebaut (braucht Edge Function + Key).
+- **C) Job-Detailseite** ✅ `job.html?id=` mit voller Beschreibung, dynamischen Meta-Tags fürs Teilen (WhatsApp/Google), Aufruf-Zähler, "Link kopieren". Jobs-Modal hat "Als eigene Seite öffnen".
+- **D) Aufruf-Zähler** ✅ Spalte `jobs.aufrufe` + sichere RPC `job_aufruf_zaehlen` (anon darf zählen, by design). Firmen-Dashboard zeigt "👁 Aufrufe · 📨 Bewerbungen" pro Job.
+- **E) Filter** ✅ Arbeitszeit-Filter (Wochenende/Nachmittags/Abends/Ferienjob/Flexibel) + echter **Umkreis-Filter** (Geocoding via Open-Meteo beim Job-Posten/Profil-Speichern → lat/lon; km-Slider + Haversine + Distanz-Chip). HINWEIS: Bestandsjobs/-profile brauchen ein erneutes Speichern, um Koordinaten zu bekommen.
+
+Damit sind Block 1, 2 und 3 fertig. Nächste Blöcke: Block 4 (Dark Mode via Token-Refactor, Design-Feinschliff, A11y), Block 5 (Bewertungen, Premium-Listings, Admin-Panel, Analytics + Ausweis-Auto-Löschung via Edge Function).
 
 ## Block 2 – noch offen für nächstes Mal
 Empty States final prüfen, Skeletons sind schon da. Danach Block 3 (Nachrichten, Benachrichtigungen/Glocke, Job-Detailseite mit eigener URL, Umkreis-Filter + Arbeitszeit-Filter), Block 4 (Dark Mode via Token-Refactor, Design-Feinschliff, A11y), Block 5 (Bewertungen, Premium-Listings, Admin-Panel, Analytics).
