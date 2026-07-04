@@ -518,6 +518,13 @@ section { padding: 130px 24px; }
 .schutz-card p { font-size: 0.92rem; color: var(--ink-soft); margin: 0; line-height: 1.6; }
 @media (max-width: 880px) { .schutz-grid { grid-template-columns: 1fr; } }
 
+.arbeitszeit-chip {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+  background: rgba(255,107,74,0.08); color: var(--coral);
+  border: 1px solid rgba(255,107,74,0.2);
+  padding: 2px 8px; border-radius: 100px; margin-left: 6px; white-space: nowrap;
+}
+
 /* JOB-INSIGHTS (Firmen-Dashboard) */
 .job-insights {
   display: flex; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);

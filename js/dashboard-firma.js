@@ -94,7 +94,8 @@ function sammleFormular() {
     ort: document.getElementById('job-ort').value,
     stundenlohn: parseFloat(document.getElementById('job-lohn').value) || null,
     mindestalter: parseInt(document.getElementById('job-mindestalter').value) || 13,
-    verfuegbarkeit: document.getElementById('job-verfuegbarkeit').value
+    verfuegbarkeit: document.getElementById('job-verfuegbarkeit').value,
+    arbeitszeit: document.getElementById('job-arbeitszeit').value || null
   }
 }
 
@@ -136,6 +137,7 @@ function starteBearbeitung(job) {
   document.getElementById('job-lohn').value = job.stundenlohn || ''
   document.getElementById('job-mindestalter').value = job.mindestalter || 15
   document.getElementById('job-verfuegbarkeit').value = job.verfuegbarkeit || ''
+  document.getElementById('job-arbeitszeit').value = job.arbeitszeit || ''
 
   const submitBtn = document.querySelector('#job-form button[type=submit]')
   submitBtn.textContent = 'Job aktualisieren'

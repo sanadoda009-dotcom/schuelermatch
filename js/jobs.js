@@ -57,6 +57,7 @@ async function ladeJobs() {
   document.getElementById('filter-alter').addEventListener('change', wendeFilterAn)
   document.getElementById('filter-gehalt').addEventListener('change', wendeFilterAn)
   document.getElementById('sortierung').addEventListener('change', wendeFilterAn)
+  document.getElementById('filter-arbeitszeit').addEventListener('change', wendeFilterAn)
   document.querySelectorAll('#kategorie-pills .pill').forEach(p => {
     p.addEventListener('click', () => {
       setzeKategorie(p.dataset.kat)
@@ -81,6 +82,7 @@ function wendeFilterAn() {
   const ort = document.getElementById('filter-ort').value.trim().toLowerCase()
   const alter = parseInt(document.getElementById('filter-alter').value) || null
   const gehalt = parseFloat(document.getElementById('filter-gehalt').value) || null
+  const arbeitszeit = document.getElementById('filter-arbeitszeit').value
   const sortierung = document.getElementById('sortierung').value
 
   const gefiltert = alleJobs.filter(job => {
@@ -89,6 +91,7 @@ function wendeFilterAn() {
     if (alter && job.mindestalter > alter) return false
     if (gehalt && !(job.stundenlohn >= gehalt)) return false
     if (aktiveKategorie && job.kategorie !== aktiveKategorie) return false
+    if (arbeitszeit && job.arbeitszeit !== arbeitszeit) return false
     return true
   })
 
@@ -117,7 +120,7 @@ function renderJobs(jobs) {
         <span class="job-badge">${ICONS.age} ab ${job.mindestalter} J.</span>
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
-      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
+      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
       ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
       <div class="job-meta">
         ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
@@ -140,7 +143,7 @@ function oeffneDetail(jobId) {
 
   document.getElementById('detail-titel').textContent = job.titel
   document.getElementById('detail-body').innerHTML = `
-    <p class="company-name" style="margin-top:4px;">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
+    <p class="company-name" style="margin-top:4px;">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
     <div class="job-meta" style="margin:14px 0;">
       <span>${ICONS.age} ab ${job.mindestalter} Jahren</span>
       ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}

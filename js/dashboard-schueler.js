@@ -102,6 +102,7 @@ async function init() {
   document.getElementById('filter-ort').addEventListener('input', wendeJobFilterAn)
   document.getElementById('filter-gehalt').addEventListener('change', wendeJobFilterAn)
   document.getElementById('filter-kategorie').addEventListener('change', wendeJobFilterAn)
+  document.getElementById('filter-arbeitszeit').addEventListener('change', wendeJobFilterAn)
   document.getElementById('sortierung').addEventListener('change', wendeJobFilterAn)
   document.getElementById('merkliste-toggle').addEventListener('click', () => {
     nurGemerkte = !nurGemerkte
@@ -798,6 +799,7 @@ function wendeJobFilterAn() {
   const ort = document.getElementById('filter-ort').value.trim().toLowerCase()
   const gehalt = parseFloat(document.getElementById('filter-gehalt').value) || null
   const kategorie = document.getElementById('filter-kategorie').value
+  const arbeitszeit = document.getElementById('filter-arbeitszeit').value
   const sortierung = document.getElementById('sortierung').value
 
   let gefiltert = alleJobs.filter(job => {
@@ -805,6 +807,7 @@ function wendeJobFilterAn() {
     if (ort && !(job.ort || '').toLowerCase().includes(ort)) return false
     if (gehalt && !(job.stundenlohn >= gehalt)) return false
     if (kategorie && job.kategorie !== kategorie) return false
+    if (arbeitszeit && job.arbeitszeit !== arbeitszeit) return false
     if (nurGemerkte && !gemerkteIds.has(job.id)) return false
     return true
   })
@@ -862,7 +865,7 @@ function renderJobs(jobs) {
         <span class="job-badge" style="margin-right:44px;">${ICONS.age} ab ${job.mindestalter} J.</span>
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
-      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
+      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
       ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
       <div class="job-meta">
         ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
@@ -896,7 +899,7 @@ function oeffneDetail(jobId) {
 
   document.getElementById('detail-titel').textContent = job.titel
   document.getElementById('detail-body').innerHTML = `
-    <p class="company-name" style="margin-top:4px;">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
+    <p class="company-name" style="margin-top:4px;">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
     <div class="job-meta" style="margin:14px 0;">
       <span>${ICONS.age} ab ${job.mindestalter} Jahren</span>
       ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}

@@ -104,8 +104,19 @@
           </select>
         </div>
         <div class="form-group">
-          <label for="job-verfuegbarkeit">Verfügbarkeit</label>
-          <input type="text" id="job-verfuegbarkeit" placeholder="z.B. Sa-So oder Flexibel">
+          <label for="job-arbeitszeit">Arbeitszeit</label>
+          <select id="job-arbeitszeit">
+            <option value="">Bitte wählen</option>
+            <option>Wochenende</option>
+            <option>Nachmittags</option>
+            <option>Abends</option>
+            <option>Ferienjob</option>
+            <option>Flexibel</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="job-verfuegbarkeit">Verfügbarkeit (Details)</label>
+          <input type="text" id="job-verfuegbarkeit" placeholder="z.B. Sa & So, 10–16 Uhr">
         </div>
         <div style="display:flex; gap:10px;">
           <button type="submit" class="btn btn-green">Job posten</button>
