@@ -518,6 +518,40 @@ section { padding: 130px 24px; }
 .schutz-card p { font-size: 0.92rem; color: var(--ink-soft); margin: 0; line-height: 1.6; }
 @media (max-width: 880px) { .schutz-grid { grid-template-columns: 1fr; } }
 
+/* BENACHRICHTIGUNGS-GLOCKE */
+.glocke-wrap { position: relative; }
+.glocke-btn {
+  position: relative; background: none; border: 1.5px solid var(--line); border-radius: 10px;
+  width: 40px; height: 40px; cursor: pointer; color: var(--ink);
+  display: flex; align-items: center; justify-content: center; transition: background 0.15s, border-color 0.15s;
+}
+.glocke-btn:hover { background: var(--paper); border-color: var(--ink); }
+.glocke-btn svg { width: 20px; height: 20px; }
+.glocke-badge {
+  position: absolute; top: -6px; right: -6px; background: var(--coral); color: #fff;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; font-weight: 500;
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 100px;
+  display: none; align-items: center; justify-content: center;
+}
+.glocke-badge.aktiv { display: flex; }
+.glocke-dropdown {
+  display: none; position: absolute; top: 48px; right: 0; width: 320px; max-height: 400px; overflow-y: auto;
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px; z-index: 60;
+  box-shadow: 0 18px 44px rgba(22,26,31,0.16); padding: 8px;
+}
+.glocke-dropdown.offen { display: block; }
+.glocke-titel { font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-soft); padding: 10px 12px 6px; }
+.benachr-item {
+  display: flex; gap: 10px; align-items: flex-start; padding: 11px 12px; border-radius: 10px;
+  text-align: left; width: 100%; background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif;
+}
+.benachr-item:hover { background: var(--paper); }
+.benachr-item .b-icon { font-size: 1.1rem; flex-shrink: 0; }
+.benachr-item .b-text { font-size: 0.85rem; color: var(--ink); line-height: 1.4; }
+.benachr-item .b-text b { font-weight: 600; }
+.benachr-leer { padding: 24px 12px; text-align: center; color: var(--ink-soft); font-size: 0.85rem; }
+@media (max-width: 640px) { .glocke-dropdown { width: calc(100vw - 32px); right: -60px; } }
+
 /* CHAT / NACHRICHTEN */
 .konv-liste { display: flex; flex-direction: column; gap: 10px; max-width: 720px; }
 .konv-item {

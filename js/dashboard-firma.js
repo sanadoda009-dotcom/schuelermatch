@@ -5,6 +5,7 @@ import { ladeLebenslaufAlsPdf } from './pdf.js'
 import { initSidebar } from './sidebar.js'
 import { toast } from './toast.js'
 import { ladeChat } from './chat.js'
+import { initGlocke } from './notifications.js'
 
 let profile
 let editingJobId = null
@@ -37,6 +38,12 @@ async function init() {
   }
   document.getElementById('chat-close').addEventListener('click', chatClose)
   document.getElementById('chat-overlay').addEventListener('click', e => { if (e.target.id === 'chat-overlay') chatClose() })
+
+  initGlocke({
+    rolle: 'firma',
+    profileId: profile.id,
+    onNavigate: () => document.querySelector('.sidebar-item[data-view="jobs"]')?.click()
+  })
 
   await ladeEigeneJobs()
 }

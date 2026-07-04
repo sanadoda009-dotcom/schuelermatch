@@ -5,6 +5,7 @@ import { ladeLebenslaufAlsPdf } from './pdf.js'
 import { initSidebar } from './sidebar.js'
 import { toast } from './toast.js'
 import { ladeChat, zaehleUngelesen } from './chat.js'
+import { initGlocke } from './notifications.js'
 
 let profile
 let bloecke = []
@@ -114,6 +115,12 @@ async function init() {
 
   await ladeJobs()
   aktualisiereNachrichtenBadge()
+
+  initGlocke({
+    rolle: 'schueler',
+    profileId: profile.id,
+    onNavigate: (ziel) => document.querySelector(`.sidebar-item[data-view="${ziel}"]`)?.click()
+  })
 }
 
 /* ---------- CV-VORLAGEN & FORMULIERUNGSHILFE ---------- */
