@@ -150,13 +150,16 @@ function oeffneDetail(jobId) {
       ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
     </div>
     ${job.beschreibung ? `<p style="font-size:0.95rem; line-height:1.7; color:var(--ink); white-space:pre-wrap;">${escapeHtml(job.beschreibung)}</p>` : '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'}
-    <button type="button" class="share-btn" id="detail-share" style="margin-top:16px;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Link kopieren
-    </button>
+    <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+      <a href="job.html?id=${job.id}" class="share-btn" style="text-decoration:none;">Als eigene Seite öffnen ↗</a>
+      <button type="button" class="share-btn" id="detail-share">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Link kopieren
+      </button>
+    </div>
   `
   document.getElementById('detail-share').addEventListener('click', async (e) => {
-    const link = `${location.origin}${location.pathname}?job=${job.id}`
+    const link = `${location.origin}/job.html?id=${job.id}`
     try {
       await navigator.clipboard.writeText(link)
       e.currentTarget.textContent = '✓ Kopiert!'
