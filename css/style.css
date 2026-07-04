@@ -525,6 +525,17 @@ section { padding: 130px 24px; }
   padding: 2px 8px; border-radius: 100px; margin-left: 6px; white-space: nowrap;
 }
 
+/* UMKREIS-SLIDER */
+.radius-row { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.radius-row label { font-size: 0.8rem; color: var(--ink); }
+.radius-row label b { color: var(--match-green-dark); }
+.radius-row input[type="range"] { flex: 1; min-width: 160px; max-width: 320px; accent-color: var(--match-green); }
+.distanz-chip {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+  background: rgba(43,47,143,0.07); color: var(--indigo);
+  border: 1px solid rgba(43,47,143,0.15); padding: 2px 8px; border-radius: 100px; margin-left: 6px;
+}
+
 /* JOB-INSIGHTS (Firmen-Dashboard) */
 .job-insights {
   display: flex; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);

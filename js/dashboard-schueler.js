@@ -6,6 +6,7 @@ import { initSidebar } from './sidebar.js'
 import { toast } from './toast.js'
 import { ladeChat, zaehleUngelesen } from './chat.js'
 import { initGlocke } from './notifications.js'
+import { geocode, distanzKm } from './geo.js'
 
 let profile
 let bloecke = []
@@ -104,6 +105,18 @@ async function init() {
   document.getElementById('filter-kategorie').addEventListener('change', wendeJobFilterAn)
   document.getElementById('filter-arbeitszeit').addEventListener('change', wendeJobFilterAn)
   document.getElementById('sortierung').addEventListener('change', wendeJobFilterAn)
+
+  // Umkreis-Slider nur zeigen, wenn Wohnort-Koordinaten bekannt sind
+  if (profile.lat != null && profile.lon != null) {
+    document.getElementById('radius-row').style.display = 'flex'
+    document.getElementById('radius-ort').textContent = profile.ort || 'deinem Ort'
+    const slider = document.getElementById('filter-radius')
+    slider.addEventListener('input', () => {
+      const v = parseInt(slider.value)
+      document.getElementById('radius-wert').textContent = v === 0 ? 'Egal' : v + ' km'
+      wendeJobFilterAn()
+    })
+  }
   document.getElementById('merkliste-toggle').addEventListener('click', () => {
     nurGemerkte = !nurGemerkte
     const btn = document.getElementById('merkliste-toggle')
@@ -741,6 +754,11 @@ async function speichereProfil(e) {
     ort: document.getElementById('profile-ort').value
   }
 
+  // Wohnort in Koordinaten umwandeln (für den Umkreis-Filter)
+  const koord = await geocode(updates.ort)
+  updates.lat = koord?.lat ?? null
+  updates.lon = koord?.lon ?? null
+
   const { error } = await supabase.from('profiles').update(updates).eq('id', profile.id)
 
   btn.disabled = false
@@ -801,6 +819,9 @@ function wendeJobFilterAn() {
   const kategorie = document.getElementById('filter-kategorie').value
   const arbeitszeit = document.getElementById('filter-arbeitszeit').value
   const sortierung = document.getElementById('sortierung').value
+  const radiusEl = document.getElementById('filter-radius')
+  const radius = radiusEl ? parseInt(radiusEl.value) : 0
+  const habeKoord = profile.lat != null && profile.lon != null
 
   let gefiltert = alleJobs.filter(job => {
     if (suche && ![job.titel, job.beschreibung, job.kategorie, job.ort].some(f => (f || '').toLowerCase().includes(suche))) return false
@@ -809,6 +830,10 @@ function wendeJobFilterAn() {
     if (kategorie && job.kategorie !== kategorie) return false
     if (arbeitszeit && job.arbeitszeit !== arbeitszeit) return false
     if (nurGemerkte && !gemerkteIds.has(job.id)) return false
+    if (radius > 0 && habeKoord) {
+      const d = distanzKm(profile.lat, profile.lon, job.lat, job.lon)
+      if (d == null || d > radius) return false
+    }
     return true
   })
 
@@ -856,7 +881,9 @@ function renderJobs(jobs) {
 
   const herzSvg = '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.9-9.5-9.2C1.1 8.2 3 5 6.2 5c1.9 0 3.4 1 4.3 2.4l1.5 2.1 1.5-2.1C14.4 6 15.9 5 17.8 5 21 5 22.9 8.2 21.5 11.3c-2 4.3-9.5 9.2-9.5 9.2z"/></svg>'
 
-  grid.innerHTML = jobs.map(job => `
+  grid.innerHTML = jobs.map(job => {
+    const dist = (profile.lat != null && job.lat != null) ? distanzKm(profile.lat, profile.lon, job.lat, job.lon) : null
+    return `
     <div class="job-card job-card--clickable" data-detail="${job.id}">
       ${job.erstellt_am && (Date.now() - new Date(job.erstellt_am).getTime()) < 72 * 3600 * 1000 ? '<span class="neu-badge">NEU</span>' : ''}
       <button class="merken-btn ${gemerkteIds.has(job.id) ? 'gemerkt' : ''}" data-merken="${job.id}" aria-label="Job merken" title="Job merken">${herzSvg}</button>
@@ -865,7 +892,7 @@ function renderJobs(jobs) {
         <span class="job-badge" style="margin-right:44px;">${ICONS.age} ab ${job.mindestalter} J.</span>
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
-      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
+      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${dist != null ? ` <span class="distanz-chip">${dist} km</span>` : ''}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
       ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
       <div class="job-meta">
         ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
@@ -875,7 +902,7 @@ function renderJobs(jobs) {
         ? `<div class="job-status job-status--${bewerbungsStatus[job.id] || 'ausstehend'}">${schuelerStatusLabel(bewerbungsStatus[job.id])}</div>`
         : `<button class="btn btn-green btn-full" style="margin-top:14px;" data-job-id="${job.id}" data-job-titel="${escapeHtml(job.titel)}">Jetzt bewerben</button>`}
     </div>
-  `).join('')
+  `}).join('')
 
   grid.querySelectorAll('button[data-job-id]').forEach(btn => {
     btn.addEventListener('click', () => oeffneBewerbungsModal(btn.dataset.jobId, btn.dataset.jobTitel, btn))

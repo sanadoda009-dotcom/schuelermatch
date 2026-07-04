@@ -6,6 +6,7 @@ import { initSidebar } from './sidebar.js'
 import { toast } from './toast.js'
 import { ladeChat } from './chat.js'
 import { initGlocke } from './notifications.js'
+import { geocode } from './geo.js'
 
 let profile
 let editingJobId = null
@@ -106,6 +107,12 @@ async function speichereJob(e) {
   btn.textContent = editingJobId ? 'Wird gespeichert...' : 'Wird gepostet...'
 
   const daten = sammleFormular()
+
+  // Ort in Koordinaten umwandeln (für den Umkreis-Filter der Schüler)
+  const koord = await geocode(daten.ort)
+  daten.lat = koord?.lat ?? null
+  daten.lon = koord?.lon ?? null
+
   let error
 
   if (editingJobId) {

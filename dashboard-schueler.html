@@ -108,6 +108,11 @@
       </select>
       <button type="button" id="merkliste-toggle" class="btn btn-outline" aria-pressed="false">♡ Gemerkte</button>
     </div>
+    <div class="radius-row" id="radius-row" style="display:none;">
+      <label for="filter-radius" class="mono">📍 Umkreis: <b id="radius-wert">Egal</b></label>
+      <input type="range" id="filter-radius" min="0" max="50" step="5" value="0">
+      <span class="mono" style="color:var(--ink-soft); font-size:0.72rem;">um <span id="radius-ort"></span></span>
+    </div>
     <p class="jobs-count mono" id="jobs-count"></p>
     <div class="jobs-grid" id="jobs-grid">
       <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
