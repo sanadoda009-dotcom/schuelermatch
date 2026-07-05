@@ -9,7 +9,9 @@ Kostenlose Matching-Plattform für Minijobs: Schüler (5.–13. Klasse, ~10–20
 - **Vercel**: Hosting, automatisches Deployment bei jedem `git push` auf `main`
 - **GitHub**: github.com/sanadoda009-dotcom/schuelermatch
 - Lokaler Projektordner: `C:\Users\sanad\OneDrive\Desktop\schuelermatch`
-- Domain `schuelermatch.de` ist **noch nicht gekauft** (PayPal-Problem sollte inzwischen gelöst sein)
+- **Domain `schuelermatch.de` ist GEKAUFT & LIVE** (bei Namecheap, mit Vercel verbunden, HTTPS aktiv). DNS: A `@`→`216.198.79.1`, CNAME `www`→`bf647d4442e8521a.vercel-dns-017.com`. Supabase Auth Site-URL + Redirect (`https://schuelermatch.de/**`) sind gesetzt.
+- **Zugangssperre AKTIV**: `js/gate.js` blendet auf ALLEN Seiten ein Passwort-Overlay ein (Passwort `schuelermatch2026`, in gate.js Zeile 7 änderbar). Zum Live-Schalten für alle: in `js/gate.js` `GATE_AKTIV = false` setzen. Kein echter Schutz (Code öffentlich), nur "Zutritt verboten"-Schild während der Bauphase.
+- Lokaler Vorschau-Server konfiguriert: `.claude/launch.json` (Python `http.server` Port 5500). Preview-Screenshots hängen bei diesem Setup – stattdessen `preview_eval` zum Prüfen nutzen. Browser cached lokal stark → Strg+Shift+R nötig.
 
 ## Seitenstruktur
 - `index.html` – Landingpage (Hero, Beispiel-Jobs, So funktioniert's, FAQ, Schüler/Firmen-Kacheln, Abschluss-CTA)
@@ -136,6 +138,17 @@ Braucht zuerst eine Token-Umstrukturierung (semantische Farb-Ebene --bg/--surfac
 - **E) Filter** ✅ Arbeitszeit-Filter (Wochenende/Nachmittags/Abends/Ferienjob/Flexibel) + echter **Umkreis-Filter** (Geocoding via Open-Meteo beim Job-Posten/Profil-Speichern → lat/lon; km-Slider + Haversine + Distanz-Chip). HINWEIS: Bestandsjobs/-profile brauchen ein erneutes Speichern, um Koordinaten zu bekommen.
 
 Damit sind Block 1, 2 und 3 fertig. Nächste Blöcke: Block 4 (Dark Mode via Token-Refactor, Design-Feinschliff, A11y), Block 5 (Bewertungen, Premium-Listings, Admin-Panel, Analytics + Ausweis-Auto-Löschung via Edge Function).
+
+## Update "Launch & Logo" (4. Juli 2026)
+- **Domain live**: `schuelermatch.de` gekauft (Namecheap) und mit Vercel verbunden – HTTPS aktiv, DNS propagiert, Auth-URLs in Supabase auf die neue Domain gesetzt. Canonical/og:url auf index.html + jobs.html gesetzt.
+- **Zugangssperre gebaut** (`js/gate.js`): Passwort-Overlay auf allen 12 Seiten während der Bauphase (Passwort `schuelermatch2026`). Zum Öffnen für alle: `GATE_AKTIV = false`. Bewusste "Zutritt verboten"-Lösung, kein echter Schutz (Repo/Code öffentlich).
+- **Echtes Logo eingebaut**: In Canva designt (Konzept "Interlocking Shapes SM Monogramm", grün→blau + Wordmark). Als `assets/logo.png` gespeichert, Hintergrund per Python/Pillow transparent gemacht + zugeschnitten (1212×229). Ersetzt in der **Kopfzeile aller Seiten** das alte `.logo-mark`-SM-Kästchen (neue CSS-Klasse `.logo-img`, 30px Desktop / 25px Mobil). "v2.1"-Debug-Badge entfernt.
+- **Noch OFFEN vom Logo-Einbau** (kleine Feinschliffe für nächstes Mal):
+  1. **Footer-Logo** nutzt noch das alte `.logo-mark`-SM-Kästchen (Footer ist dunkel, das neue Logo hat dunkle Schrift → dort bräuchte es eine helle Logo-Variante).
+  2. **Favicon** (Browser-Tab) ist noch das alte inline-SVG-SM-Symbol, nicht das neue Monogramm.
+  3. Nutzer wünscht später **Design-Feintuning ans neue Logo** (Farben/Look angleichen).
+- **Pillow** wurde per pip installiert (für Bildbearbeitung), **Node.js portable** liegt unter `C:\Users\sanad\AppData\Local\Programs\nodejs-portable`.
+- **Canva-MCP** ist verbunden (Logo-Design lief darüber). **Magic-MCP** (21st.dev) ist als MCP für Claude Code eingerichtet.
 
 ## Block 2 – noch offen für nächstes Mal
 Empty States final prüfen, Skeletons sind schon da. Danach Block 3 (Nachrichten, Benachrichtigungen/Glocke, Job-Detailseite mit eigener URL, Umkreis-Filter + Arbeitszeit-Filter), Block 4 (Dark Mode via Token-Refactor, Design-Feinschliff, A11y), Block 5 (Bewertungen, Premium-Listings, Admin-Panel, Analytics).
