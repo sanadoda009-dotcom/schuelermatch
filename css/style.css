@@ -65,6 +65,8 @@ nav.scrolled {
   display: flex; align-items: center; justify-content: center;
   color: white; font-size: 14px; font-weight: 700;
 }
+.logo-img { height: 30px; width: auto; display: block; }
+@media (max-width: 880px) { .logo-img { height: 25px; } }
 .nav-links { display: flex; gap: 30px; font-weight: 500; font-size: 0.95rem; color: var(--ink-soft); }
 .nav-links a:hover { color: var(--ink); }
 
