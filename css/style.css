@@ -650,6 +650,7 @@ section { padding: 130px 24px; }
 footer { background: var(--ink); color: rgba(255,255,255,0.65); padding: 50px 24px 30px; }
 .footer-inner { max-width: 1120px; margin: 0 auto; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
 footer .logo { color: white; }
+.footer-logo-img { height: 26px; width: auto; display: block; }
 .footer-links { display: flex; gap: 22px; font-size: 0.86rem; flex-wrap: wrap; }
 .footer-links a:hover { color: white; }
 .footer-bottom { max-width: 1120px; margin: 28px auto 0; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.78rem; opacity: 0.55; font-family: 'IBM Plex Mono', monospace; }
