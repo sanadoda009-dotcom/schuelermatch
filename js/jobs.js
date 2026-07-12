@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
+import { passtZurSuche } from './suche.js'
 
 let alleJobs = []
 let aktiveKategorie = ''
@@ -49,12 +50,6 @@ function filterZuruecksetzen() {
 
 function istNeu(job) {
   return job.erstellt_am && (Date.now() - new Date(job.erstellt_am).getTime()) < 72 * 3600 * 1000
-}
-
-function passtZurSuche(job, suche) {
-  if (!suche) return true
-  return [job.titel, job.beschreibung, job.kategorie, job.ort]
-    .some(feld => (feld || '').toLowerCase().includes(suche))
 }
 
 function setzeKategorie(kat) {

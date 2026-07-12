@@ -7,6 +7,7 @@ import { toast } from './toast.js'
 import { ladeChat, zaehleUngelesen } from './chat.js'
 import { initGlocke } from './notifications.js'
 import { geocode, distanzKm } from './geo.js'
+import { passtZurSuche } from './suche.js'
 
 let profile
 let bloecke = []
@@ -1014,7 +1015,7 @@ function wendeJobFilterAn() {
   const habeKoord = profile.lat != null && profile.lon != null
 
   let gefiltert = alleJobs.filter(job => {
-    if (suche && ![job.titel, job.beschreibung, job.kategorie, job.ort].some(f => (f || '').toLowerCase().includes(suche))) return false
+    if (!passtZurSuche(job, suche)) return false
     if (ort && !(job.ort || '').toLowerCase().includes(ort)) return false
     if (gehalt && !(job.stundenlohn >= gehalt)) return false
     if (kategorie && job.kategorie !== kategorie) return false
