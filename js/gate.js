@@ -1,3 +1,48 @@
+// --- Theme (Hell/Dunkel) -------------------------------------------------
+// Laeuft im <head> vor dem Paint => kein Aufblitzen des falschen Themes.
+;(function () {
+  const KEY = 'sm-theme'
+  let theme
+  try { theme = localStorage.getItem(KEY) } catch {}
+  if (theme !== 'dark' && theme !== 'light') {
+    theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'
+  }
+  document.documentElement.setAttribute('data-theme', theme)
+
+  // Header-Logo hat dunkle Wortmarke -> im Dark Mode helle Variante zeigen.
+  function passeLogoAn() {
+    const t = document.documentElement.getAttribute('data-theme')
+    document.querySelectorAll('nav .logo img').forEach(img => {
+      const src = t === 'dark' ? 'assets/logo-light.png' : 'assets/logo.png'
+      if (!img.src.endsWith(src)) img.setAttribute('src', src)
+    })
+  }
+
+  function bauUmschalter() {
+    passeLogoAn()
+    const nav = document.querySelector('nav')
+    if (!nav || document.getElementById('sm-theme-btn')) return
+    const btn = document.createElement('button')
+    btn.id = 'sm-theme-btn'
+    btn.className = 'theme-toggle'
+    btn.type = 'button'
+    btn.setAttribute('aria-label', 'Hell- oder Dunkelmodus umschalten')
+    const symbol = () => document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'
+    btn.textContent = symbol()
+    btn.addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+      document.documentElement.setAttribute('data-theme', next)
+      try { localStorage.setItem(KEY, next) } catch {}
+      btn.textContent = symbol()
+      passeLogoAn()
+    })
+    nav.appendChild(btn)
+  }
+
+  if (document.readyState !== 'loading') bauUmschalter()
+  else document.addEventListener('DOMContentLoaded', bauUmschalter)
+})()
+
 // Einfache Zugangssperre, solange die Seite noch im Aufbau ist.
 // HINWEIS: Das ist ein "Zutritt verboten"-Schild, KEINE echte Sicherheit –
 // der Code wird an den Browser ausgeliefert. Zum Abschalten: diese Datei-

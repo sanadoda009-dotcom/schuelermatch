@@ -913,3 +913,60 @@ footer .logo { color: white; }
   .nav-links a:hover { background: var(--paper); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ============================================================
+   DARK MODE
+   Umgesetzt ueber :root[data-theme="dark"] – kippt die Farb-
+   Variablen. Elemente, die --ink absichtlich als DUNKLEN Hinter-
+   grund nutzen (Footer, CTA, Buttons ...), werden hier gezielt
+   dunkel gehalten, damit nichts invertiert bricht.
+   Theme wird in js/gate.js gesetzt (vor dem Paint, kein Flackern).
+   ============================================================ */
+:root[data-theme="dark"] {
+  --ink: #eceef2;
+  --ink-soft: #98a2b3;
+  --paper: #0f1216;
+  --card: #181d25;
+  --line: #2b333f;
+  --match-green: #10d39f;
+  --match-green-dark: #3fe0b6;
+  --coral: #ff7a5c;
+  --indigo: #8a8df5;
+  --surface-dark: #1e242e;
+}
+
+/* Elemente, die absichtlich dunkel bleiben sollen */
+:root[data-theme="dark"] .match-badge,
+:root[data-theme="dark"] .track-card.students,
+:root[data-theme="dark"] .final-cta,
+:root[data-theme="dark"] .toast,
+:root[data-theme="dark"] footer { background: var(--surface-dark); }
+
+/* Login-Button: im Dark Mode neutraler heller Button statt "dunkel auf dunkel" */
+:root[data-theme="dark"] .btn-dark { background: #2a323d; color: #fff; }
+:root[data-theme="dark"] .btn-dark:hover { background: #333c48; }
+
+/* Grüner Primär-Button hat dunklen Text – im Dark Mode fix dunkel halten */
+:root[data-theme="dark"] .btn-green { color: #08130f; }
+:root[data-theme="dark"] .toast--ok .toast-icon,
+:root[data-theme="dark"] .toast--info .toast-icon { color: #0f1216; }
+
+/* Aktive Kategorie-Pille: im Dark Mode grün hervorheben */
+:root[data-theme="dark"] .pill.active {
+  background: var(--match-green); border-color: var(--match-green); color: #0f1216;
+}
+
+/* Fehler-Hinweis (war hart hell codiert) */
+:root[data-theme="dark"] .auth-msg--error {
+  background: #3a1f1c; color: #ff9b8a; border-color: #5a2d28;
+}
+
+/* Theme-Umschalter im Header */
+.theme-toggle {
+  background: transparent; border: 1.5px solid var(--line); color: var(--ink);
+  width: 40px; height: 40px; border-radius: 10px; cursor: pointer;
+  font-size: 1.05rem; line-height: 1; display: inline-flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s;
+}
+.theme-toggle:hover { border-color: var(--ink); background: var(--paper); }
