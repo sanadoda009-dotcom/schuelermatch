@@ -215,7 +215,19 @@
 
       <div>
         <div class="cv-preview" id="cv-preview"></div>
-        <button type="button" id="cv-download-btn" class="btn btn-dark btn-full" style="margin-top:14px;">Als PDF herunterladen</button>
+        <div class="pdf-design-row" id="pdf-design-row">
+          <span class="mono pdf-design-label">PDF-DESIGN:</span>
+          <button type="button" class="pdf-layout-chip" data-pdf-layout="klassisch">Klassisch</button>
+          <button type="button" class="pdf-layout-chip" data-pdf-layout="modern">Modern</button>
+          <button type="button" class="pdf-layout-chip" data-pdf-layout="minimal">Minimal</button>
+          <span class="pdf-farben">
+            <button type="button" class="pdf-farbe" data-pdf-farbe="gruen" style="background:#00c896;" title="Grün"></button>
+            <button type="button" class="pdf-farbe" data-pdf-farbe="blau" style="background:#2b2f8f;" title="Blau"></button>
+            <button type="button" class="pdf-farbe" data-pdf-farbe="coral" style="background:#ff6f61;" title="Coral"></button>
+            <button type="button" class="pdf-farbe" data-pdf-farbe="grau" style="background:#5a6270;" title="Grau"></button>
+          </span>
+        </div>
+        <button type="button" id="cv-download-btn" class="btn btn-dark btn-full" style="margin-top:12px;">Als PDF herunterladen</button>
       </div>
     </div>
   </div>

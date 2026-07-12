@@ -201,3 +201,9 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
   - Fortschrittsbalken, Klick springt zur passenden View, ausblendbar (localStorage `onboarding-weg-<id>`), verschwindet automatisch bei 5/5
   - CSS: `.onboard-*`
 - Verifiziert: Node-Syntax-Checks, keine Konsolen-Fehler. UI hinter Login → beim nächsten eigenen Login prüfen.
+
+## Sprint 4 – CV-PDF-Designs (12. Juli 2026)
+- **pdf.js komplett designfähig**: 3 Layouts (Klassisch = bisheriges, Modern = farbiges Kopfband volle Breite mit weißem Text, Minimal = bewusst farblos/grau) × 4 Akzentfarben (Grün, Blau, Coral, Grau). Stil via `daten.cv_design = {layout, farbe}`, Modul-Zustand `stil`.
+- **Auswahl-UI** im CV-Builder über dem Download-Button (`#pdf-design-row`, CSS `.pdf-layout-chip`/`.pdf-farbe`), Speicherung in localStorage `cv-design-<profileId>`.
+- **WICHTIG/OFFEN**: Migration `alter table profiles add column cv_design jsonb` wurde vom Permission-System geblockt (Produktions-DB, braucht explizite Freigabe des Nutzers). Aktuell: Design gilt nur für den eigenen Export des Schülers; Firmen-Export nutzt Standard. Nach Freigabe: Spalte anlegen, cv_design beim Speichern ins Profil schreiben, in dashboard-firma.js im bewerber-Select mitladen (wandert dann automatisch via Spread in ladeLebenslaufAlsPdf).
+- focus-visible + prefers-reduced-motion waren bereits vorhanden (kein Doppelaufwand nötig).

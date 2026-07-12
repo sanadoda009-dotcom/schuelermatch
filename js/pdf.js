@@ -1,49 +1,92 @@
 // Erzeugt einen Lebenslauf als PDF-Download.
 // Schreibt Text direkt ins PDF (jsPDF) statt die HTML-Ansicht zu screenshotten –
 // das ist deterministisch und kann nicht "leer" ausfallen wie html2canvas.
+// Unterstützt Designs: Layout (klassisch/modern/minimal) + Akzentfarbe.
 
 const RAND = 20
 const BREITE = 170 // A4 (210mm) minus 2x Rand
 const SEITEN_ENDE = 275
 
+const FARBEN = {
+  gruen: { akzent: [0, 200, 150], dunkel: [0, 168, 125] },
+  blau: { akzent: [63, 81, 181], dunkel: [43, 47, 143] },
+  coral: { akzent: [255, 111, 97], dunkel: [200, 72, 58] },
+  grau: { akzent: [120, 128, 140], dunkel: [70, 76, 86] }
+}
+
+// Aktueller Stil (pro Export gesetzt; Seite ist single-threaded)
+let stil = { layout: 'klassisch', ...FARBEN.gruen }
+
 export async function ladeLebenslaufAlsPdf(daten) {
-  const { name, alter_jahre, ort, email, foto_url, schule, klasse, bloecke, motivationsschreiben } = daten
+  const { name, alter_jahre, ort, email, foto_url, schule, klasse, bloecke, motivationsschreiben, cv_design } = daten
 
   if (!window.jspdf) {
     alert('PDF-Bibliothek nicht geladen – bitte Seite neu laden (Strg+Shift+R).')
     return
   }
 
+  const layout = cv_design?.layout || 'klassisch'
+  const farbe = FARBEN[cv_design?.farbe] || FARBEN.gruen
+  // Minimal = bewusst farblos: Akzente werden zu Grautönen
+  stil = layout === 'minimal'
+    ? { layout, akzent: [120, 128, 140], dunkel: [50, 56, 66] }
+    : { layout, ...farbe }
+
   const { jsPDF } = window.jspdf
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   let y = 20
 
-  // Kopfbereich: Foto (falls ladbar) + Name + Basisdaten
-  let textX = RAND
   const foto = foto_url ? await bildAlsJpeg(foto_url, 400) : null
-  if (foto) {
-    doc.addImage(foto.dataUrl, 'JPEG', RAND, y, 28, 28)
-    textX = RAND + 34
+
+  if (layout === 'modern') {
+    // Farbiges Kopfband über die volle Breite
+    doc.setFillColor(...stil.dunkel)
+    doc.rect(0, 0, 210, 42, 'F')
+    let textX = RAND
+    if (foto) {
+      doc.setFillColor(255, 255, 255)
+      doc.roundedRect(RAND - 1.5, 8.5, 27, 27, 2, 2, 'F')
+      doc.addImage(foto.dataUrl, 'JPEG', RAND, 10, 24, 24)
+      textX = RAND + 32
+    }
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(20)
+    doc.setTextColor(255, 255, 255)
+    doc.text(name || 'Unbekannt', textX, 19)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.setTextColor(225, 230, 240)
+    const z2 = [schule, klasse, alter_jahre ? alter_jahre + ' Jahre' : null].filter(Boolean).join(' · ')
+    if (z2) doc.text(z2, textX, 26)
+    const z3 = [ort, email].filter(Boolean).join(' · ')
+    if (z3) doc.text(z3, textX, 32)
+    y = 54
+  } else {
+    // klassisch + minimal: Foto links, Name, Trennlinie
+    let textX = RAND
+    if (foto) {
+      doc.addImage(foto.dataUrl, 'JPEG', RAND, y, 28, 28)
+      textX = RAND + 34
+    }
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(20)
+    doc.setTextColor(22, 26, 31)
+    doc.text(name || 'Unbekannt', textX, y + 9)
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10.5)
+    doc.setTextColor(90, 98, 112)
+    const zeile2 = [schule, klasse, alter_jahre ? alter_jahre + ' Jahre' : null].filter(Boolean).join(' · ')
+    if (zeile2) doc.text(zeile2, textX, y + 16)
+    const zeile3 = [ort, email].filter(Boolean).join(' · ')
+    if (zeile3) doc.text(zeile3, textX, y + 22)
+
+    y = Math.max(y + 28, y + 24) + 6
+    doc.setDrawColor(...(layout === 'minimal' ? [200, 204, 210] : stil.akzent))
+    doc.setLineWidth(layout === 'minimal' ? 0.4 : 1)
+    doc.line(RAND, y, RAND + BREITE, y)
+    y += 10
   }
-
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(20)
-  doc.setTextColor(22, 26, 31)
-  doc.text(name || 'Unbekannt', textX, y + 9)
-
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(10.5)
-  doc.setTextColor(90, 98, 112)
-  const zeile2 = [schule, klasse, alter_jahre ? alter_jahre + ' Jahre' : null].filter(Boolean).join(' · ')
-  if (zeile2) doc.text(zeile2, textX, y + 16)
-  const zeile3 = [ort, email].filter(Boolean).join(' · ')
-  if (zeile3) doc.text(zeile3, textX, y + 22)
-
-  y = Math.max(y + 28, y + 24) + 6
-  doc.setDrawColor(0, 200, 150)
-  doc.setLineWidth(1)
-  doc.line(RAND, y, RAND + BREITE, y)
-  y += 10
 
   // Abschnitte
   if (motivationsschreiben) {
@@ -64,7 +107,7 @@ export async function ladeLebenslaufAlsPdf(daten) {
         for (const s of sprachen) {
           if (y > SEITEN_ENDE) { doc.addPage(); y = 20 }
           doc.text(`${s.name}`, RAND, y)
-          doc.setTextColor(0, 168, 125)
+          doc.setTextColor(...stil.dunkel)
           doc.text(s.niveau || '', RAND + BREITE, y, { align: 'right' })
           doc.setTextColor(22, 26, 31)
           y += 6
@@ -82,7 +125,7 @@ export async function ladeLebenslaufAlsPdf(daten) {
           const barY = y + 2
           doc.setFillColor(231, 227, 218)
           doc.roundedRect(RAND, barY, BREITE, 2.4, 1.2, 1.2, 'F')
-          doc.setFillColor(0, 200, 150)
+          doc.setFillColor(...stil.akzent)
           doc.roundedRect(RAND, barY, BREITE * ((s.wert || 0) / 100), 2.4, 1.2, 1.2, 'F')
           y += 10
         }
@@ -114,7 +157,7 @@ function abschnittsTitel(doc, y, titel) {
   if (y > SEITEN_ENDE - 15) { doc.addPage(); y = 20 }
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9.5)
-  doc.setTextColor(0, 168, 125)
+  doc.setTextColor(...stil.dunkel)
   doc.text(titel.toUpperCase(), RAND, y)
   return y + 6
 }

@@ -1070,3 +1070,27 @@ footer .logo { color: white; }
   font-size: 0.72rem; color: var(--match-green-dark); background: var(--paper);
 }
 .onboard-schritt.fertig .onboard-check { background: rgba(0,200,150,0.15); border-color: var(--match-green); }
+
+/* ============================================================
+   PDF-DESIGN-AUSWAHL (CV-Builder)
+   ============================================================ */
+.pdf-design-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: 14px; padding: 10px 12px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+}
+.pdf-design-label { font-size: 0.68rem; color: var(--ink-soft); }
+.pdf-layout-chip {
+  border: 1px solid var(--line); background: var(--paper); border-radius: 999px;
+  padding: 5px 12px; font-size: 0.76rem; cursor: pointer; font-family: inherit;
+  color: var(--ink-soft); transition: all 0.15s ease;
+}
+.pdf-layout-chip:hover { border-color: var(--match-green); color: var(--ink); }
+.pdf-layout-chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.pdf-farben { display: inline-flex; gap: 6px; margin-left: auto; }
+.pdf-farbe {
+  width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; padding: 0; transition: transform 0.15s ease;
+}
+.pdf-farbe:hover { transform: scale(1.15); }
+.pdf-farbe.active { border-color: var(--ink); box-shadow: 0 0 0 2px var(--card); }

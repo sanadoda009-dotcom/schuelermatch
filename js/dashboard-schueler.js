@@ -66,9 +66,11 @@ async function init() {
       ...profile,
       schule: document.getElementById('cv-schule').value,
       klasse: document.getElementById('cv-klasse').value,
-      bloecke
+      bloecke,
+      cv_design: cvDesign
     })
   })
+  initPdfDesignAuswahl()
 
   // Verifizierung
   document.getElementById('ausweis-btn').addEventListener('click', () => document.getElementById('ausweis-datei').click())
@@ -265,6 +267,39 @@ async function oeffneChat(bewerbungId, titel) {
   })
   chatCleanup = await ladeChat(cc.querySelector('#chat-inner'), bewerbungId, profile.id)
   setTimeout(aktualisiereNachrichtenBadge, 500)
+}
+
+/* ---------- PDF-DESIGN-AUSWAHL ---------- */
+
+let cvDesign = { layout: 'klassisch', farbe: 'gruen' }
+
+function initPdfDesignAuswahl() {
+  const row = document.getElementById('pdf-design-row')
+  if (!row) return
+  const key = 'cv-design-' + profile.id
+  try {
+    const gespeichert = JSON.parse(localStorage.getItem(key) || 'null')
+    if (gespeichert?.layout) cvDesign = gespeichert
+  } catch { /* defekter Eintrag -> Standard */ }
+
+  const zeigeAuswahl = () => {
+    row.querySelectorAll('[data-pdf-layout]').forEach(b =>
+      b.classList.toggle('active', b.dataset.pdfLayout === cvDesign.layout))
+    row.querySelectorAll('[data-pdf-farbe]').forEach(b =>
+      b.classList.toggle('active', b.dataset.pdfFarbe === cvDesign.farbe))
+  }
+  zeigeAuswahl()
+
+  row.querySelectorAll('[data-pdf-layout]').forEach(b => b.addEventListener('click', () => {
+    cvDesign = { ...cvDesign, layout: b.dataset.pdfLayout }
+    localStorage.setItem(key, JSON.stringify(cvDesign))
+    zeigeAuswahl()
+  }))
+  row.querySelectorAll('[data-pdf-farbe]').forEach(b => b.addEventListener('click', () => {
+    cvDesign = { ...cvDesign, farbe: b.dataset.pdfFarbe }
+    localStorage.setItem(key, JSON.stringify(cvDesign))
+    zeigeAuswahl()
+  }))
 }
 
 /* ---------- ONBOARDING-CHECKLISTE ---------- */
