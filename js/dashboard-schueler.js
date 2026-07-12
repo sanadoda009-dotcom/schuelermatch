@@ -267,6 +267,53 @@ async function oeffneChat(bewerbungId, titel) {
   setTimeout(aktualisiereNachrichtenBadge, 500)
 }
 
+/* ---------- ONBOARDING-CHECKLISTE ---------- */
+
+function renderOnboarding() {
+  const box = document.getElementById('onboarding-box')
+  if (!box) return
+  const wegKey = 'onboarding-weg-' + profile.id
+  if (localStorage.getItem(wegKey)) { box.innerHTML = ''; return }
+
+  const schritte = [
+    { name: 'Profil ausfüllen', hinweis: 'Ort & Alter angeben', fertig: Boolean(profile.ort && profile.alter_jahre), view: 'profil' },
+    { name: 'Profilfoto hochladen', hinweis: 'Gesicht zeigen schafft Vertrauen', fertig: Boolean(profile.foto_url), view: 'profil' },
+    { name: 'Lebenslauf erstellen', hinweis: 'Mit Vorlage in 2 Minuten', fertig: lebenslaufVollstaendig(), view: 'lebenslauf' },
+    { name: 'Verifizieren lassen', hinweis: 'Schülerausweis hochladen', fertig: Boolean(profile.verifiziert || profile.schuelerausweis_url || profile.schulbestaetigung_url), view: 'verifizierung' },
+    { name: 'Erste Bewerbung senden', hinweis: 'Unten wartet dein Match', fertig: beworbenIds.size >= 1, view: 'jobs' }
+  ]
+  const erledigt = schritte.filter(s => s.fertig).length
+  if (erledigt === schritte.length) { box.innerHTML = ''; localStorage.setItem(wegKey, '1'); return }
+
+  box.innerHTML = `
+    <div class="onboard-card">
+      <div class="onboard-kopf">
+        <b>🚀 Deine ersten Schritte (${erledigt}/${schritte.length})</b>
+        <button type="button" class="onboard-weg" title="Ausblenden">✕</button>
+      </div>
+      <div class="onboard-balken"><div class="onboard-balken-voll" style="width:${Math.round(erledigt / schritte.length * 100)}%"></div></div>
+      <div class="onboard-schritte">
+        ${schritte.map(s => `
+          <button type="button" class="onboard-schritt ${s.fertig ? 'fertig' : ''}" data-onboard-view="${s.view}" ${s.fertig ? 'disabled' : ''}>
+            <span class="onboard-check">${s.fertig ? '✓' : ''}</span>
+            <span><b>${s.name}</b><small>${s.hinweis}</small></span>
+          </button>`).join('')}
+      </div>
+    </div>`
+
+  box.querySelector('.onboard-weg').addEventListener('click', () => {
+    localStorage.setItem(wegKey, '1')
+    box.innerHTML = ''
+  })
+  box.querySelectorAll('[data-onboard-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const view = btn.dataset.onboardView
+      if (view === 'jobs') document.getElementById('jobs-grid')?.scrollIntoView({ behavior: 'smooth' })
+      else document.querySelector(`.sidebar-item[data-view="${view}"]`)?.click()
+    })
+  })
+}
+
 /* ---------- MEINE BEWERBUNGEN ---------- */
 
 async function renderMeineBewerbungen() {
@@ -890,6 +937,7 @@ async function ladeJobs() {
 
   if (error || !jobs?.length) {
     renderStats(0, 0)
+    renderOnboarding()
     grid.innerHTML = `
       <div class="empty-state">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
@@ -913,6 +961,7 @@ async function ladeJobs() {
   if (bewBadge) bewBadge.textContent = offeneBew > 0 ? offeneBew : ''
 
   renderStats(jobs.length, beworbenIds.size)
+  renderOnboarding()
 
   alleJobs = jobs
   wendeJobFilterAn()

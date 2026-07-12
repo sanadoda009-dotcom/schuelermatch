@@ -188,3 +188,16 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **SEO**: `robots.txt` (Dashboards disallow), `sitemap.xml`, JSON-LD `JobPosting` auf job.html (verifiziert valide) → Google-Jobs-fähig nach Launch.
 - Verifiziert: Node-Syntax-Check aller geänderten Module, Browser-Tests (URL-Sync, Reset, JSON-LD), keine Konsolen-Fehler.
 - **Nächste Sprints (Vorschlag)**: Firmen-Seite (Bewerber-Filter, Job-Vorlagen, Job duplizieren), CV-PDF-Designs (mehrere Layouts/Farben), Onboarding-Checkliste für neue Schüler, Admin-Panel, E-Mail-Benachrichtigungen (Edge Function), Barrierefreiheit-Audit.
+
+## Sprint 2+3 (12. Juli 2026, autonome Weiterarbeit)
+- **Sprint 2 – Firmen-Dashboard** (Commit ffac5e6):
+  - 6 Anzeigen-Vorlagen (`JOB_VORLAGEN` in dashboard-firma.js): Ein-Klick-Vorbefüllung des Job-Formulars
+  - Job duplizieren (`data-duplicate`): Kopie ins Formular, speichert als neuen Job
+  - Bewerber-Status-Filter (Pills über der Jobliste, `bewerberFilter`), Anzeige „x von y Bewerbungen"
+  - Bewerbungen nach Datum sortiert, „beworben am" sichtbar
+  - Wichtig: PDF-/Zeugnis-Buttons von Listen-Index auf Bewerbungs-ID umgestellt (`data-pdf-id`/`data-zeugnis-id`) — Index wäre mit Filter falsch gewesen
+- **Sprint 3 – Onboarding-Checkliste** (Schüler-Dashboard):
+  - „🚀 Deine ersten Schritte (x/5)"-Karte oben in der Jobs-View: Profil → Foto → Lebenslauf → Verifizierung → erste Bewerbung
+  - Fortschrittsbalken, Klick springt zur passenden View, ausblendbar (localStorage `onboarding-weg-<id>`), verschwindet automatisch bei 5/5
+  - CSS: `.onboard-*`
+- Verifiziert: Node-Syntax-Checks, keine Konsolen-Fehler. UI hinter Login → beim nächsten eigenen Login prüfen.
