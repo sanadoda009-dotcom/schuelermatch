@@ -68,6 +68,24 @@ async function ladeJob() {
   // Aufruf zählen + Titel/Meta für Teilen setzen
   supabase.rpc('job_aufruf_zaehlen', { p_job: id })
   const bewertungenHtml = await ladeBewertungenHtml(job.firma_id)
+
+  // Strukturierte Daten (schema.org JobPosting) -> Google-Jobs-Auffindbarkeit
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: job.titel,
+    description: job.beschreibung || job.titel,
+    datePosted: job.erstellt_am ? job.erstellt_am.slice(0, 10) : undefined,
+    employmentType: 'PART_TIME',
+    hiringOrganization: { '@type': 'Organization', name: job.firma_name || 'Arbeitgeber auf SchülerMatch' },
+    jobLocation: job.ort ? { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: job.ort, addressCountry: 'DE' } } : undefined,
+    baseSalary: job.stundenlohn ? { '@type': 'MonetaryAmount', currency: 'EUR', value: { '@type': 'QuantitativeValue', value: job.stundenlohn, unitText: 'HOUR' } } : undefined,
+    directApply: true
+  }
+  const ldScript = document.createElement('script')
+  ldScript.type = 'application/ld+json'
+  ldScript.textContent = JSON.stringify(jsonLd, (k, v) => v === undefined ? undefined : v)
+  document.head.appendChild(ldScript)
   document.title = `${job.titel} – SchülerMatch`
   document.querySelector('meta[name="description"]')?.setAttribute('content',
     `${job.titel}${job.ort ? ' in ' + job.ort : ''} – ab ${job.mindestalter} Jahren${job.stundenlohn ? ', ' + job.stundenlohn + ' €/Std' : ''}. Kostenlos bewerben auf SchülerMatch.`)

@@ -40,6 +40,10 @@
     <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round"/></svg>
     Jobs<span class="sidebar-badge" id="badge-jobs"></span>
   </button>
+  <button class="sidebar-item" data-view="bewerbungen">
+    <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-5M5 4h14a1 1 0 011 1v15l-3-2-3 2-3-2-3 2-3-2V5a1 1 0 011-1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Bewerbungen<span class="sidebar-badge" id="badge-bewerbungen-s"></span>
+  </button>
   <button class="sidebar-item" data-view="nachrichten">
     <svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4V5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Nachrichten<span class="sidebar-badge" id="badge-nachrichten"></span>
@@ -120,6 +124,17 @@
     </div>
   </div>
 
+  <!-- MEINE BEWERBUNGEN -->
+  <div class="dashboard-view" id="view-bewerbungen">
+    <div class="jobs-header">
+      <h1 style="font-size:1.6rem;">Meine Bewerbungen</h1>
+      <p style="color:var(--ink-soft);">Alle deine Bewerbungen und ihr aktueller Stand – auf einen Blick.</p>
+    </div>
+    <div id="bewerbungen-container">
+      <div class="skeleton-card" style="height:90px;"></div>
+    </div>
+  </div>
+
   <!-- NACHRICHTEN -->
   <div class="dashboard-view" id="view-nachrichten">
     <div class="jobs-header">
@@ -141,6 +156,7 @@
           <button type="button" class="cv-template-chip" data-vorlage="erster-job">🚀 Vorlage: Mein erster Job</button>
           <button type="button" class="cv-template-chip" data-vorlage="nachhilfe">📚 Vorlage: Nachhilfe-Profi</button>
           <button type="button" class="cv-template-chip" data-vorlage="praktisch">🛠 Vorlage: Praktisch & Zuverlässig</button>
+          <button type="button" class="cv-template-chip" data-vorlage="komplett">⭐ Vorlage: Der Komplette</button>
         </div>
 
         <div class="cv-progress-bar"><div id="cv-progress-fill" style="width:0%"></div></div>
@@ -179,8 +195,17 @@
           <button type="button" class="btn btn-outline block-add-btn" data-add="skillbar" data-titel="Fähigkeiten">+ Skill-Regler</button>
           <button type="button" class="btn btn-outline block-add-btn" data-add="sprachen" data-titel="Sprachen">+ Sprachen (CEFR)</button>
           <button type="button" class="btn btn-outline block-add-btn" data-add="skills" data-titel="Interessen">+ Tags/Interessen</button>
-          <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Ausbildung & Praktika">+ Ausbildung</button>
           <button type="button" class="btn btn-outline block-add-btn" data-add="bild" data-titel="">+ Bild</button>
+        </div>
+        <p class="mono" style="font-size:0.72rem; color:var(--ink-soft); margin:16px 0 8px;">SCHNELL-ABSCHNITTE (mit Ausfüllhilfe)</p>
+        <div class="block-add-row">
+          <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Ausbildung & Praktika" data-platzhalter="z.B. Realschule Musterstadt, 8. Klasse · Schülerpraktikum bei Bäckerei Kern (1 Woche, März 2026)">+ Ausbildung & Praktika</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Projekte" data-platzhalter="z.B. Schülerzeitung mitgestaltet, eigene Website gebaut, Technik-AG – was hast du schon auf die Beine gestellt?">+ Projekte</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Ehrenamt & Engagement" data-platzhalter="z.B. Jugendtrainer im Fußballverein, Sanitätsdienst, Klassensprecher, Nachbarschaftshilfe">+ Ehrenamt</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="skills" data-titel="Zertifikate & Kurse" data-platzhalter="">+ Zertifikate</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Verfügbarkeit" data-platzhalter="z.B. Mo–Fr ab 15 Uhr, am Wochenende flexibel, in den Ferien ganztags">+ Verfügbarkeit</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Mobilität" data-platzhalter="z.B. Fahrrad vorhanden, Busverbindung in die Innenstadt, Mofa-Führerschein (AM)">+ Mobilität</button>
+          <button type="button" class="btn btn-outline block-add-btn" data-add="skills" data-titel="Wunschbereiche" data-platzhalter="">+ Wunschbereiche</button>
         </div>
         <p class="mono" id="autosave-hint" style="font-size:0.7rem; color:var(--ink-soft); margin-top:10px;"></p>
 

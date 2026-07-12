@@ -997,3 +997,41 @@ footer .logo { color: white; }
 .sterne-wahl span.aktiv { color: #f5b301; }
 .bewerten-box textarea { width: 100%; box-sizing: border-box; margin-top: 12px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.9rem; background: var(--card); color: var(--ink); resize: vertical; min-height: 68px; outline: none; }
 .bewerten-box textarea:focus { border-color: var(--match-green); }
+
+/* ============================================================
+   MEINE BEWERBUNGEN (Status-Übersicht mit Timeline)
+   ============================================================ */
+.bew-stats { display: flex; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+.bew-stats > div {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px 22px; min-width: 100px;
+}
+.bew-stats b { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; color: var(--ink); }
+.bew-stats span { font-size: 0.78rem; color: var(--ink-soft); }
+.bew-liste { display: flex; flex-direction: column; gap: 14px; }
+.bew-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 18px 20px;
+}
+.bew-card--zusage { border-color: var(--match-green); box-shadow: 0 0 0 3px rgba(0,200,150,0.08); }
+.bew-card-kopf { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+.bew-card-kopf b { font-size: 1.02rem; display: block; }
+.bew-meta { font-size: 0.82rem; color: var(--ink-soft); display: block; margin-top: 2px; }
+.bew-datum { font-size: 0.72rem; color: var(--ink-soft); white-space: nowrap; }
+.bew-timeline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bew-schritt {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.8rem; color: var(--ink-soft); white-space: nowrap;
+}
+.bew-schritt .punkt {
+  width: 22px; height: 22px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; font-size: 0.72rem;
+  background: var(--paper); border: 1.5px solid var(--line); flex-shrink: 0;
+}
+.bew-schritt.done { color: var(--ink); }
+.bew-schritt.done .punkt { background: rgba(0,200,150,0.12); border-color: var(--match-green); color: var(--match-green-dark); }
+.bew-schritt.aktiv .punkt { border-color: #f0b429; color: #f0b429; }
+.bew-schritt.gruen { color: var(--match-green-dark); font-weight: 600; }
+.bew-linie { flex: 1; min-width: 18px; max-width: 70px; height: 2px; background: var(--line); border-radius: 2px; }
+.bew-linie.done { background: var(--match-green); }
+.bew-trost { margin: 12px 0 0; font-size: 0.85rem; color: var(--ink-soft); background: var(--paper); border-radius: 10px; padding: 10px 14px; }

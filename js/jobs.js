@@ -4,7 +4,7 @@ import { ICONS } from './icons.js'
 let alleJobs = []
 let aktiveKategorie = ''
 
-// Deep-Links: jobs.html?q=nachhilfe&kategorie=Nachhilfe
+// Deep-Links: jobs.html?q=nachhilfe&kategorie=Nachhilfe&ort=münchen&lohn=12&zeit=Wochenende&sort=lohn
 function lieseUrlParameter() {
   const params = new URLSearchParams(window.location.search)
   const q = params.get('q')
@@ -12,7 +12,39 @@ function lieseUrlParameter() {
   const jobId = params.get('job')
   if (q) document.getElementById('filter-suche').value = q
   if (kat) setzeKategorie(kat)
+  if (params.get('ort')) document.getElementById('filter-ort').value = params.get('ort')
+  if (params.get('alter')) document.getElementById('filter-alter').value = params.get('alter')
+  if (params.get('lohn')) document.getElementById('filter-gehalt').value = params.get('lohn')
+  if (params.get('zeit')) document.getElementById('filter-arbeitszeit').value = params.get('zeit')
+  if (params.get('sort')) document.getElementById('sortierung').value = params.get('sort')
   if (jobId) oeffneDetail(jobId)
+}
+
+// Filter-Zustand in die URL spiegeln -> jede Suche ist ein teilbarer Link
+function schreibeUrlParameter() {
+  const params = new URLSearchParams()
+  const setzen = (key, wert) => { if (wert) params.set(key, wert) }
+  setzen('q', document.getElementById('filter-suche').value.trim())
+  setzen('kategorie', aktiveKategorie)
+  setzen('ort', document.getElementById('filter-ort').value.trim())
+  setzen('alter', document.getElementById('filter-alter').value)
+  setzen('lohn', document.getElementById('filter-gehalt').value)
+  setzen('zeit', document.getElementById('filter-arbeitszeit').value)
+  const sort = document.getElementById('sortierung').value
+  if (sort && sort !== 'neueste') params.set('sort', sort)
+  const neu = params.toString()
+  history.replaceState(null, '', neu ? `?${neu}` : location.pathname)
+}
+
+function filterZuruecksetzen() {
+  document.getElementById('filter-suche').value = ''
+  document.getElementById('filter-ort').value = ''
+  document.getElementById('filter-alter').value = ''
+  document.getElementById('filter-gehalt').value = ''
+  document.getElementById('filter-arbeitszeit').value = ''
+  document.getElementById('sortierung').value = 'neueste'
+  setzeKategorie('')
+  wendeFilterAn()
 }
 
 function istNeu(job) {
@@ -96,6 +128,7 @@ function wendeFilterAn() {
   })
 
   renderJobs(sortiereJobs(gefiltert, sortierung))
+  schreibeUrlParameter()
 }
 
 function renderJobs(jobs) {
@@ -108,7 +141,9 @@ function renderJobs(jobs) {
       <div class="empty-state">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
         <p>Keine Jobs passen zu diesem Filter.</p>
+        <button type="button" class="btn btn-outline" id="filter-reset" style="margin-top:14px;">Filter zurücksetzen</button>
       </div>`
+    document.getElementById('filter-reset')?.addEventListener('click', filterZuruecksetzen)
     return
   }
 

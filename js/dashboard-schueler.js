@@ -51,7 +51,7 @@ async function init() {
   const wiederhergestellt = ladeEntwurf()
 
   document.querySelectorAll('.block-add-btn').forEach(btn => {
-    btn.addEventListener('click', () => neuerBlock(btn.dataset.add, btn.dataset.titel))
+    btn.addEventListener('click', () => neuerBlock(btn.dataset.add, btn.dataset.titel, btn.dataset.platzhalter))
   })
 
   document.querySelectorAll('.cv-template-chip').forEach(chip => {
@@ -155,6 +155,16 @@ const CV_VORLAGEN = {
     { typ: 'text', titel: 'Über mich', inhalt: 'Ich arbeite gerne praktisch und mit den Händen – ob Garten, Haushalt oder Botengänge, auf mich ist Verlass.' },
     { typ: 'skills', titel: 'Fähigkeiten', tags: 'Körperlich fit, Sorgfältig, Selbstständig, Pünktlich' },
     { typ: 'text', titel: 'Erfahrung', inhalt: 'Regelmäßige Gartenarbeit bei Nachbarn, Einkäufe für die Familie und kleinere Reparaturen zu Hause.' }
+  ],
+  'komplett': [
+    { typ: 'text', titel: 'Über mich', inhalt: '', platzhalter: '2–3 Sätze: Wer bist du, was macht dich aus, warum suchst du einen Nebenjob?' },
+    { typ: 'text', titel: 'Ausbildung & Praktika', inhalt: '', platzhalter: 'Schule, Klasse, ggf. Schülerpraktikum mit Zeitraum' },
+    { typ: 'skillbar', titel: 'Fähigkeiten', skills: [{ name: 'Zuverlässigkeit', wert: 90 }, { name: 'Teamarbeit', wert: 70 }] },
+    { typ: 'sprachen', titel: 'Sprachen', sprachen: [{ name: 'Deutsch', niveau: 'Muttersprache' }, { name: 'Englisch', niveau: 'B1' }] },
+    { typ: 'text', titel: 'Ehrenamt & Engagement', inhalt: '', platzhalter: 'Verein, AG, Klassensprecher, Nachbarschaftshilfe …' },
+    { typ: 'skills', titel: 'Interessen', tags: '' },
+    { typ: 'text', titel: 'Verfügbarkeit', inhalt: '', platzhalter: 'z.B. Mo–Fr ab 15 Uhr, Wochenende flexibel, Ferien ganztags' },
+    { typ: 'text', titel: 'Mobilität', inhalt: '', platzhalter: 'z.B. Fahrrad, Bus & Bahn, Mofa-Führerschein' }
   ]
 }
 
@@ -162,7 +172,15 @@ const FORMULIERUNGS_BEISPIELE = [
   'Ich bin ein offener und freundlicher Mensch, der gerne Neues lernt.',
   'Auf mich kann man sich verlassen – wenn ich etwas zusage, halte ich es.',
   'In meiner Freizeit mache ich Sport im Verein, dadurch bin ich teamfähig und diszipliniert.',
-  'Ich übernehme gerne Verantwortung und arbeite sorgfältig.'
+  'Ich übernehme gerne Verantwortung und arbeite sorgfältig.',
+  'Ich bleibe auch bei stressigen Aufgaben ruhig und behalte den Überblick.',
+  'Mit Kunden und älteren Menschen gehe ich respektvoll und geduldig um.',
+  'Neue Aufgaben muss man mir nur einmal zeigen – dann klappt es.',
+  'Ich bin körperlich fit und packe gerne mit an.',
+  'Pünktlichkeit ist für mich selbstverständlich – ich plane immer Puffer ein.',
+  'Ich frage lieber einmal mehr nach, bevor ich etwas falsch mache.',
+  'Als Klassensprecher habe ich gelernt, Verantwortung für andere zu übernehmen.',
+  'Durch mein Hobby kenne ich mich gut mit Technik und Computern aus.'
 ]
 
 function wendeVorlageAn(name) {
@@ -181,6 +199,7 @@ function zeigeView(view) {
   document.getElementById('view-' + view).classList.add('active')
   if (view === 'lebenslauf') renderCvPreview()
   if (view === 'abzeichen') renderAbzeichen()
+  if (view === 'bewerbungen') renderMeineBewerbungen()
   if (view === 'nachrichten') renderKonversationen()
   else if (chatCleanup) { chatCleanup(); chatCleanup = null }
 }
@@ -248,6 +267,87 @@ async function oeffneChat(bewerbungId, titel) {
   setTimeout(aktualisiereNachrichtenBadge, 500)
 }
 
+/* ---------- MEINE BEWERBUNGEN ---------- */
+
+async function renderMeineBewerbungen() {
+  const container = document.getElementById('bewerbungen-container')
+  container.innerHTML = '<div class="skeleton-card" style="height:90px;"></div>'
+
+  const { data } = await supabase.from('bewerbungen')
+    .select('id, status, erstellt_am, job:job_id(id, titel, ort, stundenlohn, kategorie, firma_name, aktiv)')
+    .eq('schueler_id', profile.id)
+    .order('erstellt_am', { ascending: false })
+
+  const liste = data || []
+  if (!liste.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8h24v32H12z M18 16h12M18 22h12M18 28h8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <p>Noch keine Bewerbungen. Stöbere bei den <a href="#" id="bew-zu-jobs" style="color:var(--match-green-dark); text-decoration:underline;">Jobs</a> und bewirb dich mit einem Klick!</p>
+      </div>`
+    document.getElementById('bew-zu-jobs')?.addEventListener('click', (e) => {
+      e.preventDefault()
+      document.querySelector('.sidebar-item[data-view="jobs"]')?.click()
+    })
+    return
+  }
+
+  // Kopf-Statistik wie bei LinkedIn "My Jobs"
+  const offen = liste.filter(b => b.status !== 'angenommen' && b.status !== 'abgelehnt').length
+  const zusagen = liste.filter(b => b.status === 'angenommen').length
+
+  container.innerHTML = `
+    <div class="bew-stats">
+      <div><b>${liste.length}</b><span>Gesamt</span></div>
+      <div><b>${offen}</b><span>In Prüfung</span></div>
+      <div><b>${zusagen}</b><span>Zusagen</span></div>
+    </div>
+    <div class="bew-liste">
+      ${liste.map(b => bewerbungKarte(b)).join('')}
+    </div>`
+
+  container.querySelectorAll('[data-chat-bewerbung]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelector('.sidebar-item[data-view="nachrichten"]')?.click()
+      oeffneChat(btn.dataset.chatBewerbung, btn.dataset.chatTitel)
+    })
+  })
+}
+
+function bewerbungKarte(b) {
+  const status = b.status || 'ausstehend'
+  const datum = b.erstellt_am ? new Date(b.erstellt_am).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
+  const job = b.job || {}
+  const inaktiv = job.aktiv === false
+
+  // 3-Schritte-Timeline: Eingereicht -> In Pruefung -> Antwort
+  const schritt3 = status === 'angenommen'
+    ? '<div class="bew-schritt done gruen"><span class="punkt">🎉</span>Zusage!</div>'
+    : status === 'abgelehnt'
+      ? '<div class="bew-schritt done"><span class="punkt">•</span>Diesmal nicht geklappt</div>'
+      : '<div class="bew-schritt"><span class="punkt">○</span>Antwort steht aus</div>'
+
+  return `
+    <div class="bew-card ${status === 'angenommen' ? 'bew-card--zusage' : ''}">
+      <div class="bew-card-kopf">
+        <div>
+          <b>${escapeHtml(job.titel || 'Job (nicht mehr verfügbar)')}</b>
+          <span class="bew-meta">${job.ort ? escapeHtml(job.ort) : ''}${job.stundenlohn ? ' · ' + job.stundenlohn + ' €/Std' : ''}${job.kategorie ? ' · ' + escapeHtml(job.kategorie) : ''}${inaktiv ? ' · <i>Anzeige pausiert</i>' : ''}</span>
+        </div>
+        <span class="bew-datum mono">${datum}</span>
+      </div>
+      <div class="bew-timeline">
+        <div class="bew-schritt done"><span class="punkt">✓</span>Eingereicht</div>
+        <div class="bew-linie ${status !== 'ausstehend' ? 'done' : ''}"></div>
+        <div class="bew-schritt ${status !== 'ausstehend' ? 'done' : 'aktiv'}"><span class="punkt">${status !== 'ausstehend' ? '✓' : '◐'}</span>In Prüfung</div>
+        <div class="bew-linie ${status !== 'ausstehend' ? 'done' : ''}"></div>
+        ${schritt3}
+      </div>
+      ${status === 'angenommen' ? `<button type="button" class="btn btn-green" style="margin-top:12px;" data-chat-bewerbung="${b.id}" data-chat-titel="${escapeHtml(job.titel || 'Job')}">💬 Zum Chat mit der Firma</button>` : ''}
+      ${status === 'abgelehnt' ? '<p class="bew-trost">Kopf hoch – das gehört dazu. Firmen suchen oft sehr spezifisch. Deine nächste Chance wartet schon!</p>' : ''}
+    </div>`
+}
+
 function aktualisiereSidebarUser() {
   const avatar = document.getElementById('sidebar-avatar')
   if (profile.foto_url) { avatar.style.backgroundImage = `url(${profile.foto_url})`; avatar.textContent = '' }
@@ -289,8 +389,9 @@ function cryptoId() {
 
 /* ---------- BLOCK-EDITOR ---------- */
 
-function neuerBlock(typ, titel) {
+function neuerBlock(typ, titel, platzhalter) {
   const basis = { id: cryptoId(), typ, titel: titel || '' }
+  if (platzhalter) basis.platzhalter = platzhalter
   if (typ === 'text') basis.inhalt = ''
   if (typ === 'skills') basis.tags = ''
   if (typ === 'bild') basis.bild_url = ''
@@ -345,7 +446,7 @@ function renderBlockEditor() {
           <button type="button" data-delete title="Löschen">✕</button>
         </div>
       </div>
-      ${b.typ === 'text' ? `<textarea class="block-inhalt-input" placeholder="Dein Text...">${escapeHtml(b.inhalt || '')}</textarea><button type="button" class="tipp-btn" title="Beispielsatz einfügen">💡 Formulierungshilfe</button>` : ''}
+      ${b.typ === 'text' ? `<textarea class="block-inhalt-input" placeholder="${escapeHtml(b.platzhalter || 'Dein Text...')}">${escapeHtml(b.inhalt || '')}</textarea><button type="button" class="tipp-btn" title="Beispielsatz einfügen">💡 Formulierungshilfe</button>` : ''}
       ${b.typ === 'skills' ? `<input type="text" class="block-tags-input" placeholder="Komma-getrennt, z.B. Sport, Musik, Technik, Lesen" value="${escapeHtml(b.tags || '')}">` : ''}
       ${b.typ === 'bild' ? `
         <input type="file" class="block-bild-input" accept="image/*" style="display:none;">
@@ -805,6 +906,11 @@ async function ladeJobs() {
   bewerbungsStatus = {}
   ;(bewerbungen || []).forEach(b => { bewerbungsStatus[b.job_id] = b.status || 'ausstehend' })
   gemerkteIds = new Set((gemerkte || []).map(g => g.job_id))
+
+  // Sidebar-Badge: Anzahl Bewerbungen in Prüfung
+  const offeneBew = (bewerbungen || []).filter(b => b.status !== 'angenommen' && b.status !== 'abgelehnt').length
+  const bewBadge = document.getElementById('badge-bewerbungen-s')
+  if (bewBadge) bewBadge.textContent = offeneBew > 0 ? offeneBew : ''
 
   renderStats(jobs.length, beworbenIds.size)
 

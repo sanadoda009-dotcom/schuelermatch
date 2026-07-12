@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard-schueler.html
+Disallow: /dashboard-firma.html
+Disallow: /reset-password.html
+Disallow: /forgot-password.html
+
+Sitemap: https://schuelermatch.de/sitemap.xml
