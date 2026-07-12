@@ -157,3 +157,25 @@ Empty States final prüfen, Skeletons sind schon da. Danach Block 3 (Nachrichten
 - Firmenname/Logo auf Job-Karten (siehe Hinweis oben — braucht Entscheidung)
 - Automatisierte/schnellere Verifizierung (würde bezahlte KI-API + eigene Backend-Funktion brauchen)
 - E-Mail-Benachrichtigung an Schüler bei Statusänderung der Bewerbung
+
+## Update "Dark Mode, Bewertungen & Logo-Feinschliff" (12. Juli 2026)
+
+### Erledigt
+- **Footer-Logo**: helle Variante `assets/logo-light.png` (weiße Wortmarke, aus logo.png per Pillow) ersetzt das alte SM-Kästchen in allen Seiten mit Footer. CSS `.footer-logo-img` (26px).
+- **Favicon**: `assets/favicon.png` (Monogramm, quadratisch, aus logo.png per Pillow) ersetzt das alte inline-SVG-SM in allen 12 Seiten.
+- **Design ↔ Logo**: Farb-Variablen (`--match-green #00c896`, `--indigo #2b2f8f`) entsprechen bereits exakt den Logo-Farben – Design ist farblich abgestimmt.
+- **Dark Mode** (Block 4): Umschalter (🌙/☀️) im Header, via `:root[data-theme="dark"]` in style.css. Theme wird in `js/gate.js` VOR dem Paint gesetzt (kein Flackern), Default = System-Einstellung, Persistenz in `localStorage['sm-theme']`. Absichtlich dunkle Elemente (Footer, CTA, Login-Button, Toast, aktive Pille) bleiben gezielt dunkel (kein Invertier-Bruch). Header-Logo wird im Dark Mode automatisch auf die helle Variante getauscht. Verifiziert (Computed Styles).
+- **Firmen-Bewertungen** (Block 5): neue Tabelle `bewertungen` (firma_id, schueler_id, schueler_name, sterne 1–5, kommentar, unique firma_id+schueler_id). **RLS: nur Schüler mit status='angenommen' bei der Firma dürfen 1× bewerten**; öffentlich lesbar; eigene Bewertung editier-/löschbar. RLS scharf getestet (angenommen erlaubt / fremd blockiert). Anzeige (Schnitt+Sterne+Liste) auf `job.html`; Abgabe-Formular im Job-Detail des Schüler-Dashboards für angenommene Schüler.
+
+### Migration
+- Supabase-Migration `bewertungen_tabelle_mit_rls` angewendet (Projekt blufrvuskqiloslyxjkx). Security-Advisors: keine neuen Warnungen für die Tabelle.
+
+### Sonstiges
+- **Wissensgraph** des Projekts gebaut (`/graphify`) → liegt lokal in `graphify-out/` (graph.html, GRAPH_REPORT.md); per `.gitignore` vom Deploy ausgeschlossen.
+
+### Noch offen / Roadmap
+- Zugangssperre (`gate.js`) ist weiterhin AKTIV – zum Launch `GATE_AKTIV = false`.
+- Cache: Stammbesucher bekommen neue CSS/JS erst nach Revalidierung/Hard-Refresh (statische Dateinamen).
+- Block 5 Rest: Premium-Listings, Admin-Panel, Analytics, Ausweis-Auto-Löschung via Edge Function.
+- Vor echten Nutzern: Impressum/Datenschutz juristisch prüfen (Minderjährige).
+- A11y-Feinschliff (Block 4 Rest).
