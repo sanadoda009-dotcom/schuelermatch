@@ -5,6 +5,50 @@ function escapeHtml(str) {
   const div = document.createElement('div'); div.textContent = str ?? ''; return div.innerHTML
 }
 
+function sterneHtml(n) {
+  let h = ''
+  for (let i = 1; i <= 5; i++) h += `<span class="${i <= n ? '' : 'leer'}">★</span>`
+  return `<span class="sterne-anzeige">${h}</span>`
+}
+
+async function ladeBewertungenHtml(firmaId) {
+  if (!firmaId) return ''
+  const { data } = await supabase.from('bewertungen')
+    .select('sterne, kommentar, schueler_name, erstellt_am')
+    .eq('firma_id', firmaId)
+    .order('erstellt_am', { ascending: false })
+
+  if (!data || !data.length) {
+    return `<section style="margin-top:24px;"><h2>Bewertungen</h2>
+      <p class="cv-preview-empty">Noch keine Bewertungen. Bewertungen können nur Schüler abgeben, die von dieser Firma angenommen wurden.</p></section>`
+  }
+
+  const schnitt = data.reduce((s, b) => s + b.sterne, 0) / data.length
+  const gerundet = Math.round(schnitt)
+  const karten = data.map(b => {
+    const datum = b.erstellt_am ? new Date(b.erstellt_am).toLocaleDateString('de-DE', { year: 'numeric', month: 'short' }) : ''
+    return `<div class="bewertung-card">
+      <div class="kopf">
+        <span class="name">${escapeHtml(b.schueler_name || 'Schüler:in')}</span>
+        <span class="verifiziert">✓ hat hier gearbeitet</span>
+      </div>
+      ${sterneHtml(b.sterne)}
+      ${b.kommentar ? `<p>${escapeHtml(b.kommentar)}</p>` : ''}
+      ${datum ? `<span class="datum">${datum}</span>` : ''}
+    </div>`
+  }).join('')
+
+  return `<section style="margin-top:24px;">
+    <h2>Bewertungen</h2>
+    <div class="bewertung-summary">
+      ${sterneHtml(gerundet)}
+      <span class="schnitt">${schnitt.toFixed(1)}</span>
+      <span class="anzahl">aus ${data.length} ${data.length === 1 ? 'Bewertung' : 'Bewertungen'}</span>
+    </div>
+    <div class="bewertung-liste">${karten}</div>
+  </section>`
+}
+
 async function ladeJob() {
   const el = document.getElementById('job-detail')
   const id = new URLSearchParams(location.search).get('id')
@@ -23,6 +67,7 @@ async function ladeJob() {
 
   // Aufruf zählen + Titel/Meta für Teilen setzen
   supabase.rpc('job_aufruf_zaehlen', { p_job: id })
+  const bewertungenHtml = await ladeBewertungenHtml(job.firma_id)
   document.title = `${job.titel} – SchülerMatch`
   document.querySelector('meta[name="description"]')?.setAttribute('content',
     `${job.titel}${job.ort ? ' in ' + job.ort : ''} – ab ${job.mindestalter} Jahren${job.stundenlohn ? ', ' + job.stundenlohn + ' €/Std' : ''}. Kostenlos bewerben auf SchülerMatch.`)
@@ -49,6 +94,8 @@ async function ladeJob() {
       <h2>Beschreibung</h2>
       ${job.beschreibung ? `<p style="white-space:pre-wrap;">${escapeHtml(job.beschreibung)}</p>` : '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'}
     </section>
+
+    ${bewertungenHtml}
 
     <div class="legal-highlight" style="margin-top:24px;">
       <h2>Bewerben</h2>

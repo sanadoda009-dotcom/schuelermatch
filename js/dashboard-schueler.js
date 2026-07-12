@@ -949,6 +949,108 @@ function oeffneDetail(jobId) {
   }
 
   document.getElementById('job-detail-overlay').classList.add('open')
+  renderDetailBewertungen(job)
+}
+
+function sterneHtml(n) {
+  let h = ''
+  for (let i = 1; i <= 5; i++) h += `<span class="${i <= n ? '' : 'leer'}">★</span>`
+  return `<span class="sterne-anzeige">${h}</span>`
+}
+
+function bewertungKarte(b) {
+  const datum = b.erstellt_am ? new Date(b.erstellt_am).toLocaleDateString('de-DE', { year: 'numeric', month: 'short' }) : ''
+  return `<div class="bewertung-card">
+    <div class="kopf"><span class="name">${escapeHtml(b.schueler_name || 'Schüler:in')}</span><span class="verifiziert">✓ war hier</span></div>
+    ${sterneHtml(b.sterne)}
+    ${b.kommentar ? `<p>${escapeHtml(b.kommentar)}</p>` : ''}
+    ${datum ? `<span class="datum">${datum}</span>` : ''}
+  </div>`
+}
+
+// Zeigt Firmen-Bewertungen im Job-Detail. Angenommene Schüler bekommen ein Abgabe-Formular.
+async function renderDetailBewertungen(job) {
+  const body = document.getElementById('detail-body')
+  let wrap = document.getElementById('detail-bewertungen')
+  if (!wrap) {
+    wrap = document.createElement('div')
+    wrap.id = 'detail-bewertungen'
+    wrap.style.marginTop = '8px'
+    body.appendChild(wrap)
+  }
+  if (!job.firma_id) { wrap.innerHTML = ''; return }
+
+  const { data } = await supabase.from('bewertungen')
+    .select('sterne, kommentar, schueler_name, schueler_id, erstellt_am')
+    .eq('firma_id', job.firma_id)
+    .order('erstellt_am', { ascending: false })
+  const liste = data || []
+  const meine = liste.find(b => b.schueler_id === profile.id)
+  const darfBewerten = bewerbungsStatus[job.id] === 'angenommen'
+
+  let html = ''
+  if (liste.length) {
+    const schnitt = liste.reduce((s, b) => s + b.sterne, 0) / liste.length
+    html += `<h3 style="margin-top:22px; font-size:1.05rem;">Bewertungen von ${escapeHtml(job.firma_name || 'dieser Firma')}</h3>`
+    html += `<div class="bewertung-summary">${sterneHtml(Math.round(schnitt))}<span class="schnitt">${schnitt.toFixed(1)}</span><span class="anzahl">aus ${liste.length} ${liste.length === 1 ? 'Bewertung' : 'Bewertungen'}</span></div>`
+    html += `<div class="bewertung-liste">${liste.slice(0, 5).map(bewertungKarte).join('')}</div>`
+  }
+
+  if (darfBewerten) {
+    const start = meine ? meine.sterne : 0
+    const sterne = [1, 2, 3, 4, 5].map(i => `<span data-wert="${i}" class="${i <= start ? 'aktiv' : ''}">★</span>`).join('')
+    html += `<div class="bewerten-box">
+      <h4>${meine ? 'Deine Bewertung bearbeiten' : `Wie war es bei ${escapeHtml(job.firma_name || 'dieser Firma')}?`}</h4>
+      <p class="hinweis">Du siehst dieses Formular, weil du hier angenommen wurdest. Nur eine Bewertung pro Firma.</p>
+      <div class="sterne-wahl" id="sterne-wahl">${sterne}</div>
+      <textarea id="bewertung-text" maxlength="600" placeholder="Was sollten andere Schüler wissen? (optional)">${meine ? escapeHtml(meine.kommentar || '') : ''}</textarea>
+      <div style="display:flex; gap:10px; margin-top:12px; align-items:center; flex-wrap:wrap;">
+        <button type="button" class="btn btn-green" id="bewertung-senden">${meine ? 'Aktualisieren' : 'Bewertung abschicken'}</button>
+        ${meine ? '<button type="button" class="btn btn-outline" id="bewertung-loeschen">Löschen</button>' : ''}
+        <span id="bewertung-status" style="font-size:0.82rem; color:var(--ink-soft);"></span>
+      </div>
+    </div>`
+  }
+
+  wrap.innerHTML = html
+  if (darfBewerten) verdrahteBewertenBox(job, meine)
+}
+
+function verdrahteBewertenBox(job, meine) {
+  let gewaehlt = meine ? meine.sterne : 0
+  const wahl = document.getElementById('sterne-wahl')
+  wahl.querySelectorAll('span').forEach(s => {
+    s.addEventListener('click', () => {
+      gewaehlt = Number(s.dataset.wert)
+      wahl.querySelectorAll('span').forEach(x => x.classList.toggle('aktiv', Number(x.dataset.wert) <= gewaehlt))
+    })
+  })
+
+  document.getElementById('bewertung-senden').addEventListener('click', async () => {
+    const status = document.getElementById('bewertung-status')
+    if (!gewaehlt) { status.textContent = 'Bitte Sterne wählen.'; return }
+    const kommentar = document.getElementById('bewertung-text').value.trim()
+    status.textContent = 'Speichere …'
+    const { error } = await supabase.from('bewertungen').upsert({
+      firma_id: job.firma_id,
+      schueler_id: profile.id,
+      schueler_name: (profile.name || '').split(' ')[0] || 'Schüler:in',
+      sterne: gewaehlt,
+      kommentar: kommentar || null
+    }, { onConflict: 'firma_id,schueler_id' })
+    if (error) { status.textContent = 'Fehler: ' + error.message; return }
+    toast('Danke für deine Bewertung! ⭐')
+    renderDetailBewertungen(job)
+  })
+
+  const del = document.getElementById('bewertung-loeschen')
+  if (del) del.addEventListener('click', async () => {
+    const { error } = await supabase.from('bewertungen').delete()
+      .eq('firma_id', job.firma_id).eq('schueler_id', profile.id)
+    if (error) { document.getElementById('bewertung-status').textContent = 'Fehler: ' + error.message; return }
+    toast('Bewertung gelöscht')
+    renderDetailBewertungen(job)
+  })
 }
 
 async function oeffneBewerbungsModal(jobId, jobTitel, btn) {

@@ -970,3 +970,30 @@ footer .logo { color: white; }
   transition: border-color 0.2s, background 0.2s;
 }
 .theme-toggle:hover { border-color: var(--ink); background: var(--paper); }
+
+/* ============================================================
+   BEWERTUNGEN (Firmen-Rezensionen)
+   ============================================================ */
+.sterne-anzeige { display: inline-flex; gap: 1px; color: #f5b301; font-size: 0.95rem; line-height: 1; letter-spacing: 1px; }
+.sterne-anzeige .leer { color: var(--line); }
+.bewertung-summary { display: flex; align-items: center; gap: 10px; margin: 8px 0; flex-wrap: wrap; }
+.bewertung-summary .schnitt { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); }
+.bewertung-summary .anzahl { color: var(--ink-soft); font-size: 0.85rem; }
+.bewertung-liste { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.bewertung-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.bewertung-card .kopf { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+.bewertung-card .name { font-weight: 600; font-size: 0.9rem; color: var(--ink); }
+.bewertung-card .verifiziert { font-size: 0.7rem; color: var(--match-green-dark); font-weight: 600; white-space: nowrap; }
+.bewertung-card p { margin: 4px 0 0; font-size: 0.9rem; color: var(--ink-soft); line-height: 1.55; white-space: pre-wrap; }
+.bewertung-card .datum { font-size: 0.7rem; color: var(--ink-soft); margin-top: 6px; display: block; }
+
+/* Sterne-Auswahl (interaktiv) */
+.bewerten-box { margin-top: 22px; padding: 18px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--paper); }
+.bewerten-box h4 { margin: 0 0 4px; font-family: 'Space Grotesk', sans-serif; font-size: 1rem; }
+.bewerten-box .hinweis { font-size: 0.82rem; color: var(--ink-soft); margin: 0 0 12px; }
+.sterne-wahl { display: inline-flex; gap: 5px; font-size: 1.8rem; cursor: pointer; color: var(--line); line-height: 1; }
+.sterne-wahl span { transition: color 0.12s, transform 0.12s; }
+.sterne-wahl span:hover { transform: scale(1.15); }
+.sterne-wahl span.aktiv { color: #f5b301; }
+.bewerten-box textarea { width: 100%; box-sizing: border-box; margin-top: 12px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.9rem; background: var(--card); color: var(--ink); resize: vertical; min-height: 68px; outline: none; }
+.bewerten-box textarea:focus { border-color: var(--match-green); }
