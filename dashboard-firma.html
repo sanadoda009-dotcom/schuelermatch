@@ -57,6 +57,15 @@
     </div>
 
     <div class="post-job-box">
+      <p class="mono" style="font-size:0.72rem; color:var(--ink-soft); margin:0 0 8px;">VORLAGE WÄHLEN (füllt das Formular vor)</p>
+      <div class="cv-templates" style="margin-bottom:18px;">
+        <button type="button" class="cv-template-chip" data-jobvorlage="eisverkauf">🍦 Eisverkauf</button>
+        <button type="button" class="cv-template-chip" data-jobvorlage="nachhilfe">📚 Nachhilfe</button>
+        <button type="button" class="cv-template-chip" data-jobvorlage="babysitten">🧸 Babysitten</button>
+        <button type="button" class="cv-template-chip" data-jobvorlage="garten">🌿 Garten & Haushalt</button>
+        <button type="button" class="cv-template-chip" data-jobvorlage="regale">🛒 Regale & Verkauf</button>
+        <button type="button" class="cv-template-chip" data-jobvorlage="zeitung">📰 Zeitungen austragen</button>
+      </div>
       <form id="job-form">
         <div class="form-group">
           <label for="job-titel">Job-Titel</label>
@@ -128,6 +137,13 @@
 
     <div class="jobs-header" style="margin-top:56px;">
       <h1 style="font-size:1.5rem;">Deine Jobs</h1>
+    </div>
+    <div class="pill-row" id="bewerber-filter" style="margin-bottom:18px;">
+      <span class="mono" style="font-size:0.72rem; color:var(--ink-soft); align-self:center; margin-right:4px;">BEWERBER:</span>
+      <button type="button" class="pill active" data-bf="">Alle</button>
+      <button type="button" class="pill" data-bf="ausstehend">🕐 Ausstehend</button>
+      <button type="button" class="pill" data-bf="angenommen">✓ Angenommen</button>
+      <button type="button" class="pill" data-bf="abgelehnt">Abgelehnt</button>
     </div>
     <div class="jobs-grid" id="meine-jobs">
       <div class="skeleton-card"></div><div class="skeleton-card"></div>

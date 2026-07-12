@@ -10,6 +10,32 @@ import { geocode } from './geo.js'
 
 let profile
 let editingJobId = null
+let bewerberFilter = ''
+
+// Anzeigen-Vorlagen: 1 Klick -> Formular fertig vorausgefüllt
+const JOB_VORLAGEN = {
+  eisverkauf: { titel: 'Eisverkäufer/in (Sa/So)', beschreibung: 'Eis verkaufen, kassieren, Theke sauber halten. Wir zeigen dir alles – wichtig sind Freundlichkeit und Zuverlässigkeit.', kategorie: 'Verkauf', arbeitszeit: 'Wochenende', mindestalter: '15', verfuegbarkeit: 'Sa & So, nach Absprache' },
+  nachhilfe: { titel: 'Nachhilfe für Unterstufe gesucht', beschreibung: 'Du bist gut in Mathe oder Deutsch und kannst geduldig erklären? Unterstütze jüngere Schüler 1–2x pro Woche.', kategorie: 'Nachhilfe', arbeitszeit: 'Nachmittags', mindestalter: '14', verfuegbarkeit: '1–2x pro Woche, nachmittags' },
+  babysitten: { titel: 'Babysitter/in gesucht', beschreibung: 'Liebevolle Betreuung für unser Kind, gelegentlich nachmittags oder abends. Erfahrung mit jüngeren Geschwistern ist ein Plus.', kategorie: 'Babysitten', arbeitszeit: 'Flexibel', mindestalter: '15', verfuegbarkeit: 'Nach Absprache' },
+  garten: { titel: 'Hilfe für Garten & Haushalt', beschreibung: 'Rasen mähen, Laub rechen, Einkäufe tragen – praktische Unterstützung rund um Haus und Garten.', kategorie: 'Haushalt & Garten', arbeitszeit: 'Flexibel', mindestalter: '13', verfuegbarkeit: 'Flexibel, ca. 2–4 Std/Woche' },
+  regale: { titel: 'Aushilfe Regale einräumen', beschreibung: 'Waren einräumen, Regale ordentlich halten, kleine Aufgaben im Laden. Zuverlässigkeit ist uns am wichtigsten.', kategorie: 'Verkauf', arbeitszeit: 'Nachmittags', mindestalter: '16', verfuegbarkeit: 'Mo–Fr nachmittags, nach Stundenplan' },
+  zeitung: { titel: 'Zeitungen/Prospekte austragen', beschreibung: 'Wöchentliche Verteilung im festen Gebiet. Perfekt als erster Job – du brauchst nur Zuverlässigkeit und ein Fahrrad.', kategorie: 'Lieferung & Kurier', arbeitszeit: 'Flexibel', mindestalter: '13', verfuegbarkeit: '1x pro Woche, freie Zeiteinteilung' }
+}
+
+function wendeJobVorlageAn(name) {
+  const v = JOB_VORLAGEN[name]
+  if (!v) return
+  const titelFeld = document.getElementById('job-titel')
+  if (titelFeld.value.trim() && !confirm('Das Formular ist nicht leer. Vorlage trotzdem einfügen?')) return
+  titelFeld.value = v.titel
+  document.getElementById('job-beschreibung').value = v.beschreibung
+  document.getElementById('job-kategorie').value = v.kategorie
+  document.getElementById('job-arbeitszeit').value = v.arbeitszeit
+  document.getElementById('job-mindestalter').value = v.mindestalter
+  document.getElementById('job-verfuegbarkeit').value = v.verfuegbarkeit
+  document.getElementById('job-ort').focus()
+  toast('Vorlage eingefügt – nur noch Ort & Lohn ergänzen!')
+}
 
 async function init() {
   profile = await requireAuth('firma')
@@ -44,6 +70,20 @@ async function init() {
     rolle: 'firma',
     profileId: profile.id,
     onNavigate: () => document.querySelector('.sidebar-item[data-view="jobs"]')?.click()
+  })
+
+  // Anzeigen-Vorlagen
+  document.querySelectorAll('[data-jobvorlage]').forEach(btn => {
+    btn.addEventListener('click', () => wendeJobVorlageAn(btn.dataset.jobvorlage))
+  })
+
+  // Bewerber-Status-Filter
+  document.querySelectorAll('#bewerber-filter .pill').forEach(p => {
+    p.addEventListener('click', () => {
+      bewerberFilter = p.dataset.bf
+      document.querySelectorAll('#bewerber-filter .pill').forEach(x => x.classList.toggle('active', x.dataset.bf === bewerberFilter))
+      ladeEigeneJobs()
+    })
   })
 
   await ladeEigeneJobs()
@@ -190,8 +230,9 @@ async function ladeEigeneJobs() {
 
   const { data: bewerbungen } = await supabase
     .from('bewerbungen')
-    .select('id, status, job_id, motivationsschreiben, zeugnis_url, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, foto_url, lebenslauf_bloecke, verifiziert)')
+    .select('id, status, job_id, erstellt_am, motivationsschreiben, zeugnis_url, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, foto_url, lebenslauf_bloecke, verifiziert)')
     .in('job_id', jobs.map(j => j.id))
+    .order('erstellt_am', { ascending: false })
 
   renderStats(jobs.length, bewerbungen?.length || 0)
   const offen = (bewerbungen || []).filter(b => (b.status || 'ausstehend') === 'ausstehend').length
@@ -204,7 +245,10 @@ async function ladeEigeneJobs() {
   })
 
   list.innerHTML = jobs.map(job => {
-    const bewerbungenFuerJob = bewerberByJob[job.id] || []
+    const alleBewFuerJob = bewerberByJob[job.id] || []
+    const bewerbungenFuerJob = bewerberFilter
+      ? alleBewFuerJob.filter(b => (b.status || 'ausstehend') === bewerberFilter)
+      : alleBewFuerJob
     return `
     <div class="job-card" style="${job.aktiv ? '' : 'opacity:0.65;'}">
       <div class="job-card-top">
@@ -219,16 +263,17 @@ async function ladeEigeneJobs() {
       </div>
       <div class="job-insights">
         <span>👁 <b>${job.aufrufe || 0}</b> Aufrufe</span>
-        <span>📨 <b>${bewerbungenFuerJob.length}</b> Bewerbung${bewerbungenFuerJob.length === 1 ? '' : 'en'}</span>
+        <span>📨 <b>${alleBewFuerJob.length}</b> Bewerbung${alleBewFuerJob.length === 1 ? '' : 'en'}</span>
       </div>
-      <div style="display:flex; gap:8px; margin-top:14px;">
-        <button class="btn btn-outline" style="flex:1; padding:9px;" data-edit="${job.id}">Bearbeiten</button>
-        <button class="btn btn-outline" style="flex:1; padding:9px;" data-pause="${job.id}" data-aktiv="${job.aktiv}">${job.aktiv ? 'Pausieren' : 'Aktivieren'}</button>
-        <button class="btn btn-outline" style="flex:1; padding:9px; color:var(--coral);" data-delete="${job.id}">Löschen</button>
+      <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">
+        <button class="btn btn-outline" style="flex:1 1 45%; padding:9px;" data-edit="${job.id}">Bearbeiten</button>
+        <button class="btn btn-outline" style="flex:1 1 45%; padding:9px;" data-duplicate="${job.id}">⧉ Duplizieren</button>
+        <button class="btn btn-outline" style="flex:1 1 45%; padding:9px;" data-pause="${job.id}" data-aktiv="${job.aktiv}">${job.aktiv ? 'Pausieren' : 'Aktivieren'}</button>
+        <button class="btn btn-outline" style="flex:1 1 45%; padding:9px; color:var(--coral);" data-delete="${job.id}">Löschen</button>
       </div>
       <div class="bewerber-list">
-        <p class="bewerber-title">${bewerbungenFuerJob.length} Bewerbung(en)</p>
-        ${bewerbungenFuerJob.map((b, idx) => `
+        <p class="bewerber-title">${bewerberFilter ? `${bewerbungenFuerJob.length} von ${alleBewFuerJob.length} Bewerbung(en)` : `${alleBewFuerJob.length} Bewerbung(en)`}</p>
+        ${bewerbungenFuerJob.map(b => `
           <div class="bewerber-item">
             <div style="display:flex; gap:10px; align-items:center;">
               <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${b.bewerber.foto_url ? `background-image:url(${b.bewerber.foto_url})` : ''}">${b.bewerber.foto_url ? '' : escapeHtml((b.bewerber.name || '?')[0].toUpperCase())}</div>
@@ -237,11 +282,12 @@ async function ladeEigeneJobs() {
                 <span class="ampel ${bewerberAmpel(b.bewerber, job).klasse}"><span class="ampel-dot"></span>${bewerberAmpel(b.bewerber, job).text}</span>
                 <span class="status-badge status-${escapeHtml(b.status || 'ausstehend')}">${statusLabel(b.status)}</span><br>
                 <a href="mailto:${escapeHtml(b.bewerber.email || '')}" class="mono">${escapeHtml(b.bewerber.email || '')}</a>
+                ${b.erstellt_am ? `<span class="mono" style="font-size:0.68rem; color:var(--ink-soft);"> · beworben am ${new Date(b.erstellt_am).toLocaleDateString('de-DE')}</span>` : ''}
               </div>
             </div>
             <div style="display:flex; gap:8px; margin-top:10px;">
-              <button class="btn btn-dark" style="flex:1; padding:8px; font-size:0.82rem;" data-pdf-job="${job.id}" data-pdf-idx="${idx}">Lebenslauf (PDF)</button>
-              ${b.zeugnis_url ? `<button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem;" data-zeugnis-job="${job.id}" data-zeugnis-idx="${idx}">Zeugnis</button>` : ''}
+              <button class="btn btn-dark" style="flex:1; padding:8px; font-size:0.82rem;" data-pdf-id="${b.id}">Lebenslauf (PDF)</button>
+              ${b.zeugnis_url ? `<button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem;" data-zeugnis-id="${b.id}">Zeugnis</button>` : ''}
             </div>
             ${(b.status || 'ausstehend') === 'ausstehend' ? `
             <div style="display:flex; gap:8px; margin-top:8px;">
@@ -278,9 +324,21 @@ async function ladeEigeneJobs() {
       await ladeEigeneJobs()
     })
   })
-  list.querySelectorAll('[data-pdf-job]').forEach(btn => {
+  list.querySelectorAll('[data-duplicate]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const b = bewerberByJob[btn.dataset.pdfJob][btn.dataset.pdfIdx]
+      const job = jobs.find(j => j.id === btn.dataset.duplicate)
+      if (!job) return
+      starteBearbeitung(job)
+      editingJobId = null // Kopie: speichert als NEUEN Job
+      document.querySelector('#job-form button[type=submit]').textContent = 'Als neuen Job posten'
+      document.getElementById('cancel-edit-btn').style.display = 'inline-block'
+      toast('Kopie im Formular – anpassen und posten!')
+    })
+  })
+  list.querySelectorAll('[data-pdf-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const b = (bewerbungen || []).find(x => x.id === btn.dataset.pdfId)
+      if (!b) return
       btn.disabled = true
       btn.textContent = 'Wird erstellt...'
       ladeLebenslaufAlsPdf({ ...b.bewerber, bloecke: b.bewerber.lebenslauf_bloecke, motivationsschreiben: b.motivationsschreiben }).finally(() => {
@@ -289,9 +347,10 @@ async function ladeEigeneJobs() {
       })
     })
   })
-  list.querySelectorAll('[data-zeugnis-job]').forEach(btn => {
+  list.querySelectorAll('[data-zeugnis-id]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const b = bewerberByJob[btn.dataset.zeugnisJob][btn.dataset.zeugnisIdx]
+      const b = (bewerbungen || []).find(x => x.id === btn.dataset.zeugnisId)
+      if (!b) return
       btn.disabled = true
       btn.textContent = 'Lädt...'
       const { data, error } = await supabase.storage.from('zeugnisse').createSignedUrl(b.zeugnis_url, 60)
