@@ -19,7 +19,8 @@ const JOB_VORLAGEN = {
   babysitten: { titel: 'Babysitter/in gesucht', beschreibung: 'Liebevolle Betreuung für unser Kind, gelegentlich nachmittags oder abends. Erfahrung mit jüngeren Geschwistern ist ein Plus.', kategorie: 'Babysitten', arbeitszeit: 'Flexibel', mindestalter: '15', verfuegbarkeit: 'Nach Absprache' },
   garten: { titel: 'Hilfe für Garten & Haushalt', beschreibung: 'Rasen mähen, Laub rechen, Einkäufe tragen – praktische Unterstützung rund um Haus und Garten.', kategorie: 'Haushalt & Garten', arbeitszeit: 'Flexibel', mindestalter: '13', verfuegbarkeit: 'Flexibel, ca. 2–4 Std/Woche' },
   regale: { titel: 'Aushilfe Regale einräumen', beschreibung: 'Waren einräumen, Regale ordentlich halten, kleine Aufgaben im Laden. Zuverlässigkeit ist uns am wichtigsten.', kategorie: 'Verkauf', arbeitszeit: 'Nachmittags', mindestalter: '16', verfuegbarkeit: 'Mo–Fr nachmittags, nach Stundenplan' },
-  zeitung: { titel: 'Zeitungen/Prospekte austragen', beschreibung: 'Wöchentliche Verteilung im festen Gebiet. Perfekt als erster Job – du brauchst nur Zuverlässigkeit und ein Fahrrad.', kategorie: 'Lieferung & Kurier', arbeitszeit: 'Flexibel', mindestalter: '13', verfuegbarkeit: '1x pro Woche, freie Zeiteinteilung' }
+  zeitung: { titel: 'Zeitungen/Prospekte austragen', beschreibung: 'Wöchentliche Verteilung im festen Gebiet. Perfekt als erster Job – du brauchst nur Zuverlässigkeit und ein Fahrrad.', kategorie: 'Lieferung & Kurier', arbeitszeit: 'Flexibel', mindestalter: '13', verfuegbarkeit: '1x pro Woche, freie Zeiteinteilung' },
+  gassi: { titel: 'Gassigeher/in für unseren Hund', beschreibung: 'Unser freundlicher Hund braucht nachmittags eine Runde. Du solltest Erfahrung mit Hunden haben und zuverlässig sein.', kategorie: 'Tierbetreuung', arbeitszeit: 'Nachmittags', mindestalter: '14', verfuegbarkeit: 'Mo–Fr nachmittags, ca. 45 Min' }
 }
 
 function wendeJobVorlageAn(name) {

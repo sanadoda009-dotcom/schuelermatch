@@ -212,3 +212,9 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Bilder optimiert (in-place, keine Referenzänderungen)**: logo.png 53→29 KB, logo-light.png 36→18 KB, favicon.png 27→9 KB (Pillow, LANCZOS). Zusammen ~60 KB weniger pro Seitenaufruf.
 - **404.html** gebrandet (Gradient-404, Jobs/Start-Buttons, noindex) — Vercel nutzt sie bei statischen Deployments automatisch.
 - **Synonym-Suche** `js/suche.js` (export passtZurSuche): "kellner"→Gastronomie, "verkäufer/kasse"→Verkauf, "tutor"→Nachhilfe, "rasenmähen"→Garten u.v.m. Multi-Wort = UND-Logik. Eingebunden in jobs.js (alte lokale Funktion ersetzt) und dashboard-schueler.js (Inline-Match ersetzt). Browser-verifiziert.
+
+## Sprint 6 – Kategorie-Ausbau (12. Juli 2026)
+- **2 neue Kategorien: „Tierbetreuung" + „Technik & Computer"** an allen 4 Stellen: Firma-Formular-Select, Schüler-Filter-Select, jobs.html-Pills (jetzt 11), index.html-Kachel-Grid (jetzt 10, mit Pfoten-/Monitor-Icon).
+- **Synonyme erweitert** (suche.js): gassi/hund/katze/tiere/haustier → Tierbetreuung; computer/pc/handy/internet/website → Technik.
+- **Neue Firma-Vorlage „🐕 Gassi gehen"** (JOB_VORLAGEN.gassi).
+- Bestehende Beispiel-Jobs unverändert (Vorgabe des Nutzers). Browser-verifiziert via Deep-Link ?kategorie=Tierbetreuung.

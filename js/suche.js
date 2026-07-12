@@ -32,7 +32,17 @@ const SYNONYME = {
   büro: ['organisation', 'office'],
   office: ['büro', 'organisation'],
   ferien: ['ferienjob'],
-  wochenendjob: ['wochenende']
+  wochenendjob: ['wochenende'],
+  gassi: ['tierbetreuung', 'hund'],
+  hund: ['tierbetreuung', 'gassi'],
+  katze: ['tierbetreuung'],
+  tiere: ['tierbetreuung'],
+  haustier: ['tierbetreuung'],
+  computer: ['technik', 'pc'],
+  pc: ['technik', 'computer'],
+  handy: ['technik', 'smartphone'],
+  internet: ['technik', 'computer'],
+  website: ['technik', 'computer']
 }
 
 // Prüft, ob ein Job zum Suchtext passt (jedes Wort muss treffen — direkt oder via Synonym).
