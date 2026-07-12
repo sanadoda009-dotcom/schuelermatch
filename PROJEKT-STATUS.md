@@ -179,3 +179,12 @@ Empty States final prüfen, Skeletons sind schon da. Danach Block 3 (Nachrichten
 - Block 5 Rest: Premium-Listings, Admin-Panel, Analytics, Ausweis-Auto-Löschung via Edge Function.
 - Vor echten Nutzern: Impressum/Datenschutz juristisch prüfen (Minderjährige).
 - A11y-Feinschliff (Block 4 Rest).
+
+## Sprint 1 "Startup-Niveau" (12. Juli 2026, Master-Prompt aktiv)
+Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeiten, Plattform auf Profi-Niveau bringen. Sprint-Format: Audit → priorisieren → umsetzen → verifizieren → committen.
+- **Meine Bewerbungen** (Schüler-Dashboard): neue Sidebar-View mit Status-Timeline (Eingereicht → In Prüfung → Zusage/Absage), Kopf-Statistik (Gesamt/In Prüfung/Zusagen), Chat-Direktlink bei Zusage, Sidebar-Badge mit offenen Bewerbungen. CSS: `.bew-*`
+- **Lebenslauf-Ausbau**: 7 Schnell-Abschnitte mit kontextuellen Ausfüllhilfen (`data-platzhalter` → `b.platzhalter` im Block-System), 12 statt 4 Formulierungshilfen, neue Vorlage „Der Komplette" (8 Abschnitte inkl. Verfügbarkeit/Mobilität).
+- **Jobbörse**: kompletter Filter-Zustand in der URL (teilbare Such-Links, `history.replaceState`), „Filter zurücksetzen"-Button bei 0 Treffern.
+- **SEO**: `robots.txt` (Dashboards disallow), `sitemap.xml`, JSON-LD `JobPosting` auf job.html (verifiziert valide) → Google-Jobs-fähig nach Launch.
+- Verifiziert: Node-Syntax-Check aller geänderten Module, Browser-Tests (URL-Sync, Reset, JSON-LD), keine Konsolen-Fehler.
+- **Nächste Sprints (Vorschlag)**: Firmen-Seite (Bewerber-Filter, Job-Vorlagen, Job duplizieren), CV-PDF-Designs (mehrere Layouts/Farben), Onboarding-Checkliste für neue Schüler, Admin-Panel, E-Mail-Benachrichtigungen (Edge Function), Barrierefreiheit-Audit.
