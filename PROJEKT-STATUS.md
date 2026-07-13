@@ -236,3 +236,13 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 2. js/gate.js: GATE_AKTIV = false setzen + pushen
 3. Google Search Console einrichten (DNS-TXT-Verifizierung) + sitemap.xml einreichen -> Google Jobs greift dann automatisch (JobPosting-Markup liegt bereit)
 4. Optional danach: cv_design-Migration, E-Mail-Benachrichtigungen (warten ebenfalls auf Freigabe)
+
+## Lebenslauf-Studio + PDF-Spec (13. Juli 2026)
+- **pdf.js komplett neu** nach exakter Typografie-Spec (Commit 8096ae9): A4 210x297, Raender 18/18/15/15, zweispaltig 35/65 (Leiste getoent, volle Hoehe), Name 26pt/Titel 10pt VERSALIEN+Akzentlinie/Text 10pt LH1.5, Abstaende 7/4/3/1.5mm, Balken 1.4mm ohne Prozent, Emoji-Filter, Mehrseiten sauber (Titel-Verwaisungsschutz), Layouts klassisch/modern/minimal x 4 Farben. Neue Exporte: erzeugeLebenslaufPdf, erzeugeLebenslaufPdfMitAnkern (Anker fuer Scroll-Sync), lebenslaufAlsBlob.
+- **lebenslauf.html + js/lebenslauf.js** (Commit 59777b6): eigene Editor-Seite (keine Sidebar), Karten-Editor (details) mit Haekchen + Fortschritt, Vorlagen, Autosave 0.9s mit Status in Kopfzeile, lokaler Entwurf (cv-draft-<id>). Live-Vorschau = echtes PDF via pdf.js-Canvas (sticky, Scroll-Sync); Zeitlimit-Wachhund + Fallback (Renderer in der eingebetteten Test-Umgebung hing zeitweise - in echtem Chrome unproblematisch, Fallback faengt es ab). Mobil: Umschalter Bearbeiten/Vorschau. Dashboard-Menuepunkt "Lebenslauf" navigiert zur Seite (alte Dashboard-View ist unerreichbar/dormant im HTML).
+- **Bewerbung mit Lebenslauf**: Modal-Wahl Auto-PDF (Standard, Mini-Vorschau, "Vorschau ansehen", Upload nach zeugnisse/<sid>/<jobid>/lebenslauf.pdf) oder eigenes PDF (max 5MB). Firma oeffnet Anhang per signed URL, Fallback Live-Erzeugung.
+- **WARTET AUF NUTZER (SQL im Supabase SQL-Editor ausfuehren, Migration wurde vom Permission-System geblockt):**
+  alter table public.profiles add column if not exists cv_design jsonb;
+  alter table public.bewerbungen add column if not exists lebenslauf_url text;
+  Ohne Spalten: alles laeuft (Design lokal, Firma generiert live); mit Spalten: Snapshot-Anhang + Design wandert zur Firma (Code schreibt lebenslauf_url bereits, Update schlaegt sonst leise fehl).
+- test-pdf.html liegt unversioniert im Projektordner (lokales Testwerkzeug, ?layout=&farbe=&lang=1).
