@@ -218,3 +218,9 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Synonyme erweitert** (suche.js): gassi/hund/katze/tiere/haustier → Tierbetreuung; computer/pc/handy/internet/website → Technik.
 - **Neue Firma-Vorlage „🐕 Gassi gehen"** (JOB_VORLAGEN.gassi).
 - Bestehende Beispiel-Jobs unverändert (Vorgabe des Nutzers). Browser-verifiziert via Deep-Link ?kategorie=Tierbetreuung.
+
+## Sprint 7+8 – Formular-Qualität & SEO-Feinschliff (12. Juli 2026)
+- **Job-Beschreibung mehrzeilig**: Firma-Formular von `<input>` auf `<textarea rows=4>` (war vorher EINE Zeile!). Detailansichten hatten schon pre-wrap; Job-Karten clampen die Vorschau jetzt auf 3 Zeilen (`.job-description` line-clamp).
+- **Motivations-Starthilfe** im Bewerbungsmodal: 💡-Button rotiert durch 3 personalisierte Beispieltexte (Job-Titel wird eingesetzt); eigener Text wird nie überschrieben (`MOTIVATIONS_STARTER`, `motivationsStarthilfe()`).
+- **Firma-Formular-Validierung** (`pruefeJobFormular`): Titel ≥5 Zeichen, Lohn 0–100 €, Ort Pflicht — freundliche Toasts statt kryptischer DB-CHECK-Fehler.
+- **Meta-Descriptions** ergänzt auf login, register, impressum, datenschutz, forgot-/reset-password (UTF-8 verifiziert im Browser).

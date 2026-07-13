@@ -141,13 +141,33 @@ function sammleFormular() {
   }
 }
 
+// Freundliche Prüfung VOR dem Absenden (statt kryptischer DB-Constraint-Fehler)
+function pruefeJobFormular(daten) {
+  if (!daten.titel || daten.titel.trim().length < 5) {
+    return 'Bitte gib einen aussagekräftigen Job-Titel an (mindestens 5 Zeichen).'
+  }
+  if (daten.stundenlohn != null && (daten.stundenlohn <= 0 || daten.stundenlohn > 100)) {
+    return 'Der Stundenlohn muss zwischen 0 und 100 € liegen.'
+  }
+  if (!daten.ort || !daten.ort.trim()) {
+    return 'Bitte gib einen Ort an – Schüler suchen nach Jobs in ihrer Nähe.'
+  }
+  return null
+}
+
 async function speichereJob(e) {
   e.preventDefault()
   const btn = e.target.querySelector('button[type=submit]')
-  btn.disabled = true
-  btn.textContent = editingJobId ? 'Wird gespeichert...' : 'Wird gepostet...'
 
   const daten = sammleFormular()
+  const fehler = pruefeJobFormular(daten)
+  if (fehler) {
+    toast(fehler, 'fehler')
+    return
+  }
+
+  btn.disabled = true
+  btn.textContent = editingJobId ? 'Wird gespeichert...' : 'Wird gepostet...'
 
   // Ort in Koordinaten umwandeln (für den Umkreis-Filter der Schüler)
   const koord = await geocode(daten.ort)
