@@ -230,3 +230,9 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - Fix: Domain + www neu im Vercel-Projekt eingetragen (Redirect-auf-www bewusst AUS, weil Supabase Auth auf https://schuelermatch.de zeigt). DNS bei Namecheap neu gesetzt: A @ -> 216.198.79.1 (neuer Vercel-IP-Bereich), CNAME www -> bf647d4442e8521a.vercel-dns-017.com.
 - Verifiziert: Google DNS aufgeloest, www mit HTTPS 200, Vercel zeigt Valid Configuration fuer beide.
 - Lehre: Falls die Domain wieder ausfaellt, zuerst Namecheap Advanced DNS pruefen (Eintraege koennen dort verschwinden, z.B. durch Nameserver-Wechsel).
+
+## Launch-Checkliste (wartet auf Startschuss des Nutzers)
+1. Impressum/Datenschutz pruefen (lassen) - Minderjaehrige!
+2. js/gate.js: GATE_AKTIV = false setzen + pushen
+3. Google Search Console einrichten (DNS-TXT-Verifizierung) + sitemap.xml einreichen -> Google Jobs greift dann automatisch (JobPosting-Markup liegt bereit)
+4. Optional danach: cv_design-Migration, E-Mail-Benachrichtigungen (warten ebenfalls auf Freigabe)
