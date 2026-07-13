@@ -85,6 +85,7 @@ async function init() {
     if (e.target.id === 'bewerbung-overlay') schliesseModal()
   })
   document.getElementById('bewerbung-form').addEventListener('submit', sendeBewerbung)
+  document.getElementById('motivation-tipp').addEventListener('click', motivationsStarthilfe)
   document.getElementById('bewerbung-zeugnis-btn').addEventListener('click', () => document.getElementById('bewerbung-zeugnis').click())
   document.getElementById('bewerbung-zeugnis').addEventListener('change', (e) => {
     aktuelleBewerbung.zeugnisDatei = e.target.files[0]
@@ -268,6 +269,31 @@ async function oeffneChat(bewerbungId, titel) {
   })
   chatCleanup = await ladeChat(cc.querySelector('#chat-inner'), bewerbungId, profile.id)
   setTimeout(aktualisiereNachrichtenBadge, 500)
+}
+
+/* ---------- MOTIVATIONS-STARTHILFE ---------- */
+
+const MOTIVATIONS_STARTER = [
+  (titel) => `Hallo! Ich habe eure Anzeige "${titel}" gesehen und hätte richtig Lust auf den Job. Ich bin zuverlässig, pünktlich und lerne schnell – neue Aufgaben muss man mir nur einmal zeigen. Über eine Antwort würde ich mich sehr freuen!`,
+  (titel) => `Guten Tag! Die Stelle "${titel}" passt super zu mir, weil ich gerne mit anpacke und Verantwortung übernehme. Ich bin freundlich im Umgang mit Menschen und halte, was ich zusage. Gerne stelle ich mich persönlich vor!`,
+  (titel) => `Hallo! Ich suche gerade meinen ersten Nebenjob und "${titel}" klingt genau richtig für mich. Auch ohne Berufserfahrung bringe ich viel Motivation mit – zu Hause helfe ich regelmäßig mit und man kann sich auf mich verlassen.`
+]
+let motivationsIndex = 0
+let letzterStarter = ''
+
+function motivationsStarthilfe() {
+  const feld = document.getElementById('bewerbung-motivation')
+  const titel = document.getElementById('bewerbung-job-titel').textContent || 'euren Job'
+  const aktuell = feld.value.trim()
+  // Eigenen Text nie überschreiben – nur leeres Feld oder unseren letzten Vorschlag ersetzen
+  if (aktuell && aktuell !== letzterStarter.trim()) {
+    toast('Dein eigener Text bleibt – lösche ihn, um Vorschläge zu sehen', 'info')
+    return
+  }
+  letzterStarter = MOTIVATIONS_STARTER[motivationsIndex % MOTIVATIONS_STARTER.length](titel)
+  motivationsIndex++
+  feld.value = letzterStarter
+  feld.focus()
 }
 
 /* ---------- PDF-DESIGN-AUSWAHL ---------- */

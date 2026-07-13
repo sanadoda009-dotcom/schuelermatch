@@ -378,7 +378,11 @@ section { padding: 130px 24px; }
 }
 .job-card h3 { font-size: 1.05rem; margin-bottom: 4px; }
 .job-card .company-name { font-size: 0.88rem; color: var(--ink-soft); margin-bottom: 12px; display: flex; align-items: center; gap: 5px; }
-.job-description { font-size: 0.85rem; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.5; }
+.job-description {
+  font-size: 0.85rem; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .job-meta { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.82rem; color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; }
 .job-meta span { display: flex; align-items: center; gap: 5px; }
 .meta-icon { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.75; }
