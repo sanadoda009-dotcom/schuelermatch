@@ -326,6 +326,33 @@
         <button type="button" class="tipp-btn" id="motivation-tipp">💡 Starthilfe: Beispieltext einfügen</button>
       </div>
       <div class="form-group">
+        <label>Lebenslauf</label>
+        <label class="cv-wahl" id="cv-wahl-auto-label">
+          <input type="radio" name="cv-wahl" id="cv-wahl-auto" value="auto" checked>
+          <span>Meinen SchülerMatch-Lebenslauf anhängen <span class="cv-wahl-hinweis">(wird beim Absenden automatisch als PDF erzeugt)</span></span>
+        </label>
+        <div class="cv-wahl-info" id="cv-wahl-info">
+          <canvas id="cv-mini" width="64" height="91"></canvas>
+          <div>
+            <b style="font-size:0.85rem;">Dein aktueller Lebenslauf</b><br>
+            <a href="#" id="cv-vorschau-link">Vorschau ansehen ↗</a> ·
+            <a href="lebenslauf.html">Bearbeiten</a>
+          </div>
+        </div>
+        <p class="cv-wahl-hinweis" id="cv-wahl-leer" style="display:none; margin:6px 0 0 24px;">
+          Du hast noch keinen Lebenslauf – <a href="lebenslauf.html" style="color:var(--match-green-dark);">jetzt erstellen</a>
+        </p>
+        <label class="cv-wahl">
+          <input type="radio" name="cv-wahl" id="cv-wahl-upload" value="upload">
+          <span>Eigenen Lebenslauf hochladen (PDF)</span>
+        </label>
+        <div id="cv-upload-zeile" style="display:none; margin:8px 0 0 24px;">
+          <input type="file" id="cv-eigen-datei" accept="application/pdf" style="display:none;">
+          <button type="button" id="cv-eigen-btn" class="btn btn-outline" style="padding:8px 14px; font-size:0.82rem;">PDF auswählen</button>
+          <span class="mono" id="cv-eigen-status" style="font-size:0.7rem; color:var(--ink-soft); margin-left:8px;">Keine Datei</span>
+        </div>
+      </div>
+      <div class="form-group">
         <label>Zeugnis (optional)</label>
         <input type="file" id="bewerbung-zeugnis" accept="image/*,application/pdf" style="display:none;">
         <button type="button" id="bewerbung-zeugnis-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Zeugnis anhängen</button>

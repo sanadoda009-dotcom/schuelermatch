@@ -76,6 +76,16 @@ function ohneEmojis(s) {
 
 // Erzeugt das jsPDF-Dokument (für Download UND automatischen Bewerbungs-Anhang)
 export async function erzeugeLebenslaufPdf(daten) {
+  return (await baueDokument(daten)).doc
+}
+
+// Wie oben, liefert zusätzlich Anker-Positionen {id, seite, y} pro Abschnitt –
+// die Live-Vorschau (lebenslauf.html) scrollt damit zum passenden Abschnitt.
+export async function erzeugeLebenslaufPdfMitAnkern(daten) {
+  return baueDokument(daten)
+}
+
+async function baueDokument(daten) {
   if (!window.jspdf) throw new Error('PDF-Bibliothek nicht geladen')
   const { jsPDF } = window.jspdf
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
@@ -108,9 +118,10 @@ export async function erzeugeLebenslaufPdf(daten) {
     }
   }
 
-  const zustand = { doc, stil, seiten: 1 }
+  const zustand = { doc, stil, seiten: 1, anker: [] }
 
   bandZeichnen(zustand, 1)
+  zustand.anker.push({ id: 'persoenlich', seite: 1, y: RAND_OBEN })
 
   /* ---------- LINKE SPALTE ---------- */
   let yL = RAND_OBEN
@@ -144,6 +155,7 @@ export async function erzeugeLebenslaufPdf(daten) {
   }
 
   for (const b of linksBloecke) {
+    zustand.anker.push({ id: b.id || '', seite: seiteL, y: yL })
     if (b.typ === 'sprachen') {
       ;({ y: yL, seite: seiteL } = abschnittsTitelLinks(zustand, yL, seiteL, b.titel || 'Sprachen'))
       for (const s of (b.sprachen || []).filter(s => s.name?.trim())) {
@@ -215,6 +227,7 @@ export async function erzeugeLebenslaufPdf(daten) {
 
   // Kurzprofil ("Über mich") direkt unter dem Namen, ohne Abschnittstitel
   if (ueberMich?.inhalt?.trim()) {
+    zustand.anker.push({ id: ueberMich.id || 'uebermich', seite: zustand.aktSeite, y: yR })
     yR += 2.5
     doc.setFont('helvetica', 'normal'); doc.setFontSize(F_TEXT); doc.setTextColor(...C_TEXT)
     for (const z of doc.splitTextToSize(ohneEmojis(ueberMich.inhalt), RECHTS_W)) {
@@ -231,6 +244,7 @@ export async function erzeugeLebenslaufPdf(daten) {
   }
 
   for (const b of rechtsBloecke) {
+    zustand.anker.push({ id: b.id || '', seite: zustand.aktSeite, y: yR })
     if (b.typ === 'text') {
       yR = textAbschnittRechts(zustand, yR, b.titel || 'Weiteres', b.inhalt)
     } else if (b.typ === 'bild') {
@@ -251,7 +265,7 @@ export async function erzeugeLebenslaufPdf(daten) {
   doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(...C_GRAU)
   doc.text('Erstellt über SchülerMatch · schuelermatch.de', RECHTS_X, SEITE_H - 8)
 
-  return doc
+  return { doc, anker: zustand.anker }
 }
 
 // Bisherige Schnittstelle: erzeugt das PDF und lädt es herunter
@@ -366,7 +380,19 @@ function textAbschnittRechts(zustand, y, titel, text) {
 
 /* ---------- Bild-Helfer ---------- */
 
+// Cache: die Live-Vorschau erzeugt das PDF bei jeder Eingabe neu –
+// Bilder sollen dabei nur EINMAL geladen und konvertiert werden.
+const bildCache = new Map()
+
 async function bildAlsJpeg(url, maxBreitePx) {
+  const key = `jpeg|${url}|${maxBreitePx}`
+  if (bildCache.has(key)) return bildCache.get(key)
+  const ergebnis = await _bildAlsJpeg(url, maxBreitePx)
+  bildCache.set(key, ergebnis)
+  return ergebnis
+}
+
+async function _bildAlsJpeg(url, maxBreitePx) {
   try {
     const res = await fetch(url)
     if (!res.ok) return null
@@ -387,6 +413,14 @@ async function bildAlsJpeg(url, maxBreitePx) {
 // Rundes Foto: Kreis-Zuschnitt, Rest in Band-Hintergrundfarbe gefüllt
 // (JPEG kennt keine Transparenz – auf der einfarbigen Seitenleiste wirkt es rund)
 async function bildRund(url, groessePx, bandRgb) {
+  const key = `rund|${url}|${groessePx}|${bandRgb.join(',')}`
+  if (bildCache.has(key)) return bildCache.get(key)
+  const ergebnis = await _bildRund(url, groessePx, bandRgb)
+  bildCache.set(key, ergebnis)
+  return ergebnis
+}
+
+async function _bildRund(url, groessePx, bandRgb) {
   try {
     const res = await fetch(url)
     if (!res.ok) return null

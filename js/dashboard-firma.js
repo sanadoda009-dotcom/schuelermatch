@@ -249,9 +249,10 @@ async function ladeEigeneJobs() {
     return
   }
 
+  // '*' statt fester Spaltenliste: nimmt neue Spalten (z.B. lebenslauf_url) automatisch mit
   const { data: bewerbungen } = await supabase
     .from('bewerbungen')
-    .select('id, status, job_id, erstellt_am, motivationsschreiben, zeugnis_url, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, foto_url, lebenslauf_bloecke, verifiziert)')
+    .select('*, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, foto_url, lebenslauf_bloecke, verifiziert)')
     .in('job_id', jobs.map(j => j.id))
     .order('erstellt_am', { ascending: false })
 
@@ -357,10 +358,19 @@ async function ladeEigeneJobs() {
     })
   })
   list.querySelectorAll('[data-pdf-id]').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const b = (bewerbungen || []).find(x => x.id === btn.dataset.pdfId)
       if (!b) return
       btn.disabled = true
+      btn.textContent = 'Wird geladen...'
+      // Bevorzugt: das bei der Bewerbung angehängte PDF (Snapshot bzw. eigene Datei)
+      if (b.lebenslauf_url) {
+        const { data, error } = await supabase.storage.from('zeugnisse').createSignedUrl(b.lebenslauf_url, 60)
+        btn.disabled = false
+        btn.textContent = 'Lebenslauf (PDF)'
+        if (!error && data?.signedUrl) { window.open(data.signedUrl, '_blank'); return }
+        // Anhang nicht lesbar -> auf Live-Erzeugung zurückfallen
+      }
       btn.textContent = 'Wird erstellt...'
       ladeLebenslaufAlsPdf({ ...b.bewerber, bloecke: b.bewerber.lebenslauf_bloecke, motivationsschreiben: b.motivationsschreiben }).finally(() => {
         btn.disabled = false

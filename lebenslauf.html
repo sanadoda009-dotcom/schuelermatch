@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lebenslauf bearbeiten – SchülerMatch</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/gate.js"></script>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+</head>
+<body class="ll-body">
+
+<!-- Schmale Kopfzeile: Logo · Zurück · Speicher-Status -->
+<header class="ll-topbar">
+  <a href="dashboard-schueler.html" class="logo"><img src="assets/logo.png" alt="SchülerMatch" class="logo-img"></a>
+  <a href="dashboard-schueler.html" class="ll-zurueck">← Zurück zum Dashboard</a>
+  <span class="ll-savestatus mono" id="save-status">Lade…</span>
+</header>
+
+<!-- Mobil: Umschalter Bearbeiten / Vorschau -->
+<div class="ll-mobil-toggle" id="ll-mobil-toggle">
+  <button type="button" class="active" data-ansicht="editor">Bearbeiten</button>
+  <button type="button" data-ansicht="vorschau">Vorschau</button>
+</div>
+
+<main class="ll-wrap">
+
+  <!-- LINKS: Eingabe-Karten -->
+  <section class="ll-editor" id="ll-editor">
+    <div class="ll-progress">
+      <div class="ll-progress-kopf">
+        <b>Dein Lebenslauf</b>
+        <span class="mono" id="ll-progress-label">0 % fertig</span>
+      </div>
+      <div class="ll-progress-balken"><div id="ll-progress-fill"></div></div>
+    </div>
+
+    <p class="mono ll-hinweis">VORLAGEN (füllen die Abschnitte vor)</p>
+    <div class="cv-templates" id="ll-vorlagen">
+      <button type="button" class="cv-template-chip" data-vorlage="erster-job">Mein erster Job</button>
+      <button type="button" class="cv-template-chip" data-vorlage="nachhilfe">Nachhilfe-Profi</button>
+      <button type="button" class="cv-template-chip" data-vorlage="praktisch">Praktisch &amp; Zuverlässig</button>
+      <button type="button" class="cv-template-chip" data-vorlage="komplett">Der Komplette</button>
+    </div>
+
+    <div id="ll-karten"><!-- Karten werden per JS gerendert --></div>
+
+    <p class="mono ll-hinweis">ABSCHNITT HINZUFÜGEN</p>
+    <div class="block-add-row">
+      <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="">+ Text</button>
+      <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Ausbildung" data-platzhalter="z.B. Realschule Musterstadt, 8. Klasse · Schülerpraktikum bei Bäckerei Kern (März 2026)">+ Ausbildung</button>
+      <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Erfahrung" data-platzhalter="Praktika, Ehrenamt, Babysitten, Nachbarschaftshilfe – alles zählt!">+ Erfahrung</button>
+      <button type="button" class="btn btn-outline block-add-btn" data-add="skillbar" data-titel="Fähigkeiten">+ Fähigkeiten</button>
+      <button type="button" class="btn btn-outline block-add-btn" data-add="sprachen" data-titel="Sprachen">+ Sprachen</button>
+      <button type="button" class="btn btn-outline block-add-btn" data-add="skills" data-titel="Interessen">+ Interessen</button>
+      <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Verfügbarkeit" data-platzhalter="z.B. Mo–Fr ab 15 Uhr, Wochenende flexibel, Ferien ganztags">+ Verfügbarkeit</button>
+      <button type="button" class="btn btn-outline block-add-btn" data-add="bild" data-titel="">+ Bild</button>
+    </div>
+  </section>
+
+  <!-- RECHTS: Live-Vorschau (echtes A4, sticky) -->
+  <section class="ll-vorschau" id="ll-vorschau">
+    <div class="ll-vorschau-innen">
+      <div id="vorschau-seiten"><div class="ll-vorschau-lade">Vorschau wird erstellt…</div></div>
+      <div class="pdf-design-row" id="pdf-design-row">
+        <span class="mono pdf-design-label">DESIGN:</span>
+        <button type="button" class="pdf-layout-chip" data-pdf-layout="klassisch">Klassisch</button>
+        <button type="button" class="pdf-layout-chip" data-pdf-layout="modern">Modern</button>
+        <button type="button" class="pdf-layout-chip" data-pdf-layout="minimal">Minimal</button>
+        <span class="pdf-farben">
+          <button type="button" class="pdf-farbe" data-pdf-farbe="gruen" style="background:#00c896;" title="Grün"></button>
+          <button type="button" class="pdf-farbe" data-pdf-farbe="blau" style="background:#2b2f8f;" title="Blau"></button>
+          <button type="button" class="pdf-farbe" data-pdf-farbe="coral" style="background:#ff6f61;" title="Coral"></button>
+          <button type="button" class="pdf-farbe" data-pdf-farbe="grau" style="background:#5a6270;" title="Grau"></button>
+        </span>
+      </div>
+      <button type="button" id="cv-download-btn" class="btn btn-dark btn-full" style="margin-top:10px;">Als PDF herunterladen</button>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script type="module" src="js/lebenslauf.js"></script>
+</body>
+</html>

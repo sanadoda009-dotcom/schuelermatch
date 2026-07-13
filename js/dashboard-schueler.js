@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
-import { ladeLebenslaufAlsPdf } from './pdf.js'
+import { ladeLebenslaufAlsPdf, erzeugeLebenslaufPdf, lebenslaufAlsBlob } from './pdf.js'
 import { initSidebar } from './sidebar.js'
 import { toast } from './toast.js'
 import { ladeChat, zaehleUngelesen } from './chat.js'
@@ -86,6 +86,7 @@ async function init() {
   })
   document.getElementById('bewerbung-form').addEventListener('submit', sendeBewerbung)
   document.getElementById('motivation-tipp').addEventListener('click', motivationsStarthilfe)
+  initCvWahl()
   document.getElementById('bewerbung-zeugnis-btn').addEventListener('click', () => document.getElementById('bewerbung-zeugnis').click())
   document.getElementById('bewerbung-zeugnis').addEventListener('change', (e) => {
     aktuelleBewerbung.zeugnisDatei = e.target.files[0]
@@ -199,6 +200,8 @@ function wendeVorlageAn(name) {
 }
 
 function zeigeView(view) {
+  // Lebenslauf hat jetzt eine eigene, konzentrierte Seite
+  if (view === 'lebenslauf') { location.href = 'lebenslauf.html'; return }
   document.querySelectorAll('.dashboard-view').forEach(v => v.classList.remove('active'))
   document.getElementById('view-' + view).classList.add('active')
   if (view === 'lebenslauf') renderCvPreview()
@@ -1290,12 +1293,93 @@ async function oeffneBewerbungsModal(jobId, jobTitel, btn) {
   document.getElementById('bewerbung-job-titel').textContent = jobTitel
   document.getElementById('bewerbung-motivation').value = ''
   document.getElementById('bewerbung-zeugnis-status').textContent = 'Kein Zeugnis ausgewählt'
+  setzeCvWahlZurueck()
   document.getElementById('bewerbung-overlay').classList.add('open')
 }
 
 function schliesseModal() {
   document.getElementById('bewerbung-overlay').classList.remove('open')
   aktuelleBewerbung = null
+}
+
+/* ---------- LEBENSLAUF-WAHL IM BEWERBUNGS-MODAL ---------- */
+
+let cvEigenDatei = null
+
+function cvExportDaten() {
+  return { ...profile, bloecke, cv_design: cvDesign }
+}
+
+function initCvWahl() {
+  const autoRadio = document.getElementById('cv-wahl-auto')
+  const uploadRadio = document.getElementById('cv-wahl-upload')
+  const zeigeWahl = () => {
+    document.getElementById('cv-wahl-info').style.display = autoRadio.checked && !autoRadio.disabled ? 'flex' : 'none'
+    document.getElementById('cv-upload-zeile').style.display = uploadRadio.checked ? 'block' : 'none'
+  }
+  autoRadio.addEventListener('change', zeigeWahl)
+  uploadRadio.addEventListener('change', zeigeWahl)
+
+  document.getElementById('cv-eigen-btn').addEventListener('click', () => document.getElementById('cv-eigen-datei').click())
+  document.getElementById('cv-eigen-datei').addEventListener('change', (e) => {
+    const f = e.target.files[0]
+    if (!f) return
+    if (f.type !== 'application/pdf') { alert('Bitte eine PDF-Datei wählen.'); e.target.value = ''; return }
+    if (f.size > 5 * 1024 * 1024) { alert('Die Datei ist zu groß (max. 5 MB).'); e.target.value = ''; return }
+    cvEigenDatei = f
+    document.getElementById('cv-eigen-status').textContent = f.name
+  })
+
+  document.getElementById('cv-vorschau-link').addEventListener('click', async (e) => {
+    e.preventDefault()
+    try {
+      const doc = await erzeugeLebenslaufPdf(cvExportDaten())
+      window.open(doc.output('bloburl'), '_blank')
+    } catch (err) { alert('Vorschau nicht möglich: ' + err.message) }
+  })
+}
+
+// Beim Öffnen des Modals: Wahl zurücksetzen + Mini-Vorschau zeichnen
+function setzeCvWahlZurueck() {
+  const hatCv = blockHatInhalt()
+  const autoRadio = document.getElementById('cv-wahl-auto')
+  const uploadRadio = document.getElementById('cv-wahl-upload')
+  cvEigenDatei = null
+  document.getElementById('cv-eigen-status').textContent = 'Keine Datei'
+  document.getElementById('cv-eigen-datei').value = ''
+
+  autoRadio.disabled = !hatCv
+  document.getElementById('cv-wahl-auto-label').classList.toggle('deaktiviert', !hatCv)
+  document.getElementById('cv-wahl-leer').style.display = hatCv ? 'none' : 'block'
+  if (hatCv) autoRadio.checked = true
+  else uploadRadio.checked = true
+
+  document.getElementById('cv-wahl-info').style.display = hatCv ? 'flex' : 'none'
+  document.getElementById('cv-upload-zeile').style.display = hatCv ? 'none' : 'block'
+
+  if (hatCv) zeichneCvMini()
+}
+
+// Miniatur: Seite 1 des echten PDFs, klein gerendert (pdf.js wird erst bei Bedarf geladen)
+async function zeichneCvMini() {
+  try {
+    if (!window.pdfjsLib) {
+      await new Promise((ok, nein) => {
+        const s = document.createElement('script')
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+        s.onload = ok; s.onerror = nein
+        document.head.appendChild(s)
+      })
+    }
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+    const doc = await erzeugeLebenslaufPdf(cvExportDaten())
+    const pdf = await window.pdfjsLib.getDocument({ data: doc.output('arraybuffer') }).promise
+    const page = await pdf.getPage(1)
+    const vp = page.getViewport({ scale: 0.32 })
+    const canvas = document.getElementById('cv-mini')
+    canvas.width = vp.width; canvas.height = vp.height
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise
+  } catch { /* Miniatur ist nice-to-have – Fehler nicht blockierend */ }
 }
 
 async function sendeBewerbung(e) {
@@ -1320,6 +1404,40 @@ async function sendeBewerbung(e) {
     zeugnis_url = path
   }
 
+  // Lebenslauf anhängen: automatisch erzeugtes PDF oder eigene Datei
+  const wahl = document.querySelector('input[name="cv-wahl"]:checked')?.value || 'auto'
+  let lebenslaufPfad = null
+  try {
+    if (wahl === 'auto' && blockHatInhalt()) {
+      btn.textContent = 'Erzeuge Lebenslauf-PDF…'
+      const blob = await lebenslaufAlsBlob(cvExportDaten())
+      lebenslaufPfad = `${profile.id}/${jobId}/lebenslauf.pdf`
+      const { error: cvErr } = await supabase.storage.from('zeugnisse')
+        .upload(lebenslaufPfad, blob, { upsert: true, contentType: 'application/pdf' })
+      if (cvErr) { lebenslaufPfad = null } // Bewerbung trotzdem absenden – Firma kann live generieren
+    } else if (wahl === 'upload') {
+      if (!cvEigenDatei) {
+        alert('Bitte wähle dein Lebenslauf-PDF aus – oder nimm die automatische Variante.')
+        btn.disabled = false
+        btn.textContent = 'Bewerbung absenden'
+        return
+      }
+      btn.textContent = 'Lade Lebenslauf hoch…'
+      lebenslaufPfad = `${profile.id}/${jobId}/lebenslauf.pdf`
+      const { error: upErr } = await supabase.storage.from('zeugnisse')
+        .upload(lebenslaufPfad, cvEigenDatei, { upsert: true, contentType: 'application/pdf' })
+      if (upErr) {
+        alert('Fehler beim Hochladen des Lebenslaufs: ' + upErr.message)
+        btn.disabled = false
+        btn.textContent = 'Bewerbung absenden'
+        return
+      }
+    }
+  } catch (e) {
+    lebenslaufPfad = null // Auto-PDF fehlgeschlagen -> nicht blockieren
+  }
+
+  btn.textContent = 'Wird gesendet…'
   const { error } = await supabase.from('bewerbungen').insert({
     job_id: jobId,
     schueler_id: profile.id,
@@ -1333,6 +1451,15 @@ async function sendeBewerbung(e) {
   if (error) {
     alert('Fehler beim Absenden: ' + error.message)
     return
+  }
+
+  // Pfad zum PDF an der Bewerbung speichern (Spalte lebenslauf_url).
+  // Existiert die Spalte noch nicht, schlägt nur dieses Update leise fehl –
+  // die Firma sieht dann wie bisher das live erzeugte PDF.
+  if (lebenslaufPfad) {
+    await supabase.from('bewerbungen')
+      .update({ lebenslauf_url: lebenslaufPfad })
+      .eq('job_id', jobId).eq('schueler_id', profile.id)
   }
 
   const jobBtn = aktuelleBewerbung.btn
