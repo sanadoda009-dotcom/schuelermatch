@@ -252,7 +252,7 @@ async function ladeEigeneJobs() {
   // '*' statt fester Spaltenliste: nimmt neue Spalten (z.B. lebenslauf_url) automatisch mit
   const { data: bewerbungen } = await supabase
     .from('bewerbungen')
-    .select('*, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, foto_url, lebenslauf_bloecke, verifiziert)')
+    .select('*, bewerber:schueler_id(name, email, ort, alter_jahre, schule, klasse, foto_url, lebenslauf_bloecke, verifiziert, cv_design)')
     .in('job_id', jobs.map(j => j.id))
     .order('erstellt_am', { ascending: false })
 

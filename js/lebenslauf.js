@@ -79,6 +79,8 @@ async function init() {
     }
   } catch {}
 
+  // Design: DB-Wert als Basis (gilt geräteübergreifend), lokaler Cache gewinnt falls vorhanden
+  if (profile.cv_design?.layout) cvDesign = profile.cv_design
   try {
     const d = JSON.parse(localStorage.getItem('cv-design-' + profile.id) || 'null')
     if (d?.layout) cvDesign = d
@@ -331,12 +333,12 @@ function bindeStatisches() {
   document.querySelectorAll('[data-pdf-layout]').forEach(b => b.addEventListener('click', () => {
     cvDesign = { ...cvDesign, layout: b.dataset.pdfLayout }
     localStorage.setItem('cv-design-' + profile.id, JSON.stringify(cvDesign))
-    zeigeDesign(); planeVorschau()
+    zeigeDesign(); planeVorschau(); planeSpeichern() // Design auch ins Profil (Firma sieht es)
   }))
   document.querySelectorAll('[data-pdf-farbe]').forEach(b => b.addEventListener('click', () => {
     cvDesign = { ...cvDesign, farbe: b.dataset.pdfFarbe }
     localStorage.setItem('cv-design-' + profile.id, JSON.stringify(cvDesign))
-    zeigeDesign(); planeVorschau()
+    zeigeDesign(); planeVorschau(); planeSpeichern()
   }))
 
   // Download
@@ -384,7 +386,8 @@ async function speichern() {
     ort: profile.ort || '',
     schule: profile.schule || '',
     klasse: profile.klasse || '',
-    lebenslauf_bloecke: bloecke
+    lebenslauf_bloecke: bloecke,
+    cv_design: cvDesign
   }
   const { error } = await supabase.from('profiles').update(updates).eq('id', profile.id)
   if (error) {

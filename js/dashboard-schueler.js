@@ -307,9 +307,10 @@ function initPdfDesignAuswahl() {
   const row = document.getElementById('pdf-design-row')
   if (!row) return
   const key = 'cv-design-' + profile.id
+  if (profile.cv_design?.layout) cvDesign = profile.cv_design // DB-Wert (geräteübergreifend)
   try {
     const gespeichert = JSON.parse(localStorage.getItem(key) || 'null')
-    if (gespeichert?.layout) cvDesign = gespeichert
+    if (gespeichert?.layout) cvDesign = gespeichert // lokaler Cache gewinnt
   } catch { /* defekter Eintrag -> Standard */ }
 
   const zeigeAuswahl = () => {
