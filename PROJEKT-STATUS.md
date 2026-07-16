@@ -246,3 +246,7 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
   alter table public.bewerbungen add column if not exists lebenslauf_url text;
   Ohne Spalten: alles laeuft (Design lokal, Firma generiert live); mit Spalten: Snapshot-Anhang + Design wandert zur Firma (Code schreibt lebenslauf_url bereits, Update schlaegt sonst leise fehl).
 - test-pdf.html liegt unversioniert im Projektordner (lokales Testwerkzeug, ?layout=&farbe=&lang=1).
+
+## Migration ausgefuehrt (13. Juli 2026, durch Nutzer im SQL-Editor)
+- profiles.cv_design (jsonb) + bewerbungen.lebenslauf_url (text) EXISTIEREN (verifiziert via information_schema).
+- Verdrahtet (Commit 3d347c9): Studio speichert cv_design im Autosave mit; Dashboard liest profile.cv_design (localStorage als Cache gewinnt); Firma-Select laedt cv_design des Bewerbers -> Live-PDF im Design des Schuelers; lebenslauf_url-Update bei Bewerbung greift jetzt dauerhaft (Snapshot-Anhang).
