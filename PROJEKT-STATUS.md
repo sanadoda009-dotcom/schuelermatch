@@ -250,3 +250,9 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 ## Migration ausgefuehrt (13. Juli 2026, durch Nutzer im SQL-Editor)
 - profiles.cv_design (jsonb) + bewerbungen.lebenslauf_url (text) EXISTIEREN (verifiziert via information_schema).
 - Verdrahtet (Commit 3d347c9): Studio speichert cv_design im Autosave mit; Dashboard liest profile.cv_design (localStorage als Cache gewinnt); Firma-Select laedt cv_design des Bewerbers -> Live-PDF im Design des Schuelers; lebenslauf_url-Update bei Bewerbung greift jetzt dauerhaft (Snapshot-Anhang).
+
+## Design-Session: Logo-Anpassung umgesetzt (13. Juli 2026, Commit 87c83ce)
+- 3 Varianten als lokale Vorschau (design-vorschau.html, unversioniert) erstellt; Nutzer liess mich waehlen -> Variante 2 'Zwei Seiten, ein Match' umgesetzt.
+- Story: Teal = Schueler, Indigo = Arbeitgeber, Verlauf = Match. Token --verlauf in :root.
+- Aenderungen: btn-green -> Marken-Verlauf/weiss; eyebrow indigo; h2 indigo (Dark: #a7abff); pill.active indigo; job-card::before 3px Verlaufs-Oberkante; btn-outline hover indigo; footer #232766; final-cta Teal->Indigo-Verlauf. Dark-Mode-Overrides angepasst (btn-green Schrift weiss).
+- Verifiziert per Computed Styles (hell+dunkel). Screenshot-Engine der Test-Pane war flaky (bekannt).
