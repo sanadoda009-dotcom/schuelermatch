@@ -27,7 +27,6 @@ function wendeJobVorlageAn(name) {
   const v = JOB_VORLAGEN[name]
   if (!v) return
   const titelFeld = document.getElementById('job-titel')
-  if (titelFeld.value.trim() && !confirm('Das Formular ist nicht leer. Vorlage trotzdem einfügen?')) return
   titelFeld.value = v.titel
   document.getElementById('job-beschreibung').value = v.beschreibung
   document.getElementById('job-kategorie').value = v.kategorie
@@ -187,7 +186,7 @@ async function speichereProfil(e) {
   btn.textContent = 'Speichern'
 
   if (error) {
-    alert('Fehler: ' + error.message)
+    toast('Fehler: ' + error.message, 'fehler')
     return
   }
 
@@ -259,7 +258,7 @@ async function speichereJob(e) {
   btn.disabled = false
 
   if (error) {
-    alert('Fehler: ' + error.message)
+    toast('Fehler: ' + error.message, 'fehler')
     btn.textContent = editingJobId ? 'Änderungen speichern 🚀' : 'Job veröffentlichen 🚀'
     return
   }
@@ -267,10 +266,12 @@ async function speichereJob(e) {
   const warBearbeitung = Boolean(editingJobId)
   beendeBearbeitung()
   toast(warBearbeitung ? 'Job aktualisiert' : 'Job veröffentlicht! 🎉')
+  document.querySelector('.sidebar-item[data-view="jobs"]')?.click() // zur Job-Übersicht
   await ladeEigeneJobs()
 }
 
 function starteBearbeitung(job) {
+  document.querySelector('.sidebar-item[data-view="posten"]')?.click() // zum Assistenten
   editingJobId = job.id
   document.getElementById('job-titel').value = job.titel || ''
   document.getElementById('job-beschreibung').value = job.beschreibung || ''
@@ -295,13 +296,28 @@ function beendeBearbeitung() {
   zeigeWizardSchritt(1)
 }
 
-async function loescheJob(jobId) {
-  if (!confirm('Diesen Job wirklich löschen? Das kann nicht rückgängig gemacht werden.')) return
-  const { error } = await supabase.from('jobs').delete().eq('id', jobId)
-  if (error) {
-    alert('Fehler beim Löschen: ' + error.message)
+async function loescheJob(jobId, btn) {
+  // Zwei-Klick-Bestätigung statt nervigem Browser-Popup
+  if (btn && btn.dataset.confirm !== '1') {
+    btn.dataset.confirm = '1'
+    btn.dataset.orig = btn.textContent
+    btn.textContent = 'Wirklich löschen?'
+    btn.classList.add('btn-confirm')
+    clearTimeout(btn._t)
+    btn._t = setTimeout(() => {
+      btn.textContent = btn.dataset.orig
+      btn.dataset.confirm = '0'
+      btn.classList.remove('btn-confirm')
+    }, 4000)
     return
   }
+  if (btn) clearTimeout(btn._t)
+  const { error } = await supabase.from('jobs').delete().eq('id', jobId)
+  if (error) {
+    toast('Fehler beim Löschen: ' + error.message, 'fehler')
+    return
+  }
+  toast('Job gelöscht')
   await ladeEigeneJobs()
 }
 
@@ -406,7 +422,7 @@ async function ladeEigeneJobs() {
     })
   })
   list.querySelectorAll('[data-delete]').forEach(btn => {
-    btn.addEventListener('click', () => loescheJob(btn.dataset.delete))
+    btn.addEventListener('click', () => loescheJob(btn.dataset.delete, btn))
   })
   list.querySelectorAll('[data-pause]').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -414,7 +430,7 @@ async function ladeEigeneJobs() {
       const neuerWert = btn.dataset.aktiv !== 'true'
       const { error } = await supabase.from('jobs').update({ aktiv: neuerWert }).eq('id', btn.dataset.pause)
       if (error) {
-        alert('Fehler: ' + error.message)
+        toast('Fehler: ' + error.message, 'fehler')
         btn.disabled = false
         return
       }
@@ -463,7 +479,7 @@ async function ladeEigeneJobs() {
       btn.disabled = false
       btn.textContent = 'Zeugnis'
       if (error) {
-        alert('Fehler: ' + error.message)
+        toast('Fehler: ' + error.message, 'fehler')
         return
       }
       window.open(data.signedUrl, '_blank')
@@ -481,7 +497,7 @@ async function ladeEigeneJobs() {
         .update({ status: wert })
         .eq('id', btn.dataset.statusId)
       if (error) {
-        alert('Fehler: ' + error.message)
+        toast('Fehler: ' + error.message, 'fehler')
         btn.disabled = false
         return
       }

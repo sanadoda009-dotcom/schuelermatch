@@ -36,9 +36,13 @@
     </div>
   </div>
   <div class="sidebar-label">Verwaltung</div>
-  <button class="sidebar-item active" data-view="jobs">
+  <button class="sidebar-item active" data-view="posten">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+    Job posten
+  </button>
+  <button class="sidebar-item" data-view="jobs">
     <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round"/></svg>
-    Jobs & Bewerber<span class="sidebar-badge" id="badge-bewerbungen"></span>
+    Meine Jobs & Bewerber<span class="sidebar-badge" id="badge-bewerbungen"></span>
   </button>
   <button class="sidebar-item" data-view="profil">
     <svg viewBox="0 0 24 24"><path d="M3 21V8l9-5 9 5v13M3 21h18M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -48,12 +52,11 @@
 
 <main class="jobs-page">
 
-  <!-- JOBS -->
-  <div class="dashboard-view active" id="view-jobs">
+  <!-- JOB POSTEN (eigener Reiter) -->
+  <div class="dashboard-view active" id="view-posten">
     <div class="jobs-header">
       <h1>Job posten</h1>
-      <p style="color:var(--ink-soft);">Kostenlos, in wenigen Minuten online.</p>
-      <div class="stats-row" id="stats-row"></div>
+      <p style="color:var(--ink-soft);">Kostenlos, in wenigen Minuten online – Schritt für Schritt.</p>
     </div>
 
     <div class="post-job-box wizard-box">
@@ -177,9 +180,13 @@
         </div>
       </form>
     </div>
+  </div>
 
-    <div class="jobs-header" style="margin-top:56px;">
-      <h1 style="font-size:1.5rem;">Deine Jobs</h1>
+  <!-- MEINE JOBS & BEWERBER (eigener Reiter) -->
+  <div class="dashboard-view" id="view-jobs">
+    <div class="jobs-header">
+      <h1 style="font-size:1.6rem;">Meine Jobs & Bewerber</h1>
+      <div class="stats-row" id="stats-row"></div>
     </div>
     <div class="pill-row" id="bewerber-filter" style="margin-bottom:18px;">
       <span class="mono" style="font-size:0.72rem; color:var(--ink-soft); align-self:center; margin-right:4px;">BEWERBER:</span>

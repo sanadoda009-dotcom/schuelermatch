@@ -822,10 +822,14 @@ footer .logo { color: white; }
 
 /* FORMULIERUNGSHILFE */
 .tipp-btn {
-  background: none; border: none; cursor: pointer; font-size: 0.72rem;
-  font-family: 'IBM Plex Mono', monospace; color: var(--match-green-dark); padding: 4px 0;
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+  background: rgba(43,47,143,0.06); border: 1px solid var(--line);
+  cursor: pointer; font-size: 0.8rem; font-family: 'Inter', sans-serif; font-weight: 500;
+  color: var(--indigo); padding: 8px 14px; border-radius: 999px;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
-.tipp-btn:hover { text-decoration: underline; }
+.tipp-btn:hover { background: rgba(43,47,143,0.11); border-color: rgba(43,47,143,0.3); }
+.tipp-btn:active { transform: scale(0.97); }
 
 /* PASSWORT-STAERKE */
 .pw-meter { height: 5px; background: var(--line); border-radius: 100px; overflow: hidden; margin-top: 8px; }
@@ -1165,6 +1169,9 @@ footer .logo { color: white; }
   .wizard-progress-fill { transition: none; }
 }
 
+/* Zwei-Klick-Bestätigung (Löschen) statt Browser-Popup */
+.btn-confirm { background: var(--coral) !important; color: #fff !important; border-color: var(--coral) !important; }
+
 /* ============================================================
    LEBENSLAUF-EDITOR (lebenslauf.html) – Editor links, A4-Vorschau rechts
    ============================================================ */
@@ -1262,15 +1269,24 @@ footer .logo { color: white; }
   #vorschau-seiten { max-height: none; }
 }
 
-/* Bewerbungs-Modal: Lebenslauf-Wahl */
-.cv-wahl { display: flex; align-items: flex-start; gap: 8px; font-size: 0.88rem; margin-top: 8px; cursor: pointer; }
-.cv-wahl input { margin-top: 3px; }
+/* Bewerbungs-Modal: Lebenslauf-Wahl als auswählbare Karten */
+.cv-wahl {
+  display: flex; align-items: flex-start; gap: 10px; font-size: 0.9rem;
+  margin-top: 10px; cursor: pointer;
+  border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 14px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.cv-wahl:hover { border-color: rgba(43,47,143,0.35); }
+.cv-wahl:has(input:checked) { border-color: var(--indigo); background: rgba(43,47,143,0.045); }
+.cv-wahl input { margin-top: 2px; accent-color: var(--indigo); flex-shrink: 0; }
+.cv-wahl.deaktiviert { opacity: 0.55; cursor: not-allowed; }
+.cv-wahl.deaktiviert:hover { border-color: var(--line); }
 .cv-wahl-info {
-  margin: 8px 0 4px 24px; padding: 10px 12px;
-  background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
+  margin: 8px 2px 4px; padding: 12px 14px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
   display: flex; gap: 12px; align-items: center;
 }
-.cv-wahl-info canvas { width: 64px; height: auto; background: #fff; border: 1px solid var(--line); border-radius: 2px; flex-shrink: 0; }
-.cv-wahl-info a { color: var(--match-green-dark); font-size: 0.8rem; }
-.cv-wahl-hinweis { font-size: 0.78rem; color: var(--ink-soft); }
-.cv-wahl.deaktiviert { opacity: 0.55; cursor: not-allowed; }
+.cv-wahl-info canvas { width: 60px; height: auto; background: #fff; border: 1px solid var(--line); border-radius: 3px; flex-shrink: 0; box-shadow: 0 1px 4px rgba(22,26,31,0.08); }
+.cv-wahl-info a { color: var(--indigo); font-size: 0.8rem; font-weight: 500; }
+.cv-wahl-hinweis { font-size: 0.78rem; color: var(--ink-soft); font-weight: 400; }
+.cv-wahl-leer { margin: 8px 2px 4px; }

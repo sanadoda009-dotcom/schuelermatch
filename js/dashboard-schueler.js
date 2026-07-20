@@ -1276,7 +1276,7 @@ function verdrahteBewertenBox(job, meine) {
 
 async function oeffneBewerbungsModal(jobId, jobTitel, btn) {
   if (!profile.verifiziert) {
-    alert('Du musst dich erst als Schüler verifizieren, bevor du dich bewerben kannst.')
+    toast('Bitte verifiziere dich zuerst als Schüler, dann kannst du dich bewerben.', 'info')
     document.querySelector('.sidebar-item[data-view="verifizierung"]').click()
     return
   }
@@ -1285,7 +1285,7 @@ async function oeffneBewerbungsModal(jobId, jobTitel, btn) {
   await persistiereLebenslauf()
 
   if (!lebenslaufVollstaendig()) {
-    alert('Bitte fülle zuerst deinen Lebenslauf aus (Schule + mind. ein Abschnitt), bevor du dich bewirbst.')
+    toast('Fülle zuerst deinen Lebenslauf aus (Schule + mind. ein Abschnitt).', 'info')
     document.querySelector('.sidebar-item[data-view="lebenslauf"]').click()
     return
   }
@@ -1325,8 +1325,8 @@ function initCvWahl() {
   document.getElementById('cv-eigen-datei').addEventListener('change', (e) => {
     const f = e.target.files[0]
     if (!f) return
-    if (f.type !== 'application/pdf') { alert('Bitte eine PDF-Datei wählen.'); e.target.value = ''; return }
-    if (f.size > 5 * 1024 * 1024) { alert('Die Datei ist zu groß (max. 5 MB).'); e.target.value = ''; return }
+    if (f.type !== 'application/pdf') { toast('Bitte eine PDF-Datei wählen.', 'fehler'); e.target.value = ''; return }
+    if (f.size > 5 * 1024 * 1024) { toast('Die Datei ist zu groß (max. 5 MB).', 'fehler'); e.target.value = ''; return }
     cvEigenDatei = f
     document.getElementById('cv-eigen-status').textContent = f.name
   })
@@ -1336,7 +1336,7 @@ function initCvWahl() {
     try {
       const doc = await erzeugeLebenslaufPdf(cvExportDaten())
       window.open(doc.output('bloburl'), '_blank')
-    } catch (err) { alert('Vorschau nicht möglich: ' + err.message) }
+    } catch (err) { toast('Vorschau nicht möglich: ' + err.message, 'fehler') }
   })
 }
 
@@ -1397,7 +1397,7 @@ async function sendeBewerbung(e) {
     const path = `${profile.id}/${jobId}/zeugnis.${ext}`
     const { error: uploadError } = await supabase.storage.from('zeugnisse').upload(path, zeugnisDatei, { upsert: true })
     if (uploadError) {
-      alert('Fehler beim Hochladen des Zeugnisses: ' + uploadError.message)
+      toast('Fehler beim Hochladen des Zeugnisses: ' + uploadError.message, 'fehler')
       btn.disabled = false
       btn.textContent = 'Bewerbung absenden'
       return
@@ -1418,7 +1418,7 @@ async function sendeBewerbung(e) {
       if (cvErr) { lebenslaufPfad = null } // Bewerbung trotzdem absenden – Firma kann live generieren
     } else if (wahl === 'upload') {
       if (!cvEigenDatei) {
-        alert('Bitte wähle dein Lebenslauf-PDF aus – oder nimm die automatische Variante.')
+        toast('Bitte wähle dein Lebenslauf-PDF aus – oder nimm die automatische Variante.', 'fehler')
         btn.disabled = false
         btn.textContent = 'Bewerbung absenden'
         return
@@ -1428,7 +1428,7 @@ async function sendeBewerbung(e) {
       const { error: upErr } = await supabase.storage.from('zeugnisse')
         .upload(lebenslaufPfad, cvEigenDatei, { upsert: true, contentType: 'application/pdf' })
       if (upErr) {
-        alert('Fehler beim Hochladen des Lebenslaufs: ' + upErr.message)
+        toast('Fehler beim Hochladen des Lebenslaufs: ' + upErr.message, 'fehler')
         btn.disabled = false
         btn.textContent = 'Bewerbung absenden'
         return
@@ -1450,7 +1450,7 @@ async function sendeBewerbung(e) {
   btn.textContent = 'Bewerbung absenden'
 
   if (error) {
-    alert('Fehler beim Absenden: ' + error.message)
+    toast('Fehler beim Absenden: ' + error.message, 'fehler')
     return
   }
 
