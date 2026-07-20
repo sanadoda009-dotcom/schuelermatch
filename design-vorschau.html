@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design-Varianten – SchülerMatch</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  --ink: #161a1f; --ink-soft: #5a6270;
+  --paper: #faf8f4; --card: #ffffff; --line: #e7e3da;
+  --teal: #00c896; --teal-dark: #00a87d; --indigo: #2b2f8f;
+  --verlauf: linear-gradient(120deg, #00c896 0%, #2b2f8f 100%);
+}
+* { box-sizing: border-box; margin: 0; }
+body { font-family: 'Inter', sans-serif; background: #2b2d33; color: var(--ink); padding: 30px 16px 80px; }
+h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+.mono { font-family: 'IBM Plex Mono', monospace; }
+
+.variante-kopf { max-width: 860px; margin: 46px auto 10px; color: #fff; }
+.variante-kopf:first-child { margin-top: 0; }
+.variante-kopf b { font-family: 'Space Grotesk', sans-serif; font-size: 1.15rem; }
+.variante-kopf p { color: #b8bcc6; font-size: 0.85rem; margin-top: 4px; }
+
+.probe { max-width: 860px; margin: 0 auto; background: var(--paper); border-radius: 16px; overflow: hidden; }
+
+/* --- gemeinsame Bausteine --- */
+.p-nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 26px; border-bottom: 1px solid transparent; }
+.p-logo { display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk',sans-serif; font-weight: 700; font-size: 1.1rem; }
+.p-mark { width: 26px; height: 26px; border-radius: 8px; background: var(--verlauf); color:#fff; display:flex; align-items:center; justify-content:center; font-size: 12px; }
+.p-links { display: flex; gap: 22px; font-size: 0.85rem; color: var(--ink-soft); font-weight: 500; }
+.p-hero { padding: 40px 26px 34px; }
+.eyebrow { display: inline-flex; align-items: center; gap: 7px; font-size: 0.72rem; font-weight: 600; padding: 6px 12px; border-radius: 999px; margin-bottom: 14px; }
+.p-hero h2 { font-size: 2rem; line-height: 1.15; letter-spacing: -0.5px; max-width: 480px; }
+.p-hero p.sub { color: var(--ink-soft); margin: 12px 0 22px; max-width: 440px; font-size: 0.95rem; }
+.btn { border: none; border-radius: 12px; padding: 12px 22px; font-family: 'Inter',sans-serif; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+.btn-zweit { background: transparent; border: 1.5px solid var(--line); color: var(--ink); margin-left: 10px; }
+.pills { display: flex; gap: 8px; padding: 0 26px 26px; flex-wrap: wrap; }
+.pill { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 7px 14px; font-size: 0.8rem; color: var(--ink-soft); }
+.zeile { display: grid; grid-template-columns: 1fr 300px; gap: 22px; padding: 0 26px 30px; align-items: start; }
+.jobcard { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+.jobcard h3 { font-size: 1.02rem; margin: 10px 0 4px; }
+.jobcard .ort { color: var(--ink-soft); font-size: 0.8rem; }
+.lohn { font-weight: 700; font-size: 0.85rem; }
+.badge { font-size: 0.68rem; padding: 4px 9px; border-radius: 999px; font-weight: 600; }
+.abschnitt-titel { font-size: 1.25rem; margin-bottom: 6px; }
+.abschnitt-text { color: var(--ink-soft); font-size: 0.88rem; }
+.p-footer { color: #f0f0f4; padding: 18px 26px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+
+/* ============ VARIANTE 1: DEZENT – „Der Faden" ============ */
+.v1 .p-nav { border-bottom: none; position: relative; }
+.v1 .p-nav::after { content:''; position:absolute; left:0; right:0; bottom:0; height:2px; background: var(--verlauf); opacity: 0.85; }
+.v1 .eyebrow { background: rgba(0,200,150,0.1); color: var(--teal-dark); }
+.v1 .btn-haupt { background: linear-gradient(180deg, #00d8a2, #00c896 60%, #00bd8d); color: var(--ink); }
+.v1 .abschnitt-titel { position: relative; display: inline-block; padding-bottom: 8px; }
+.v1 .abschnitt-titel::after { content:''; position:absolute; left:0; bottom:0; width: 46px; height: 3px; border-radius: 2px; background: var(--verlauf); }
+.v1 .pill.aktiv { background: var(--ink); color: #fff; border-color: var(--ink); }
+.v1 .lohn { color: var(--teal-dark); }
+.v1 .badge { background: rgba(0,200,150,0.12); color: var(--teal-dark); }
+.v1 .p-footer { background: var(--ink); }
+.v1 .p-footer { position: relative; }
+.v1 .p-footer::before { content:''; position:absolute; left:0; right:0; top:0; height:2px; background: var(--verlauf); }
+
+/* ============ VARIANTE 2: AUSGEWOGEN – „Zwei Seiten, ein Match" ============ */
+.v2 .p-nav { border-bottom: 1px solid var(--line); }
+.v2 .eyebrow { background: rgba(43,47,143,0.08); color: var(--indigo); }
+.v2 .p-hero h2 .match-wort { background: var(--verlauf); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.v2 .btn-haupt { background: var(--verlauf); color: #fff; box-shadow: 0 4px 14px rgba(20,90,120,0.25); }
+.v2 .btn-zweit { border-color: rgba(43,47,143,0.35); color: var(--indigo); }
+.v2 .abschnitt-titel { color: var(--indigo); }
+.v2 .pill.aktiv { background: var(--indigo); color: #fff; border-color: var(--indigo); }
+.v2 .lohn { color: var(--teal-dark); }
+.v2 .badge { background: rgba(0,200,150,0.12); color: var(--teal-dark); }
+.v2 .jobcard { border-top: 3px solid transparent; border-image: linear-gradient(120deg,#00c896,#2b2f8f) 1; border-top-width: 3px; border-radius: 0 0 16px 16px; }
+.v2 .p-footer { background: #232766; }
+
+/* ============ VARIANTE 3: MUTIG – „Voll im Verlauf" ============ */
+.v3 .p-hero { background: linear-gradient(135deg, rgba(0,200,150,0.10), rgba(43,47,143,0.10)); }
+.v3 .p-nav { background: linear-gradient(135deg, rgba(0,200,150,0.10), rgba(43,47,143,0.10)); border-bottom: none; }
+.v3 .eyebrow { background: var(--verlauf); color: #fff; }
+.v3 .btn-haupt { background: var(--verlauf); color: #fff; box-shadow: 0 6px 18px rgba(30,60,130,0.3); }
+.v3 .p-hero h2 { background: linear-gradient(120deg, #007a63, #2b2f8f); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.v3 .pill.aktiv { background: var(--verlauf); color: #fff; border: none; padding: 8px 15px; }
+.v3 .jobcard { border: 1.5px solid transparent; background: linear-gradient(var(--card), var(--card)) padding-box, linear-gradient(120deg, rgba(0,200,150,0.55), rgba(43,47,143,0.55)) border-box; }
+.v3 .lohn { background: var(--verlauf); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.v3 .badge { background: rgba(43,47,143,0.1); color: var(--indigo); }
+.v3 .abschnitt-titel { position: relative; display: inline-block; padding-bottom: 8px; }
+.v3 .abschnitt-titel::after { content:''; position:absolute; left:0; bottom:0; width: 100%; height: 3px; border-radius: 2px; background: var(--verlauf); }
+.v3 .p-footer { background: linear-gradient(120deg, #00543f, #232766); }
+</style>
+</head>
+<body>
+
+<!-- ============ VARIANTE 1 ============ -->
+<div class="variante-kopf">
+  <b>Variante 1 · „Der Faden" (dezent)</b>
+  <p>Alles bleibt wie gewohnt – der Logo-Verlauf zieht sich nur als feine Linie durch: unter der Navigation, unter Überschriften, über dem Footer. Grün bleibt die Aktionsfarbe.</p>
+</div>
+<div class="probe v1">
+  <div class="p-nav">
+    <span class="p-logo"><span class="p-mark">SM</span> SchülerMatch</span>
+    <span class="p-links"><span>Start</span><span>Jobs</span><span>Login</span></span>
+  </div>
+  <div class="p-hero">
+    <span class="eyebrow">✦ Für Schüler ab 13</span>
+    <h2>Dein erster Job.<br>Fair, sicher, in deiner Nähe.</h2>
+    <p class="sub">Firmen posten kostenlos – du bewirbst dich mit einem Klick. Jugendschutz inklusive.</p>
+    <button class="btn btn-haupt">Jetzt Job finden</button><button class="btn btn-zweit">Job anbieten</button>
+  </div>
+  <div class="pills"><span class="pill aktiv">Alle</span><span class="pill">Verkauf</span><span class="pill">Nachhilfe</span><span class="pill">Babysitten</span><span class="pill">Tierbetreuung</span></div>
+  <div class="zeile">
+    <div>
+      <h3 class="abschnitt-titel">So funktioniert's</h3>
+      <p class="abschnitt-text">Profil anlegen, Lebenslauf mit Vorlage bauen, bewerben. Die Firma antwortet direkt hier – ohne dass deine Handynummer öffentlich wird.</p>
+    </div>
+    <div class="jobcard">
+      <span class="badge">ab 15 J.</span>
+      <h3>Eisverkäufer/in (Sa/So)</h3>
+      <p class="ort">📍 München · Verkauf</p>
+      <p class="lohn" style="margin-top:8px;">14 €/Std</p>
+    </div>
+  </div>
+  <div class="p-footer"><span class="p-logo" style="color:#fff;"><span class="p-mark">SM</span></span><span>© 2026 SchülerMatch</span></div>
+</div>
+
+<!-- ============ VARIANTE 2 ============ -->
+<div class="variante-kopf">
+  <b>Variante 2 · „Zwei Seiten, ein Match" (ausgewogen – meine Empfehlung)</b>
+  <p>Die Logo-Geschichte wird System: Teal = Schüler-Seite, Indigo = Arbeitgeber-Seite, der Verlauf = das Match. Haupt-Buttons tragen den Verlauf, Indigo übernimmt Struktur (Überschriften, aktive Filter), Grün bleibt für Erfolg & Lohn.</p>
+</div>
+<div class="probe v2">
+  <div class="p-nav">
+    <span class="p-logo"><span class="p-mark">SM</span> SchülerMatch</span>
+    <span class="p-links"><span>Start</span><span>Jobs</span><span>Login</span></span>
+  </div>
+  <div class="p-hero">
+    <span class="eyebrow">✦ Für Schüler ab 13</span>
+    <h2>Dein erster Job.<br>Dein erstes <span class="match-wort">Match</span>.</h2>
+    <p class="sub">Firmen posten kostenlos – du bewirbst dich mit einem Klick. Jugendschutz inklusive.</p>
+    <button class="btn btn-haupt">Jetzt Job finden</button><button class="btn btn-zweit">Job anbieten</button>
+  </div>
+  <div class="pills"><span class="pill aktiv">Alle</span><span class="pill">Verkauf</span><span class="pill">Nachhilfe</span><span class="pill">Babysitten</span><span class="pill">Tierbetreuung</span></div>
+  <div class="zeile">
+    <div>
+      <h3 class="abschnitt-titel">So funktioniert's</h3>
+      <p class="abschnitt-text">Profil anlegen, Lebenslauf mit Vorlage bauen, bewerben. Die Firma antwortet direkt hier – ohne dass deine Handynummer öffentlich wird.</p>
+    </div>
+    <div class="jobcard">
+      <span class="badge">ab 15 J.</span>
+      <h3>Eisverkäufer/in (Sa/So)</h3>
+      <p class="ort">📍 München · Verkauf</p>
+      <p class="lohn" style="margin-top:8px;">14 €/Std</p>
+    </div>
+  </div>
+  <div class="p-footer"><span class="p-logo" style="color:#fff;"><span class="p-mark">SM</span></span><span>© 2026 SchülerMatch</span></div>
+</div>
+
+<!-- ============ VARIANTE 3 ============ -->
+<div class="variante-kopf">
+  <b>Variante 3 · „Voll im Verlauf" (mutig)</b>
+  <p>Der Verlauf wird Fläche: getönter Hero, Verlaufs-Überschrift, Verlaufs-Ränder auf Karten, farbige Chips. Am jugendlichsten – aber auch am lautesten.</p>
+</div>
+<div class="probe v3">
+  <div class="p-nav">
+    <span class="p-logo"><span class="p-mark">SM</span> SchülerMatch</span>
+    <span class="p-links"><span>Start</span><span>Jobs</span><span>Login</span></span>
+  </div>
+  <div class="p-hero">
+    <span class="eyebrow">✦ Für Schüler ab 13</span>
+    <h2>Dein erster Job.<br>Fair, sicher, in deiner Nähe.</h2>
+    <p class="sub">Firmen posten kostenlos – du bewirbst dich mit einem Klick. Jugendschutz inklusive.</p>
+    <button class="btn btn-haupt">Jetzt Job finden</button><button class="btn btn-zweit">Job anbieten</button>
+  </div>
+  <div class="pills"><span class="pill aktiv">Alle</span><span class="pill">Verkauf</span><span class="pill">Nachhilfe</span><span class="pill">Babysitten</span><span class="pill">Tierbetreuung</span></div>
+  <div class="zeile">
+    <div>
+      <h3 class="abschnitt-titel">So funktioniert's</h3>
+      <p class="abschnitt-text">Profil anlegen, Lebenslauf mit Vorlage bauen, bewerben. Die Firma antwortet direkt hier – ohne dass deine Handynummer öffentlich wird.</p>
+    </div>
+    <div class="jobcard">
+      <span class="badge">ab 15 J.</span>
+      <h3>Eisverkäufer/in (Sa/So)</h3>
+      <p class="ort">📍 München · Verkauf</p>
+      <p class="lohn" style="margin-top:8px;">14 €/Std</p>
+    </div>
+  </div>
+  <div class="p-footer"><span class="p-logo" style="color:#fff;"><span class="p-mark">SM</span></span><span>© 2026 SchülerMatch</span></div>
+</div>
+
+</body>
+</html>

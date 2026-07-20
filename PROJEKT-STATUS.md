@@ -256,3 +256,12 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - Story: Teal = Schueler, Indigo = Arbeitgeber, Verlauf = Match. Token --verlauf in :root.
 - Aenderungen: btn-green -> Marken-Verlauf/weiss; eyebrow indigo; h2 indigo (Dark: #a7abff); pill.active indigo; job-card::before 3px Verlaufs-Oberkante; btn-outline hover indigo; footer #232766; final-cta Teal->Indigo-Verlauf. Dark-Mode-Overrides angepasst (btn-green Schrift weiss).
 - Verifiziert per Computed Styles (hell+dunkel). Screenshot-Engine der Test-Pane war flaky (bekannt).
+
+## E-MAIL-BENACHRICHTIGUNGEN KOMPLETT (20. Juli 2026) - END-TO-END VERIFIZIERT
+- **Architektur**: DB-Trigger (bewerbungen INSERT/UPDATE of status) -> pg_net http_post -> Edge Function 'mail-ereignis' (deployed, verify_jwt, anon-Bearer im Trigger) -> Resend API. Taeglicher Digest: pg_cron 'mail-digest-taeglich' (0 16 * * * UTC) -> Edge Function 'mail-digest'.
+- **Einstellbar pro Firma**: profiles.benachrichtigung ('sofort'/'taeglich'/'aus', Default taeglich) + Select im Firmenprofil. Schueler bekommen immer Zusage-/Absage-Mail.
+- **Resend**: Account des Nutzers, Domain mail.schuelermatch.de VERIFIZIERT (Subdomain wie von Resend empfohlen; DKIM/SPF/MX/DMARC bei Namecheap, alle propagiert). Secrets: RESEND_API_KEY + MAIL_ABSENDER='SchuelerMatch <no-reply@mail.schuelermatch.de>'. Free-Tier 100 Mails/Tag.
+- **Stolperstein dokumentiert**: Supabase-SQL-Editor MASKIERT eingefuegte JWTs zu '•'-Punkten (401 UNAUTHORIZED_INVALID_JWT_FORMAT); Reparatur via MCP-Migrationen (webhook_token_reparieren, cron_token_reparieren). NIE Keys durch den SQL-Editor pasten!
+- **Test**: Status-Flip einer Test-Bewerbung -> 2x HTTP 200, Zusage-Mail im Postfach halawaisi3@gmail.com angekommen (Absender @mail.schuelermatch.de).
+- **Aufgeraeumt**: altes mailto-Popup der Firma (antwortMailAnbieten) entfernt - Mails gehen jetzt automatisch, Toast weist darauf hin.
+- Funktions-Quellcode im Repo: supabase/functions/mail-ereignis + mail-digest.

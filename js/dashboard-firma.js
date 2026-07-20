@@ -412,31 +412,11 @@ async function ladeEigeneJobs() {
         btn.disabled = false
         return
       }
-      toast(wert === 'angenommen' ? 'Bewerber angenommen ✓' : 'Bewerber abgelehnt')
-      antwortMailAnbieten(wert, btn.dataset.email, btn.dataset.name, btn.dataset.jobtitel)
+      // Der Schüler bekommt automatisch eine E-Mail (Edge Function "mail-ereignis")
+      toast(wert === 'angenommen' ? 'Bewerber angenommen ✓ – E-Mail geht automatisch raus' : 'Bewerber abgelehnt – höfliche E-Mail geht automatisch raus')
       await ladeEigeneJobs()
     })
   })
-}
-
-// Höfliche, vorformulierte Antwort-Mail (Zeit sparen für Arbeitgeber)
-function antwortMailAnbieten(status, email, name, jobtitel) {
-  if (!email) return
-  const vorname = (name || '').split(' ')[0] || 'Hallo'
-  let betreff, text
-  if (status === 'angenommen') {
-    betreff = `Deine Bewerbung bei uns – ${jobtitel}`
-    text = `Hallo ${vorname},\n\nvielen Dank für deine Bewerbung als "${jobtitel}"! Wir würden dich gerne kennenlernen. Melde dich bitte kurz, wann es dir zeitlich passt.\n\nViele Grüße\n${profile.name || ''}`
-  } else {
-    betreff = `Deine Bewerbung – ${jobtitel}`
-    text = `Hallo ${vorname},\n\nvielen Dank für dein Interesse an der Stelle "${jobtitel}" und die Mühe mit deiner Bewerbung. Wir haben uns diesmal für jemand anderen entschieden – das sagt nichts über dich aus, wir hatten viele gute Bewerbungen.\n\nBleib dran, du findest bestimmt bald etwas Passendes!\n\nViele Grüße\n${profile.name || ''}`
-  }
-  const mailto = `mailto:${email}?subject=${encodeURIComponent(betreff)}&body=${encodeURIComponent(text)}`
-  if (confirm(status === 'angenommen'
-    ? 'Bewerber angenommen! Möchtest du ihm direkt eine Zusage-Mail schreiben? (Text ist vorbereitet)'
-    : 'Bewerber abgelehnt. Möchtest du ihm eine höfliche Absage-Mail schreiben? (Text ist vorbereitet)')) {
-    window.location.href = mailto
-  }
 }
 
 function statusLabel(status) {
