@@ -34,8 +34,76 @@ function wendeJobVorlageAn(name) {
   document.getElementById('job-arbeitszeit').value = v.arbeitszeit
   document.getElementById('job-mindestalter').value = v.mindestalter
   document.getElementById('job-verfuegbarkeit').value = v.verfuegbarkeit
-  document.getElementById('job-ort').focus()
+  zeigeWizardSchritt(3, 'vor') // direkt zum Ort – der Rest ist vorausgefüllt
   toast('Vorlage eingefügt – nur noch Ort & Lohn ergänzen!')
+}
+
+/* ---------- SCHRITT-FÜR-SCHRITT-ASSISTENT (Job posten) ---------- */
+
+const WIZARD_MAX = 6
+let wizardSchritt = 1
+
+function zeigeWizardSchritt(n, richtung = 'vor') {
+  wizardSchritt = Math.max(1, Math.min(WIZARD_MAX, n))
+  document.querySelectorAll('.wizard-step').forEach(s => {
+    const aktiv = Number(s.dataset.step) === wizardSchritt
+    s.classList.toggle('active', aktiv)
+    s.classList.remove('rein-rechts', 'rein-links')
+    if (aktiv) {
+      void s.offsetWidth // Animation neu auslösen
+      s.classList.add(richtung === 'vor' ? 'rein-rechts' : 'rein-links')
+    }
+  })
+  document.getElementById('wizard-fill').style.width = (wizardSchritt / WIZARD_MAX * 100) + '%'
+  document.getElementById('wizard-zaehler').textContent = `Schritt ${wizardSchritt} von ${WIZARD_MAX}`
+  document.getElementById('wizard-zurueck').style.visibility = wizardSchritt === 1 ? 'hidden' : 'visible'
+
+  const letzter = wizardSchritt === WIZARD_MAX
+  document.getElementById('wizard-weiter').style.display = letzter ? 'none' : 'inline-block'
+  document.getElementById('wizard-posten').style.display = letzter ? 'inline-block' : 'none'
+  if (letzter) baueZusammenfassung()
+  else {
+    const feld = document.querySelector(`.wizard-step[data-step="${wizardSchritt}"] input, .wizard-step[data-step="${wizardSchritt}"] select, .wizard-step[data-step="${wizardSchritt}"] textarea`)
+    setTimeout(() => feld?.focus(), 80)
+  }
+}
+
+// Prüft nur die Felder des aktuellen Schritts – freundlich, ein Fehler nach dem anderen
+function wizardSchrittGueltig(n) {
+  if (n === 1) {
+    const t = document.getElementById('job-titel').value.trim()
+    if (t.length < 5) { toast('Bitte gib einen Titel mit mindestens 5 Zeichen an.', 'fehler'); return false }
+  }
+  if (n === 3) {
+    if (!document.getElementById('job-ort').value.trim()) { toast('Bitte gib einen Ort an.', 'fehler'); return false }
+    const lohnRoh = document.getElementById('job-lohn').value
+    const lohn = parseFloat(lohnRoh)
+    if (lohnRoh && (lohn <= 0 || lohn > 100)) { toast('Der Stundenlohn muss zwischen 0 und 100 € liegen.', 'fehler'); return false }
+  }
+  return true
+}
+
+function wizardWeiter() {
+  if (!wizardSchrittGueltig(wizardSchritt)) return
+  zeigeWizardSchritt(wizardSchritt + 1, 'vor')
+}
+
+function wizardZurueck() {
+  zeigeWizardSchritt(wizardSchritt - 1, 'zurueck')
+}
+
+function baueZusammenfassung() {
+  const d = sammleFormular()
+  const zeile = (label, wert) => `<div class="wz-zeile"><span>${label}</span><b>${wert ? escapeHtml(String(wert)) : '—'}</b></div>`
+  document.getElementById('wizard-zusammenfassung').innerHTML =
+    zeile('Titel', d.titel) +
+    zeile('Kategorie', d.kategorie) +
+    zeile('Arbeitszeit', d.arbeitszeit) +
+    zeile('Ort', d.ort) +
+    zeile('Stundenlohn', d.stundenlohn ? d.stundenlohn + ' €/Std' : '') +
+    zeile('Mindestalter', 'ab ' + d.mindestalter + ' Jahren') +
+    zeile('Verfügbarkeit', d.verfuegbarkeit) +
+    zeile('Beschreibung', d.beschreibung)
 }
 
 async function init() {
@@ -78,6 +146,11 @@ async function init() {
   document.querySelectorAll('[data-jobvorlage]').forEach(btn => {
     btn.addEventListener('click', () => wendeJobVorlageAn(btn.dataset.jobvorlage))
   })
+
+  // Schritt-für-Schritt-Assistent
+  document.getElementById('wizard-weiter').addEventListener('click', wizardWeiter)
+  document.getElementById('wizard-zurueck').addEventListener('click', wizardZurueck)
+  zeigeWizardSchritt(1)
 
   // Bewerber-Status-Filter
   document.querySelectorAll('#bewerber-filter .pill').forEach(p => {
@@ -159,7 +232,10 @@ function pruefeJobFormular(daten) {
 
 async function speichereJob(e) {
   e.preventDefault()
-  const btn = e.target.querySelector('button[type=submit]')
+  // Enter/Submit vor dem letzten Schritt = einfach weiterblättern
+  if (wizardSchritt !== WIZARD_MAX) { wizardWeiter(); return }
+
+  const btn = document.getElementById('wizard-posten')
 
   const daten = sammleFormular()
   const fehler = pruefeJobFormular(daten)
@@ -188,7 +264,7 @@ async function speichereJob(e) {
 
   if (error) {
     alert('Fehler: ' + error.message)
-    btn.textContent = editingJobId ? 'Job aktualisieren' : 'Job posten'
+    btn.textContent = editingJobId ? 'Änderungen speichern 🚀' : 'Job veröffentlichen 🚀'
     return
   }
 
@@ -209,17 +285,18 @@ function starteBearbeitung(job) {
   document.getElementById('job-verfuegbarkeit').value = job.verfuegbarkeit || ''
   document.getElementById('job-arbeitszeit').value = job.arbeitszeit || ''
 
-  const submitBtn = document.querySelector('#job-form button[type=submit]')
-  submitBtn.textContent = 'Job aktualisieren'
+  document.getElementById('wizard-posten').textContent = 'Änderungen speichern 🚀'
   document.getElementById('cancel-edit-btn').style.display = 'inline-block'
+  zeigeWizardSchritt(1)
   document.querySelector('.post-job-box').scrollIntoView({ behavior: 'smooth' })
 }
 
 function beendeBearbeitung() {
   editingJobId = null
   document.getElementById('job-form').reset()
-  document.querySelector('#job-form button[type=submit]').textContent = 'Job posten'
+  document.getElementById('wizard-posten').textContent = 'Job veröffentlichen 🚀'
   document.getElementById('cancel-edit-btn').style.display = 'none'
+  zeigeWizardSchritt(1)
 }
 
 async function loescheJob(jobId) {

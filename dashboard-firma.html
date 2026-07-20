@@ -56,83 +56,123 @@
       <div class="stats-row" id="stats-row"></div>
     </div>
 
-    <div class="post-job-box">
-      <p class="mono" style="font-size:0.72rem; color:var(--ink-soft); margin:0 0 8px;">VORLAGE WÄHLEN (füllt das Formular vor)</p>
-      <div class="cv-templates" style="margin-bottom:18px;">
-        <button type="button" class="cv-template-chip" data-jobvorlage="eisverkauf">🍦 Eisverkauf</button>
-        <button type="button" class="cv-template-chip" data-jobvorlage="nachhilfe">📚 Nachhilfe</button>
-        <button type="button" class="cv-template-chip" data-jobvorlage="babysitten">🧸 Babysitten</button>
-        <button type="button" class="cv-template-chip" data-jobvorlage="garten">🌿 Garten & Haushalt</button>
-        <button type="button" class="cv-template-chip" data-jobvorlage="regale">🛒 Regale & Verkauf</button>
-        <button type="button" class="cv-template-chip" data-jobvorlage="zeitung">📰 Zeitungen austragen</button>
-        <button type="button" class="cv-template-chip" data-jobvorlage="gassi">🐕 Gassi gehen</button>
-      </div>
+    <div class="post-job-box wizard-box">
+      <div class="wizard-progress"><div class="wizard-progress-fill" id="wizard-fill"></div></div>
+      <p class="wizard-zaehler mono" id="wizard-zaehler">Schritt 1 von 6</p>
+
       <form id="job-form">
-        <div class="form-group">
-          <label for="job-titel">Job-Titel</label>
-          <input type="text" id="job-titel" placeholder="z.B. Eisverkäufer/in (Sa/So)" required>
+        <!-- Schritt 1: Titel + Schnellstart -->
+        <div class="wizard-step active" data-step="1">
+          <h2 class="wizard-frage">Wie heißt der Job?</h2>
+          <p class="wizard-hint">Ein klarer Titel bekommt mehr Bewerbungen – oder starte mit einer Vorlage.</p>
+          <p class="mono wizard-block-label">SCHNELLSTART (füllt alles vor)</p>
+          <div class="cv-templates" style="margin-bottom:20px;">
+            <button type="button" class="cv-template-chip" data-jobvorlage="eisverkauf">🍦 Eisverkauf</button>
+            <button type="button" class="cv-template-chip" data-jobvorlage="nachhilfe">📚 Nachhilfe</button>
+            <button type="button" class="cv-template-chip" data-jobvorlage="babysitten">🧸 Babysitten</button>
+            <button type="button" class="cv-template-chip" data-jobvorlage="garten">🌿 Garten & Haushalt</button>
+            <button type="button" class="cv-template-chip" data-jobvorlage="regale">🛒 Regale & Verkauf</button>
+            <button type="button" class="cv-template-chip" data-jobvorlage="zeitung">📰 Zeitungen austragen</button>
+            <button type="button" class="cv-template-chip" data-jobvorlage="gassi">🐕 Gassi gehen</button>
+          </div>
+          <div class="form-group">
+            <input type="text" id="job-titel" class="wizard-gross" placeholder="z.B. Eisverkäufer/in (Sa/So)" required>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="job-beschreibung">Beschreibung</label>
-          <textarea id="job-beschreibung" rows="4" placeholder="Was sind die Aufgaben? Was sollte der Schüler mitbringen? Je konkreter, desto bessere Bewerbungen bekommst du."></textarea>
+
+        <!-- Schritt 2: Art des Jobs -->
+        <div class="wizard-step" data-step="2">
+          <h2 class="wizard-frage">Was für ein Job ist es?</h2>
+          <p class="wizard-hint">Kategorie und Arbeitszeit helfen Schülern beim Filtern.</p>
+          <div class="form-group">
+            <label for="job-kategorie">Kategorie</label>
+            <select id="job-kategorie">
+              <option value="">Bitte wählen</option>
+              <option>Verkauf</option>
+              <option>Nachhilfe</option>
+              <option>Gastronomie</option>
+              <option>Lieferung & Kurier</option>
+              <option>Babysitten</option>
+              <option>Haushalt & Garten</option>
+              <option>Büro & Organisation</option>
+              <option>Tierbetreuung</option>
+              <option>Technik & Computer</option>
+              <option>Sonstiges</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="job-arbeitszeit">Arbeitszeit</label>
+            <select id="job-arbeitszeit">
+              <option value="">Bitte wählen</option>
+              <option>Wochenende</option>
+              <option>Nachmittags</option>
+              <option>Abends</option>
+              <option>Ferienjob</option>
+              <option>Flexibel</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="job-kategorie">Kategorie</label>
-          <select id="job-kategorie">
-            <option value="">Bitte wählen</option>
-            <option>Verkauf</option>
-            <option>Nachhilfe</option>
-            <option>Gastronomie</option>
-            <option>Lieferung & Kurier</option>
-            <option>Babysitten</option>
-            <option>Haushalt & Garten</option>
-            <option>Büro & Organisation</option>
-            <option>Tierbetreuung</option>
-            <option>Technik & Computer</option>
-            <option>Sonstiges</option>
-          </select>
+
+        <!-- Schritt 3: Ort & Lohn -->
+        <div class="wizard-step" data-step="3">
+          <h2 class="wizard-frage">Wo und wie viel?</h2>
+          <p class="wizard-hint">Der Ort ist für die Umkreissuche wichtig.</p>
+          <div class="form-group">
+            <label for="job-ort">Ort</label>
+            <input type="text" id="job-ort" placeholder="z.B. München" required>
+          </div>
+          <div class="form-group">
+            <label for="job-lohn">Stundenlohn (€)</label>
+            <input type="number" id="job-lohn" placeholder="z.B. 12" step="0.5">
+          </div>
         </div>
-        <div class="form-group">
-          <label for="job-ort">Ort</label>
-          <input type="text" id="job-ort" placeholder="z.B. München" required>
+
+        <!-- Schritt 4: Für wen & wann -->
+        <div class="wizard-step" data-step="4">
+          <h2 class="wizard-frage">Für wen und wann?</h2>
+          <p class="wizard-hint">Achte auf das Jugendschutz-Mindestalter zur Tätigkeit.</p>
+          <div class="form-group">
+            <label for="job-mindestalter">Mindestalter</label>
+            <select id="job-mindestalter">
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
+              <option value="15" selected>15</option>
+              <option value="16">16</option>
+              <option value="17">17</option>
+              <option value="18">18</option>
+              <option value="19">19</option>
+              <option value="20">20</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="job-verfuegbarkeit">Verfügbarkeit (Details)</label>
+            <input type="text" id="job-verfuegbarkeit" placeholder="z.B. Sa & So, 10–16 Uhr">
+          </div>
         </div>
-        <div class="form-group">
-          <label for="job-lohn">Stundenlohn (€)</label>
-          <input type="number" id="job-lohn" placeholder="z.B. 12" step="0.5">
+
+        <!-- Schritt 5: Beschreibung -->
+        <div class="wizard-step" data-step="5">
+          <h2 class="wizard-frage">Beschreib die Aufgabe</h2>
+          <p class="wizard-hint">Je konkreter, desto passendere Bewerbungen bekommst du.</p>
+          <div class="form-group">
+            <textarea id="job-beschreibung" rows="6" placeholder="Was sind die Aufgaben? Was sollte der Schüler mitbringen?"></textarea>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="job-mindestalter">Mindestalter</label>
-          <select id="job-mindestalter">
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15" selected>15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-          </select>
+
+        <!-- Schritt 6: Zusammenfassung -->
+        <div class="wizard-step" data-step="6">
+          <h2 class="wizard-frage">Passt alles?</h2>
+          <p class="wizard-hint">Prüfe kurz und veröffentliche deine Anzeige.</p>
+          <div class="wizard-zusammenfassung" id="wizard-zusammenfassung"></div>
         </div>
-        <div class="form-group">
-          <label for="job-arbeitszeit">Arbeitszeit</label>
-          <select id="job-arbeitszeit">
-            <option value="">Bitte wählen</option>
-            <option>Wochenende</option>
-            <option>Nachmittags</option>
-            <option>Abends</option>
-            <option>Ferienjob</option>
-            <option>Flexibel</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="job-verfuegbarkeit">Verfügbarkeit (Details)</label>
-          <input type="text" id="job-verfuegbarkeit" placeholder="z.B. Sa & So, 10–16 Uhr">
-        </div>
-        <div style="display:flex; gap:10px;">
-          <button type="submit" class="btn btn-green">Job posten</button>
+
+        <div class="wizard-nav">
+          <button type="button" class="btn btn-outline wizard-btn-zurueck" id="wizard-zurueck">← Zurück</button>
+          <button type="button" class="btn btn-green" id="wizard-weiter">Weiter →</button>
+          <button type="submit" class="btn btn-green" id="wizard-posten" style="display:none;">Job veröffentlichen 🚀</button>
           <button type="button" id="cancel-edit-btn" class="btn btn-outline" style="display:none;">Abbrechen</button>
         </div>
       </form>
