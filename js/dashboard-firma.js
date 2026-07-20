@@ -49,6 +49,7 @@ async function init() {
 
   document.getElementById('profile-name').value = profile.name || ''
   document.getElementById('profile-ort').value = profile.ort || ''
+  document.getElementById('profile-benachrichtigung').value = profile.benachrichtigung || 'taeglich'
   document.getElementById('profile-form').addEventListener('submit', speichereProfil)
 
   initSidebar((view) => {
@@ -110,7 +111,8 @@ async function speichereProfil(e) {
 
   const updates = {
     name: document.getElementById('profile-name').value,
-    ort: document.getElementById('profile-ort').value
+    ort: document.getElementById('profile-ort').value,
+    benachrichtigung: document.getElementById('profile-benachrichtigung').value
   }
 
   const { error } = await supabase.from('profiles').update(updates).eq('id', profile.id)
