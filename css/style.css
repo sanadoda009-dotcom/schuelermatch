@@ -1143,12 +1143,22 @@ footer .logo { color: white; }
   padding: 6px 16px; margin-bottom: 4px;
 }
 .wz-zeile {
-  display: flex; justify-content: space-between; gap: 16px;
-  padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 0.9rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; padding: 12px 8px; margin: 0; border: none; border-bottom: 1px solid var(--line);
+  background: none; font-family: inherit; font-size: 0.9rem; color: var(--ink);
+  text-align: left; cursor: pointer; border-radius: 8px;
+  transition: background 0.15s ease;
 }
 .wz-zeile:last-child { border-bottom: none; }
-.wz-zeile > span { color: var(--ink-soft); flex-shrink: 0; }
-.wz-zeile > b { text-align: right; }
+.wz-zeile:hover { background: var(--card); }
+.wz-zeile > span:first-child { color: var(--ink-soft); flex-shrink: 0; }
+.wz-zeile > b { margin-left: auto; text-align: right; }
+.wz-edit {
+  flex-shrink: 0; font-size: 0.72rem; font-weight: 600; color: var(--indigo);
+  opacity: 0; transition: opacity 0.15s ease;
+}
+.wz-zeile:hover .wz-edit, .wz-zeile:focus-visible .wz-edit { opacity: 1; }
+@media (hover: none) { .wz-edit { opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
   .wizard-step.rein-rechts, .wizard-step.rein-links { animation: none; }

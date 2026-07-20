@@ -68,23 +68,8 @@ function zeigeWizardSchritt(n, richtung = 'vor') {
   }
 }
 
-// Prüft nur die Felder des aktuellen Schritts – freundlich, ein Fehler nach dem anderen
-function wizardSchrittGueltig(n) {
-  if (n === 1) {
-    const t = document.getElementById('job-titel').value.trim()
-    if (t.length < 5) { toast('Bitte gib einen Titel mit mindestens 5 Zeichen an.', 'fehler'); return false }
-  }
-  if (n === 3) {
-    if (!document.getElementById('job-ort').value.trim()) { toast('Bitte gib einen Ort an.', 'fehler'); return false }
-    const lohnRoh = document.getElementById('job-lohn').value
-    const lohn = parseFloat(lohnRoh)
-    if (lohnRoh && (lohn <= 0 || lohn > 100)) { toast('Der Stundenlohn muss zwischen 0 und 100 € liegen.', 'fehler'); return false }
-  }
-  return true
-}
-
+// Frei blättern – ohne Blockieren. Geprüft wird erst beim Veröffentlichen.
 function wizardWeiter() {
-  if (!wizardSchrittGueltig(wizardSchritt)) return
   zeigeWizardSchritt(wizardSchritt + 1, 'vor')
 }
 
@@ -94,16 +79,24 @@ function wizardZurueck() {
 
 function baueZusammenfassung() {
   const d = sammleFormular()
-  const zeile = (label, wert) => `<div class="wz-zeile"><span>${label}</span><b>${wert ? escapeHtml(String(wert)) : '—'}</b></div>`
-  document.getElementById('wizard-zusammenfassung').innerHTML =
-    zeile('Titel', d.titel) +
-    zeile('Kategorie', d.kategorie) +
-    zeile('Arbeitszeit', d.arbeitszeit) +
-    zeile('Ort', d.ort) +
-    zeile('Stundenlohn', d.stundenlohn ? d.stundenlohn + ' €/Std' : '') +
-    zeile('Mindestalter', 'ab ' + d.mindestalter + ' Jahren') +
-    zeile('Verfügbarkeit', d.verfuegbarkeit) +
-    zeile('Beschreibung', d.beschreibung)
+  // Jede Zeile ist anklickbar und springt zum passenden Schritt
+  const zeile = (label, wert, step) =>
+    `<button type="button" class="wz-zeile" data-goto="${step}">
+       <span>${label}</span><b>${wert ? escapeHtml(String(wert)) : '—'}</b>
+       <span class="wz-edit">Ändern</span>
+     </button>`
+  const box = document.getElementById('wizard-zusammenfassung')
+  box.innerHTML =
+    zeile('Titel', d.titel, 1) +
+    zeile('Kategorie', d.kategorie, 2) +
+    zeile('Arbeitszeit', d.arbeitszeit, 2) +
+    zeile('Ort', d.ort, 3) +
+    zeile('Stundenlohn', d.stundenlohn ? d.stundenlohn + ' €/Std' : '', 3) +
+    zeile('Mindestalter', 'ab ' + d.mindestalter + ' Jahren', 4) +
+    zeile('Verfügbarkeit', d.verfuegbarkeit, 4) +
+    zeile('Beschreibung', d.beschreibung, 5)
+  box.querySelectorAll('[data-goto]').forEach(el =>
+    el.addEventListener('click', () => zeigeWizardSchritt(Number(el.dataset.goto), 'zurueck')))
 }
 
 async function init() {
@@ -241,6 +234,9 @@ async function speichereJob(e) {
   const fehler = pruefeJobFormular(daten)
   if (fehler) {
     toast(fehler, 'fehler')
+    // direkt zum fehlenden Schritt springen, damit man es sofort ausfüllen kann
+    if (!daten.titel || daten.titel.trim().length < 5) zeigeWizardSchritt(1, 'zurueck')
+    else zeigeWizardSchritt(3, 'zurueck') // Ort fehlt oder Lohn außerhalb 0–100
     return
   }
 
