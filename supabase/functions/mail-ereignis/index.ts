@@ -1,8 +1,13 @@
 // Edge Function "mail-ereignis"
-// Wird von Datenbank-Webhooks aufgerufen, wenn sich die Tabelle "bewerbungen" ändert:
+// Wird von Datenbank-Webhooks aufgerufen:
+//
+// Tabelle "bewerbungen":
 //   INSERT  -> neue Bewerbung: Mail an die Firma, ABER nur wenn Firma "sofort" gewählt hat
 //              (bei "taeglich" übernimmt die Digest-Funktion, bei "aus" gar nichts)
 //   UPDATE  -> Statuswechsel: Mail an den Schüler (Zusage/Absage)
+//
+// Tabelle "profiles":
+//   UPDATE  -> verifiziert wechselt false->true: Freischalt-Mail an den Schüler
 //
 // Nötige Secrets (Supabase -> Edge Functions -> Secrets):
 //   RESEND_API_KEY   (von resend.com)
@@ -45,6 +50,31 @@ async function sendeMail(an: string, betreff: string, inhalt: string): Promise<b
 Deno.serve(async (req) => {
   try {
     const payload = await req.json()
+
+    // --- Profil: Schüler wurde vom Admin verifiziert ---
+    if (payload.table === 'profiles') {
+      const vorher = payload.old_record?.verifiziert
+      const jetzt = payload.record?.verifiziert
+      if (!vorher && jetzt) {
+        const vorname = (payload.record?.name ?? '').split(' ')[0] || 'Hallo'
+        await sendeMail(
+          payload.record?.email,
+          'Du bist jetzt verifiziert! ✓',
+          `<h2 style="font-family:sans-serif">Deine Verifizierung ist durch ✓</h2>
+           <p>Hallo ${vorname}, wir haben deine Unterlagen geprüft – du bist ab sofort
+           als Schüler verifiziert.</p>
+           <p>Das heißt: Du kannst dich jetzt auf alle Jobs bewerben. Arbeitgeber sehen
+           bei dir das Verifiziert-Zeichen und wissen, dass du wirklich Schüler bist.</p>
+           <p>Übrigens: Dein hochgeladenes Dokument haben wir nach der Prüfung
+           direkt wieder gelöscht.</p>
+           <p><a href="${SITE_URL}/dashboard-schueler.html"
+             style="display:inline-block;background:linear-gradient(120deg,#00c896,#2b2f8f);color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
+             Jetzt Jobs entdecken</a></p>`,
+        )
+      }
+      return new Response('ok', { status: 200 })
+    }
+
     if (payload.table !== 'bewerbungen') return new Response('ignored', { status: 200 })
 
     const id = payload.record?.id
