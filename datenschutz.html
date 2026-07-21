@@ -40,11 +40,29 @@
   <section>
     <h2>2. Welche Daten wir verarbeiten</h2>
     <ul>
-      <li><strong>Registrierung als Schüler:</strong> Vorname, Alter, Wohnort/PLZ, E-Mail-Adresse, Passwort (verschlüsselt gespeichert)</li>
-      <li><strong>Registrierung als Firma:</strong> Firmenname, Standort, E-Mail-Adresse, Passwort (verschlüsselt gespeichert)</li>
-      <li><strong>Jobanzeigen:</strong> Jobtitel, Beschreibung, Ort, Lohn, Mindestalter</li>
-      <li><strong>Bewerbungen:</strong> Verknüpfung zwischen Schüler-Profil und Job, damit die Firma Kontakt aufnehmen kann</li>
+      <li><strong>Registrierung als Schüler:</strong> Name, Alter, Wohnort, E-Mail-Adresse, Passwort (verschlüsselt gespeichert), Schule und Klasse</li>
+      <li><strong>Registrierung als Firma:</strong> Firmenname, Standort, E-Mail-Adresse, Passwort (verschlüsselt gespeichert), Einstellung zu E-Mail-Benachrichtigungen</li>
+      <li><strong>Lebenslauf (freiwillig):</strong> alle von dir eingetragenen Abschnitte – z.B. Über mich, Ausbildung, Erfahrung, Fähigkeiten, Sprachkenntnisse, Interessen, Verfügbarkeit – sowie optional ein Profilfoto und Bilder, die du im Lebenslauf einfügst</li>
+      <li><strong>Verifizierung (freiwillig):</strong> Schülerausweis oder Schulbestätigung als Bild/PDF. Diese Dokumente liegen in einem nicht-öffentlichen Speicher und sind nur für die Prüfung durch den Betreiber zugänglich – nicht für Arbeitgeber.</li>
+      <li><strong>Jobanzeigen:</strong> Jobtitel, Beschreibung, Kategorie, Ort, Stundenlohn, Mindestalter, Arbeitszeit, Verfügbarkeit sowie die aus dem Ort ermittelten Koordinaten (für die Umkreissuche)</li>
+      <li><strong>Bewerbungen:</strong> Motivationsschreiben, der zum Zeitpunkt der Bewerbung erzeugte Lebenslauf als PDF, optional ein hochgeladenes Zeugnis sowie der Bewerbungsstatus</li>
+      <li><strong>Nachrichten:</strong> Inhalt und Zeitpunkt der Chat-Nachrichten zwischen Schüler und Arbeitgeber nach einer Zusage</li>
+      <li><strong>Bewertungen:</strong> Sternebewertung und Kommentar, die Schüler nach einer Zusage über einen Arbeitgeber abgeben können (öffentlich sichtbar, mit Vorname)</li>
+      <li><strong>Technisch:</strong> Beim Aufruf der Seite verarbeiten die eingesetzten Dienstleister (siehe Punkt 5) technisch notwendige Daten wie deine IP-Adresse. Für Jobanzeigen zählen wir anonyme Aufrufe (ohne Personenbezug).</li>
     </ul>
+  </section>
+
+  <section>
+    <h2>2a. Welche Daten der Arbeitgeber sieht</h2>
+    <p>Das ist besonders wichtig zu verstehen: Solange du dich <strong>nicht</strong> bewirbst, sieht kein Arbeitgeber dein Profil. Erst <strong>wenn du dich auf eine Anzeige bewirbst</strong>, erhält dieser Arbeitgeber Zugriff auf:</p>
+    <ul>
+      <li>deinen Namen, dein Alter und deinen Wohnort</li>
+      <li>deine E-Mail-Adresse</li>
+      <li>deinen Lebenslauf (inkl. Profilfoto, falls du eines hinterlegt hast) als PDF</li>
+      <li>dein Motivationsschreiben und ein ggf. angehängtes Zeugnis</li>
+      <li>ob du als Schüler verifiziert bist</li>
+    </ul>
+    <p>Andere Schüler sehen deine Daten nicht. Deine Verifizierungs-Dokumente (Schülerausweis/Schulbestätigung) bekommt der Arbeitgeber <strong>nicht</strong> zu sehen. Überlege dir gut, welche Angaben du in deinen Lebenslauf schreibst – du entscheidest selbst, wie viel du preisgibst.</p>
   </section>
 
   <section>
@@ -60,20 +78,39 @@
   <section>
     <h2>5. Empfänger der Daten / Auftragsverarbeiter</h2>
     <ul>
-      <li><strong>Supabase</strong> – Hosting der Datenbank, Serverstandort Frankfurt am Main (EU). Speichert Account- und Job-Daten.</li>
-      <li><strong>Vercel Inc.</strong> (USA) – Hosting der Webseite, liefert die Seite an deinen Browser aus.</li>
+      <li><strong>Supabase</strong> – Datenbank, Nutzerkonten und Dateispeicher (Fotos, Dokumente, PDFs), Serverstandort Frankfurt am Main (EU).</li>
+      <li><strong>Vercel Inc.</strong> (USA) – Hosting der Webseite. Beim Aufruf wird deine IP-Adresse verarbeitet.</li>
+      <li><strong>Resend</strong> (Ireland/USA) – Versand der automatischen Benachrichtigungs-E-Mails. Übermittelt werden deine E-Mail-Adresse und der Inhalt der Benachrichtigung.</li>
+      <li><strong>Open-Meteo</strong> (Geocoding-API) – wandelt einen eingegebenen Ortsnamen in Koordinaten um, damit die Umkreissuche funktioniert. Dabei wird der Ortsname und technisch bedingt deine IP-Adresse übermittelt.</li>
+      <li><strong>Google Fonts</strong> und <strong>cdnjs / Cloudflare</strong> – liefern Schriftarten und Programmbibliotheken (u.a. für die PDF-Erstellung) aus. Beim Laden der Seite wird deine IP-Adresse an diese Anbieter übertragen.</li>
     </ul>
-    <p>Mit beiden Anbietern bestehen bzw. werden Auftragsverarbeitungsverträge (AVV) angestrebt.</p>
+    <p>Bei Anbietern mit Sitz bzw. Servern außerhalb der EU erfolgt die Übermittlung auf Grundlage der EU-Standardvertragsklauseln bzw. des EU-US Data Privacy Framework. Mit den Anbietern bestehen bzw. werden Auftragsverarbeitungsverträge (AVV) abgeschlossen.</p>
+    <p>Eine Weitergabe deiner Daten zu Werbezwecken findet nicht statt. Wir verkaufen keine Daten.</p>
+  </section>
+
+  <section>
+    <h2>5a. E-Mail-Benachrichtigungen</h2>
+    <p>Damit du nichts verpasst, verschicken wir automatische E-Mails: an Schüler bei einer Zu- oder Absage, an Arbeitgeber bei neuen Bewerbungen. Arbeitgeber können im Firmenprofil einstellen, ob sie diese E-Mails sofort, einmal täglich gesammelt oder gar nicht erhalten möchten. Diese E-Mails gehören zur Nutzung der Plattform – Werbe-Newsletter versenden wir nicht.</p>
   </section>
 
   <section>
     <h2>6. Speicherdauer</h2>
-    <p>Deine Daten werden gespeichert, solange dein Account besteht. Auf Anfrage werden sie gelöscht.</p>
+    <ul>
+      <li><strong>Account- und Lebenslaufdaten:</strong> solange dein Account besteht. Nach einer Löschanfrage werden sie entfernt.</li>
+      <li><strong>Verifizierungs-Dokumente:</strong> nur bis zur Prüfung. Du kannst sie außerdem jederzeit selbst im Dashboard löschen – dein Verifizierungs-Status bleibt dabei erhalten.</li>
+      <li><strong>Bewerbungen und Nachrichten:</strong> solange die Bewerbung besteht bzw. bis zur Löschung des Accounts.</li>
+      <li><strong>Jobanzeigen:</strong> bis der Arbeitgeber sie löscht oder pausiert.</li>
+    </ul>
   </section>
 
   <section>
     <h2>7. Cookies / lokale Speicherung</h2>
-    <p>Für den Login wird ein technisch notwendiger Session-Token in deinem Browser gespeichert (über Supabase Auth). Dies dient ausschließlich der Anmeldefunktion und erfordert nach § 25 Abs. 2 TTDSG keine gesonderte Einwilligung.</p>
+    <p>Wir setzen keine Werbe- oder Tracking-Cookies und binden keine Analysedienste ein. Gespeichert wird nur, was für den Betrieb nötig oder komfortabel ist:</p>
+    <ul>
+      <li><strong>Login:</strong> ein technisch notwendiger Session-Token (über Supabase Auth)</li>
+      <li><strong>Komfort (bleibt in deinem Browser, wird nicht übertragen):</strong> ein Zwischenstand deines Lebenslaufs als Entwurf, deine Wahl von PDF-Layout und Farbe, ob du die „Erste Schritte"-Karte ausgeblendet hast, deine Hell-/Dunkel-Einstellung sowie welche Benachrichtigungen du bereits gesehen hast</li>
+    </ul>
+    <p>Diese Speicherung ist nach § 25 Abs. 2 TTDSG einwilligungsfrei, da sie ausschließlich der von dir gewünschten Funktion dient. Ein Cookie-Banner ist daher nicht erforderlich.</p>
   </section>
 
   <section>
@@ -89,11 +126,13 @@
       <li>Beschwerde bei einer Datenschutz-Aufsichtsbehörde</li>
     </ul>
     <p>Kontaktiere uns dazu einfach per E-Mail: <a href="mailto:sanadoda009@gmail.com">sanadoda009@gmail.com</a></p>
+    <p>Zuständige Aufsichtsbehörde ist das Bayerische Landesamt für Datenschutzaufsicht (BayLDA), Promenade 27, 91522 Ansbach.</p>
+    <p><strong>Für Eltern:</strong> Wenn dein Kind unter 16 Jahre alt ist und du der Verarbeitung widersprechen oder die Löschung verlangen möchtest, schreib uns einfach an die oben genannte E-Mail-Adresse. Wir löschen den Account dann zeitnah.</p>
   </section>
 
   <section>
     <h2>9. Stand</h2>
-    <p>Diese Datenschutzerklärung wurde zuletzt aktualisiert am 1. Juli 2026. SchülerMatch befindet sich aktuell in der Entwicklungsphase.</p>
+    <p>Diese Datenschutzerklärung wurde zuletzt aktualisiert am 21. Juli 2026. SchülerMatch befindet sich aktuell in der Entwicklungsphase.</p>
     <p class="legal-note">Hinweis: Diese Datenschutzerklärung wurde mit KI-Unterstützung erstellt und ersetzt keine Rechtsberatung. Vor einem öffentlichen Launch mit echten minderjährigen Nutzern wird eine Prüfung durch eine Rechtsanwältin/einen Rechtsanwalt oder einen spezialisierten Dienst (z.B. eRecht24) empfohlen.</p>
   </section>
 </main>
