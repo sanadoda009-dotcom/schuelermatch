@@ -261,7 +261,15 @@ function bindeKarten(wrap) {
   wrap.querySelectorAll('[data-runter]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); verschiebe(el.dataset.runter, 1) }))
   wrap.querySelectorAll('[data-weg]').forEach(el => el.addEventListener('click', e => {
     e.preventDefault()
-    if (!confirm('Diesen Abschnitt löschen?')) return
+    // Zwei-Klick-Bestätigung statt Popup
+    if (el.dataset.confirm !== '1') {
+      el.dataset.confirm = '1'
+      el.classList.add('weg-confirm')
+      toast('Nochmal klicken, um den Abschnitt zu löschen', 'info')
+      clearTimeout(el._t)
+      el._t = setTimeout(() => { el.dataset.confirm = '0'; el.classList.remove('weg-confirm') }, 3000)
+      return
+    }
     bloecke = bloecke.filter(b => b.id !== el.dataset.weg)
     offeneKarten.delete(el.dataset.weg)
     geaendert(true)
@@ -318,7 +326,18 @@ function bindeStatisches() {
   document.querySelectorAll('#ll-vorlagen [data-vorlage]').forEach(btn => btn.addEventListener('click', () => {
     const vorlage = CV_VORLAGEN[btn.dataset.vorlage]
     if (!vorlage) return
-    if (bloecke.some(blockGefuellt) && !confirm('Die Vorlage ersetzt deine bisherigen Abschnitte. Fortfahren?')) return
+    // Ersetzt bestehende Inhalte -> Zwei-Klick-Bestätigung statt Popup
+    if (bloecke.some(blockGefuellt) && btn.dataset.confirm !== '1') {
+      document.querySelectorAll('#ll-vorlagen [data-vorlage]').forEach(b => { b.dataset.confirm = '0'; b.classList.remove('weg-confirm') })
+      btn.dataset.confirm = '1'
+      btn.classList.add('weg-confirm')
+      toast('Ersetzt deine Abschnitte – nochmal klicken zum Bestätigen', 'info')
+      clearTimeout(btn._t)
+      btn._t = setTimeout(() => { btn.dataset.confirm = '0'; btn.classList.remove('weg-confirm') }, 3500)
+      return
+    }
+    btn.dataset.confirm = '0'
+    btn.classList.remove('weg-confirm')
     bloecke = vorlage.map(b => ({ ...b, id: neueId() }))
     bloecke.forEach(b => offeneKarten.add(b.id))
     geaendert(true)
@@ -490,7 +509,7 @@ function scrolleZuAnker(kartenId) {
 async function ladeFotoHoch(e) {
   const file = e.target.files[0]
   if (!file) return
-  if (file.size > 3 * 1024 * 1024) { alert('Das Bild ist zu groß (max. 3 MB).'); return }
+  if (file.size > 3 * 1024 * 1024) { toast('Das Bild ist zu groß (max. 3 MB).', 'fehler'); return }
 
   const btn = document.getElementById('ll-foto-btn')
   btn.disabled = true; btn.textContent = 'Wird hochgeladen…'
@@ -498,13 +517,13 @@ async function ladeFotoHoch(e) {
   const ext = file.name.split('.').pop()
   const path = `${profile.id}/avatar.${ext}`
   const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
-  if (upErr) { alert('Fehler beim Hochladen: ' + upErr.message); btn.disabled = false; btn.textContent = 'Foto hochladen'; return }
+  if (upErr) { toast('Fehler beim Hochladen: ' + upErr.message, 'fehler'); btn.disabled = false; btn.textContent = 'Foto hochladen'; return }
 
   const { data } = supabase.storage.from('avatars').getPublicUrl(path)
   const foto_url = data.publicUrl + '?t=' + Date.now()
   const { error: dbErr } = await supabase.from('profiles').update({ foto_url }).eq('id', profile.id)
   btn.disabled = false
-  if (dbErr) { alert('Fehler beim Speichern: ' + dbErr.message); return }
+  if (dbErr) { toast('Fehler beim Speichern: ' + dbErr.message, 'fehler'); return }
 
   profile.foto_url = foto_url
   toast('Foto gespeichert!')
@@ -518,7 +537,7 @@ async function ladeBlockBildHoch(blockId, file) {
   const ext = file.name.split('.').pop()
   const path = `${profile.id}/${blockId}.${ext}`
   const { error } = await supabase.storage.from('lebenslauf-bilder').upload(path, file, { upsert: true })
-  if (error) { alert('Fehler beim Hochladen: ' + error.message); return }
+  if (error) { toast('Fehler beim Hochladen: ' + error.message, 'fehler'); return }
   const { data } = supabase.storage.from('lebenslauf-bilder').getPublicUrl(path)
   b.bild_url = data.publicUrl + '?t=' + Date.now()
   geaendert(true)

@@ -1169,8 +1169,21 @@ footer .logo { color: white; }
   .wizard-progress-fill { transition: none; }
 }
 
-/* Zwei-Klick-Bestätigung (Löschen) statt Browser-Popup */
+/* Assistent auf dem Handy: Hauptaktion volle Breite, Vorlagen als Wischleiste */
+@media (max-width: 560px) {
+  .wizard-nav { flex-wrap: wrap; gap: 8px; }
+  #wizard-weiter, #wizard-posten { flex: 1 1 100%; order: -1; }
+  .wizard-frage { font-size: 1.3rem; }
+  .wizard-step .cv-templates {
+    flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px;
+    scrollbar-width: thin; -webkit-overflow-scrolling: touch;
+  }
+  .wizard-step .cv-templates .cv-template-chip { flex-shrink: 0; }
+}
+
+/* Zwei-Klick-Bestätigung statt Browser-Popup */
 .btn-confirm { background: var(--coral) !important; color: #fff !important; border-color: var(--coral) !important; }
+.weg-confirm { background: var(--coral) !important; color: #fff !important; border-color: var(--coral) !important; }
 
 /* ============================================================
    LEBENSLAUF-EDITOR (lebenslauf.html) – Editor links, A4-Vorschau rechts

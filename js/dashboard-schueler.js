@@ -191,9 +191,6 @@ const FORMULIERUNGS_BEISPIELE = [
 function wendeVorlageAn(name) {
   const vorlage = CV_VORLAGEN[name]
   if (!vorlage) return
-  const hatInhalt = bloecke.some(b => b.inhalt?.trim() || b.tags?.trim() || b.bild_url)
-  if (hatInhalt && !confirm('Die Vorlage ersetzt deine bisherigen Abschnitte. Fortfahren?')) return
-
   bloecke = vorlage.map(b => ({ ...b, id: cryptoId() }))
   renderBlockEditor()
   renderCvPreview()
@@ -658,7 +655,7 @@ async function ladeBlockBildHoch(blockId, file) {
 
   const { error: uploadError } = await supabase.storage.from('lebenslauf-bilder').upload(path, file, { upsert: true })
   if (uploadError) {
-    alert('Fehler beim Hochladen: ' + uploadError.message)
+    toast('Fehler beim Hochladen: ' + uploadError.message, 'fehler')
     return
   }
 
@@ -781,7 +778,7 @@ async function speichereLebenslauf() {
   btn.textContent = 'Lebenslauf speichern'
 
   if (!ok) {
-    alert('Fehler beim Speichern.')
+    toast('Fehler beim Speichern.', 'fehler')
     return
   }
 
@@ -836,7 +833,16 @@ async function loescheDokument(e) {
   const btn = e.currentTarget
   const pfad = btn.dataset.pfad
   const spalte = btn.dataset.spalte
-  if (!confirm('Dieses Dokument endgültig löschen? Dein Verifizierungs-Status bleibt erhalten.')) return
+  // Zwei-Klick-Bestätigung statt Popup (Status bleibt ohnehin erhalten)
+  if (btn.dataset.confirm !== '1') {
+    btn.dataset.confirm = '1'
+    btn.textContent = 'Wirklich löschen?'
+    toast('Nochmal klicken – dein Verifizierungs-Status bleibt erhalten', 'info')
+    clearTimeout(btn._t)
+    btn._t = setTimeout(() => { btn.dataset.confirm = '0'; btn.textContent = 'Dokument löschen' }, 4000)
+    return
+  }
+  clearTimeout(btn._t)
 
   btn.disabled = true
   btn.textContent = 'Wird gelöscht...'
@@ -844,15 +850,15 @@ async function loescheDokument(e) {
   // 1) Datei aus dem privaten Storage entfernen
   const { error: storageError } = await supabase.storage.from('verifizierung').remove([pfad])
   if (storageError) {
-    alert('Fehler beim Löschen der Datei: ' + storageError.message)
-    btn.disabled = false; btn.textContent = 'Dokument löschen'
+    toast('Fehler beim Löschen der Datei: ' + storageError.message, 'fehler')
+    btn.disabled = false; btn.textContent = 'Dokument löschen'; btn.dataset.confirm = '0'
     return
   }
 
   // 2) Pfad in der Datenbank leeren, damit kein toter Verweis bleibt
   const { error: dbError } = await supabase.from('profiles').update({ [spalte]: null }).eq('id', profile.id)
   if (dbError) {
-    alert('Datei gelöscht, aber DB-Pfad konnte nicht geleert werden: ' + dbError.message)
+    toast('Datei gelöscht, aber DB-Pfad konnte nicht geleert werden: ' + dbError.message, 'fehler')
     return
   }
 
@@ -881,20 +887,20 @@ async function ladeVerifizierungsDokument(e, dateiname, spalte) {
   btn.textContent = btnText
 
   if (uploadError) {
-    alert('Fehler beim Hochladen: ' + uploadError.message)
+    toast('Fehler beim Hochladen: ' + uploadError.message, 'fehler')
     return
   }
 
   const { error: updateError } = await supabase.from('profiles').update({ [spalte]: path }).eq('id', profile.id)
 
   if (updateError) {
-    alert('Fehler beim Speichern: ' + updateError.message)
+    toast('Fehler beim Speichern: ' + updateError.message, 'fehler')
     return
   }
 
   profile[spalte] = path
   renderVerifyStatus()
-  alert('Danke! Wir prüfen deine Unterlagen und schalten dich bald frei.')
+  toast('Danke! Wir prüfen deine Unterlagen und schalten dich bald frei.')
 }
 
 function setzePhotoPreview(url) {
@@ -913,7 +919,7 @@ async function ladeFotoHoch(e) {
   if (!file) return
 
   if (file.size > 3 * 1024 * 1024) {
-    alert('Das Bild ist zu groß (max. 3 MB).')
+    toast('Das Bild ist zu groß (max. 3 MB).', 'fehler')
     return
   }
 
@@ -929,7 +935,7 @@ async function ladeFotoHoch(e) {
     .upload(path, file, { upsert: true })
 
   if (uploadError) {
-    alert('Fehler beim Hochladen: ' + uploadError.message)
+    toast('Fehler beim Hochladen: ' + uploadError.message, 'fehler')
     btn.disabled = false
     btn.textContent = 'Foto hochladen'
     return
@@ -944,7 +950,7 @@ async function ladeFotoHoch(e) {
   btn.textContent = 'Foto hochladen'
 
   if (updateError) {
-    alert('Fehler beim Speichern: ' + updateError.message)
+    toast('Fehler beim Speichern: ' + updateError.message, 'fehler')
     return
   }
 
@@ -979,7 +985,7 @@ async function speichereProfil(e) {
   btn.textContent = 'Speichern'
 
   if (error) {
-    alert('Fehler: ' + error.message)
+    toast('Fehler: ' + error.message, 'fehler')
     return
   }
 

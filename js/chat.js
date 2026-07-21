@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { toast } from './toast.js'
 
 function escapeHtml(str) {
   const div = document.createElement('div')
@@ -55,7 +56,7 @@ export async function ladeChat(container, bewerbungId, meineId) {
     const { error } = await supabase.from('nachrichten').insert({ bewerbung_id: bewerbungId, absender_id: meineId, text })
     input.disabled = false
     input.focus()
-    if (error) { alert('Nachricht konnte nicht gesendet werden.'); return }
+    if (error) { toast('Nachricht konnte nicht gesendet werden.', 'fehler'); return }
     await render()
   })
 

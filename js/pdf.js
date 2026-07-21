@@ -274,7 +274,9 @@ export async function ladeLebenslaufAlsPdf(daten) {
     const doc = await erzeugeLebenslaufPdf(daten)
     doc.save(`Lebenslauf_${(daten.name || 'Schueler').replace(/\s+/g, '_')}.pdf`)
   } catch (e) {
-    alert('PDF konnte nicht erstellt werden: ' + e.message)
+    // toast.js setzt window.toast; pdf.js bleibt bewusst importfrei
+    if (window.toast) window.toast('PDF konnte nicht erstellt werden: ' + e.message, 'fehler')
+    else console.error('PDF-Fehler:', e)
   }
 }
 
