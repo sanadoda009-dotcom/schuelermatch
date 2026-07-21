@@ -1181,6 +1181,46 @@ footer .logo { color: white; }
   .wizard-step .cv-templates .cv-template-chip { flex-shrink: 0; }
 }
 
+/* ============================================================
+   ADMIN-BEREICH (Verifizierungen prüfen)
+   ============================================================ */
+.admin-wrap { max-width: 900px; margin: 0 auto; padding: 26px 22px 70px; }
+.admin-badge {
+  font-size: 0.62rem; letter-spacing: 0.08em; font-weight: 600;
+  background: var(--verlauf); color: #fff; padding: 4px 9px; border-radius: 6px;
+}
+.admin-karte {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 18px 20px; margin-bottom: 14px;
+}
+.admin-karte-kopf { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.admin-karte-kopf b { font-size: 1.05rem; }
+.admin-meta { display: block; font-size: 0.82rem; color: var(--ink-soft); margin-top: 2px; }
+.admin-status { font-size: 0.72rem; font-weight: 600; padding: 5px 11px; border-radius: 999px; white-space: nowrap; }
+.admin-status--ok { background: rgba(0,200,150,0.14); color: var(--match-green-dark); }
+.admin-status--warten { background: rgba(240,180,41,0.16); color: #9a6f00; }
+.admin-status--keins { background: var(--paper); color: var(--ink-soft); }
+.admin-details {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px; margin: 16px 0 0;
+  background: var(--paper); border-radius: 12px; padding: 12px 14px;
+}
+.admin-details > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.admin-details span { font-size: 0.7rem; color: var(--ink-soft); }
+.admin-details b { font-size: 0.85rem; overflow-wrap: anywhere; }
+.admin-dok-zeile { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.admin-dok-btn { padding: 9px 16px; font-size: 0.83rem; }
+.admin-aktionen { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.admin-aktionen .btn { padding: 10px 18px; font-size: 0.87rem; }
+
+.dok-inhalt { max-height: 78vh; overflow: auto; background: #4a4d55; border-radius: 0 0 var(--radius) var(--radius); }
+.dok-bild { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+.dok-frame { width: 100%; height: 74vh; border: 0; display: block; }
+
+@media (max-width: 560px) {
+  .admin-aktionen .btn, .admin-dok-btn { flex: 1 1 100%; }
+}
+
 /* Zwei-Klick-Bestätigung statt Browser-Popup */
 .btn-confirm { background: var(--coral) !important; color: #fff !important; border-color: var(--coral) !important; }
 .weg-confirm { background: var(--coral) !important; color: #fff !important; border-color: var(--coral) !important; }

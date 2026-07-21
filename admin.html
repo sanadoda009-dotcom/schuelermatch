@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verifizierungen – SchülerMatch</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/gate.js"></script>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+</head>
+<body class="ll-body">
+
+<header class="ll-topbar">
+  <a href="index.html" class="logo"><img src="assets/logo.png" alt="SchülerMatch" class="logo-img"></a>
+  <span class="admin-badge mono">ADMIN</span>
+  <a href="dashboard-schueler.html" class="ll-zurueck">← Zum Dashboard</a>
+  <button id="logout-btn" class="btn btn-outline" style="margin-left:auto; padding:8px 16px; font-size:0.85rem;">Logout</button>
+</header>
+
+<main class="admin-wrap">
+  <div class="jobs-header">
+    <h1 style="font-size:1.7rem;">Verifizierungen</h1>
+    <p style="color:var(--ink-soft);">Prüfe Schülerausweise und schalte Schüler mit einem Klick frei.</p>
+    <div class="stats-row" id="admin-stats"></div>
+  </div>
+
+  <div class="pill-row" id="admin-filter" style="margin-bottom:20px;">
+    <button type="button" class="pill active" data-af="offen">⏳ Zu prüfen</button>
+    <button type="button" class="pill" data-af="verifiziert">✓ Verifiziert</button>
+    <button type="button" class="pill" data-af="alle">Alle Schüler</button>
+  </div>
+
+  <div id="admin-liste">
+    <div class="skeleton-card" style="height:120px;"></div>
+  </div>
+</main>
+
+<!-- Dokument-Grossansicht -->
+<div class="modal-overlay" id="dok-overlay">
+  <div class="modal-box" style="max-width:820px; padding:0;">
+    <div class="modal-header" style="padding:16px 22px;">
+      <h3 id="dok-titel">Dokument</h3>
+      <button type="button" class="modal-close" id="dok-close" aria-label="Schließen">✕</button>
+    </div>
+    <div id="dok-inhalt" class="dok-inhalt"></div>
+  </div>
+</div>
+
+<script type="module" src="js/admin.js"></script>
+</body>
+</html>

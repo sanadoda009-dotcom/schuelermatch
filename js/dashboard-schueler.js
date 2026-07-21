@@ -27,6 +27,7 @@ async function init() {
 
   initSidebar(zeigeView)
   aktualisiereSidebarUser()
+  zeigeAdminLink()
 
   // Profil
   document.getElementById('profile-name').value = profile.name || ''
@@ -456,6 +457,23 @@ function bewerbungKarte(b) {
       ${status === 'angenommen' ? `<button type="button" class="btn btn-green" style="margin-top:12px;" data-chat-bewerbung="${b.id}" data-chat-titel="${escapeHtml(job.titel || 'Job')}">💬 Zum Chat mit der Firma</button>` : ''}
       ${status === 'abgelehnt' ? '<p class="bew-trost">Kopf hoch – das gehört dazu. Firmen suchen oft sehr spezifisch. Deine nächste Chance wartet schon!</p>' : ''}
     </div>`
+}
+
+// Admin-Link nur für Administratoren einblenden – inkl. Anzahl offener Prüfungen
+async function zeigeAdminLink() {
+  if (!profile.ist_admin) return
+  const link = document.getElementById('admin-link')
+  if (!link) return
+  link.style.display = ''
+
+  const { count } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true })
+    .eq('role', 'schueler')
+    .eq('verifiziert', false)
+    .not('schuelerausweis_url', 'is', null)
+  const badge = document.getElementById('badge-admin')
+  if (badge && count) badge.textContent = count
 }
 
 function aktualisiereSidebarUser() {
