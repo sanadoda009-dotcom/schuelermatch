@@ -51,11 +51,10 @@ Deno.serve(async (req) => {
   try {
     const payload = await req.json()
 
-    // --- Profil: Schüler wurde vom Admin verifiziert ---
+    // --- Profil-Aenderungen ---
     if (payload.table === 'profiles') {
-      const vorher = payload.old_record?.verifiziert
-      const jetzt = payload.record?.verifiziert
-      if (!vorher && jetzt) {
+      // Schüler wurde vom Admin verifiziert
+      if (!payload.old_record?.verifiziert && payload.record?.verifiziert) {
         const vorname = (payload.record?.name ?? '').split(' ')[0] || 'Hallo'
         await sendeMail(
           payload.record?.email,
@@ -70,6 +69,20 @@ Deno.serve(async (req) => {
            <p><a href="${SITE_URL}/dashboard-schueler.html"
              style="display:inline-block;background:linear-gradient(120deg,#00c896,#2b2f8f);color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
              Jetzt Jobs entdecken</a></p>`,
+        )
+      }
+      // Firma wurde freigegeben
+      if (payload.old_record?.firma_status !== 'freigegeben' && payload.record?.firma_status === 'freigegeben') {
+        await sendeMail(
+          payload.record?.email,
+          'Dein Konto ist freigeschaltet ✓',
+          `<h2 style="font-family:sans-serif">Willkommen bei SchülerMatch ✓</h2>
+           <p>Hallo ${payload.record?.name ?? ''}, wir haben dein Konto geprüft und freigeschaltet.</p>
+           <p>Deine Anzeigen sind ab sofort für Schüler sichtbar. Neue Jobs, die du postest,
+           gehen künftig direkt online.</p>
+           <p><a href="${SITE_URL}/dashboard-firma.html"
+             style="display:inline-block;background:linear-gradient(120deg,#00c896,#2b2f8f);color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
+             Zum Firmen-Dashboard</a></p>`,
         )
       }
       return new Response('ok', { status: 200 })

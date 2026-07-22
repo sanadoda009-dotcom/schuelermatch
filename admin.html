@@ -19,21 +19,45 @@
 </header>
 
 <main class="admin-wrap">
-  <div class="jobs-header">
-    <h1 style="font-size:1.7rem;">Verifizierungen</h1>
-    <p style="color:var(--ink-soft);">Prüfe Schülerausweise und schalte Schüler mit einem Klick frei.</p>
-    <div class="stats-row" id="admin-stats"></div>
+  <div class="admin-tabs" id="admin-tabs">
+    <button type="button" class="admin-tab active" data-tab="schueler">Schüler-Verifizierung<span class="sidebar-badge" id="tab-badge-schueler"></span></button>
+    <button type="button" class="admin-tab" data-tab="firmen">Firmen-Freigabe<span class="sidebar-badge" id="tab-badge-firmen"></span></button>
   </div>
 
-  <div class="pill-row" id="admin-filter" style="margin-bottom:20px;">
-    <button type="button" class="pill active" data-af="offen">⏳ Zu prüfen</button>
-    <button type="button" class="pill" data-af="verifiziert">✓ Verifiziert</button>
-    <button type="button" class="pill" data-af="alle">Alle Schüler</button>
-  </div>
+  <!-- SCHÜLER -->
+  <section class="admin-panel active" id="panel-schueler">
+    <div class="jobs-header">
+      <h1 style="font-size:1.7rem;">Schüler-Verifizierung</h1>
+      <p style="color:var(--ink-soft);">Prüfe Schülerausweise und schalte Schüler mit einem Klick frei.</p>
+      <div class="stats-row" id="admin-stats"></div>
+    </div>
+    <div class="pill-row" id="admin-filter" style="margin-bottom:20px;">
+      <button type="button" class="pill active" data-af="offen">⏳ Zu prüfen</button>
+      <button type="button" class="pill" data-af="verifiziert">✓ Verifiziert</button>
+      <button type="button" class="pill" data-af="alle">Alle Schüler</button>
+    </div>
+    <div id="admin-liste">
+      <div class="skeleton-card" style="height:120px;"></div>
+    </div>
+  </section>
 
-  <div id="admin-liste">
-    <div class="skeleton-card" style="height:120px;"></div>
-  </div>
+  <!-- FIRMEN -->
+  <section class="admin-panel" id="panel-firmen">
+    <div class="jobs-header">
+      <h1 style="font-size:1.7rem;">Firmen-Freigabe</h1>
+      <p style="color:var(--ink-soft);">Neue Anbieter erscheinen hier. Prüfe sie, bevor ihre Jobs für Schüler sichtbar werden.</p>
+      <div class="stats-row" id="firma-stats"></div>
+    </div>
+    <div class="pill-row" id="firma-filter" style="margin-bottom:20px;">
+      <button type="button" class="pill active" data-ff="neu">⏳ Zu prüfen</button>
+      <button type="button" class="pill" data-ff="freigegeben">✓ Freigegeben</button>
+      <button type="button" class="pill" data-ff="gesperrt">Gesperrt</button>
+      <button type="button" class="pill" data-ff="alle">Alle Firmen</button>
+    </div>
+    <div id="firma-liste">
+      <div class="skeleton-card" style="height:120px;"></div>
+    </div>
+  </section>
 </main>
 
 <!-- Dokument-Grossansicht -->

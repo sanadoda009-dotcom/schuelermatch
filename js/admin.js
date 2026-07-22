@@ -8,6 +8,8 @@ import { toast } from './toast.js'
 let profile
 let alleSchueler = []
 let filter = 'offen'
+let alleFirmen = []
+let firmaFilter = 'neu'
 
 const DOKUMENTE = [
   { spalte: 'schuelerausweis_url', label: 'Schülerausweis' },
@@ -37,7 +39,23 @@ async function init() {
     })
   })
 
-  await ladeSchueler()
+  // Reiter-Umschaltung Schüler / Firmen
+  document.querySelectorAll('.admin-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.admin-tab').forEach(x => x.classList.toggle('active', x === t))
+      document.getElementById('panel-schueler').classList.toggle('active', t.dataset.tab === 'schueler')
+      document.getElementById('panel-firmen').classList.toggle('active', t.dataset.tab === 'firmen')
+    })
+  })
+  document.querySelectorAll('#firma-filter .pill').forEach(p => {
+    p.addEventListener('click', () => {
+      firmaFilter = p.dataset.ff
+      document.querySelectorAll('#firma-filter .pill').forEach(x => x.classList.toggle('active', x.dataset.ff === firmaFilter))
+      renderFirmen()
+    })
+  })
+
+  await Promise.all([ladeSchueler(), ladeFirmen()])
 }
 
 async function ladeSchueler() {
@@ -241,6 +259,125 @@ async function zurueckziehen(id, btn) {
   }
   toast('Verifizierung zurückgezogen')
   await ladeSchueler()
+}
+
+/* ============================================================
+   FIRMEN-FREIGABE
+   ============================================================ */
+
+async function ladeFirmen() {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, name, email, ort, firma_status, erstellt_am')
+    .eq('role', 'firma')
+    .order('erstellt_am', { ascending: false })
+
+  if (error) {
+    document.getElementById('firma-liste').innerHTML =
+      `<div class="empty-state"><p>Konnte nicht laden: ${escapeHtml(error.message)}</p></div>`
+    return
+  }
+  alleFirmen = data || []
+
+  // Job-Anzahl pro Firma dazuladen (ein Query, dann zählen)
+  const ids = alleFirmen.map(f => f.id)
+  if (ids.length) {
+    const { data: jobs } = await supabase.from('jobs').select('id, firma_id, titel, aktiv').in('firma_id', ids)
+    const proFirma = {}
+    ;(jobs || []).forEach(j => { (proFirma[j.firma_id] ||= []).push(j) })
+    alleFirmen.forEach(f => { f.jobs = proFirma[f.id] || [] })
+  }
+  renderFirmen()
+}
+
+function renderFirmen() {
+  const neu = alleFirmen.filter(f => f.firma_status === 'neu').length
+  document.getElementById('firma-stats').innerHTML = `
+    <div class="stat-box"><b>${neu}</b><span>Zu prüfen</span></div>
+    <div class="stat-box"><b>${alleFirmen.filter(f => f.firma_status === 'freigegeben').length}</b><span>Freigegeben</span></div>
+    <div class="stat-box"><b>${alleFirmen.length}</b><span>Firmen gesamt</span></div>`
+
+  // Badges an den Reitern
+  const bs = document.getElementById('tab-badge-firmen')
+  if (bs) bs.textContent = neu > 0 ? neu : ''
+
+  let liste = alleFirmen
+  if (firmaFilter !== 'alle') liste = alleFirmen.filter(f => f.firma_status === firmaFilter)
+
+  const box = document.getElementById('firma-liste')
+  if (!liste.length) {
+    box.innerHTML = `<div class="empty-state"><p>${firmaFilter === 'neu' ? 'Keine neuen Firmen zu prüfen 🎉' : 'Keine Einträge.'}</p></div>`
+    return
+  }
+
+  box.innerHTML = liste.map(f => firmaKarte(f)).join('')
+  box.querySelectorAll('[data-frei-firma]').forEach(b => b.addEventListener('click', () => setzeFirmaStatus(b.dataset.freiFirma, 'freigegeben', b)))
+  box.querySelectorAll('[data-sperr-firma]').forEach(b => b.addEventListener('click', () => setzeFirmaStatus(b.dataset.sperrFirma, 'gesperrt', b)))
+}
+
+function firmaKarte(f) {
+  const jobs = f.jobs || []
+  const status = f.firma_status === 'freigegeben'
+    ? '<span class="admin-status admin-status--ok">✓ Freigegeben</span>'
+    : f.firma_status === 'gesperrt'
+      ? '<span class="admin-status admin-status--keins">Gesperrt</span>'
+      : '<span class="admin-status admin-status--warten">⏳ Zu prüfen</span>'
+
+  const jobListe = jobs.length
+    ? `<div class="admin-details" style="grid-template-columns:1fr;">
+         ${jobs.map(j => `<div><span>Job</span><b>${escapeHtml(j.titel || 'Ohne Titel')}${j.aktiv ? '' : ' (pausiert)'}</b></div>`).join('')}
+       </div>`
+    : `<p class="admin-meta" style="margin-top:12px;">Noch keine Jobs angelegt.</p>`
+
+  let aktionen = ''
+  if (f.firma_status === 'neu') {
+    aktionen = `<button type="button" class="btn btn-green" data-frei-firma="${f.id}">✓ Firma freigeben</button>
+                <button type="button" class="btn btn-outline" style="color:var(--coral);" data-sperr-firma="${f.id}">Sperren</button>`
+  } else if (f.firma_status === 'freigegeben') {
+    aktionen = `<button type="button" class="btn btn-outline" style="color:var(--coral);" data-sperr-firma="${f.id}">Sperren</button>`
+  } else {
+    aktionen = `<button type="button" class="btn btn-green" data-frei-firma="${f.id}">✓ Wieder freigeben</button>`
+  }
+
+  return `
+    <div class="admin-karte">
+      <div class="admin-karte-kopf">
+        <div>
+          <b>${escapeHtml(f.name || 'Ohne Namen')}</b>
+          <span class="admin-meta">${f.ort ? escapeHtml(f.ort) : 'Ort unbekannt'} · ${escapeHtml(f.email || '')}</span>
+        </div>
+        ${status}
+      </div>
+      ${jobListe}
+      <div class="admin-aktionen">${aktionen}</div>
+    </div>`
+}
+
+async function setzeFirmaStatus(id, neuerStatus, btn) {
+  // Sperren mit Zwei-Klick-Bestätigung
+  if (neuerStatus === 'gesperrt' && btn.dataset.confirm !== '1') {
+    btn.dataset.confirm = '1'
+    btn.dataset.orig = btn.textContent
+    btn.textContent = 'Wirklich sperren?'
+    btn.classList.add('btn-confirm')
+    clearTimeout(btn._t)
+    btn._t = setTimeout(() => { btn.dataset.confirm = '0'; btn.textContent = btn.dataset.orig; btn.classList.remove('btn-confirm') }, 4000)
+    return
+  }
+  clearTimeout(btn._t)
+  btn.disabled = true
+
+  const f = alleFirmen.find(x => x.id === id)
+  const { error } = await supabase.from('profiles').update({ firma_status: neuerStatus }).eq('id', id)
+  if (error) {
+    toast('Fehler: ' + error.message, 'fehler')
+    btn.disabled = false
+    return
+  }
+  toast(neuerStatus === 'freigegeben'
+    ? `${f?.name || 'Firma'} freigegeben – Jobs sind jetzt sichtbar, E-Mail geht raus`
+    : `${f?.name || 'Firma'} gesperrt – Jobs nicht mehr sichtbar`)
+  await ladeFirmen()
 }
 
 function escapeHtml(str) {

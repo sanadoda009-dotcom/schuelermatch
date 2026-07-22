@@ -144,6 +144,8 @@ async function init() {
   document.getElementById('wizard-zurueck').addEventListener('click', wizardZurueck)
   zeigeWizardSchritt(1)
 
+  zeigeFirmaStatusBanner()
+
   // Bewerber-Status-Filter
   document.querySelectorAll('#bewerber-filter .pill').forEach(p => {
     p.addEventListener('click', () => {
@@ -154,6 +156,23 @@ async function init() {
   })
 
   await ladeEigeneJobs()
+}
+
+// Zeigt neuen/gesperrten Firmen, dass ihre Jobs (noch) nicht öffentlich sind.
+function zeigeFirmaStatusBanner() {
+  const banner = document.getElementById('firma-status-banner')
+  if (!banner) return
+  const status = profile.firma_status || 'neu'
+  if (status === 'freigegeben') { banner.style.display = 'none'; return }
+
+  banner.style.display = 'block'
+  if (status === 'gesperrt') {
+    banner.className = 'firma-status-banner firma-status-banner--gesperrt'
+    banner.innerHTML = `<b>Dein Konto ist gesperrt.</b> Deine Anzeigen sind nicht sichtbar. Bei Fragen: <a href="mailto:sanadoda009@gmail.com">Kontakt</a>`
+  } else {
+    banner.className = 'firma-status-banner firma-status-banner--neu'
+    banner.innerHTML = `<b>⏳ Dein Konto wird geprüft.</b> Du kannst schon Jobs anlegen – sobald wir dich freigeben, werden sie automatisch für Schüler sichtbar. Du bekommst dann eine E-Mail.`
+  }
 }
 
 // Bewerber-Ampel: bewertet auf einen Blick, wie gut ein Bewerber passt.
@@ -265,7 +284,9 @@ async function speichereJob(e) {
 
   const warBearbeitung = Boolean(editingJobId)
   beendeBearbeitung()
-  toast(warBearbeitung ? 'Job aktualisiert' : 'Job veröffentlicht! 🎉')
+  if (warBearbeitung) toast('Job aktualisiert')
+  else if (profile.firma_status === 'freigegeben') toast('Job veröffentlicht! 🎉')
+  else toast('Job gespeichert – sichtbar, sobald dein Konto freigegeben ist', 'info')
   document.querySelector('.sidebar-item[data-view="jobs"]')?.click() // zur Job-Übersicht
   await ladeEigeneJobs()
 }
@@ -362,11 +383,12 @@ async function ladeEigeneJobs() {
     const bewerbungenFuerJob = bewerberFilter
       ? alleBewFuerJob.filter(b => (b.status || 'ausstehend') === bewerberFilter)
       : alleBewFuerJob
+    const inPruefung = profile.firma_status !== 'freigegeben'
     return `
-    <div class="job-card" style="${job.aktiv ? '' : 'opacity:0.65;'}">
+    <div class="job-card" style="${job.aktiv && !inPruefung ? '' : 'opacity:0.65;'}">
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
-        <span class="job-badge ${job.aktiv ? '' : 'job-badge--pausiert'}">${job.aktiv ? `${ICONS.age} ab ${job.mindestalter} J.` : '⏸ Pausiert'}</span>
+        <span class="job-badge ${inPruefung ? 'job-badge--pruefung' : (job.aktiv ? '' : 'job-badge--pausiert')}">${inPruefung ? '⏳ In Prüfung' : (job.aktiv ? `${ICONS.age} ab ${job.mindestalter} J.` : '⏸ Pausiert')}</span>
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
       <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
