@@ -265,3 +265,14 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Test**: Status-Flip einer Test-Bewerbung -> 2x HTTP 200, Zusage-Mail im Postfach halawaisi3@gmail.com angekommen (Absender @mail.schuelermatch.de).
 - **Aufgeraeumt**: altes mailto-Popup der Firma (antwortMailAnbieten) entfernt - Mails gehen jetzt automatisch, Toast weist darauf hin.
 - Funktions-Quellcode im Repo: supabase/functions/mail-ereignis + mail-digest.
+
+## Session 21. Juli 2026 - Feinschliff, Admin, Auth-Haertung
+- **Alle Browser-Popups entfernt** (0 alert/confirm mehr): Fehler -> Toasts, destruktive Aktionen -> Zwei-Klick-Bestaetigung (rote Button-Klasse .btn-confirm/.weg-confirm). Job-Assistent mobil poliert (Vorlagen-Chips als Wischleiste).
+- **Job posten = eigener Sidebar-Reiter** (view-posten) getrennt von "Meine Jobs & Bewerber" (view-jobs). Bewerbungs-Modal: Starthilfe als Chip, Lebenslauf-Wahl als Karten.
+- **Datenschutzerklaerung** an tatsaechlichen Stand angepasst (Lebenslauf/Bilder/Verifizierung/Chat/Bewertungen, neuer Abschnitt "Was der Arbeitgeber sieht", Empfaenger Resend/Open-Meteo/Fonts/CDN, konkrete Speicherfristen, BayLDA). RECHTLICH weiter ungeprueft - Elterneinwilligung Art.8 + Betreiber-Volljaehrigkeit offen.
+- **ADMIN-BEREICH** (admin.html + js/admin.js): Verifizierungen pruefen, Dokument per signed URL ansehen, Ein-Klick-Freischalten, Dokument wird nach Entscheidung automatisch geloescht. Absicherung: profiles.ist_admin + Funktion public.ist_admin() (SECURITY DEFINER) + RLS-Policies (profiles select/update, storage verifizierung select/delete). Admins: s.weisioda@gmail.com, halawaisi3@gmail.com. Link im Schueler-Dashboard nur fuer Admins sichtbar (#admin-link).
+- **Verifizierungs-Mail**: mail-ereignis v4 reagiert jetzt auch auf profiles UPDATE (verifiziert false->true) -> Freischalt-Mail. Trigger profil_verifiziert_mail. Getestet, zugestellt.
+- **Custom SMTP ueber Resend** (vom Nutzer in Supabase eingetragen): Host smtp.resend.com:465, User resend, Absender no-reply@mail.schuelermatch.de. Auth-Mails (Reset etc.) laufen jetzt ueber die eigene Domain - getestet, zugestellt. Zweiter Resend-Key "supabase-smtp" (nur Sending, nur mail.schuelermatch.de).
+- **Auth-Bugfix**: handle_new_user() abgesichert - role faellt auf 'schueler' zurueck (statt 500 "null value in role"), alter_jahre defensiv geparst. Getestet.
+- **John (hidiscord7oki) geloescht** - Fake-Registrierung (Discord), 0 Aktivitaet.
+- **OFFEN / NUTZER-MANUELL**: "Confirm email" in Supabase Auth ist noch AUS -> jeder kann sich mit Fake-Mail anmelden. Muss der Nutzer unter Authentication > Sign In/Providers > Email anschalten.
