@@ -18,7 +18,7 @@
 6. **Sicherheits-Hinweise im Chat** („Triff dich nie allein…")
 
 ## ✅ Neu erledigt (23. Juli)
-- **Playwright-E2E-Test-Suite**: 43 Tests, alle grün. `npm test` im Projektordner. Supabase komplett gemockt (keine echten Accounts/Mails). Noch offen: Tests für eingeloggte Bereiche (Dashboards, Bewerbung, Chat, Admin).
+- **Playwright-E2E-Test-Suite**: **60 Tests, alle grün**. `npm test` im Projektordner. Supabase komplett gemockt (keine echten Accounts/Mails/DB). Deckt jetzt auch die **eingeloggten Dashboards** ab (Schüler + Firma, inkl. Bewerbungs-Flow und Job-Posten – landet in einer Fake-DB). Noch offen: Chat, Admin-Panel, echte Uploads.
 
 ## 📌 Gut zu wissen
 - Admin-Bereich: `schuelermatch.de/admin.html` (Konten: s.weisioda@ + halawaisi3@)

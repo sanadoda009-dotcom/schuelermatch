@@ -6,8 +6,10 @@ const { defineConfig, devices } = require('@playwright/test')
 module.exports = defineConfig({
   testDir: './tests',
   fullyParallel: true,
-  timeout: 30_000,
-  expect: { timeout: 7_000 },
+  // Großzügig, weil die Dashboard-Seiten unter Parallel-Last mehrere externe
+  // CDN-Skripte laden (jsPDF, pdf.js, supabase-js, Fonts).
+  timeout: 45_000,
+  expect: { timeout: 10_000 },
   retries: process.env.CI ? 2 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
 
