@@ -1,5 +1,5 @@
 /* ===== SchülerMatch – Global Styles ===== */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+/* Fonts werden pro Seite via <link> geladen (parallel statt render-blockierendem @import) */
 
 :root {
   --ink: #161a1f;
@@ -13,6 +13,8 @@
   --indigo: #2b2f8f;
   /* Marken-Verlauf aus dem Logo: Teal (Schüler) -> Indigo (Arbeitgeber) = das Match */
   --verlauf: linear-gradient(120deg, #00c896 0%, #2b2f8f 100%);
+  /* Dunklere Variante für Flächen mit weißem TEXT (Kontrast >= 4.5:1 auch am Teal-Ende) */
+  --verlauf-tief: linear-gradient(120deg, #00795c 0%, #2b2f8f 100%);
   --radius: 18px;
 }
 
@@ -83,7 +85,7 @@ nav.scrolled {
 .btn-dark { background: var(--ink); color: white; }
 .btn-dark:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(22,26,31,0.25); }
 .btn-green {
-  background: var(--verlauf);
+  background: var(--verlauf-tief);
   color: #fff;
   box-shadow: 0 2px 10px rgba(24,60,120,0.22);
 }
@@ -1208,7 +1210,7 @@ footer .logo { color: white; }
 .job-badge--pruefung { background: rgba(240,180,41,0.18); color: #7a5600; }
 .admin-badge {
   font-size: 0.62rem; letter-spacing: 0.08em; font-weight: 600;
-  background: var(--verlauf); color: #fff; padding: 4px 9px; border-radius: 6px;
+  background: var(--verlauf-tief); color: #fff; padding: 4px 9px; border-radius: 6px;
 }
 .admin-karte {
   background: var(--card); border: 1px solid var(--line); border-radius: 16px;
@@ -1248,6 +1250,14 @@ footer .logo { color: white; }
 .auth-bestaetigen h2 { margin-bottom: 12px; }
 .auth-bestaetigen p { color: var(--ink-soft); font-size: 0.95rem; margin: 6px 0; overflow-wrap: anywhere; }
 .auth-bestaetigen-hinweis { font-size: 0.8rem !important; margin-top: 14px !important; }
+
+/* Touch-Geräte: Bedienelemente auf mind. ~44px Tipp-Höhe bringen (WCAG 2.5.8) */
+@media (pointer: coarse) {
+  .pill { padding: 11px 18px; }
+  .cv-template-chip { padding: 11px 16px; }
+  .tipp-btn { padding: 11px 16px; }
+  .pdf-layout-chip { padding: 9px 14px; }
+}
 
 /* Zwei-Klick-Bestätigung statt Browser-Popup */
 .btn-confirm { background: var(--coral) !important; color: #fff !important; border-color: var(--coral) !important; }
