@@ -20,6 +20,13 @@
 ## ✅ Neu erledigt (23. Juli)
 - **Playwright-E2E-Test-Suite**: **60 Tests, alle grün**. `npm test` im Projektordner. Supabase komplett gemockt (keine echten Accounts/Mails/DB). Deckt jetzt auch die **eingeloggten Dashboards** ab (Schüler + Firma, inkl. Bewerbungs-Flow und Job-Posten – landet in einer Fake-DB). Noch offen: Chat, Admin-Panel, echte Uploads.
 
+## 🔔 Monitoring (eingebaut, teils noch zu aktivieren)
+- **Uptime-Monitor**: LÄUFT automatisch über GitHub Actions (`.github/workflows/uptime.yml`) – prüft schuelermatch.de alle 10 Min, mailt dir bei Ausfall. Kein Fremdanbieter. Nur sicherstellen: GitHub-Benachrichtigungen für fehlgeschlagene Actions an (Settings → Notifications). Manuell testen: Repo → Actions → „Uptime-Check" → „Run workflow".
+- **Sentry (Fehler-Tracking)**: EINGEBAUT auf allen 15 Seiten (`js/monitoring.js`), aber INAKTIV bis du deinen DSN einträgst:
+  1. Kostenloses Konto auf sentry.io → neues Projekt „Browser/JavaScript" → **EU-Region wählen** (DSGVO!)
+  2. DSN kopieren, in `js/monitoring.js` bei `SENTRY_DSN = ''` einfügen, pushen
+  3. **Vor echtem Launch**: Sentry als Auftragsverarbeiter in die Datenschutzerklärung aufnehmen (neuer Empfänger, wie Resend/Open-Meteo)
+
 ## 📌 Gut zu wissen
 - Admin-Bereich: `schuelermatch.de/admin.html` (Konten: s.weisioda@ + halawaisi3@)
 - Gate-Passwort: `schuelermatch2026`

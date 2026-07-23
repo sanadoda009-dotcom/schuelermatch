@@ -1,0 +1,44 @@
+# Uptime-Monitor: prüft alle 10 Minuten, ob schuelermatch.de erreichbar ist.
+# Läuft kostenlos über GitHub Actions (öffentliches Repo) – kein Fremdanbieter,
+# gehört komplett dir. Schlägt der Check fehl, wird der Workflow-Lauf "failed"
+# und GitHub schickt dir automatisch eine E-Mail (sofern Benachrichtigungen an).
+#
+# WICHTIG:
+# - GitHub deaktiviert geplante Workflows nach 60 Tagen ohne Repo-Aktivität.
+#   Ein Push reaktiviert sie wieder.
+# - Manuell testen: Actions-Tab -> "Uptime-Check" -> "Run workflow".
+name: Uptime-Check
+
+on:
+  schedule:
+    - cron: '*/10 * * * *' # alle 10 Minuten (GitHub-Minimum ist 5 Min, oft leicht verzögert)
+  workflow_dispatch: {}      # erlaubt manuelles Auslösen im Actions-Tab
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Startseite prüft HTTP-Status + Inhalt
+        run: |
+          set -e
+          URL="https://schuelermatch.de/"
+          echo "Prüfe $URL ..."
+
+          # Bis zu 3 Versuche (kurze Aussetzer nicht sofort als Ausfall werten)
+          for versuch in 1 2 3; do
+            code=$(curl -s -o body.html -w "%{http_code}" --max-time 20 "$URL" || echo "000")
+            echo "Versuch $versuch: HTTP $code"
+            if [ "$code" = "200" ] && grep -qi "SchülerMatch" body.html; then
+              echo "✅ Seite ist online und liefert die erwartete Startseite."
+              exit 0
+            fi
+            sleep 15
+          done
+
+          echo "❌ schuelermatch.de antwortet nicht wie erwartet (letzter Status: $code)."
+          echo "--- Anfang der Antwort (zur Diagnose) ---"
+          head -c 500 body.html || true
+          exit 1
