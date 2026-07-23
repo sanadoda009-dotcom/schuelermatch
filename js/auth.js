@@ -70,7 +70,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
       if (error) {
-        showError(loginForm, 'Falsche E-Mail oder Passwort.')
+        // Unbestätigte E-Mail klar vom falschen Passwort unterscheiden
+        if ((error.message || '').toLowerCase().includes('not confirmed')) {
+          showError(loginForm, 'Bitte bestätige zuerst deine E-Mail-Adresse – wir haben dir einen Link geschickt (auch im Spam-Ordner nachsehen).')
+        } else {
+          showError(loginForm, 'Falsche E-Mail oder Passwort.')
+        }
         btn.textContent = 'Einloggen'
         btn.disabled = false
         return
@@ -140,20 +145,32 @@ document.addEventListener('DOMContentLoaded', () => {
         return
       }
 
-      // Direkt einloggen nach Registrierung
-      const { error: loginError } = await supabase.auth.signInWithPassword({ email, password })
-
-      if (loginError) {
-        showError(registerForm, 'Account erstellt! Bitte logge dich jetzt ein.')
-        btn.textContent = 'Account erstellen'
-        btn.disabled = false
+      // Mit E-Mail-Bestätigung gibt es nach dem SignUp noch KEINE Session.
+      // Dann zeigen wir die "Fast geschafft"-Ansicht statt eines Auto-Logins.
+      if (!signUpData.session) {
+        registerForm.innerHTML = `
+          <div class="auth-bestaetigen">
+            <div class="auth-bestaetigen-icon">📬</div>
+            <h2>Fast geschafft!</h2>
+            <p>Wir haben dir eine E-Mail an <b>${escapeHtmlAuth(email)}</b> geschickt.</p>
+            <p>Klick auf den Link darin, um dein Konto zu bestätigen – danach kannst du dich einloggen.</p>
+            <p class="auth-bestaetigen-hinweis">Keine Mail? Schau im Spam-Ordner nach.</p>
+            <a href="login.html" class="btn btn-green btn-full" style="margin-top:14px;">Zum Login</a>
+          </div>`
         return
       }
 
+      // Bestätigung aus (z.B. lokal): Session da -> direkt weiter
       window.location.href = role === 'firma' ? 'dashboard-firma.html' : 'dashboard-schueler.html'
     })
   }
 })
+
+function escapeHtmlAuth(str) {
+  const div = document.createElement('div')
+  div.textContent = str ?? ''
+  return div.innerHTML
+}
 
 // Freundliche Inline-Feldfehler (rot umrandet + Text darunter)
 function feldFehler(input, msg) {
