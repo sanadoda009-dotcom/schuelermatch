@@ -17,6 +17,9 @@
 5. **Betreiber-Statistik im Admin**: Anmeldungen/Jobs/Bewerbungen pro Woche
 6. **Sicherheits-Hinweise im Chat** („Triff dich nie allein…")
 
+## ✅ Neu erledigt (23. Juli)
+- **Playwright-E2E-Test-Suite**: 43 Tests, alle grün. `npm test` im Projektordner. Supabase komplett gemockt (keine echten Accounts/Mails). Noch offen: Tests für eingeloggte Bereiche (Dashboards, Bewerbung, Chat, Admin).
+
 ## 📌 Gut zu wissen
 - Admin-Bereich: `schuelermatch.de/admin.html` (Konten: s.weisioda@ + halawaisi3@)
 - Gate-Passwort: `schuelermatch2026`

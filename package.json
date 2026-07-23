@@ -1,0 +1,22 @@
+{
+  "name": "schuelermatch",
+  "version": "1.0.0",
+  "description": "SchülerMatch – Minijob-Plattform für Schüler (statisches HTML/CSS/JS + Supabase). package.json existiert nur für die Playwright-E2E-Tests; es gibt bewusst KEIN build-Script (Vercel deployt statisch).",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:mobil": "playwright test --project=mobil",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sanadoda009-dotcom/schuelermatch.git"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
+  }
+}

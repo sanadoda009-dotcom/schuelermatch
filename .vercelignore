@@ -1,0 +1,13 @@
+# Nicht mit deployen: Tests, Tooling, lokale Werkzeuge
+tests/
+node_modules/
+test-results/
+playwright-report/
+playwright.config.js
+package.json
+package-lock.json
+graphify-out/
+test-pdf.html
+design-vorschau.html
+*.md
+.claude/

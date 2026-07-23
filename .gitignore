@@ -7,3 +7,7 @@ Thumbs.db
 graphify-out/
 test-pdf.html
 design-vorschau.html
+
+# Playwright
+test-results/
+playwright-report/
