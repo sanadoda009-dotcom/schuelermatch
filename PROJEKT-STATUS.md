@@ -276,3 +276,9 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Auth-Bugfix**: handle_new_user() abgesichert - role faellt auf 'schueler' zurueck (statt 500 "null value in role"), alter_jahre defensiv geparst. Getestet.
 - **John (hidiscord7oki) geloescht** - Fake-Registrierung (Discord), 0 Aktivitaet.
 - **OFFEN / NUTZER-MANUELL**: "Confirm email" in Supabase Auth ist noch AUS -> jeder kann sich mit Fake-Mail anmelden. Muss der Nutzer unter Authentication > Sign In/Providers > Email anschalten.
+
+## Session 22./23. Juli 2026 - Firmen-Freigabe + E-Mail-Bestaetigung KOMPLETT
+- **Firmen-Freigabe Stufe 1** (Commit b4bd0a6): profiles.firma_status (neu/freigegeben/gesperrt), RLS-gehaertete Job-Sichtbarkeit via public.firma_freigegeben() (SEC DEFINER), Admin-Reiter 'Firmen-Freigabe' (admin.html Tabs), Firmen-Banner + 'In Pruefung'-Badges im Firma-Dashboard, Freigabe-Mail (mail-ereignis v5 + Trigger firma_freigabe_mail). SQL-verifiziert: gesperrte Firma = 0 oeffentliche Jobs; Mail zugestellt.
+- **Confirm email AN** (durch Nutzer) + verifiziert: Signup wartet auf Bestaetigung, 'Confirm your email address' via Resend/eigene Domain ZUGESTELLT.
+- **Registrierung angepasst** (Commit b0b53d6): kein Auto-Login mehr nach SignUp; ohne Session -> 'Fast geschafft'-Ansicht (Mail-Hinweis + Spam-Tipp + Login-Link, CSS .auth-bestaetigen). Login zeigt bei unbestaetigter Mail eigene Meldung statt 'falsches Passwort'. E2E im Browser getestet (echtes Signup, danach geloescht).
+- **Geplant/Stufe 2 offen**: 'Verifiziertes Unternehmen'-Abzeichen (Gewerbeschein-Upload, optional), Melden-Funktion fuer Jobs/Chats, deutsche Supabase-Mail-Templates (aktuell englisch: 'Confirm your email address' - anpassbar unter Authentication > Emails > Templates).
