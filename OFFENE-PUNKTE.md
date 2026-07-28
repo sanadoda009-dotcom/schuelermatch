@@ -27,6 +27,12 @@
   2. DSN kopieren, in `js/monitoring.js` bei `SENTRY_DSN = ''` einfügen, pushen
   3. **Vor echtem Launch**: Sentry als Auftragsverarbeiter in die Datenschutzerklärung aufnehmen (neuer Empfänger, wie Resend/Open-Meteo)
 
+## 🛡️ Security-Audit (umgesetzt am 26. Juli) — 3 Rest-Punkte für DICH
+Ein umfassender Audit wurde durchgeführt; 8 von 11 Befunden sind bereits gefixt (Details in PROJEKT-STATUS.md). **Diese 3 kann nur der Eigentümer im Dashboard erledigen:**
+1. **Leaked-Password-Schutz an** (#7): Supabase → Authentication → Policies → „Leaked password protection" aktivieren (prüft gegen HaveIBeenPwned). Mindestlänge ggf. auf 10 erhöhen.
+2. **MFA für Admin-Konten** (#9): Supabase → Authentication → für die beiden Admin-Accounts (s.weisioda@, halawaisi3@) 2-Faktor aktivieren.
+3. **Gate vor Launch entfernen** (#11): `js/gate.js` → `GATE_AKTIV=false` (ist bewusst client-seitig, nur Bauphasen-Schild).
+
 ## 📌 Gut zu wissen
 - Admin-Bereich: `schuelermatch.de/admin.html` (Konten: s.weisioda@ + halawaisi3@)
 - Gate-Passwort: `schuelermatch2026`

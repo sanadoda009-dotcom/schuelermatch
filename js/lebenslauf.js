@@ -6,6 +6,7 @@ import { supabase } from './supabase.js'
 import { requireAuth } from './session.js'
 import { toast } from './toast.js'
 import { erzeugeLebenslaufPdfMitAnkern, ladeLebenslaufAlsPdf } from './pdf.js'
+import { sichereMediaUrl } from './sicher.js'
 
 let profile
 let bloecke = []
@@ -132,7 +133,7 @@ function renderKarten() {
       <summary><span class="ll-check ${persoenlichVoll ? 'ok' : ''}">${persoenlichVoll ? '✓' : ''}</span> Persönliches <span class="ll-karte-typ mono">PROFIL</span></summary>
       <div class="ll-karte-body">
         <div class="ll-foto-zeile">
-          <div class="cv-photo-preview" id="ll-foto-preview" style="${profile.foto_url ? `background-image:url(${profile.foto_url})` : ''}">${profile.foto_url ? '' : '📷'}</div>
+          <div class="cv-photo-preview" id="ll-foto-preview" style="${sichereMediaUrl(profile.foto_url) ? `background-image:url('${sichereMediaUrl(profile.foto_url)}')` : ''}">${profile.foto_url ? '' : '📷'}</div>
           <div>
             <input type="file" id="ll-foto" accept="image/*" style="display:none;">
             <button type="button" class="btn btn-outline" id="ll-foto-btn" style="padding:8px 14px; font-size:0.82rem;">${profile.foto_url ? 'Foto ändern' : 'Foto hochladen'}</button>
@@ -205,7 +206,7 @@ function editorFuer(b) {
       <button type="button" class="btn btn-outline ll-bild-btn" data-id="${b.id}" style="padding:8px 14px; font-size:0.82rem;">${b.bild_url ? 'Bild ändern' : 'Bild auswählen'}</button>
       ${b.bild_url ? `<button type="button" class="btn btn-outline ll-bild-weg" data-id="${b.id}" style="padding:8px 14px; font-size:0.82rem; color:var(--coral);">Entfernen</button>` : ''}
     </div>
-    ${b.bild_url ? `<img src="${b.bild_url}" class="block-image-preview">` : ''}`
+    ${b.bild_url ? `<img src="${sichereMediaUrl(b.bild_url)}" class="block-image-preview">` : ''}`
   return ''
 }
 

@@ -304,6 +304,29 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. Juli 2026 - Umfassender Security-Audit + Fixes (8/11 umgesetzt)
+Audit gegen die echte Live-Config (Supabase MCP: RLS-Policies, Spalten-Rechte, Storage, Funktionen, Edge Functions) + Frontend-Code-Review.
+
+### KRITISCH/HOCH behoben und verifiziert
+- **#1 (KRITISCH) Privilege Escalation**: `profiles`-UPDATE-Policy hatte kein WITH CHECK + Spalten-Rechte auf ALLE Spalten -> jeder eingeloggte Nutzer konnte sich per `update profiles set ist_admin=true` selbst zum Admin machen (= Zugriff auf alle Schueler-PII + Ausweis-Dokumente), sich selbst verifizieren oder die Firmen-Moderation umgehen. **Fix**: BEFORE-UPDATE-Trigger `schuetze_profil_felder()` friert `ist_admin/verifiziert/firma_status/role` fuer Nicht-Admins ein (Ausnahme: `auth.uid() is null` = service_role/SQL-Editor, damit der Eigentuemer weiter Admins ernennen kann). Live getestet: Angreifer blockiert, Admin-Verifizierung funktioniert weiter.
+- **#2 (HOCH) Mail-Function als offener Relay**: `mail-ereignis` vertraute im profiles-Zweig der eingehenden Payload (Empfaenger + Name) -> mit dem oeffentlichen anon-Key konnte jeder beliebige E-Mails inkl. HTML/Phishing von der verifizierten Domain versenden. **Fix**: Function laedt Empfaenger/Namen jetzt autoritativ aus der DB (Service-Role) statt aus der Payload; alle Nutzerwerte HTML-escaped. Version 6 deployed. (Kein Secret noetig.)
+
+### MITTEL behoben
+- **#3 Stored XSS** ueber `foto_url`/`bild_url` (unescaped in `style=...url()` bzw. `<img src>`), u.a. Schueler-Foto -> Firma-DOM. **Fix**: neuer Helfer `js/sicher.js` (`sichereMediaUrl`: nur http(s), Ausbruch-Zeichen entfernt), angewendet in dashboard-firma/schueler, lebenslauf, admin.
+- **#4 Fehlende WITH CHECK** in UPDATE-Policies (nachrichten/bewertungen/bewerbungen) -> Chat-Nachrichten faelschbar, Bewertung auf fremde Firma verschiebbar. **Fix**: 3 BEFORE-UPDATE-Trigger, die alle Spalten ausser den legitim aenderbaren (`gelesen` / `sterne,kommentar` / `status`) einfrieren.
+- **#5 Oeffentliche Buckets** (`avatars`, `lebenslauf-bilder`) ohne MIME-/Groessenlimit. **Fix**: nur Bild-MIME + 3 MB; private Buckets (zeugnisse/verifizierung) auf Bild/PDF + 6 MB.
+
+### NIEDRIG behoben
+- **#6 Security-Header**: `vercel.json` mit CSP (Fremd-Hosts whitelisted, `frame-ancestors 'none'`), X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, HSTS (ohne preload/includeSubDomains -> Mail-Subdomain unberuehrt).
+- **#8 SECURITY-DEFINER-Exposure**: `mail_ereignis_webhook` + die 4 neuen Trigger-Funktionen von RPC-Aufruf entzogen (`revoke execute`). Verbleibend by-design/notwendig: `ist_admin`/`firma_freigegeben` (in RLS-Policies genutzt), `job_aufruf_zaehlen` (anon-Zaehler gewollt).
+- **#10 User-Enumeration**: Registrierung zeigt keine rohen Supabase-Fehler mehr, sondern eine generische Meldung.
+
+### OFFEN (nur im Dashboard durch Eigentuemer machbar) -> siehe OFFENE-PUNKTE.md
+- #7 Leaked-Password-Schutz aktivieren · #9 MFA fuer Admins · #11 Gate vor Launch aus.
+
+### Positiv bestaetigt
+RLS auf allen Tabellen aktiv · private Buckets korrekt · keine echten Secrets im Repo (nur oeffentlicher anon-Key) · `handle_new_user` validiert Rolle · keine SQL-Injection (PostgREST parametrisiert). Alle 60 E2E-Tests weiter gruen.
+
 ## Session 23. Juli 2026 (Teil 5) - Monitoring (Sentry + Uptime)
 - **Sentry-Fehler-Tracking** eingebaut (`js/monitoring.js`, in allen 15 Seiten VOR gate.js geladen). Standardmaessig INAKTIV: `SENTRY_DSN = ''` -> tut nichts, kein Netzwerk. Sobald ein DSN gesetzt ist, laedt es den versions-unabhaengigen Sentry-Loader (`js.sentry-cdn.com/<publicKey>.min.js`, Public Key wird aus dem DSN gezogen). Datensparsam: sendDefaultPii:false, tracesSampleRate:0, kein Replay, ignoreErrors fuer Browser-Rauschen, beforeSend filtert das Gate-Passwort raus. Aktivierung + DSGVO-Schritte in OFFENE-PUNKTE.md.
 - **Uptime-Monitor** als GitHub-Actions-Workflow (`.github/workflows/uptime.yml`): cron alle 10 Min + manuell ausloesbar, prueft HTTP 200 UND dass die Startseite "SchuelerMatch" enthaelt (3 Versuche gegen kurze Aussetzer). Bei Ausfall wird der Lauf failed -> GitHub mailt dem Owner. Kein Fremdanbieter, gehoert dem Nutzer selbst (besser fuer DSGVO als ein SaaS-Monitor). Caveat: GitHub pausiert geplante Workflows nach 60 Tagen Repo-Inaktivitaet.

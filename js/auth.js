@@ -139,7 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
       })
 
       if (signUpError) {
-        showError(registerForm, signUpError.message)
+        // Generische Meldung statt roher Supabase-Fehlertext -> keine
+        // Rueckschluesse, ob eine E-Mail bereits registriert ist (User-Enumeration).
+        showError(registerForm, 'Registrierung momentan nicht möglich. Bitte prüfe deine Eingaben und versuche es später erneut. Falls du schon ein Konto hast, melde dich einfach an.')
+        console.warn('SignUp-Fehler:', signUpError.status)
         btn.textContent = 'Account erstellen'
         btn.disabled = false
         return

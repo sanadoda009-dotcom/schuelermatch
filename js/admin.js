@@ -4,6 +4,7 @@
 import { supabase } from './supabase.js'
 import { requireAuth, logout } from './session.js'
 import { toast } from './toast.js'
+import { sichereMediaUrl } from './sicher.js'
 
 let profile
 let alleSchueler = []
@@ -172,9 +173,10 @@ async function zeigeDokument(pfad, spalte, name) {
   }
 
   const istPdf = pfad.toLowerCase().endsWith('.pdf')
+  const quelle = sichereMediaUrl(data.signedUrl)
   inhalt.innerHTML = istPdf
-    ? `<iframe src="${data.signedUrl}" class="dok-frame" title="Dokument"></iframe>`
-    : `<img src="${data.signedUrl}" class="dok-bild" alt="Verifizierungs-Dokument">`
+    ? `<iframe src="${quelle}" class="dok-frame" title="Dokument"></iframe>`
+    : `<img src="${quelle}" class="dok-bild" alt="Verifizierungs-Dokument">`
 }
 
 function schliesseDok() {

@@ -8,6 +8,16 @@
 //
 // Tabelle "profiles":
 //   UPDATE  -> verifiziert wechselt false->true: Freischalt-Mail an den Schüler
+//   UPDATE  -> firma_status wechselt ->freigegeben: Freischalt-Mail an die Firma
+//
+// SICHERHEIT (Security-Fix #2):
+//   Diese Funktion ist über eine öffentliche URL erreichbar und `verify_jwt`
+//   akzeptiert den (öffentlichen) anon-Key. Daher darf sie der eingehenden
+//   Payload NICHT vertrauen. Empfänger-Adresse und Namen werden IMMER
+//   autoritativ aus der Datenbank (Service-Role) nachgeladen; die Payload
+//   liefert nur die betroffene id und den "vorher"-Zustand als Kante.
+//   Zusätzlich werden alle nutzergelieferten Werte HTML-escaped, damit keine
+//   HTML/Link-Injection in die E-Mail möglich ist.
 //
 // Nötige Secrets (Supabase -> Edge Functions -> Secrets):
 //   RESEND_API_KEY   (von resend.com)
@@ -26,6 +36,20 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 )
 
+// HTML-Escaping gegen Injection in E-Mail-Inhalte.
+function esc(s: unknown): string {
+  return String(s ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
+function vorname(name: unknown): string {
+  return esc(String(name ?? '').split(' ')[0] || 'Hallo')
+}
+
 function rahmen(inhalt: string): string {
   return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#161a1f">
     <div style="height:4px;background:linear-gradient(120deg,#00c896,#2b2f8f);border-radius:4px"></div>
@@ -36,7 +60,7 @@ function rahmen(inhalt: string): string {
   </div>`
 }
 
-async function sendeMail(an: string, betreff: string, inhalt: string): Promise<boolean> {
+async function sendeMail(an: string | null | undefined, betreff: string, inhalt: string): Promise<boolean> {
   if (!an) return false
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -53,14 +77,24 @@ Deno.serve(async (req) => {
 
     // --- Profil-Aenderungen ---
     if (payload.table === 'profiles') {
-      // Schüler wurde vom Admin verifiziert
-      if (!payload.old_record?.verifiziert && payload.record?.verifiziert) {
-        const vorname = (payload.record?.name ?? '').split(' ')[0] || 'Hallo'
+      const id = payload.record?.id
+      if (!id) return new Response('no id', { status: 200 })
+
+      // Autoritative Daten aus der DB laden – NIEMALS der Payload vertrauen.
+      const { data: p } = await supabase
+        .from('profiles')
+        .select('email, name, verifiziert, firma_status')
+        .eq('id', id)
+        .single()
+      if (!p) return new Response('not found', { status: 200 })
+
+      // Schüler wurde verifiziert (Kante aus old_record, Zustand aus DB)
+      if (!payload.old_record?.verifiziert && p.verifiziert === true) {
         await sendeMail(
-          payload.record?.email,
+          p.email,
           'Du bist jetzt verifiziert! ✓',
           `<h2 style="font-family:sans-serif">Deine Verifizierung ist durch ✓</h2>
-           <p>Hallo ${vorname}, wir haben deine Unterlagen geprüft – du bist ab sofort
+           <p>Hallo ${vorname(p.name)}, wir haben deine Unterlagen geprüft – du bist ab sofort
            als Schüler verifiziert.</p>
            <p>Das heißt: Du kannst dich jetzt auf alle Jobs bewerben. Arbeitgeber sehen
            bei dir das Verifiziert-Zeichen und wissen, dass du wirklich Schüler bist.</p>
@@ -72,12 +106,12 @@ Deno.serve(async (req) => {
         )
       }
       // Firma wurde freigegeben
-      if (payload.old_record?.firma_status !== 'freigegeben' && payload.record?.firma_status === 'freigegeben') {
+      if (payload.old_record?.firma_status !== 'freigegeben' && p.firma_status === 'freigegeben') {
         await sendeMail(
-          payload.record?.email,
+          p.email,
           'Dein Konto ist freigeschaltet ✓',
           `<h2 style="font-family:sans-serif">Willkommen bei SchülerMatch ✓</h2>
-           <p>Hallo ${payload.record?.name ?? ''}, wir haben dein Konto geprüft und freigeschaltet.</p>
+           <p>Hallo ${esc(p.name)}, wir haben dein Konto geprüft und freigeschaltet.</p>
            <p>Deine Anzeigen sind ab sofort für Schüler sichtbar. Neue Jobs, die du postest,
            gehen künftig direkt online.</p>
            <p><a href="${SITE_URL}/dashboard-firma.html"
@@ -101,7 +135,7 @@ Deno.serve(async (req) => {
       .single()
     if (error || !b) return new Response('lookup failed', { status: 200 })
 
-    const jobTitel = b.job?.titel ?? 'einen Job'
+    const jobTitel = esc(b.job?.titel ?? 'einen Job')
     const firma = b.job?.firma
     const schueler = b.schueler
 
@@ -112,7 +146,7 @@ Deno.serve(async (req) => {
           firma.email,
           `Neue Bewerbung für „${jobTitel}"`,
           `<h2 style="font-family:sans-serif">Neue Bewerbung 🎉</h2>
-           <p><b>${schueler?.name ?? 'Ein Schüler'}</b> hat sich auf deine Anzeige
+           <p><b>${esc(schueler?.name ?? 'Ein Schüler')}</b> hat sich auf deine Anzeige
            <b>„${jobTitel}"</b> beworben.</p>
            <p><a href="${SITE_URL}/dashboard-firma.html"
              style="display:inline-block;background:#2b2f8f;color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
@@ -123,13 +157,12 @@ Deno.serve(async (req) => {
       const alt = payload.old_record?.status
       const neu = b.status
       if (alt !== neu && (neu === 'angenommen' || neu === 'abgelehnt')) {
-        const vorname = (schueler?.name ?? '').split(' ')[0] || 'Hallo'
         if (neu === 'angenommen') {
           await sendeMail(
             schueler?.email,
             `Gute Nachrichten zu „${jobTitel}"! 🎉`,
             `<h2 style="font-family:sans-serif">Du hast eine Zusage! 🎉</h2>
-             <p>Hallo ${vorname}, <b>${firma?.name ?? 'die Firma'}</b> hat deine Bewerbung
+             <p>Hallo ${vorname(schueler?.name)}, <b>${esc(firma?.name ?? 'die Firma')}</b> hat deine Bewerbung
              für <b>„${jobTitel}"</b> angenommen.</p>
              <p>Öffne den Chat im Dashboard, um die nächsten Schritte zu klären.</p>
              <p><a href="${SITE_URL}/dashboard-schueler.html"
@@ -141,7 +174,7 @@ Deno.serve(async (req) => {
             schueler?.email,
             `Deine Bewerbung für „${jobTitel}"`,
             `<h2 style="font-family:sans-serif">Diesmal hat es nicht geklappt</h2>
-             <p>Hallo ${vorname}, danke für deine Bewerbung für <b>„${jobTitel}"</b>.
+             <p>Hallo ${vorname(schueler?.name)}, danke für deine Bewerbung für <b>„${jobTitel}"</b>.
              Diesmal hat sich die Firma für jemand anderen entschieden – das sagt nichts über dich aus.</p>
              <p>Bleib dran, dein nächster Job wartet schon!</p>
              <p><a href="${SITE_URL}/jobs.html"
