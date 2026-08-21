@@ -29,8 +29,10 @@
 
 ## 🛡️ Security-Audit (umgesetzt am 26. Juli) — 3 Rest-Punkte für DICH
 Ein umfassender Audit wurde durchgeführt; 8 von 11 Befunden sind bereits gefixt (Details in PROJEKT-STATUS.md). **Diese 3 kann nur der Eigentümer im Dashboard erledigen:**
-1. **Leaked-Password-Schutz an** (#7): Supabase → Authentication → Policies → „Leaked password protection" aktivieren (prüft gegen HaveIBeenPwned). Mindestlänge ggf. auf 10 erhöhen.
-2. **MFA für Admin-Konten** (#9): Supabase → Authentication → für die beiden Admin-Accounts (s.weisioda@, halawaisi3@) 2-Faktor aktivieren.
+1. ~~**Leaked-Password-Schutz an** (#7)~~ — TEILS ERLEDIGT: Mindest-Passwortlänge am 28.7. von 6 auf **10** erhöht ✓. Der „Prevent use of leaked passwords"-Schalter (HaveIBeenPwned) ist **nur im Pro-Plan** verfügbar → auf Free nicht aktivierbar, Advisor-Warnung bleibt bestehen (kein echtes Loch).
+2. **MFA** (#9) — WICHTIGSTER TEIL ERLEDIGT: **2FA auf dem GitHub-Konto** (`sanadoda009-dotcom`) am 28.7. per Authenticator-App aktiviert ✓. Das schützt den Generalschlüssel, denn der Supabase-Dashboard-Login läuft über „Continue with GitHub" → Zugriff auf DB + alle Schülerdaten.
+   - ⚠️ Recovery-Codes sicher aufbewahren! Nachträglich unter github.com/settings/auth/recovery-codes
+   - NOCH OFFEN: MFA **innerhalb der App** für Admins (admin.html). Braucht Frontend-Ausbau (Einrichtungs-/Abfrage-Bildschirme + Supabase-TOTP-Anbindung) — eigenes kleines Projekt, kein Dashboard-Schalter.
 3. **Gate vor Launch entfernen** (#11): `js/gate.js` → `GATE_AKTIV=false` (ist bewusst client-seitig, nur Bauphasen-Schild).
 
 ## 📌 Gut zu wissen
