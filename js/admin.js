@@ -67,7 +67,7 @@ async function init() {
     })
   })
 
-  await Promise.all([ladeSchueler(), ladeFirmen(), ladeMeldungen()])
+  await Promise.all([ladeSchueler(), ladeFirmen(), ladeMeldungen(), ladeStatistik()])
 }
 
 async function ladeSchueler() {
@@ -504,6 +504,102 @@ async function setzeMeldungStatus(id, status, btn) {
   }
   toast(status === 'erledigt' ? 'Meldung als erledigt markiert ✓' : `Status: ${STATUS_LABEL[status] || status}`)
   await ladeMeldungen()
+}
+
+
+/* ---------- BETREIBER-STATISTIK ---------- */
+
+// Holt aggregierte Zahlen ueber die RPC `betreiber_statistik`.
+// Bewusst eine Funktion statt direkter Tabellen-Abfragen: Admins duerfen
+// `bewerbungen` nicht lesen (Motivationsschreiben sind privat) - die RPC
+// liefert nur Summen, keine Inhalte.
+async function ladeStatistik() {
+  const box = document.getElementById('stat-inhalt')
+  if (!box) return
+
+  const { data, error } = await supabase.rpc('betreiber_statistik')
+  if (error || !data) {
+    box.innerHTML = `<div class="empty-state"><p>Statistik konnte nicht geladen werden${error ? ': ' + escapeHtml(error.message) : ''}.</p></div>`
+    return
+  }
+
+  const g = data.gesamt || {}
+  const wochen = Array.isArray(data.wochen) ? data.wochen : []
+
+  const quote = (teil, ganz) => ganz > 0 ? Math.round((teil / ganz) * 100) + '%' : '–'
+  const proJob = g.jobs > 0 ? (g.bewerbungen / g.jobs).toFixed(1) : '–'
+
+  box.innerHTML = `
+    <div class="stat-gruppe">
+      <h3>Nutzer</h3>
+      <div class="stats-row">
+        <div class="stat-box"><b>${g.schueler ?? 0}</b><span>Schüler</span></div>
+        <div class="stat-box"><b>${g.schueler_verifiziert ?? 0}</b><span>davon verifiziert (${quote(g.schueler_verifiziert, g.schueler)})</span></div>
+        <div class="stat-box"><b>${g.firmen ?? 0}</b><span>Arbeitgeber</span></div>
+        <div class="stat-box"><b>${g.firmen_freigegeben ?? 0}</b><span>davon freigegeben</span></div>
+      </div>
+    </div>
+
+    <div class="stat-gruppe">
+      <h3>Aktivität</h3>
+      <div class="stats-row">
+        <div class="stat-box"><b>${g.jobs_aktiv ?? 0}</b><span>aktive Jobs (von ${g.jobs ?? 0})</span></div>
+        <div class="stat-box"><b>${g.bewerbungen ?? 0}</b><span>Bewerbungen</span></div>
+        <div class="stat-box"><b>${proJob}</b><span>Bewerbungen je Job</span></div>
+        <div class="stat-box"><b>${g.bewerbungen_angenommen ?? 0}</b><span>Zusagen (${quote(g.bewerbungen_angenommen, g.bewerbungen)})</span></div>
+      </div>
+    </div>
+
+    ${(g.firmen_offen > 0 || g.meldungen_offen > 0) ? `
+    <div class="stat-gruppe">
+      <h3>Wartet auf dich</h3>
+      <div class="stats-row">
+        ${g.firmen_offen > 0 ? `<div class="stat-box stat-box--achtung"><b>${g.firmen_offen}</b><span>Firmen zu prüfen</span></div>` : ''}
+        ${g.meldungen_offen > 0 ? `<div class="stat-box stat-box--achtung"><b>${g.meldungen_offen}</b><span>offene Meldungen</span></div>` : ''}
+      </div>
+    </div>` : ''}
+
+    <div class="stat-gruppe">
+      <h3>Die letzten 8 Wochen</h3>
+      ${wochenTabelle(wochen)}
+    </div>`
+}
+
+// Einfache Balken aus CSS - kein Diagramm-Framework noetig.
+function wochenTabelle(wochen) {
+  if (!wochen.length) return '<p class="cv-preview-empty">Noch keine Daten.</p>'
+
+  const max = Math.max(1, ...wochen.map(w =>
+    Math.max(Number(w.anmeldungen) || 0, Number(w.jobs) || 0, Number(w.bewerbungen) || 0)))
+
+  const reihen = wochen.map(w => {
+    const datum = new Date(w.woche + 'T00:00:00')
+    const label = datum.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
+    const balken = (wert, klasse, titel) => {
+      const n = Number(wert) || 0
+      return `<div class="stat-balken-zelle" title="${titel}: ${n}">
+        <div class="stat-balken ${klasse}" style="width:${(n / max) * 100}%"></div>
+        <span>${n}</span>
+      </div>`
+    }
+    return `
+      <tr>
+        <th scope="row">ab ${label}</th>
+        <td>${balken(w.anmeldungen, 'balken-anmeldung', 'Anmeldungen')}</td>
+        <td>${balken(w.jobs, 'balken-job', 'Neue Jobs')}</td>
+        <td>${balken(w.bewerbungen, 'balken-bewerbung', 'Bewerbungen')}</td>
+      </tr>`
+  }).join('')
+
+  return `
+    <div class="stat-tabelle-wrap">
+      <table class="stat-tabelle">
+        <thead>
+          <tr><th scope="col">Woche</th><th scope="col">Anmeldungen</th><th scope="col">Neue Jobs</th><th scope="col">Bewerbungen</th></tr>
+        </thead>
+        <tbody>${reihen}</tbody>
+      </table>
+    </div>`
 }
 
 function escapeHtml(str) {

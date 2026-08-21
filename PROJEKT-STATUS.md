@@ -304,6 +304,26 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 22. August 2026 (Teil 3) - Betreiber-Statistik + Test-Infrastruktur repariert
+
+### Betreiber-Statistik (Admin-Reiter 4)
+Frage vorab geklaert: Weder Resend (nur E-Mail-Zustellung) noch Vercel Analytics (nur Besucher) noch die Supabase-Reports (nur technische Werte) kennen Geschaeftszahlen - die stehen nur in der eigenen DB.
+- **RPC `betreiber_statistik()`** (SECURITY DEFINER, prueft `ist_admin()` selbst, `revoke` fuer anon). Liefert **nur Summen als jsonb**, keine Inhalte.
+- Bewusst eine aggregierende Funktion statt einer Admin-Lesepolicy auf `bewerbungen`: Admins brauchen Zahlen, keine Motivationsschreiben. Gleiche Linie wie beim Chat-Zitat der Melde-Funktion.
+- Inhalt: Nutzer (Schueler/verifiziert/Firmen/freigegeben), Aktivitaet (aktive Jobs, Bewerbungen, Bewerbungen je Job, Zusagenquote), "Wartet auf dich" (offene Firmen + Meldungen, nur wenn > 0) und ein 8-Wochen-Verlauf.
+- Wochenverlauf als reine CSS-Balken - kein Diagramm-Framework, passend zur Bauweise ohne Build-Tool.
+- Live getestet: als Admin Zahlen, als normaler Schueler Fehler 42501.
+
+### WICHTIG: Ursache der wackeligen Tests endlich gefunden
+Ueber Wochen fielen einzelne Dashboard-Tests scheinbar zufaellig um. Per Browser-Diagnose (pageerror/requestfailed protokolliert) zeigte sich:
+**`python -m http.server` wies unter Parallel-Last Verbindungen ab (ERR_CONNECTION_REFUSED).** Die Dashboard-Seiten laden rund 10 JS-Module gleichzeitig; der Verbindungs-Rueckstau des Python-Servers ist zu klein. Folge: einzelne Module luden nicht, die Modulkette brach ab, `init()` lief nie - erkennbar daran, dass die Seite die HTML-Standardwerte zeigte und KEINE Weiterleitung stattfand.
+- **Fix**: eigener kleiner Node-Server `tests/server.js` (kein Fremdpaket), in `playwright.config.js` eingetragen. Zwei komplette Durchlaeufe hintereinander gruen.
+- Frueherer Verdacht (CDNs) war nur ein Nebeneffekt. Die dabei entstandenen Verbesserungen bleiben: Fonts/jsPDF werden in Tests abgeklemmt, jsdelivr wird pro Worker gecacht - beides macht die Suite hermetischer und schneller.
+- Zusaetzlich: Wartehilfen `warteAufDashboard` / `warteAufAdmin` im Test-Fake. Sie warten, bis das **asynchrone** `init()` durch ist - vorher gingen Klicks auf Sidebar und Reiter ins Leere, weil die Handler erst nach `requireAuth()` gesetzt werden.
+
+### Tests: 75 -> 80, alle gruen (2x bestaetigt)
+`tests/admin-statistik.spec.js` mit 5 Tests; der Fake bildet die RPC nach.
+
 ## Session 22. August 2026 (Teil 2) - Sicherheits-Hinweise im Chat
 Der Chat ist die einzige Stelle, an der ein Schueler direkt mit einem Erwachsenen schreibt - entsprechend abgesichert.
 

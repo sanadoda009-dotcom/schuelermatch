@@ -22,7 +22,8 @@ module.exports = defineConfig({
   },
 
   webServer: {
-    command: 'python -m http.server 5500',
+    // Eigener Node-Server statt python -m http.server: siehe tests/server.js
+    command: 'node tests/server.js',
     port: 5500,
     reuseExistingServer: true,
     timeout: 20_000,

@@ -1,6 +1,6 @@
 // Chat im Schüler-Dashboard: Sicherheits-Hinweise für Minderjährige.
 // Session + Supabase gefälscht – keine echte DB, keine echten Nachrichten.
-const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, FIRMA } = require('./helpers/supabase-fake')
+const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, FIRMA, warteAufDashboard } = require('./helpers/supabase-fake')
 
 // Chat entsteht erst nach einer Zusage -> angenommene Bewerbung + Nachrichten anlegen.
 function chatDb(nachrichtenTexte) {
@@ -21,6 +21,7 @@ function chatDb(nachrichtenTexte) {
 }
 
 async function oeffneChat(page) {
+  await warteAufDashboard(page)            // erst wenn init() fertig ist
   await page.locator('#sidebar-toggle').click()
   await page.locator('.sidebar-item[data-view="nachrichten"]').click()
   await page.locator('.konv-item').first().click()

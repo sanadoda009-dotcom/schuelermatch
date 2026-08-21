@@ -1,6 +1,6 @@
 // Admin-Bereich, Reiter "Meldungen" (admin.html + js/admin.js).
 // Session + Supabase gefälscht – keine echte DB.
-const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, FIRMA, ADMIN } = require('./helpers/supabase-fake')
+const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, FIRMA, ADMIN, warteAufAdmin } = require('./helpers/supabase-fake')
 
 function adminDb(meldungen = []) {
   const db = defaultDb({
@@ -35,10 +35,11 @@ test('Nicht-Admins sehen den Bereich nicht', async ({ page }) => {
 })
 
 test.describe('als Admin', () => {
-  test('zeigt drei Reiter inkl. Meldungen', async ({ page }) => {
+  test('zeigt vier Reiter inkl. Meldungen', async ({ page }) => {
     await setupDashboard(page.context(), { user: ADMIN, db: adminDb() })
     await page.goto('/admin.html')
-    await expect(page.locator('.admin-tab')).toHaveCount(3)
+    await warteAufAdmin(page)
+    await expect(page.locator('.admin-tab')).toHaveCount(4)
     await expect(page.locator('.admin-tab[data-tab="meldungen"]')).toBeVisible()
   })
 
@@ -46,6 +47,7 @@ test.describe('als Admin', () => {
     await setupDashboard(page.context(), { user: ADMIN, db: adminDb([MELDUNG_JOB]) })
     await page.goto('/admin.html')
 
+    await warteAufAdmin(page)
     await page.locator('.admin-tab[data-tab="meldungen"]').click()
     await expect(page.locator('#panel-meldungen')).toHaveClass(/active/)
 
@@ -66,6 +68,7 @@ test.describe('als Admin', () => {
     await setupDashboard(page.context(), { user: ADMIN, db })
     await page.goto('/admin.html')
 
+    await warteAufAdmin(page)
     await page.locator('.admin-tab[data-tab="meldungen"]').click()
     await page.locator('.meldung-card').getByRole('button', { name: /Erledigt/ }).click()
 
@@ -80,6 +83,7 @@ test.describe('als Admin', () => {
     ])
     await setupDashboard(page.context(), { user: ADMIN, db })
     await page.goto('/admin.html')
+    await warteAufAdmin(page)
     await page.locator('.admin-tab[data-tab="meldungen"]').click()
 
     await expect(page.locator('.meldung-card')).toHaveCount(1)   // Standardfilter = offen
@@ -101,6 +105,7 @@ test.describe('als Admin', () => {
     }])
     await setupDashboard(page.context(), { user: ADMIN, db })
     await page.goto('/admin.html')
+    await warteAufAdmin(page)
     await page.locator('.admin-tab[data-tab="meldungen"]').click()
 
     const karte = page.locator('.meldung-card')

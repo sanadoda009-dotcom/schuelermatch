@@ -203,6 +203,50 @@ function cryptoId() {
   return 'gen-' + Math.random().toString(36).slice(2, 12)
 }
 
+// Bildet die aggregierende RPC `betreiber_statistik` auf der Fake-DB nach.
+function statistikAus(db) {
+  const p = db.profiles || [], j = db.jobs || [], b = db.bewerbungen || [], m = db.meldungen || []
+  const schueler = p.filter(x => x.role === 'schueler')
+  const firmen = p.filter(x => x.role === 'firma')
+
+  const wochenStart = (iso) => {
+    const d = new Date(iso || Date.now())
+    const tag = (d.getUTCDay() + 6) % 7            // Montag = 0
+    d.setUTCDate(d.getUTCDate() - tag)
+    d.setUTCHours(0, 0, 0, 0)
+    return d.toISOString().slice(0, 10)
+  }
+  const wochen = []
+  const heute = new Date()
+  for (let i = 7; i >= 0; i--) {
+    const d = new Date(heute)
+    d.setUTCDate(d.getUTCDate() - i * 7)
+    const w = wochenStart(d.toISOString())
+    wochen.push({
+      woche: w,
+      anmeldungen: p.filter(x => wochenStart(x.erstellt_am) === w).length,
+      jobs: j.filter(x => wochenStart(x.erstellt_am) === w).length,
+      bewerbungen: b.filter(x => wochenStart(x.erstellt_am) === w).length,
+    })
+  }
+
+  return {
+    gesamt: {
+      schueler: schueler.length,
+      schueler_verifiziert: schueler.filter(x => x.verifiziert).length,
+      firmen: firmen.length,
+      firmen_freigegeben: firmen.filter(x => x.firma_status === 'freigegeben').length,
+      firmen_offen: firmen.filter(x => x.firma_status === 'neu').length,
+      jobs: j.length,
+      jobs_aktiv: j.filter(x => x.aktiv).length,
+      bewerbungen: b.length,
+      bewerbungen_angenommen: b.filter(x => x.status === 'angenommen').length,
+      meldungen_offen: m.filter(x => x.status === 'offen').length,
+    },
+    wochen,
+  }
+}
+
 // ---------- Route-Installer -------------------------------------------------
 
 async function installFakeSupabase(context, db) {
@@ -216,8 +260,11 @@ async function installFakeSupabase(context, db) {
 
     // REST
     if (pfad.startsWith('/rest/v1/rpc/')) {
-      // ist_admin -> false, alles andere (z.B. job_aufruf_zaehlen) -> ok
       const fn = pfad.split('/').pop()
+      if (fn === 'betreiber_statistik') {
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(statistikAus(db)) })
+      }
+      // ist_admin -> false, alles andere (z.B. job_aufruf_zaehlen) -> ok
       const wert = fn === 'ist_admin' ? 'false' : 'null'
       return route.fulfill({ status: 200, contentType: 'application/json', body: wert })
     }
@@ -302,6 +349,30 @@ async function blockiereSchwereCdns(context) {
   await context.route(/(fonts\.googleapis\.com|fonts\.gstatic\.com|cdnjs\.cloudflare\.com)/, r => r.abort())
 }
 
+// supabase-js kommt von jsdelivr und wird von der App zwingend gebraucht -
+// abklemmen geht also nicht. Stattdessen pro Worker-Prozess EINMAL holen und
+// danach aus dem Speicher ausliefern. Ohne das haengt der Import unter
+// Parallel-Last gelegentlich, init() laeuft nie und die Seite bleibt leer.
+const cdnCache = new Map()
+async function cacheJsdelivr(context) {
+  await context.route(/cdn\.jsdelivr\.net/, async route => {
+    const url = route.request().url()
+    if (!cdnCache.has(url)) {
+      try {
+        const res = await route.fetch()
+        const headers = { ...res.headers() }
+        delete headers['content-encoding']   // Body ist bereits dekodiert
+        delete headers['content-length']
+        cdnCache.set(url, { status: res.status(), headers, body: await res.body() })
+      } catch {
+        return route.abort()
+      }
+    }
+    const t = cdnCache.get(url)
+    await route.fulfill({ status: t.status, headers: t.headers, body: t.body })
+  })
+}
+
 // Komfort: Gate weg + Fake-DB + Geocode-Mock + optional eingeloggt. Vor page.goto() aufrufen.
 async function setupDashboard(context, { db, user } = {}) {
   const datenbank = db || defaultDb()
@@ -310,11 +381,23 @@ async function setupDashboard(context, { db, user } = {}) {
   await installFakeSupabase(context, datenbank)
   await installGeocodeMock(context)
   await blockiereSchwereCdns(context)
+  await cacheJsdelivr(context)
   return datenbank
+}
+
+// Wartet, bis das asynchrone init() der Seite durchgelaufen ist.
+// Ohne das kann ein Klick ins Leere gehen: Sidebar- und Reiter-Handler werden
+// erst NACH `requireAuth()` gesetzt - unter Parallel-Last dauert das laenger.
+async function warteAufDashboard(page) {
+  await base.expect(page.locator('#user-name')).not.toBeEmpty({ timeout: 30_000 })
+}
+async function warteAufAdmin(page) {
+  await base.expect(page.locator('#admin-liste .skeleton-card')).toHaveCount(0, { timeout: 30_000 })
 }
 
 module.exports = {
   test: base.test, expect: base.expect,
   installFakeSupabase, bypassGate, seedSession, setupDashboard,
+  warteAufDashboard, warteAufAdmin,
   defaultDb, profilZeile, SCHUELER, FIRMA, ADMIN, SUPABASE_REF,
 }

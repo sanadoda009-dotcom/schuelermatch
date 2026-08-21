@@ -1,11 +1,12 @@
 // Eingeloggtes Schüler-Dashboard (dashboard-schueler.html + js/dashboard-schueler.js).
 // Session + Supabase sind komplett gefälscht (helpers/supabase-fake.js):
 // keine echte DB, keine echten Accounts/Bewerbungen/Uploads.
-const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER } = require('./helpers/supabase-fake')
+const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, warteAufDashboard } = require('./helpers/supabase-fake')
 
 // Die Sidebar ist ein Off-Canvas-Drawer (left:-280px) – erst per Hamburger öffnen,
 // dann den Menüpunkt klicken. Der Klick schließt den Drawer wieder.
 async function navigate(page, view) {
+  await warteAufDashboard(page)            // erst wenn init() fertig ist
   await page.locator('#sidebar-toggle').click()
   await page.locator(`.sidebar-item[data-view="${view}"]`).click()
 }
@@ -13,6 +14,7 @@ async function navigate(page, view) {
 // Öffnet das Job-Detail-Modal. Wartet erst, bis die Karten gerendert sind –
 // unter Parallel-Last laden die Dashboards mehrere CDN-Skripte und brauchen länger.
 async function oeffneJobDetail(page) {
+  await warteAufDashboard(page)
   await expect(page.locator('#view-jobs .job-card').first()).toBeVisible({ timeout: 30_000 })
   await page.locator('#view-jobs .job-card h3').first().click()
   await expect(page.locator('#job-detail-overlay')).toHaveClass(/open/)
@@ -47,6 +49,7 @@ test.describe('eingeloggt', () => {
   test('Job-Filter im Dashboard funktioniert (Synonym-Suche)', async ({ page }) => {
     await setupDashboard(page.context(), { user: SCHUELER })
     await page.goto('/dashboard-schueler.html')
+    await warteAufDashboard(page)
     await expect(page.locator('#view-jobs .job-card')).toHaveCount(4)
 
     await page.locator('#filter-suche').fill('kellner')
@@ -101,6 +104,7 @@ test.describe('Bewerbungs-Flow', () => {
     await setupDashboard(page.context(), { user: SCHUELER, db })
     await page.goto('/dashboard-schueler.html')
 
+    await warteAufDashboard(page)
     await page.locator('#view-jobs .job-card').first().getByRole('button', { name: 'Jetzt bewerben' }).click()
     // Kein Bewerbungs-Modal, stattdessen Sprung zur Verifizierung + Hinweis-Toast
     await expect(page.locator('#bewerbung-overlay')).not.toHaveClass(/open/)
@@ -113,6 +117,7 @@ test.describe('Bewerbungs-Flow', () => {
     await setupDashboard(page.context(), { user: SCHUELER, db })
     await page.goto('/dashboard-schueler.html')
 
+    await warteAufDashboard(page)
     const ersteKarte = page.locator('#view-jobs .job-card').first()
     await ersteKarte.getByRole('button', { name: 'Jetzt bewerben' }).click()
 
@@ -140,6 +145,7 @@ test.describe('Bewerbungs-Flow', () => {
     await setupDashboard(page.context(), { user: SCHUELER, db })
     await page.goto('/dashboard-schueler.html')
 
+    await warteAufDashboard(page)
     await page.locator('#view-jobs .job-card').first().getByRole('button', { name: 'Jetzt bewerben' }).click()
     await expect(page.locator('#bewerbung-overlay')).toHaveClass(/open/)
     await expect(page.locator('#bewerbung-motivation')).toHaveValue('')
