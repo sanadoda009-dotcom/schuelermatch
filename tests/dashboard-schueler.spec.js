@@ -10,6 +10,14 @@ async function navigate(page, view) {
   await page.locator(`.sidebar-item[data-view="${view}"]`).click()
 }
 
+// Öffnet das Job-Detail-Modal. Wartet erst, bis die Karten gerendert sind –
+// unter Parallel-Last laden die Dashboards mehrere CDN-Skripte und brauchen länger.
+async function oeffneJobDetail(page) {
+  await expect(page.locator('#view-jobs .job-card').first()).toBeVisible({ timeout: 30_000 })
+  await page.locator('#view-jobs .job-card h3').first().click()
+  await expect(page.locator('#job-detail-overlay')).toHaveClass(/open/)
+}
+
 // Ein voll bewerbungsfähiger Schüler: verifiziert + ausgefüllter Lebenslauf.
 function bewerbungsfaehig() {
   return profilZeile(SCHUELER, {
@@ -145,5 +153,66 @@ test.describe('Bewerbungs-Flow', () => {
     await expect(page.locator('#user-name')).toHaveText('Lena')
     await page.locator('#logout-btn').click()
     await expect(page).toHaveURL(/login\.html/)
+  })
+})
+
+test.describe('Melden-Funktion', () => {
+  test('Job-Detail hat einen Melden-Button, der den Dialog öffnet', async ({ page }) => {
+    const db = defaultDb({ profiles: [bewerbungsfaehig()] })
+    await setupDashboard(page.context(), { user: SCHUELER, db })
+    await page.goto('/dashboard-schueler.html')
+
+    await oeffneJobDetail(page)
+
+    const meldeBtn = page.locator('#detail-body [data-melde-job]')
+    await expect(meldeBtn).toBeVisible()
+    await meldeBtn.click()
+
+    const dialog = page.locator('#melde-overlay')
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toContainText('Danke, dass du aufpasst')
+    // Alle fünf Gründe stehen zur Auswahl
+    await expect(dialog.locator('.melde-grund')).toHaveCount(5)
+    // Notfall-Hinweis für Minderjährige ist da
+    await expect(dialog.locator('.melde-notfall')).toContainText('110')
+  })
+
+  test('Meldung absenden schreibt sie in die Datenbank', async ({ page }) => {
+    const db = defaultDb({ profiles: [bewerbungsfaehig()] })
+    await setupDashboard(page.context(), { user: SCHUELER, db })
+    await page.goto('/dashboard-schueler.html')
+
+    await oeffneJobDetail(page)
+    await page.locator('#detail-body [data-melde-job]').click()
+
+    await page.locator('.melde-grund', { hasText: 'Betrug' }).click()
+    await page.locator('#melde-text').fill('Verlangt Vorkasse per Überweisung.')
+    await page.locator('#melde-form button[type=submit]').click()
+
+    await expect(page.locator('.toast')).toContainText('Danke')
+    await expect(page.locator('#melde-overlay')).toHaveCount(0)
+
+    await expect.poll(() => (db.meldungen || []).length).toBe(1)
+    expect(db.meldungen[0]).toMatchObject({
+      typ: 'job',
+      grund: 'betrug',
+      melder_id: SCHUELER.id,
+      job_id: db.jobs[0].id,
+      beschreibung: expect.stringContaining('Vorkasse')
+    })
+  })
+
+  test('Dialog lässt sich ohne Meldung wieder schließen', async ({ page }) => {
+    const db = defaultDb({ profiles: [bewerbungsfaehig()] })
+    await setupDashboard(page.context(), { user: SCHUELER, db })
+    await page.goto('/dashboard-schueler.html')
+
+    await oeffneJobDetail(page)
+    await page.locator('#detail-body [data-melde-job]').click()
+    await expect(page.locator('#melde-overlay')).toBeVisible()
+
+    await page.locator('#melde-close').click()
+    await expect(page.locator('#melde-overlay')).toHaveCount(0)
+    expect((db.meldungen || []).length).toBe(0)
   })
 })

@@ -1381,3 +1381,66 @@ footer .logo { color: white; }
 .cv-wahl-info a { color: var(--indigo); font-size: 0.8rem; font-weight: 500; }
 .cv-wahl-hinweis { font-size: 0.78rem; color: var(--ink-soft); font-weight: 400; }
 .cv-wahl-leer { margin: 8px 2px 4px; }
+
+/* ---------- MELDE-FUNKTION ---------- */
+.melde-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-soft); font-size: 0.78rem; font-family: inherit;
+  padding: 5px 8px; border-radius: 8px; transition: color 0.15s, background 0.15s;
+}
+.melde-btn:hover { color: var(--coral); background: rgba(255,107,74,0.08); }
+.melde-btn svg { flex-shrink: 0; }
+
+.melde-intro {
+  font-size: 0.88rem; line-height: 1.6; color: var(--ink-soft);
+  background: var(--paper); border-radius: 12px; padding: 12px 14px; margin: 0 0 18px;
+}
+.melde-grund {
+  display: flex; gap: 10px; align-items: flex-start;
+  border: 1.5px solid var(--line); border-radius: 12px;
+  padding: 11px 13px; margin-bottom: 8px; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.melde-grund:hover { border-color: var(--ink-soft); }
+.melde-grund:has(input:checked) { border-color: var(--indigo); background: rgba(43,47,143,0.05); }
+.melde-grund input { margin-top: 3px; flex-shrink: 0; }
+.melde-grund b { font-size: 0.9rem; font-weight: 600; display: block; }
+.melde-hinweis {
+  display: block; font-size: 0.78rem; color: var(--ink-soft); margin-top: 2px; line-height: 1.45;
+}
+.melde-notfall {
+  font-size: 0.82rem; line-height: 1.6;
+  background: rgba(255,107,74,0.08); border-left: 3px solid var(--coral);
+  border-radius: 8px; padding: 11px 13px; margin-top: 4px;
+}
+
+/* Melde-Button im Chat: nur bei Hover auf fremder Nachricht zeigen */
+.chat-msg { position: relative; }
+.chat-msg--anderer .melde-btn { opacity: 0; transition: opacity 0.15s; }
+.chat-msg--anderer:hover .melde-btn,
+.chat-msg--anderer .melde-btn:focus-visible { opacity: 1; }
+@media (pointer: coarse) { .chat-msg--anderer .melde-btn { opacity: 1; } }
+
+/* Admin: Meldungs-Karten */
+.meldung-card {
+  border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px 18px; margin-bottom: 12px; background: var(--card);
+}
+.meldung-card .kopf { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.meldung-grund-chip {
+  font-size: 0.74rem; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+  background: rgba(255,107,74,0.12); color: var(--coral);
+}
+.meldung-status-chip {
+  font-size: 0.72rem; padding: 3px 9px; border-radius: 999px;
+  background: var(--paper); color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace;
+}
+.meldung-status-offen { background: rgba(240,180,41,0.15); color: #8a6100; }
+.meldung-status-erledigt { background: rgba(0,200,150,0.13); color: var(--match-green-dark); }
+.meldung-zitat {
+  border-left: 3px solid var(--line); padding: 8px 12px; margin: 10px 0;
+  font-size: 0.9rem; line-height: 1.6; color: var(--ink); white-space: pre-wrap;
+  background: var(--paper); border-radius: 0 8px 8px 0;
+}
+.meldung-meta { font-size: 0.75rem; color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; }

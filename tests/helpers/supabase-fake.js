@@ -19,6 +19,8 @@ const FK_ZIEL = {
   firma_id: 'profiles',
   bewerbung_id: 'bewerbungen',
   absender_id: 'profiles',
+  melder_id: 'profiles',
+  gemeldet_user_id: 'profiles',
 }
 
 // ---------- Test-Nutzer -----------------------------------------------------
@@ -34,6 +36,13 @@ const FIRMA = {
   email: 'firma@test.de',
   name: 'Eiscafé Dolce',
   role: 'firma',
+}
+
+const ADMIN = {
+  id: 'user-admin-0000-0000-0000-0000000000a1',
+  email: 'admin@test.de',
+  name: 'Admin Anna',
+  role: 'schueler',
 }
 
 // Vollständige profiles-Zeile für einen Test-Nutzer.
@@ -58,6 +67,7 @@ function defaultDb(overrides = {}) {
     gemerkte_jobs: [],
     nachrichten: [],
     bewertungen: [],
+    meldungen: [],
     ...overrides,
   }
 }
@@ -284,6 +294,14 @@ async function installGeocodeMock(context) {
   )
 }
 
+// Externe Nicht-Kern-Ressourcen abklemmen: Google Fonts und die schweren
+// PDF-Bibliotheken (jsPDF/pdf.js) werden in den Tests nicht gebraucht.
+// Ohne das haengen die Dashboard-Tests unter Parallel-Last am CDN und die
+// Module-Kette bricht gelegentlich ab -> init() laeuft nie, Karten fehlen.
+async function blockiereSchwereCdns(context) {
+  await context.route(/(fonts\.googleapis\.com|fonts\.gstatic\.com|cdnjs\.cloudflare\.com)/, r => r.abort())
+}
+
 // Komfort: Gate weg + Fake-DB + Geocode-Mock + optional eingeloggt. Vor page.goto() aufrufen.
 async function setupDashboard(context, { db, user } = {}) {
   const datenbank = db || defaultDb()
@@ -291,11 +309,12 @@ async function setupDashboard(context, { db, user } = {}) {
   if (user) await seedSession(context, user)
   await installFakeSupabase(context, datenbank)
   await installGeocodeMock(context)
+  await blockiereSchwereCdns(context)
   return datenbank
 }
 
 module.exports = {
   test: base.test, expect: base.expect,
   installFakeSupabase, bypassGate, seedSession, setupDashboard,
-  defaultDb, profilZeile, SCHUELER, FIRMA, SUPABASE_REF,
+  defaultDb, profilZeile, SCHUELER, FIRMA, ADMIN, SUPABASE_REF,
 }

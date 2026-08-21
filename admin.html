@@ -26,6 +26,7 @@
   <div class="admin-tabs" id="admin-tabs">
     <button type="button" class="admin-tab active" data-tab="schueler">Schüler-Verifizierung<span class="sidebar-badge" id="tab-badge-schueler"></span></button>
     <button type="button" class="admin-tab" data-tab="firmen">Firmen-Freigabe<span class="sidebar-badge" id="tab-badge-firmen"></span></button>
+    <button type="button" class="admin-tab" data-tab="meldungen">Meldungen<span class="sidebar-badge" id="tab-badge-meldungen"></span></button>
   </div>
 
   <!-- SCHÜLER -->
@@ -59,6 +60,24 @@
       <button type="button" class="pill" data-ff="alle">Alle Firmen</button>
     </div>
     <div id="firma-liste">
+      <div class="skeleton-card" style="height:120px;"></div>
+    </div>
+  </section>
+
+  <!-- MELDUNGEN -->
+  <section class="admin-panel" id="panel-meldungen">
+    <div class="jobs-header">
+      <h1 style="font-size:1.7rem;">Meldungen</h1>
+      <p style="color:var(--ink-soft);">Von Schülern gemeldete Jobs und Chat-Nachrichten. Bitte zeitnah prüfen.</p>
+      <div class="stats-row" id="meldung-stats"></div>
+    </div>
+    <div class="pill-row" id="meldung-filter" style="margin-bottom:20px;">
+      <button type="button" class="pill active" data-mf="offen">⏳ Offen</button>
+      <button type="button" class="pill" data-mf="geprueft">👁 In Prüfung</button>
+      <button type="button" class="pill" data-mf="erledigt">✓ Erledigt</button>
+      <button type="button" class="pill" data-mf="alle">Alle</button>
+    </div>
+    <div id="meldung-liste">
       <div class="skeleton-card" style="height:120px;"></div>
     </div>
   </section>

@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { toast } from './toast.js'
+import { oeffneMeldeDialog, meldeButtonHtml } from './melden.js'
 
 function escapeHtml(str) {
   const div = document.createElement('div')
@@ -34,13 +35,27 @@ export async function ladeChat(container, bewerbungId, meineId) {
       .select('*').eq('bewerbung_id', bewerbungId).order('erstellt_am', { ascending: true })
 
     thread.innerHTML = (data && data.length)
-      ? data.map(m => `
-          <div class="chat-msg ${m.absender_id === meineId ? 'chat-msg--ich' : 'chat-msg--anderer'}">
+      ? data.map(m => {
+          const fremd = m.absender_id !== meineId
+          return `
+          <div class="chat-msg ${fremd ? 'chat-msg--anderer' : 'chat-msg--ich'}">
             <p>${escapeHtml(m.text)}</p>
             <span class="chat-zeit">${formatZeit(m.erstellt_am)}</span>
-          </div>`).join('')
+            ${fremd ? meldeButtonHtml(`data-melde-nachricht="${m.id}"`) : ''}
+          </div>`
+        }).join('')
       : '<p class="cv-preview-empty" style="text-align:center;">Noch keine Nachrichten – schreib die erste!</p>'
     thread.scrollTop = thread.scrollHeight
+
+    // Melden-Buttons verdrahten (nur an Nachrichten der Gegenseite)
+    thread.querySelectorAll('[data-melde-nachricht]').forEach(b => {
+      b.addEventListener('click', () => oeffneMeldeDialog({
+        typ: 'nachricht',
+        nachrichtId: b.dataset.meldeNachricht,
+        titel: 'Nachricht im Chat melden',
+        meineId
+      }))
+    })
 
     // Fremde ungelesene Nachrichten als gelesen markieren
     const ungelesen = (data || []).filter(m => m.absender_id !== meineId && !m.gelesen).map(m => m.id)

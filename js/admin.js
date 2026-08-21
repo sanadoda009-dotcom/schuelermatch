@@ -11,6 +11,8 @@ let alleSchueler = []
 let filter = 'offen'
 let alleFirmen = []
 let firmaFilter = 'neu'
+let alleMeldungen = []
+let meldungFilter = 'offen'
 
 const DOKUMENTE = [
   { spalte: 'schuelerausweis_url', label: 'Schülerausweis' },
@@ -44,8 +46,9 @@ async function init() {
   document.querySelectorAll('.admin-tab').forEach(t => {
     t.addEventListener('click', () => {
       document.querySelectorAll('.admin-tab').forEach(x => x.classList.toggle('active', x === t))
-      document.getElementById('panel-schueler').classList.toggle('active', t.dataset.tab === 'schueler')
-      document.getElementById('panel-firmen').classList.toggle('active', t.dataset.tab === 'firmen')
+      document.querySelectorAll('.admin-panel').forEach(p => {
+        p.classList.toggle('active', p.id === 'panel-' + t.dataset.tab)
+      })
     })
   })
   document.querySelectorAll('#firma-filter .pill').forEach(p => {
@@ -56,7 +59,15 @@ async function init() {
     })
   })
 
-  await Promise.all([ladeSchueler(), ladeFirmen()])
+  document.querySelectorAll('#meldung-filter .pill').forEach(p => {
+    p.addEventListener('click', () => {
+      meldungFilter = p.dataset.mf
+      document.querySelectorAll('#meldung-filter .pill').forEach(x => x.classList.toggle('active', x.dataset.mf === meldungFilter))
+      renderMeldungen()
+    })
+  })
+
+  await Promise.all([ladeSchueler(), ladeFirmen(), ladeMeldungen()])
 }
 
 async function ladeSchueler() {
@@ -380,6 +391,119 @@ async function setzeFirmaStatus(id, neuerStatus, btn) {
     ? `${f?.name || 'Firma'} freigegeben – Jobs sind jetzt sichtbar, E-Mail geht raus`
     : `${f?.name || 'Firma'} gesperrt – Jobs nicht mehr sichtbar`)
   await ladeFirmen()
+}
+
+
+/* ---------- MELDUNGEN ---------- */
+
+const GRUND_LABEL = {
+  unangemessen:  'Unangemessener Inhalt',
+  betrug:        'Betrug / Abzocke',
+  kontaktdaten:  'Kontakt außerhalb der Plattform',
+  unrealistisch: 'Unrealistisches Angebot',
+  sonstiges:     'Sonstiges'
+}
+const STATUS_LABEL = { offen: 'Offen', geprueft: 'In Prüfung', erledigt: 'Erledigt' }
+
+async function ladeMeldungen() {
+  // melder + gemeldete Person mitladen (Admin darf Profile lesen).
+  // Der gemeldete Inhalt steckt als "zitat" in der Meldung selbst -> kein
+  // Zugriff auf fremde Chats nötig.
+  const { data, error } = await supabase
+    .from('meldungen')
+    .select('*, melder:melder_id(name, email), gemeldet:gemeldet_user_id(name, email, role)')
+    .order('erstellt_am', { ascending: false })
+
+  if (error) {
+    document.getElementById('meldung-liste').innerHTML =
+      `<div class="empty-state"><p>Konnte nicht laden: ${escapeHtml(error.message)}</p></div>`
+    return
+  }
+  alleMeldungen = data || []
+  renderMeldungen()
+}
+
+function renderMeldungen() {
+  const offen = alleMeldungen.filter(m => m.status === 'offen').length
+  const erledigt = alleMeldungen.filter(m => m.status === 'erledigt').length
+
+  document.getElementById('meldung-stats').innerHTML = `
+    <div class="stat-box"><b>${offen}</b><span>Offen</span></div>
+    <div class="stat-box"><b>${erledigt}</b><span>Erledigt</span></div>
+    <div class="stat-box"><b>${alleMeldungen.length}</b><span>Gesamt</span></div>`
+
+  // Badge am Reiter zeigt offene Meldungen
+  const badge = document.getElementById('tab-badge-meldungen')
+  if (badge) badge.textContent = offen > 0 ? offen : ''
+
+  const liste = meldungFilter === 'alle'
+    ? alleMeldungen
+    : alleMeldungen.filter(m => m.status === meldungFilter)
+
+  const box = document.getElementById('meldung-liste')
+  if (!liste.length) {
+    box.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M24 6l18 30H6L24 6z" stroke-linejoin="round"/><path d="M24 18v10M24 32h.01" stroke-linecap="round"/></svg>
+        <p>${meldungFilter === 'offen' ? 'Keine offenen Meldungen – alles ruhig. 🎉' : 'Keine Meldungen in dieser Ansicht.'}</p>
+      </div>`
+    return
+  }
+
+  box.innerHTML = liste.map(m => meldungKarte(m)).join('')
+
+  box.querySelectorAll('[data-mstatus]').forEach(btn => {
+    btn.addEventListener('click', () => setzeMeldungStatus(btn.dataset.mid, btn.dataset.mstatus, btn))
+  })
+}
+
+function meldungKarte(m) {
+  const datum = m.erstellt_am
+    ? new Date(m.erstellt_am).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : ''
+  const zielLabel = m.typ === 'job' ? '📋 Job-Anzeige' : '💬 Chat-Nachricht'
+  const gemeldet = m.gemeldet
+    ? `${escapeHtml(m.gemeldet.name || 'Unbekannt')} (${escapeHtml(m.gemeldet.role || '?')})`
+    : 'nicht mehr vorhanden'
+
+  return `
+    <div class="meldung-card">
+      <div class="kopf">
+        <b>${zielLabel}</b>
+        <span class="meldung-grund-chip">${escapeHtml(GRUND_LABEL[m.grund] || m.grund)}</span>
+        <span class="meldung-status-chip meldung-status-${escapeHtml(m.status)}">${escapeHtml(STATUS_LABEL[m.status] || m.status)}</span>
+        <span class="meldung-meta" style="margin-left:auto;">${datum}</span>
+      </div>
+
+      <div class="meldung-meta" style="margin-bottom:6px;">
+        Gemeldet von <b>${escapeHtml(m.melder?.name || 'Unbekannt')}</b> ·
+        Betrifft <b>${gemeldet}</b>
+      </div>
+
+      ${m.zitat ? `<div class="meldung-zitat">${escapeHtml(m.zitat)}</div>` : '<p class="cv-preview-empty">Inhalt nicht mehr verfügbar.</p>'}
+
+      ${m.beschreibung ? `<p style="font-size:0.88rem; line-height:1.6;"><b>Anmerkung:</b> ${escapeHtml(m.beschreibung)}</p>` : ''}
+
+      <div class="admin-aktionen">
+        ${m.typ === 'job' && m.job_id
+          ? `<a href="job.html?id=${encodeURIComponent(m.job_id)}" target="_blank" rel="noopener" class="btn btn-outline">Job ansehen ↗</a>` : ''}
+        ${m.status !== 'geprueft' ? `<button type="button" class="btn btn-outline" data-mid="${m.id}" data-mstatus="geprueft">👁 In Prüfung</button>` : ''}
+        ${m.status !== 'erledigt' ? `<button type="button" class="btn btn-green" data-mid="${m.id}" data-mstatus="erledigt">✓ Erledigt</button>` : ''}
+        ${m.status !== 'offen' ? `<button type="button" class="btn btn-outline" data-mid="${m.id}" data-mstatus="offen">Wieder öffnen</button>` : ''}
+      </div>
+    </div>`
+}
+
+async function setzeMeldungStatus(id, status, btn) {
+  btn.disabled = true
+  const { error } = await supabase.from('meldungen').update({ status }).eq('id', id)
+  if (error) {
+    toast('Fehler: ' + error.message, 'fehler')
+    btn.disabled = false
+    return
+  }
+  toast(status === 'erledigt' ? 'Meldung als erledigt markiert ✓' : `Status: ${STATUS_LABEL[status] || status}`)
+  await ladeMeldungen()
 }
 
 function escapeHtml(str) {

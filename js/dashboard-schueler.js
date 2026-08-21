@@ -8,6 +8,7 @@ import { ladeChat, zaehleUngelesen } from './chat.js'
 import { initGlocke } from './notifications.js'
 import { geocode, distanzKm } from './geo.js'
 import { passtZurSuche } from './suche.js'
+import { oeffneMeldeDialog, meldeButtonHtml } from './melden.js'
 import { sichereMediaUrl } from './sicher.js'
 
 let profile
@@ -1180,7 +1181,12 @@ function oeffneDetail(jobId) {
       ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
     </div>
     ${job.beschreibung ? `<p style="font-size:0.95rem; line-height:1.7; color:var(--ink); white-space:pre-wrap;">${escapeHtml(job.beschreibung)}</p>` : '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'}
+    <div style="margin-top:12px; text-align:right;">${meldeButtonHtml('data-melde-job')}</div>
   `
+
+  document.querySelector('#detail-body [data-melde-job]')?.addEventListener('click', () => {
+    oeffneMeldeDialog({ typ: 'job', jobId: job.id, titel: job.titel, meineId: profile.id })
+  })
 
   const btn = document.getElementById('detail-bewerben-btn')
   const beworben = beworbenIds.has(job.id)
