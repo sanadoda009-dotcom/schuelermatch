@@ -14,7 +14,7 @@
 3. **„Verifiziertes Unternehmen"-Abzeichen** (Stufe 2): optionaler Gewerbeschein-Upload für echte Firmen, Privatpersonen bleiben ohne
 4. **Job-Alarm per E-Mail**: „Neuer Job in deiner Nähe" (stärkster Wachstums-Hebel)
 5. **Betreiber-Statistik im Admin**: Anmeldungen/Jobs/Bewerbungen pro Woche
-6. **Sicherheits-Hinweise im Chat** („Triff dich nie allein…")
+6. ~~**Sicherheits-Hinweise im Chat**~~ ✅ **ERLEDIGT am 22.8.** — aufklappbare Regel-Leiste in jedem Chat + automatische Warnung bei Nachrichten mit Handynummer/Messenger, Vorkasse oder Einladung zum Alleintreffen. 6 E2E-Tests.
 
 ## ✅ Neu erledigt (23. Juli)
 - **Playwright-E2E-Test-Suite**: **60 Tests, alle grün**. `npm test` im Projektordner. Supabase komplett gemockt (keine echten Accounts/Mails/DB). Deckt jetzt auch die **eingeloggten Dashboards** ab (Schüler + Firma, inkl. Bewerbungs-Flow und Job-Posten – landet in einer Fake-DB). Noch offen: Chat, Admin-Panel, echte Uploads.

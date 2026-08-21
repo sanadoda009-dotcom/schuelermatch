@@ -1444,3 +1444,37 @@ footer .logo { color: white; }
   background: var(--paper); border-radius: 0 8px 8px 0;
 }
 .meldung-meta { font-size: 0.75rem; color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; }
+
+/* ---------- SICHERHEIT IM CHAT ---------- */
+.chat-sicherheit {
+  border-bottom: 1px solid var(--line);
+  background: rgba(43,47,143,0.04);
+  font-size: 0.82rem;
+}
+.chat-sicherheit summary {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 20px; cursor: pointer; color: var(--indigo);
+  font-weight: 600; list-style: none; user-select: none;
+}
+.chat-sicherheit summary::-webkit-details-marker { display: none; }
+.chat-sicherheit summary::after {
+  content: '▾'; margin-left: auto; transition: transform 0.2s; opacity: 0.7;
+}
+.chat-sicherheit[open] summary::after { transform: rotate(180deg); }
+.chat-sicherheit summary:hover { background: rgba(43,47,143,0.07); }
+.chat-sicherheit summary svg { flex-shrink: 0; }
+.chat-sicherheit ul {
+  margin: 0; padding: 0 20px 14px 40px; color: var(--ink-soft); line-height: 1.65;
+}
+.chat-sicherheit li { margin-bottom: 5px; }
+.chat-sicherheit li b { color: var(--ink); font-weight: 600; }
+
+.chat-warnung {
+  align-self: flex-start; max-width: 85%;
+  background: rgba(240,180,41,0.14); border-left: 3px solid #f0b429;
+  border-radius: 0 10px 10px 0; padding: 8px 12px;
+  font-size: 0.79rem; line-height: 1.5; color: var(--ink);
+  margin: -4px 0 2px;
+}
+:root[data-theme="dark"] .chat-sicherheit { background: rgba(167,171,255,0.07); }
+:root[data-theme="dark"] .chat-sicherheit summary { color: #a7abff; }

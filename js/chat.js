@@ -16,10 +16,66 @@ function formatZeit(iso) {
   return gleicherTag ? uhr : d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' + uhr
 }
 
+// --- Sicherheit im Chat -------------------------------------------------
+// Der Chat ist die einzige Stelle, an der ein Schueler direkt mit einem
+// Erwachsenen schreibt. Darum: dauerhaft sichtbare Grundregeln (aufklappbar)
+// und ein freundlicher Hinweis, wenn eine empfangene Nachricht nach
+// Kontaktdaten, Privattreffen oder Vorkasse aussieht.
+
+function sicherheitsLeisteHtml() {
+  return `
+    <details class="chat-sicherheit">
+      <summary>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 3l8 3.5V12c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6.5L12 3z" stroke-linejoin="round"/>
+        </svg>
+        So chattest du sicher
+      </summary>
+      <ul>
+        <li><b>Triff dich nie allein</b> mit jemandem, den du nur hier kennst. Nimm eine erwachsene Person mit.</li>
+        <li><b>Sag deinen Eltern Bescheid</b>, wohin du gehst und wen du triffst.</li>
+        <li><b>Keine privaten Daten</b> wie Adresse, Ausweis oder Bankdaten weitergeben.</li>
+        <li><b>Du musst nie im Voraus zahlen.</b> Wer Geld von dir will, will dich abzocken.</li>
+        <li>Schreib am besten <b>hier</b> weiter – dann koennen wir dir helfen, wenn etwas schieflaeuft.</li>
+        <li>Etwas komisch? Nutze den <b>Melden</b>-Knopf an der Nachricht.</li>
+      </ul>
+    </details>`
+}
+
+// Sehr zurueckhaltende Muster - lieber einmal zu wenig warnen als staendig
+// falschen Alarm ausloesen.
+function warnungFuer(text) {
+  const t = (text || '').toLowerCase()
+
+  // Telefonnummer: Leerzeichen/Bindestriche zwischen Ziffern entfernen,
+  // Punkte bewusst NICHT (sonst schlagen Datumsangaben wie 12.03.2026 an).
+  const ziffern = t.replace(/[\s\-\/()]/g, '')
+  if (/\d{7,}/.test(ziffern)) return 'kontakt'
+
+  if (/\b(whatsapp|telegram|snapchat|instagram|insta|tiktok|discord|signal)\b/.test(t)) return 'kontakt'
+  // Wortgrenzen in JS kennen nur ASCII und greifen vor ü/ä/ö nicht,
+  // darum hier bewusst ohne. Die Begriffe sind eindeutig genug.
+  if (/(vorkasse|anzahlung|kaution|gebühr|überweis|paypal|gutschein|amazon-?karte)/.test(t)) return 'geld'
+  if (/(zu mir nach haus|bei mir zuhause|bei mir zu haus|meine wohnung|komm allein|ganz allein)/.test(t)) return 'treffen'
+  return null
+}
+
+const WARN_TEXT = {
+  kontakt: 'Sieht nach Kontaktdaten aus. Bleib lieber hier im Chat – hier bist du geschützt.',
+  geld:    'Achtung: Du musst für einen Job <b>nie</b> im Voraus zahlen. Das ist ein Warnzeichen.',
+  treffen: 'Triff dich nie allein mit jemandem, den du nur online kennst. Nimm jemanden mit und sag deinen Eltern Bescheid.'
+}
+
+function warnungHtml(art) {
+  if (!art) return ''
+  return `<div class="chat-warnung" role="note">⚠️ ${WARN_TEXT[art]}</div>`
+}
+
 // Rendert einen Chat-Verlauf in `container` für eine Bewerbung.
 // meineId = eigene Profil-ID. Gibt eine Funktion zum Aufräumen zurück.
 export async function ladeChat(container, bewerbungId, meineId) {
   container.innerHTML = `
+    ${sicherheitsLeisteHtml()}
     <div class="chat-thread" role="log" aria-live="polite"></div>
     <form class="chat-form">
       <input type="text" class="chat-input" placeholder="Nachricht schreiben..." maxlength="2000" autocomplete="off" aria-label="Nachricht">
@@ -42,7 +98,8 @@ export async function ladeChat(container, bewerbungId, meineId) {
             <p>${escapeHtml(m.text)}</p>
             <span class="chat-zeit">${formatZeit(m.erstellt_am)}</span>
             ${fremd ? meldeButtonHtml(`data-melde-nachricht="${m.id}"`) : ''}
-          </div>`
+          </div>
+          ${fremd ? warnungHtml(warnungFuer(m.text)) : ''}`
         }).join('')
       : '<p class="cv-preview-empty" style="text-align:center;">Noch keine Nachrichten – schreib die erste!</p>'
     thread.scrollTop = thread.scrollHeight

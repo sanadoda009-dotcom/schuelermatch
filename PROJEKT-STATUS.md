@@ -304,6 +304,20 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 22. August 2026 (Teil 2) - Sicherheits-Hinweise im Chat
+Der Chat ist die einzige Stelle, an der ein Schueler direkt mit einem Erwachsenen schreibt - entsprechend abgesichert.
+
+- **Regel-Leiste** in jedem Chat (`sicherheitsLeisteHtml`, natives `<details>`): dauerhaft sichtbar, aufklappbar. Sechs Regeln: nie allein treffen, Eltern Bescheid sagen, keine privaten Daten, nie im Voraus zahlen, im Chat bleiben, Melden-Knopf nutzen.
+- **Automatische Warnung** unter empfangenen Nachrichten (`warnungFuer`): drei Kategorien - kontakt (Handynummer oder Messenger-Name), geld (Vorkasse/Kaution/PayPal/Gutschein), treffen (Einladung zum Alleinkommen). Nur bei FREMDEN Nachrichten, Ton bewusst ruhig statt alarmierend.
+- Muster bewusst zurueckhaltend: Die Ziffernpruefung entfernt nur Leerzeichen/Bindestriche, **nicht** Punkte - sonst haetten Datumsangaben wie 12.03.2026 falschen Alarm ausgeloest.
+- **Zwei Fallen beim Bauen dokumentiert:**
+  1. Beim Schreiben per Python-Skript wurden aus Regex-Wortgrenzen echte **Backspace-Zeichen (0x08)** in der Datei - im Terminal unsichtbar, die Erkennung haette nie getroffen. Gefunden per Binaer-Grep auf 0x08. Lehre: generierte Dateien mit Regex immer binaer gegenpruefen.
+  2. JS-Wortgrenzen kennen nur ASCII und greifen **nicht vor Umlauten** - das Geld-Muster haette "ueberweisen" nie erkannt. Dort jetzt bewusst ohne Wortgrenze.
+- Logik mit 17 Faellen geprueft (Treffer + Fehlalarm-Checks, u.a. loest "Installiere bitte nichts" dank Wortgrenze kein "insta" aus).
+
+### Tests: 69 -> 75, alle gruen
+`tests/chat-sicherheit.spec.js` deckt den Chat erstmals ab: Regel-Leiste, alle drei Warntypen, kein Fehlalarm bei normalen Nachrichten, und eigene Nachrichten bekommen weder Warnung noch Melden-Knopf.
+
 ## Session 22. August 2026 - Melden-Funktion (Trust & Safety)
 Schueler koennen fragwuerdige Jobs und Chat-Nachrichten melden; Meldungen landen im Admin-Bereich.
 
