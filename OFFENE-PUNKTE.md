@@ -10,8 +10,8 @@
 
 ## 🔜 Nächste Features (nach Priorität)
 1. **Melden-Funktion**: Schüler meldet fragwürdigen Job oder Chat-Nachricht → landet im Admin-Bereich
-2. **Deutsche E-Mail-Vorlagen** für Supabase-Mails (Bestätigung/Passwort sind noch englisch):
-   Supabase → Authentication → Emails → Templates (Claude schreibt die Texte vor)
+2. **Deutsche E-Mail-Vorlagen** für Supabase-Mails — TEXTE FERTIG in `supabase/mail-vorlagen-deutsch.md`, nur noch einfügen:
+   Supabase → Authentication → Emails → Templates → Betreff + HTML aus der Datei einsetzen → Save. Nur 3 Vorlagen nötig (Bestätigung, Passwort-Reset, E-Mail-Änderung).
 3. **„Verifiziertes Unternehmen"-Abzeichen** (Stufe 2): optionaler Gewerbeschein-Upload für echte Firmen, Privatpersonen bleiben ohne
 4. **Job-Alarm per E-Mail**: „Neuer Job in deiner Nähe" (stärkster Wachstums-Hebel)
 5. **Betreiber-Statistik im Admin**: Anmeldungen/Jobs/Bewerbungen pro Woche
