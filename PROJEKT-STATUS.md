@@ -304,6 +304,18 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 28. Juli 2026 - Deutsche Auth-Mail-Vorlagen (LIVE)
+- Die Supabase-Auth-Mails waren englisch ("Confirm your email address"). Jetzt alle 3 relevanten auf Deutsch im SchuelerMatch-Design (Verlaufsleiste, Typo, Footer wie bei mail-ereignis):
+  - **Confirm sign up** -> "Bestaetige deine E-Mail-Adresse"
+  - **Reset password** -> "Neues Passwort fuer SchuelerMatch"
+  - **Change email address** -> "Bestaetige deine neue E-Mail-Adresse"
+- Quelltexte versioniert in `supabase/mail-vorlagen-deutsch.md` (Commit be72aad).
+- **Direkt im Dashboard eingetragen** (Claude via Chrome). Technischer Kniff: das Body-Feld ist ein **Monaco-Editor** - Tippen wuerde die HTML-Quotes durch Auto-Complete zerstoeren. Loesung: `window.monaco.editor.getModels()[0].setValue(html)`; der Betreff ist ein React-kontrolliertes Input -> nativer Value-Setter + `input`-Event, sonst merkt React die Aenderung nicht.
+- Verifiziert nach komplettem Neuladen: alle 3 Betreffs + deutscher Body persistent, `{{ .ConfirmationURL }}` intakt. Preview-Ansicht geprueft.
+- Button-Verlauf startet bei `#00795c` statt `#00c896` (weisse Schrift lesbar, AA) - gleiche Anpassung wie auf der Website.
+- Nicht angefasst: Magic Link, Invite user, Reauthentication (werden von der App nicht genutzt).
+- **Stolperfalle dokumentiert**: Das Supabase-Dashboard haengt bei schnellen Direkt-Navigationen auf Unterseiten im Skeleton-Ladezustand. Zuverlaessig ist Client-Routing (Breadcrumb "Emails" klicken -> Zeile klicken) statt Full-Page-Navigation.
+
 ## Session 26. Juli 2026 - Umfassender Security-Audit + Fixes (8/11 umgesetzt)
 Audit gegen die echte Live-Config (Supabase MCP: RLS-Policies, Spalten-Rechte, Storage, Funktionen, Edge Functions) + Frontend-Code-Review.
 
