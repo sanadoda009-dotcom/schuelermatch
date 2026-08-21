@@ -304,6 +304,29 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 22. August 2026 - Melden-Funktion (Trust & Safety)
+Schueler koennen fragwuerdige Jobs und Chat-Nachrichten melden; Meldungen landen im Admin-Bereich.
+
+### Datenbank
+- Tabelle `meldungen` (melder_id, typ job/nachricht, job_id/nachricht_id, grund, beschreibung, status offen/geprueft/erledigt, notiz_admin, zitat, gemeldet_user_id) + RLS.
+- CHECK-Constraint `meldung_ziel`: genau ein Ziel passend zum Typ. Zwei partielle Unique-Indizes -> dieselbe Sache kann man nur einmal melden (Spam-Schutz).
+- RLS: INSERT nur in eigenem Namen; SELECT eigene + Admin; UPDATE/DELETE nur Admin.
+- Schutz-Trigger `schuetze_meldung_felder` (Muster aus dem Security-Audit): Nicht-Admins koennen status/notiz_admin nicht selbst setzen - sonst haette man eine Meldung direkt als erledigt anlegen und unsichtbar machen koennen. **Live getestet.**
+
+### Wichtige Design-Entscheidung: kein Admin-Zugriff auf Privatchats
+Admins duerfen `nachrichten` bewusst NICHT lesen. Damit eine gemeldete Nachricht trotzdem pruefbar ist, kopiert der SECURITY-DEFINER-Trigger `meldung_zitat_setzen` beim Melden genau diesen einen Inhalt als `zitat` in die Meldung.
+- **Dabei entdeckte und geschlossene Luecke**: Ohne Pruefung haette man eine beliebige fremde `nachricht_id` melden koennen und den Text dann ueber die eigene Meldung zurueckgelesen (die SELECT-Policy erlaubt eigene Meldungen). Der Trigger prueft jetzt, ob der Melder ueberhaupt Teil der Konversation ist, sonst Fehler 42501. **Beide Faelle live getestet** (fremder Chat blockiert, eigener Chat erlaubt).
+
+### Frontend
+- `js/melden.js`: gemeinsamer Dialog (5 Gruende als Auswahlkarten + Freitext bis 1000 Zeichen + Notfall-Hinweis Polizei 110), `meldeButtonHtml()` fuer einheitliche Buttons. Behandelt Fehler 23505 (schon gemeldet) freundlich.
+- Job-Detail im Schueler-Dashboard + fremde Chat-Nachrichten (Button bei Hover, auf Touch dauerhaft).
+- Admin: dritter Reiter Meldungen (Filter offen/geprueft/erledigt/alle, Badge mit offener Anzahl, Zitat, Melder, Betroffener, Statuswechsel). Tab-Logik in admin.js von fest-zwei auf generisch umgestellt.
+- Datenschutzerklaerung um Meldungen ergaenzt (Datenarten + Speicherdauer), Stand auf 22.8. gesetzt.
+
+### Tests: 60 -> 69, alle gruen
+- 3 Tests Melde-Flow im Schueler-Dashboard, 6 Tests fuer den Admin-Reiter (`tests/admin-meldungen.spec.js`, neuer ADMIN-Testnutzer im Fake).
+- **Flaky-Ursache gefunden und behoben**: Die Dashboard-Tests luden Google Fonts, jsPDF und pdf.js von echten CDNs. Unter Parallel-Last brach die Module-Kette gelegentlich ab -> `init()` lief nie, Job-Karten fehlten (erkennbar daran, dass die Sidebar die HTML-Standardwerte zeigte und KEINE Weiterleitung stattfand). Fix: `blockiereSchwereCdns()` in `setupDashboard` klemmt fonts.googleapis/gstatic + cdnjs ab. Suite damit hermetisch und rund 25% schneller.
+
 ## Session 28. Juli 2026 - Deutsche Auth-Mail-Vorlagen (LIVE)
 - Die Supabase-Auth-Mails waren englisch ("Confirm your email address"). Jetzt alle 3 relevanten auf Deutsch im SchuelerMatch-Design (Verlaufsleiste, Typo, Footer wie bei mail-ereignis):
   - **Confirm sign up** -> "Bestaetige deine E-Mail-Adresse"

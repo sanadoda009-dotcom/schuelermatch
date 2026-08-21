@@ -9,7 +9,7 @@
 3. **Google Search Console** einrichten + `sitemap.xml` einreichen (→ Jobs erscheinen in Google Jobs)
 
 ## 🔜 Nächste Features (nach Priorität)
-1. **Melden-Funktion**: Schüler meldet fragwürdigen Job oder Chat-Nachricht → landet im Admin-Bereich
+1. ~~**Melden-Funktion**~~ ✅ **ERLEDIGT am 22.8.** — Melde-Button im Job-Detail und an fremden Chat-Nachrichten, 5 Melde-Gründe + Freitext, neuer Admin-Reiter „Meldungen“ mit Filter und Status. 9 E2E-Tests.
 2. ~~**Deutsche E-Mail-Vorlagen**~~ ✅ **ERLEDIGT am 28.7.** — alle 3 Auth-Mails (Bestätigung, Passwort-Reset, E-Mail-Änderung) sind auf Deutsch und im SchülerMatch-Design. In Supabase eingetragen und nach Neuladen verifiziert. Quelltexte: `supabase/mail-vorlagen-deutsch.md`.
 3. **„Verifiziertes Unternehmen"-Abzeichen** (Stufe 2): optionaler Gewerbeschein-Upload für echte Firmen, Privatpersonen bleiben ohne
 4. **Job-Alarm per E-Mail**: „Neuer Job in deiner Nähe" (stärkster Wachstums-Hebel)
