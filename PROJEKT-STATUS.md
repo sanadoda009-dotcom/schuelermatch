@@ -304,6 +304,20 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 22. August 2026 (Teil 5) - Gleiches Filter-Layout im Schueler-Dashboard
+
+**Missverstaendnis geklaert**: Beim Umbau (Teil 4) hatte ich `jobs.html` gemeint (oeffentliche Jobboerse), der Nutzer meinte aber die Jobs-Ansicht in **`dashboard-schueler.html`** - die Seite, die er als eingeloggter Nutzer tatsaechlich sieht. Beide haben eine eigene Jobliste mit eigenem Filter.
+
+- Dashboard-Jobansicht auf dasselbe Muster umgebaut: grosse Suchleiste oben, `jobs-layout` mit sticky Filterspalte links, Ergebnisse rechts, auf dem Handy als einfahrendes Panel mit Zaehler-Blase.
+- Beschriftungen: Ort / Umkreis / Bereich / Mindestlohn / Wann arbeiten?. Der **Umkreis-Regler** und **Nur Gemerkte** wandern mit in die Filterspalte (sind ja auch Filter).
+- Aktive Filter als entfernbare Chips - inkl. Umkreis ("max. 20 km") und Merkliste.
+- `alleFilterZuruecksetzen()` neu; Merkliste-Beschriftung vereinheitlicht auf "Nur Gemerkte".
+- Achtung beim Umkreis: `radius-row` ist jetzt eine `.filter-gruppe`, die JS-Zeile setzt daher `display:block` statt `flex`.
+- Alle Element-IDs unveraendert -> bestehende Dashboard-Tests gelten weiter.
+
+### Tests: 90 -> 96, alle gruen
+`tests/dashboard-filter.spec.js`: Filterspalte + sticky, Beschriftungen, Chips setzen/entfernen, Merkliste-Chip, Zuruecksetzen, Handy-Panel mit Zaehler.
+
 ## Session 22. August 2026 (Teil 4) - Jobboerse umgebaut: Layout + Filter
 Auf Wunsch des Nutzers ("wie es angeordnet ist und wie es mit dem Filter ist gefaellt mir nicht").
 

@@ -116,7 +116,7 @@ async function init() {
 
   // Umkreis-Slider nur zeigen, wenn Wohnort-Koordinaten bekannt sind
   if (profile.lat != null && profile.lon != null) {
-    document.getElementById('radius-row').style.display = 'flex'
+    document.getElementById('radius-row').style.display = 'block'
     document.getElementById('radius-ort').textContent = profile.ort || 'deinem Ort'
     const slider = document.getElementById('filter-radius')
     slider.addEventListener('input', () => {
@@ -125,10 +125,11 @@ async function init() {
       wendeJobFilterAn()
     })
   }
+  initFilterPanel()
   document.getElementById('merkliste-toggle').addEventListener('click', () => {
     nurGemerkte = !nurGemerkte
     const btn = document.getElementById('merkliste-toggle')
-    btn.textContent = nurGemerkte ? '♥ Gemerkte' : '♡ Gemerkte'
+    btn.textContent = nurGemerkte ? '♥ Nur Gemerkte' : '♡ Nur Gemerkte'
     btn.setAttribute('aria-pressed', nurGemerkte)
     btn.classList.toggle('btn-green', nurGemerkte)
     btn.classList.toggle('btn-outline', !nurGemerkte)
@@ -1090,6 +1091,100 @@ function wendeJobFilterAn() {
   }
 
   renderJobs(gefiltert)
+  zeigeAktiveFilter()
+}
+
+/* ---------- AKTIVE FILTER + FILTER-PANEL ---------- */
+
+// Gesetzte Filter als entfernbare Chips ueber den Ergebnissen (ohne Freitext).
+function aktiveFilterListe() {
+  const wert = id => document.getElementById(id)?.value || ''
+  const liste = []
+  if (wert('filter-ort').trim()) liste.push({ id: 'filter-ort', text: 'Ort: ' + wert('filter-ort').trim() })
+  if (wert('filter-kategorie')) liste.push({ id: 'filter-kategorie', text: wert('filter-kategorie') })
+  if (wert('filter-gehalt')) liste.push({ id: 'filter-gehalt', text: 'ab ' + wert('filter-gehalt') + ' €/Std' })
+  if (wert('filter-arbeitszeit')) liste.push({ id: 'filter-arbeitszeit', text: wert('filter-arbeitszeit') })
+  const r = parseInt(wert('filter-radius')) || 0
+  if (r > 0) liste.push({ id: 'filter-radius', text: 'max. ' + r + ' km' })
+  if (nurGemerkte) liste.push({ id: 'merkliste', text: '♥ Nur Gemerkte' })
+  return liste
+}
+
+function zeigeAktiveFilter() {
+  const aktiv = aktiveFilterListe()
+  const zaehler = document.getElementById('filter-anzahl')
+  if (zaehler) zaehler.textContent = aktiv.length ? String(aktiv.length) : ''
+
+  const box = document.getElementById('aktive-filter')
+  if (!box) return
+  box.innerHTML = aktiv.map(f =>
+    `<span class="filter-chip">${escapeHtml(f.text)}
+       <button type="button" data-weg="${f.id}" aria-label="Filter ${escapeHtml(f.text)} entfernen">×</button>
+     </span>`).join('')
+
+  box.querySelectorAll('[data-weg]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ziel = btn.dataset.weg
+      if (ziel === 'merkliste') {
+        nurGemerkte = false
+        const mb = document.getElementById('merkliste-toggle')
+        mb.textContent = '♡ Nur Gemerkte'
+        mb.setAttribute('aria-pressed', 'false')
+      } else if (ziel === 'filter-radius') {
+        document.getElementById('filter-radius').value = 0
+        document.getElementById('radius-wert').textContent = 'Egal'
+      } else {
+        document.getElementById(ziel).value = ''
+      }
+      wendeJobFilterAn()
+    })
+  })
+}
+
+function alleFilterZuruecksetzen() {
+  ;['filter-suche', 'filter-ort', 'filter-kategorie', 'filter-gehalt', 'filter-arbeitszeit'].forEach(id => {
+    const el = document.getElementById(id)
+    if (el) el.value = ''
+  })
+  const r = document.getElementById('filter-radius')
+  if (r) { r.value = 0; document.getElementById('radius-wert').textContent = 'Egal' }
+  if (nurGemerkte) {
+    nurGemerkte = false
+    const mb = document.getElementById('merkliste-toggle')
+    mb.textContent = '♡ Nur Gemerkte'
+    mb.setAttribute('aria-pressed', 'false')
+  }
+  const sort = document.getElementById('sortierung')
+  if (sort) sort.value = 'neueste'
+  schliesseFilterPanel()
+  wendeJobFilterAn()
+}
+
+function schliesseFilterPanel() {
+  document.getElementById('filter-panel')?.classList.remove('offen')
+  document.getElementById('filter-hintergrund')?.classList.remove('offen')
+  document.getElementById('filter-oeffnen')?.setAttribute('aria-expanded', 'false')
+  document.body.style.overflow = ''
+}
+
+function initFilterPanel() {
+  const panel = document.getElementById('filter-panel')
+  const hintergrund = document.getElementById('filter-hintergrund')
+  const oeffnen = document.getElementById('filter-oeffnen')
+  if (!panel || !oeffnen) return
+
+  const setzeOffen = offen => {
+    panel.classList.toggle('offen', offen)
+    hintergrund?.classList.toggle('offen', offen)
+    oeffnen.setAttribute('aria-expanded', String(offen))
+    document.body.style.overflow = offen ? 'hidden' : ''
+  }
+  oeffnen.addEventListener('click', () => setzeOffen(!panel.classList.contains('offen')))
+  document.getElementById('filter-schliessen')?.addEventListener('click', () => setzeOffen(false))
+  hintergrund?.addEventListener('click', () => setzeOffen(false))
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') setzeOffen(false) })
+
+  document.getElementById('filter-reset-alle')?.addEventListener('click', alleFilterZuruecksetzen)
 }
 
 async function toggleMerken(jobId, btn) {

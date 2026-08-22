@@ -85,52 +85,105 @@
       <div class="verify-banner" id="verify-banner"></div>
       <div id="onboarding-box"></div>
     </div>
-    <div class="filter-row">
-      <input type="text" id="filter-suche" placeholder="Job-Titel durchsuchen...">
-      <input type="text" id="filter-ort" placeholder="Stadt (z.B. München)">
-      <select id="filter-gehalt">
-        <option value="">Jeder Lohn</option>
-        <option value="8">ab 8 €/Std</option>
-        <option value="10">ab 10 €/Std</option>
-        <option value="12">ab 12 €/Std</option>
-        <option value="14">ab 14 €/Std</option>
-        <option value="16">ab 16 €/Std</option>
-      </select>
-      <select id="filter-kategorie">
-        <option value="">Alle Kategorien</option>
-        <option>Verkauf</option>
-        <option>Nachhilfe</option>
-        <option>Gastronomie</option>
-        <option>Lieferung & Kurier</option>
-        <option>Babysitten</option>
-        <option>Haushalt & Garten</option>
-        <option>Büro & Organisation</option>
-        <option>Tierbetreuung</option>
-        <option>Technik & Computer</option>
-        <option>Sonstiges</option>
-      </select>
-      <select id="filter-arbeitszeit">
-        <option value="">Jede Arbeitszeit</option>
-        <option>Wochenende</option>
-        <option>Nachmittags</option>
-        <option>Abends</option>
-        <option>Ferienjob</option>
-        <option>Flexibel</option>
-      </select>
-      <select id="sortierung">
-        <option value="neueste">Neueste zuerst</option>
-        <option value="lohn">Höchster Lohn</option>
-      </select>
-      <button type="button" id="merkliste-toggle" class="btn btn-outline" aria-pressed="false">♡ Gemerkte</button>
+
+    <div class="search-hero">
+      <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3" stroke-linecap="round"/></svg>
+      <input type="text" id="filter-suche" placeholder="Welchen Job suchst du? z.B. Nachhilfe, Eisverkauf...">
     </div>
-    <div class="radius-row" id="radius-row" style="display:none;">
-      <label for="filter-radius" class="mono">📍 Umkreis: <b id="radius-wert">Egal</b></label>
-      <input type="range" id="filter-radius" min="0" max="50" step="5" value="0">
-      <span class="mono" style="color:var(--ink-soft); font-size:0.72rem;">um <span id="radius-ort"></span></span>
-    </div>
-    <p class="jobs-count mono" id="jobs-count"></p>
-    <div class="jobs-grid" id="jobs-grid">
-      <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+
+    <div class="jobs-layout">
+      <div class="filter-hintergrund" id="filter-hintergrund"></div>
+      <aside class="filter-panel" id="filter-panel" aria-label="Filter">
+        <div class="filter-panel-kopf">
+          <b>Filter</b>
+          <button type="button" class="filter-schliessen" id="filter-schliessen" aria-label="Filter schließen">✕</button>
+        </div>
+
+        <div class="filter-gruppe">
+          <label for="filter-ort">Ort</label>
+          <input type="text" id="filter-ort" placeholder="z.B. München">
+        </div>
+
+        <div class="filter-gruppe" id="radius-row" style="display:none;">
+          <label for="filter-radius">Umkreis: <b id="radius-wert">Egal</b></label>
+          <input type="range" id="filter-radius" min="0" max="50" step="5" value="0">
+          <span class="filter-hinweis">um <span id="radius-ort"></span></span>
+        </div>
+
+        <div class="filter-gruppe">
+          <label for="filter-kategorie">Bereich</label>
+          <select id="filter-kategorie">
+            <option value="">Alle Kategorien</option>
+            <option>Verkauf</option>
+            <option>Nachhilfe</option>
+            <option>Gastronomie</option>
+            <option>Lieferung &amp; Kurier</option>
+            <option>Babysitten</option>
+            <option>Haushalt &amp; Garten</option>
+            <option>Büro &amp; Organisation</option>
+            <option>Tierbetreuung</option>
+            <option>Technik &amp; Computer</option>
+            <option>Sonstiges</option>
+          </select>
+        </div>
+
+        <div class="filter-gruppe">
+          <label for="filter-gehalt">Mindestlohn</label>
+          <select id="filter-gehalt">
+            <option value="">Egal</option>
+            <option value="8">ab 8 €/Std</option>
+            <option value="10">ab 10 €/Std</option>
+            <option value="12">ab 12 €/Std</option>
+            <option value="14">ab 14 €/Std</option>
+            <option value="16">ab 16 €/Std</option>
+          </select>
+        </div>
+
+        <div class="filter-gruppe">
+          <label for="filter-arbeitszeit">Wann arbeiten?</label>
+          <select id="filter-arbeitszeit">
+            <option value="">Egal</option>
+            <option>Wochenende</option>
+            <option>Nachmittags</option>
+            <option>Abends</option>
+            <option>Ferienjob</option>
+            <option>Flexibel</option>
+          </select>
+        </div>
+
+        <div class="filter-gruppe">
+          <button type="button" id="merkliste-toggle" class="btn btn-outline btn-full" aria-pressed="false">♡ Nur Gemerkte</button>
+        </div>
+
+        <button type="button" class="btn btn-outline btn-full filter-leeren" id="filter-reset-alle">Alle Filter zurücksetzen</button>
+      </aside>
+
+      <div class="jobs-ergebnis">
+        <div class="ergebnis-kopf">
+          <button type="button" class="filter-oeffnen" id="filter-oeffnen" aria-expanded="false" aria-controls="filter-panel">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 5h18M6 12h12M10 19h4" stroke-linecap="round"/>
+            </svg>
+            Filter<span class="filter-anzahl" id="filter-anzahl"></span>
+          </button>
+
+          <p class="jobs-count mono" id="jobs-count"></p>
+
+          <label class="sort-wahl">
+            <span>Sortieren:</span>
+            <select id="sortierung">
+              <option value="neueste">Neueste zuerst</option>
+              <option value="lohn">Höchster Lohn</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="aktive-filter" id="aktive-filter"></div>
+
+        <div class="jobs-grid" id="jobs-grid">
+          <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+        </div>
+      </div>
     </div>
   </div>
 
