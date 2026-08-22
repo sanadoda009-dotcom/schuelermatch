@@ -304,6 +304,31 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 22. August 2026 (Teil 6) - Filter komplett hinter einen Knopf + Dark Mode entfernt
+
+### Filter jetzt auf JEDEM Geraet hinter einem Knopf
+Wunsch des Nutzers: ein Knopf "Filter", der das Panel oeffnet - nicht nur auf dem Handy.
+- Die feste Filterspalte auf dem Desktop ist weg. Stattdessen faehrt das Panel per Knopf **von links** ein (Desktop) bzw. **von unten** (Handy), jeweils mit abdunkelndem Hintergrund; Klick daneben und Escape schliessen es.
+- Die Jobliste beginnt dadurch direkt unter Suche und Kategorien.
+- Aktive Filter bleiben als Chips sichtbar, auch wenn das Panel zu ist - man sieht also weiterhin, wonach gefiltert wird, ohne es zu oeffnen.
+- Gilt fuer beide Joblisten: `jobs.html` und die Jobs-Ansicht im Schueler-Dashboard.
+
+### Dark Mode entfernt (nur noch heller Modus)
+- Umschalter und Theme-Logik aus `js/gate.js` entfernt; `gate.js` enthaelt jetzt nur noch die Zugangssperre.
+- Kompletten `:root[data-theme="dark"]`-Block aus `css/style.css` entfernt (rund 2.500 Zeichen) inkl. `.theme-toggle` und der beiden Chat-Regeln. **0 data-theme-Vorkommen** im CSS.
+- Wichtig: Es gab **kein** `prefers-color-scheme` im CSS - Dark Mode wurde ausschliesslich ueber `data-theme` gesetzt. Damit reichte das Entfernen der JS-Logik, um es sicher abzuschalten; das CSS-Aufraeumen war reine Hygiene.
+- `assets/logo-light.png` bleibt - das wird weiterhin fuer das Logo im dunklen Footer gebraucht.
+- Test in `landing.spec.js` umgedreht: prueft jetzt, dass es KEINEN Umschalter gibt und kein dunkles Theme gesetzt ist.
+
+### Endstand (gemessen)
+| | vor allen Umbauten | jetzt |
+|---|---|---|
+| Desktop, erste Job-Karte | 525px (73%) | **395px (49%)** |
+| Handy, erste Job-Karte | 718px (85%) | **450px (53%)** |
+
+### Tests: 96 -> 97, alle gruen
+Layout-Tests auf Panel-Verhalten umgestellt (oeffnen/schliessen, Escape, Klick daneben, Chips bleiben bei geschlossenem Panel sichtbar).
+
 ## Session 22. August 2026 (Teil 5) - Gleiches Filter-Layout im Schueler-Dashboard
 
 **Missverstaendnis geklaert**: Beim Umbau (Teil 4) hatte ich `jobs.html` gemeint (oeffentliche Jobboerse), der Nutzer meinte aber die Jobs-Ansicht in **`dashboard-schueler.html`** - die Seite, die er als eingeloggter Nutzer tatsaechlich sieht. Beide haben eine eigene Jobliste mit eigenem Filter.

@@ -1,27 +1,52 @@
-// Neues Filter-Layout der Jobbörse: Filterspalte (Desktop) bzw. ausklappbares
-// Panel (Handy), aktive Filter als entfernbare Chips, Sortierung getrennt.
+// Filter-Layout der Jobbörse: Die Filter stecken hinter einem Knopf und öffnen
+// ein Panel – auf jedem Gerät. Aktive Filter erscheinen als entfernbare Chips.
 const { test, expect } = require('./helpers/basis')
 
-test.describe('Desktop-Layout', () => {
+// Filter setzen heißt: Panel öffnen, Werte eintragen.
+async function oeffneFilter(page) {
+  await page.locator('#filter-oeffnen').click()
+  await expect(page.locator('#filter-panel')).toHaveClass(/offen/)
+}
+
+test.describe('Desktop', () => {
   test.use({ viewport: { width: 1280, height: 800 } })
 
-  test('Filterspalte steht neben den Ergebnissen, Filter-Knopf ist ausgeblendet', async ({ page }) => {
+  test('Filter stecken hinter einem Knopf und öffnen ein Panel', async ({ page }) => {
     await page.goto('/jobs.html')
     await expect(page.locator('.job-card')).toHaveCount(4)
 
-    await expect(page.locator('#filter-panel')).toBeVisible()
-    await expect(page.locator('#filter-oeffnen')).toBeHidden()
+    const knopf = page.locator('#filter-oeffnen')
+    await expect(knopf).toBeVisible()
+    await expect(knopf).toHaveAttribute('aria-expanded', 'false')
+    await expect(page.locator('#filter-panel')).not.toHaveClass(/offen/)
 
-    // Zwei Spalten: Filter links, Ergebnisse rechts
-    const spalten = await page.locator('.jobs-layout').evaluate(el => getComputedStyle(el).gridTemplateColumns)
-    expect(spalten.split(' ').length).toBe(2)
+    await knopf.click()
+    await expect(page.locator('#filter-panel')).toHaveClass(/offen/)
+    await expect(knopf).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.locator('#filter-hintergrund')).toHaveClass(/offen/)
 
-    // Filterspalte bleibt beim Scrollen stehen
-    await expect(page.locator('#filter-panel')).toHaveCSS('position', 'sticky')
+    await page.locator('#filter-schliessen').click()
+    await expect(page.locator('#filter-panel')).not.toHaveClass(/offen/)
   })
 
-  test('jeder Filter hat eine sichtbare Beschriftung', async ({ page }) => {
+  test('Klick daneben und Escape schließen das Panel ebenfalls', async ({ page }) => {
     await page.goto('/jobs.html')
+    await expect(page.locator('.job-card')).toHaveCount(4)
+
+    await oeffneFilter(page)
+    // Rechts danebenklicken – das Panel selbst liegt links am Rand
+    await page.mouse.click(1000, 400)
+    await expect(page.locator('#filter-panel')).not.toHaveClass(/offen/)
+
+    await oeffneFilter(page)
+    await page.keyboard.press('Escape')
+    await expect(page.locator('#filter-panel')).not.toHaveClass(/offen/)
+  })
+
+  test('jeder Filter im Panel hat eine sichtbare Beschriftung', async ({ page }) => {
+    await page.goto('/jobs.html')
+    await oeffneFilter(page)
+
     await expect(page.locator('.filter-gruppe label')).toHaveCount(4)
     for (const text of ['Ort', 'Dein Alter', 'Mindestlohn', 'Wann arbeiten?']) {
       await expect(page.locator('.filter-gruppe label', { hasText: text })).toBeVisible()
@@ -41,8 +66,8 @@ test.describe('Desktop-Layout', () => {
     await page.goto('/jobs.html')
     await expect(page.locator('.job-card').first()).toBeVisible()
     const oben = await page.locator('.job-card').first().evaluate(el => Math.round(el.getBoundingClientRect().top + scrollY))
-    // Vor dem Umbau: 525px. Jetzt soll klar weniger Platz verbraucht werden.
-    expect(oben).toBeLessThan(430)
+    // Vor dem Umbau: 525px. Ohne Filterblock davor deutlich weniger.
+    expect(oben).toBeLessThan(400)
   })
 })
 
@@ -55,6 +80,7 @@ test.describe('Aktive Filter als Chips', () => {
     await expect(page.locator('.filter-chip')).toHaveCount(0)
 
     await page.locator('#kategorie-pills .pill', { hasText: 'Nachhilfe' }).click()
+    await oeffneFilter(page)
     await page.locator('#filter-ort').fill('München')
     await page.locator('#filter-alter').selectOption('16')
 
@@ -65,12 +91,28 @@ test.describe('Aktive Filter als Chips', () => {
     await expect(page.locator('#filter-anzahl')).toHaveText('3')
   })
 
+  test('Chips bleiben sichtbar, wenn das Panel wieder zu ist', async ({ page }) => {
+    await page.goto('/jobs.html')
+    await expect(page.locator('.job-card')).toHaveCount(4)
+
+    await oeffneFilter(page)
+    await page.locator('#filter-ort').fill('Augsburg')
+    await page.locator('#filter-schliessen').click()
+
+    // Auch bei geschlossenem Panel sieht man, wonach gefiltert wird
+    await expect(page.locator('#filter-panel')).not.toHaveClass(/offen/)
+    await expect(page.locator('.filter-chip')).toHaveCount(1)
+    await expect(page.locator('.aktive-filter')).toContainText('Ort: Augsburg')
+  })
+
   test('Chip entfernen setzt genau diesen Filter zurück', async ({ page }) => {
     await page.goto('/jobs.html')
     await expect(page.locator('.job-card')).toHaveCount(4)
 
+    await oeffneFilter(page)
     await page.locator('#filter-ort').fill('Augsburg')
     await page.locator('#filter-gehalt').selectOption('12')
+    await page.locator('#filter-schliessen').click()
     await expect(page.locator('.filter-chip')).toHaveCount(2)
     await expect(page.locator('.job-card')).toHaveCount(1)   // nur der Augsburger Job
 
@@ -86,6 +128,7 @@ test.describe('Aktive Filter als Chips', () => {
     await expect(page.locator('.job-card')).toHaveCount(4)
 
     await page.locator('#kategorie-pills .pill', { hasText: 'Verkauf' }).click()
+    await oeffneFilter(page)
     await page.locator('#filter-ort').fill('Augsburg')
     await expect(page.locator('.filter-chip')).toHaveCount(2)
 
@@ -96,34 +139,14 @@ test.describe('Aktive Filter als Chips', () => {
   })
 })
 
-test.describe('Handy-Layout', () => {
+test.describe('Handy', () => {
   test.use({ viewport: { width: 390, height: 844 } })
 
-  test('Filter stecken hinter einem Knopf und öffnen ein Panel', async ({ page }) => {
+  test('Panel fährt von unten ein und filtert', async ({ page }) => {
     await page.goto('/jobs.html')
     await expect(page.locator('.job-card')).toHaveCount(4)
 
-    const knopf = page.locator('#filter-oeffnen')
-    await expect(knopf).toBeVisible()
-    await expect(knopf).toHaveAttribute('aria-expanded', 'false')
-
-    // Panel ist zunächst aus dem Bild geschoben
-    await expect(page.locator('#filter-panel')).not.toHaveClass(/offen/)
-
-    await knopf.click()
-    await expect(page.locator('#filter-panel')).toHaveClass(/offen/)
-    await expect(knopf).toHaveAttribute('aria-expanded', 'true')
-    await expect(page.locator('#filter-hintergrund')).toHaveClass(/offen/)
-
-    await page.locator('#filter-schliessen').click()
-    await expect(page.locator('#filter-panel')).not.toHaveClass(/offen/)
-  })
-
-  test('Filtern im Panel wirkt und zeigt den Zähler am Knopf', async ({ page }) => {
-    await page.goto('/jobs.html')
-    await expect(page.locator('.job-card')).toHaveCount(4)
-
-    await page.locator('#filter-oeffnen').click()
+    await oeffneFilter(page)
     await page.locator('#filter-ort').fill('Augsburg')
     await expect(page.locator('#filter-anzahl')).toHaveText('1')
 
@@ -137,7 +160,7 @@ test.describe('Handy-Layout', () => {
     await expect(page.locator('.job-card').first()).toBeVisible()
     const oben = await page.locator('.job-card').first().evaluate(el => Math.round(el.getBoundingClientRect().top + scrollY))
     // Vor dem Umbau: 718px - fast ein ganzer Bildschirm nur Filter.
-    // Jetzt rund 420px, also gut 40% weniger Vorlauf.
-    expect(oben).toBeLessThan(450)
+    // Jetzt rund 440px, also gut ein Drittel weniger Vorlauf.
+    expect(oben).toBeLessThan(470)
   })
 })

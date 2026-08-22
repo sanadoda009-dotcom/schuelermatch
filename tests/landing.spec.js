@@ -38,16 +38,15 @@ test('FAQ öffnet und schließt mit korrektem aria-expanded', async ({ page }) =
   await expect(frage).toHaveAttribute('aria-expanded', 'false')
 })
 
-test('Dark-Mode-Umschalter wechselt Theme und merkt es sich', async ({ page }) => {
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
-  await page.locator('#sm-theme-btn').click()
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-  // Header-Logo wechselt auf die helle Variante
-  await expect(page.locator('nav .logo img')).toHaveAttribute('src', /logo-light\.png/)
-
-  // Nach Neuladen bleibt Dark Mode aktiv (localStorage)
-  await page.reload()
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+test('es gibt keinen Hell/Dunkel-Umschalter mehr (nur heller Modus)', async ({ page }) => {
+  await expect(page.locator('#sm-theme-btn')).toHaveCount(0)
+  await expect(page.locator('.theme-toggle')).toHaveCount(0)
+  // Kein dunkles Theme mehr gesetzt
+  const theme = await page.locator('html').getAttribute('data-theme')
+  expect(theme === null || theme === 'light').toBe(true)
+  // Heller Hintergrund
+  const bg = await page.locator('body').evaluate(el => getComputedStyle(el).backgroundColor)
+  expect(bg).not.toBe('rgb(15, 18, 22)')
 })
 
 test('zentrale Links: Login, Registrieren, Jugendarbeitsschutz erreichbar', async ({ page }) => {
