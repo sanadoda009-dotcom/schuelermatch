@@ -304,6 +304,37 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 22. August 2026 (Teil 4) - Jobboerse umgebaut: Layout + Filter
+Auf Wunsch des Nutzers ("wie es angeordnet ist und wie es mit dem Filter ist gefaellt mir nicht").
+
+### Vorher gemessen (nicht geraten)
+- Desktop 1280x800: erste Job-Karte erst bei **525px** = 73% des Bildschirms nur Kopf und Filter. 11 Kategorie-Pills brachen auf 2 Zeilen um. 5 gleich aussehende Dropdowns OHNE Beschriftung nebeneinander.
+- Handy 390x844: erste Karte bei **718px** = 0.8 Bildschirme; die 5 Filterfelder stapelten sich auf 256px Hoehe.
+- Dazu: Sortierung steckte zwischen den Filtern (anderes Konzept), kein sichtbarer Aktiv-Zustand, Zuruecksetzen nur im Leerzustand erreichbar.
+
+### Umgebaut
+- **Zweispaltiges Layout** (`.jobs-layout`): Filterspalte 250px links (sticky, bleibt beim Scrollen stehen), Ergebnisse rechts. Filter kosten damit keine vertikale Hoehe mehr.
+- **Handy**: Filter stecken hinter einem Knopf und fahren als Panel von unten ein (mit abdunkelndem Hintergrund, Escape/Klick daneben schliesst). Zaehler-Blase am Knopf zeigt die Anzahl aktiver Filter.
+- **Beschriftungen** fuer jeden Filter (Ort / Dein Alter / Mindestlohn / Wann arbeiten?) statt gleich aussehender Dropdowns; Erklaerhinweis beim Alter.
+- **Kategorie-Pills in EINER Zeile** als Wischleiste statt Umbruch ueber zwei Zeilen.
+- **Aktive Filter als entfernbare Chips** ueber den Ergebnissen - man sieht sofort, warum weniger Jobs erscheinen, und kann einzeln zuruecknehmen.
+- **Sortierung** von den Filtern getrennt, rechts ueber der Ergebnisliste.
+- Kopfbereich gestrafft (Abstaende, h1 kleiner).
+
+### Ergebnis (nachgemessen)
+- Desktop: 525px -> **378px** (73% -> 47% des Bildschirms)
+- Handy: 718px -> **418px** (rund 42% weniger Vorlauf)
+- Alle Element-IDs blieben unveraendert, dadurch gelten die bestehenden Jobboersen-Tests unveraendert weiter.
+
+### Nebenbei behoben: lokaler Cache-Aerger
+`.claude/launch.json` startet die Vorschau jetzt mit `tests/server.js` statt `python -m http.server`. Der Node-Server sendet `Cache-Control: no-store` - das im Projekt dokumentierte "Browser cached lokal stark, Strg+Shift+R noetig" faellt damit weg. (Beim Pruefen mit der Vorschau trotzdem beachten: der Browser haelt bereits geladene ES-Module hartnaeckig fest; im Zweifel mit Cache-Buster-Parameter neu laden.)
+
+### Wichtig fuer kuenftige Testlaeufe
+Laeuft die Vorschau (preview_start) gleichzeitig zur Test-Suite, teilen sich beide Port 5500 - dabei fiel ein Dashboard-Test aus. Vorschau vor einem vollen Testlauf stoppen. Ohne Vorschau: zwei komplette Durchlaeufe hintereinander gruen.
+
+### Tests: 80 -> 90, alle gruen
+`tests/jobs-filter.spec.js`: Desktop-Zweispalter + sticky, Beschriftungen, Pills einzeilig, Chips setzen/einzeln entfernen/alles zuruecksetzen, Handy-Panel oeffnen/schliessen, Zaehler-Blase, und zwei Messungen gegen das alte Layout.
+
 ## Session 22. August 2026 (Teil 3) - Betreiber-Statistik + Test-Infrastruktur repariert
 
 ### Betreiber-Statistik (Admin-Reiter 4)

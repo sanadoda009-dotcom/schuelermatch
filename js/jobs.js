@@ -92,6 +92,14 @@ async function ladeJobs() {
     })
   })
 
+  document.getElementById('filter-reset-alle')?.addEventListener('click', () => {
+    filterZuruecksetzen()
+    document.getElementById('filter-panel')?.classList.remove('offen')
+    document.getElementById('filter-hintergrund')?.classList.remove('offen')
+    document.body.style.overflow = ''
+  })
+  initFilterPanel()
+
   lieseUrlParameter()
   wendeFilterAn()
 }
@@ -124,6 +132,68 @@ function wendeFilterAn() {
 
   renderJobs(sortiereJobs(gefiltert, sortierung))
   schreibeUrlParameter()
+  zeigeAktiveFilter()
+}
+
+/* ---------- AKTIVE FILTER SICHTBAR MACHEN ---------- */
+
+// Alle Filter ausser der Freitextsuche: als entfernbare Chips ueber den
+// Ergebnissen. So sieht man auf einen Blick, warum weniger Jobs erscheinen.
+function aktiveFilterListe() {
+  const liste = []
+  const wert = id => document.getElementById(id).value
+  if (aktiveKategorie) liste.push({ id: 'kategorie', text: aktiveKategorie })
+  if (wert('filter-ort').trim()) liste.push({ id: 'filter-ort', text: 'Ort: ' + wert('filter-ort').trim() })
+  if (wert('filter-alter')) liste.push({ id: 'filter-alter', text: wert('filter-alter') + ' Jahre' })
+  if (wert('filter-gehalt')) liste.push({ id: 'filter-gehalt', text: 'ab ' + wert('filter-gehalt') + ' €/Std' })
+  if (wert('filter-arbeitszeit')) liste.push({ id: 'filter-arbeitszeit', text: wert('filter-arbeitszeit') })
+  return liste
+}
+
+function zeigeAktiveFilter() {
+  const aktiv = aktiveFilterListe()
+  const box = document.getElementById('aktive-filter')
+
+  // Zaehler am Filter-Knopf (nur Handy sichtbar)
+  const zaehler = document.getElementById('filter-anzahl')
+  if (zaehler) zaehler.textContent = aktiv.length ? String(aktiv.length) : ''
+
+  if (!box) return
+  box.innerHTML = aktiv.map(f =>
+    `<span class="filter-chip">${escapeHtml(f.text)}
+       <button type="button" data-weg="${f.id}" aria-label="Filter ${escapeHtml(f.text)} entfernen">×</button>
+     </span>`).join('')
+
+  box.querySelectorAll('[data-weg]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ziel = btn.dataset.weg
+      if (ziel === 'kategorie') setzeKategorie('')
+      else document.getElementById(ziel).value = ''
+      wendeFilterAn()
+    })
+  })
+}
+
+/* ---------- FILTER-PANEL AUF DEM HANDY ---------- */
+
+function initFilterPanel() {
+  const panel = document.getElementById('filter-panel')
+  const hintergrund = document.getElementById('filter-hintergrund')
+  const oeffnen = document.getElementById('filter-oeffnen')
+  const schliessenBtn = document.getElementById('filter-schliessen')
+  if (!panel || !oeffnen) return
+
+  const setzeOffen = (offen) => {
+    panel.classList.toggle('offen', offen)
+    hintergrund?.classList.toggle('offen', offen)
+    oeffnen.setAttribute('aria-expanded', String(offen))
+    document.body.style.overflow = offen ? 'hidden' : ''
+  }
+
+  oeffnen.addEventListener('click', () => setzeOffen(!panel.classList.contains('offen')))
+  schliessenBtn?.addEventListener('click', () => setzeOffen(false))
+  hintergrund?.addEventListener('click', () => setzeOffen(false))
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') setzeOffen(false) })
 }
 
 function renderJobs(jobs) {

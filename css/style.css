@@ -1507,3 +1507,135 @@ footer .logo { color: white; }
 .balken-anmeldung { background: var(--indigo); }
 .balken-job { background: var(--match-green-dark); }
 .balken-bewerbung { background: #f0b429; }
+
+/* ---------- JOBBÖRSE: ZWEISPALTIGES LAYOUT MIT FILTERSPALTE ---------- */
+/* Ziel: Jobs sofort sichtbar statt erst nach 500px Filterblock.
+   Desktop = feste Filterspalte links, Handy = ausklappbares Panel. */
+
+.jobs-layout { display: grid; grid-template-columns: 250px 1fr; gap: 28px; align-items: start; }
+
+/* Kategorien: EINE Zeile zum Wischen statt Umbruch über zwei Zeilen */
+.pill-row {
+  flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+  padding-bottom: 4px; margin-bottom: 20px;
+  -webkit-overflow-scrolling: touch;
+}
+.pill-row::-webkit-scrollbar { display: none; }
+.pill-row .pill { flex: 0 0 auto; }
+
+/* --- Filterspalte --- */
+.filter-panel {
+  position: sticky; top: 88px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 20px;
+}
+.filter-panel-kopf { display: none; align-items: center; margin-bottom: 4px; }
+.filter-panel-kopf b { font-size: 1.05rem; }
+.filter-schliessen {
+  margin-left: auto; background: none; border: none; cursor: pointer;
+  font-size: 1.1rem; color: var(--ink-soft); padding: 4px 8px; line-height: 1;
+}
+.filter-gruppe { margin-bottom: 18px; }
+.filter-gruppe label {
+  display: block; font-size: 0.78rem; font-weight: 600;
+  color: var(--ink); margin-bottom: 6px;
+}
+.filter-gruppe input, .filter-gruppe select {
+  width: 100%; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px;
+  font-family: 'Inter', sans-serif; font-size: 0.88rem;
+  background: var(--paper); color: var(--ink); outline: none; transition: border-color 0.15s;
+}
+.filter-gruppe input:focus, .filter-gruppe select:focus { border-color: var(--match-green); }
+.filter-hinweis {
+  display: block; font-size: 0.72rem; color: var(--ink-soft); margin-top: 5px; line-height: 1.45;
+}
+.filter-leeren { margin-top: 4px; font-size: 0.84rem; padding: 10px; }
+
+/* --- Kopfzeile über den Ergebnissen --- */
+.ergebnis-kopf {
+  display: flex; align-items: center; gap: 14px;
+  flex-wrap: wrap; margin-bottom: 14px;
+}
+.ergebnis-kopf .jobs-count { margin: 0; }
+.filter-oeffnen { display: none; }
+.sort-wahl { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.sort-wahl span { font-size: 0.78rem; color: var(--ink-soft); white-space: nowrap; }
+.sort-wahl select {
+  padding: 8px 12px; border: 1.5px solid var(--line); border-radius: 10px;
+  font-family: 'Inter', sans-serif; font-size: 0.85rem;
+  background: var(--card); color: var(--ink); outline: none; cursor: pointer;
+}
+.sort-wahl select:focus { border-color: var(--match-green); }
+
+/* --- Aktive Filter als entfernbare Chips --- */
+.aktive-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.aktive-filter:empty { display: none; }
+.filter-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(43,47,143,0.08); color: var(--indigo);
+  border: 1px solid rgba(43,47,143,0.18); border-radius: 100px;
+  padding: 5px 8px 5px 12px; font-size: 0.8rem; font-weight: 500;
+}
+.filter-chip button {
+  background: none; border: none; cursor: pointer; color: inherit;
+  font-size: 0.95rem; line-height: 1; padding: 2px 4px; border-radius: 50%; opacity: 0.65;
+}
+.filter-chip button:hover { opacity: 1; background: rgba(43,47,143,0.15); }
+
+/* --- Handy: Filter als ausklappbares Panel --- */
+.filter-hintergrund { display: none; }
+@media (max-width: 900px) {
+  .jobs-layout { grid-template-columns: 1fr; gap: 0; }
+
+  .filter-oeffnen {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 14px; border: 1.5px solid var(--line); border-radius: 10px;
+    background: var(--card); color: var(--ink); font-family: 'Inter', sans-serif;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  }
+  .filter-oeffnen:hover { border-color: var(--ink); }
+  .filter-anzahl:empty { display: none; }
+  .filter-anzahl {
+    background: var(--indigo); color: #fff; border-radius: 100px;
+    font-size: 0.7rem; min-width: 18px; height: 18px; padding: 0 5px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  .filter-panel {
+    position: fixed; left: 0; right: 0; bottom: 0; top: auto;
+    z-index: 60; border-radius: 20px 20px 0 0; border-bottom: none;
+    max-height: 82vh; overflow-y: auto;
+    transform: translateY(100%); transition: transform 0.25s ease;
+    box-shadow: 0 -8px 40px rgba(22,26,31,0.18);
+  }
+  .filter-panel.offen { transform: translateY(0); }
+  .filter-panel-kopf { display: flex; }
+
+  .filter-hintergrund {
+    display: block; position: fixed; inset: 0; z-index: 59;
+    background: rgba(22,26,31,0.4); opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .filter-hintergrund.offen { opacity: 1; pointer-events: auto; }
+
+  .sort-wahl { margin-left: 0; }
+  .sort-wahl span { display: none; }
+  .ergebnis-kopf { gap: 10px; }
+  .ergebnis-kopf .jobs-count { order: 3; flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .filter-panel, .filter-hintergrund { transition: none; }
+}
+
+/* Kopfbereich der Jobbörse straffen, damit Jobs früher sichtbar werden */
+.jobs-page { padding-top: 28px; }
+.jobs-page .jobs-header { margin-bottom: 18px; }
+.jobs-page .jobs-header h1 { font-size: 1.75rem; margin-bottom: 4px; }
+.jobs-page .jobs-header p { font-size: 0.9rem; }
+.jobs-page .search-hero { margin-bottom: 14px; }
+.jobs-page .pill-row { margin-bottom: 16px; }
+@media (max-width: 900px) {
+  .jobs-page { padding-top: 20px; }
+  .jobs-page .jobs-header { margin-bottom: 14px; }
+  .jobs-page .jobs-header h1 { font-size: 1.5rem; }
+}
