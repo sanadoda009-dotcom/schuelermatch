@@ -175,7 +175,7 @@ Empty States final prüfen, Skeletons sind schon da. Danach Block 3 (Nachrichten
 
 ### Noch offen / Roadmap
 - Zugangssperre (`gate.js`) ist weiterhin AKTIV – zum Launch `GATE_AKTIV = false`.
-- Cache: Stammbesucher bekommen neue CSS/JS erst nach Revalidierung/Hard-Refresh (statische Dateinamen).
+- ~~Cache: Stammbesucher bekommen neue CSS/JS erst nach Hard-Refresh~~ **BEHOBEN am 22.8.**: `vercel.json` setzt fuer HTML/CSS/JS `max-age=0, must-revalidate` (Browser fragt jedes Mal kurz nach, unveraendert = 304 ohne Daten) und fuer `/assets/` 30 Tage. Updates kommen damit sofort bei allen an.
 - Block 5 Rest: Premium-Listings, Admin-Panel, Analytics, Ausweis-Auto-Löschung via Edge Function.
 - Vor echten Nutzern: Impressum/Datenschutz juristisch prüfen (Minderjährige).
 - A11y-Feinschliff (Block 4 Rest).
