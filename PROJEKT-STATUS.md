@@ -304,6 +304,28 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 23. August 2026 - Ueberlaeufe behoben + Lebenslauf handytauglich
+
+### Vorgehen: gemessen statt geschaut
+Eigenes Audit-Skript ueber alle Seiten bei 360/390/768px, das drei Dinge erkennt: Seite scrollt seitlich, Element ragt ueber den Fensterrand, Inhalt breiter als seine Box. Danach gezielt die Ursachen behoben und neu gemessen.
+
+### Behobene Ueberlaeufe
+- **Startseite scrollte seitlich** (412px bei 360px Fenster): `.kat-grid` zwang 2 Spalten, die langen Woerter ("Organisation") sprengten sie. Fix: `min-width:0` auf den Kacheln + kleinere Polster/Schrift unter 560px.
+- **Rechtstexte**: `Datenschutzerklaerung` als 2.1rem-Ueberschrift lief ueber den Rand und liess die Seite scrollen. Fix: `overflow-wrap: break-word` + `hyphens: auto` global fuer Text-Elemente, Ueberschrift unter 560px kleiner.
+- **Job-Karten ragten 8px raus**: `.jobs-grid` nutzte `minmax(320px, 1fr)` - bei nur 312px Platz wurden die Karten trotzdem auf 320px gezwungen. Fix: `minmax(min(320px, 100%), 1fr)`.
+- **Ort/Kategorie/Arbeitszeit** auf Job-Karten konnten nicht umbrechen (`display:flex` ohne `flex-wrap`). Fix: `flex-wrap: wrap`.
+- Bewusst NICHT "behoben": die schraeg gedrehten Deko-Karten im Hero (9px Schattenflaeche) und die Glocken-Blase, die absichtlich auf der Ecke sitzt. Beides verursacht kein seitliches Scrollen.
+
+### Lebenslauf-Editor auf dem Handy
+Gemessen mit **echter Touch-Emulation** (Pixel 7) - wichtig, weil `(pointer: coarse)`-Regeln bei blossem `setViewportSize` nicht greifen.
+- **Eingabefelder waren 128px breit** (Schule/Klasse in zwei Spalten). Fix: unter 620px eine Spalte -> jetzt ~306px.
+- **Im Sprachen-Block war ein Feld nur 8px breit**: Das Niveau-Dropdown ("Muttersprache") nahm die Zeile ein, das Namensfeld mit `flex:1` schrumpfte auf 8px. Fix: `.zeilen-editor` bricht auf schmalen Schirmen um, Name bekommt eine eigene Zeile.
+- **Karten-Knoepfe (hoch/runter/loeschen) waren 19x24px** - kaum treffbar. Fix: 40x40 bei Touch. Ebenso vergroessert: Loeschen-Knopf in Zeilen (28->44), Umschalter, Vorlagen-Chips, Formulierungshilfe, Eingabefelder auf 44px Hoehe.
+- Ergebnis: **kein Tippziel unter 40px mehr**, kein Feld schmaler als 150px.
+
+### Tests: 97 -> 104, alle gruen
+Neu `tests/lebenslauf-mobil.spec.js` (7 Tests, laeuft automatisch im Pixel-7-Projekt): Touch erkannt, kein Seitwaerts-Scrollen, einspaltige Felder, keine zu schmalen Felder, alle Tippziele gross genug, Tippen wird gespeichert, Vorschau-Umschalter, Abschnitt hinzufuegen.
+
 ## Session 22. August 2026 (Teil 6) - Filter komplett hinter einen Knopf + Dark Mode entfernt
 
 ### Filter jetzt auf JEDEM Geraet hinter einem Knopf

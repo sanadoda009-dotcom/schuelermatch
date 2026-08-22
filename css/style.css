@@ -1579,3 +1579,118 @@ footer .logo { color: white; }
   .jobs-page .jobs-header { margin-bottom: 14px; }
   .jobs-page .jobs-header h1 { font-size: 1.5rem; }
 }
+
+/* ============================================================
+   ÜBERLAUF-KORREKTUREN
+   Gefunden per Messung bei 360/390/768px: Text lief über Ränder,
+   auf der Startseite scrollte die Seite seitlich.
+   ============================================================ */
+
+/* 1) Lange deutsche Wörter (z.B. "Datenschutzerklärung") umbrechen lassen,
+      statt sie über den Rand laufen zu lassen. */
+h1, h2, h3, h4, p, li, a, span, b, label, summary, td, th {
+  overflow-wrap: break-word;
+}
+h1, h2, h3 { hyphens: auto; }
+
+/* 2) Kategorie-Kacheln: Grid-Kinder dürfen schrumpfen, sonst sprengen
+      lange Wörter wie "Organisation" das Raster. */
+.kat-tile { min-width: 0; }
+.kat-tile span:not(.kat-icon) { min-width: 0; }
+@media (max-width: 560px) {
+  .kat-grid { gap: 10px; }
+  .kat-tile { padding: 15px 12px; font-size: 0.85rem; gap: 9px; }
+  .kat-tile .kat-icon { width: 32px; height: 32px; flex-shrink: 0; }
+  .kat-tile .kat-icon svg { width: 17px; height: 17px; }
+}
+
+/* 3) Ort + Kategorie + Arbeitszeit auf Job-Karten dürfen umbrechen */
+.job-card .company-name { flex-wrap: wrap; row-gap: 6px; }
+
+/* 4) Rechtstexte: große Überschrift auf schmalen Schirmen verkleinern */
+@media (max-width: 560px) {
+  .legal-page { padding: 32px 20px 60px; }
+  .legal-page h1 { font-size: 1.55rem; }
+  .legal-page h2 { font-size: 1.05rem; }
+}
+
+/* 5) Flex- und Grid-Kinder dürfen generell schrumpfen (häufigste
+      Überlauf-Ursache: min-width:auto verhindert das Umbrechen). */
+.jobs-grid > *, .stats-row > *, .filter-gruppe > *, .ergebnis-kopf > * { min-width: 0; }
+
+/* 6) Tabellen und Codeblöcke nie über den Rand: eigener Scrollbereich */
+.stat-tabelle-wrap, .meldung-zitat { max-width: 100%; }
+
+/* 7) Job-Karten: minmax(320px) zwang die Karten auf 320px, auch wenn nur
+      312px Platz war -> Karten ragten über den Rand. min() lässt sie
+      auf schmalen Handys mitschrumpfen. */
+.jobs-grid { grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); }
+
+/* ============================================================
+   LEBENSLAUF AUF DEM HANDY BEDIENBAR MACHEN
+   Gemessen bei 390px: Eingabefelder nur 128px breit, die Karten-
+   Knöpfe (hoch/runter/löschen) nur 19x24px – praktisch nicht
+   treffbar. Empfehlung für Touch: mindestens ~44px.
+   ============================================================ */
+
+@media (max-width: 620px) {
+  /* Schule/Klasse, Ort usw. untereinander statt in zwei 128px-Spalten */
+  .ll-zwei { grid-template-columns: 1fr; gap: 14px; }
+
+  /* Karten-Kopf: mehr Luft, damit Text und Knöpfe sich nicht drängen */
+  .ll-karte summary { padding: 12px 12px; gap: 8px; flex-wrap: wrap; }
+  .ll-karte-name { flex: 1 1 auto; min-width: 0; }
+  .ll-karte-typ { display: none; }        /* Typ-Label spart Platz, Icon reicht */
+
+  .ll-karte-body { padding: 4px 12px 18px; }
+  .ll-wrap { padding-left: 16px; padding-right: 16px; }
+  .ll-mobil-toggle { padding: 10px 16px; }
+}
+
+/* Touch-Ziele im Lebenslauf-Editor vergrößern */
+@media (pointer: coarse) {
+  /* Hoch / Runter / Löschen an jeder Karte */
+  .ll-karte-tools { gap: 4px; }
+  .ll-karte-tools button {
+    min-width: 40px; min-height: 40px; font-size: 1rem;
+    display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  }
+  .ll-karte-tools button:active { background: var(--paper); }
+
+  /* Umschalter Bearbeiten / Vorschau */
+  .ll-mobil-toggle button { padding: 13px; font-size: 0.9rem; }
+
+  /* Bausteine hinzufügen, Foto hochladen, Formulierungshilfe */
+  .block-add-btn, .ll-karte-body .btn, .ll-foto-zeile .btn { min-height: 44px; }
+
+  /* Aufklappbare Karte selbst bequem treffbar */
+  .ll-karte summary { min-height: 52px; }
+}
+
+/* Eingabefelder im Editor nie unter eine sinnvolle Breite */
+.ll-karte-body input, .ll-karte-body select, .ll-karte-body textarea { min-width: 0; width: 100%; }
+
+/* Sprachen-/Fähigkeiten-Zeilen: auf schmalen Schirmen umbrechen.
+   Vorher drückte das lange Niveau-Dropdown ("Muttersprache") das
+   Namensfeld auf 8px zusammen. */
+@media (max-width: 620px) {
+  .zeilen-editor { flex-wrap: wrap; gap: 8px 8px; }
+  .zeilen-editor input[type="text"] { flex: 1 1 100%; }
+  .zeilen-editor select { flex: 1 1 auto; min-width: 0; }
+  .zeilen-editor input[type="range"] { flex: 1 1 60%; }
+}
+
+/* Bequeme Touch-Höhen im gesamten Lebenslauf-Editor */
+@media (pointer: coarse) {
+  .ll-karte-body input[type="text"],
+  .ll-karte-body select,
+  .zeilen-editor input[type="text"],
+  .zeilen-editor select {
+    min-height: 44px; padding-top: 10px; padding-bottom: 10px;
+  }
+  .zeilen-editor input[type="range"] { min-height: 44px; }
+  .zeile-weg { width: 44px; height: 44px; font-size: 1rem; }
+  .tipp-btn { min-height: 44px; }
+  .cv-template-chip { min-height: 44px; }
+  .ll-karte-body textarea { min-height: 110px; }
+}
