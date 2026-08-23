@@ -12,7 +12,7 @@
 > Bereichen zu verbessern (60-Sekunden-Takt). Die Schleife wurde beim Sitzungswechsel gestoppt –
 > zum Fortsetzen `/loop` mit demselben Text neu starten.
 > Erledigt: Barrierefreiheit, Ladezeit/jsPDF, Schriftschnitte.
-> **Als Nächstes geplant: Tastaturbedienung & Fokus-Sichtbarkeit.** (Stand: 23. Juli 2026)
+> **Als Nächstes geplant: Tastaturbedienung & Fokus-Sichtbarkeit.**
 
 ## 🚀 Vor dem Launch (Pflicht)
 1. **Rechtliche Prüfung** – der einzige echte Blocker:
