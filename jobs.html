@@ -41,7 +41,7 @@
 
   <div class="search-hero">
     <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3" stroke-linecap="round"/></svg>
-    <input type="text" id="filter-suche" placeholder="Welchen Job suchst du? z.B. Nachhilfe, Eisverkauf...">
+    <label class="sr-only" for="filter-suche">Jobs durchsuchen</label><input type="text" id="filter-suche" placeholder="Welchen Job suchst du? z.B. Nachhilfe, Eisverkauf...">
   </div>
 
   <div class="pill-row" id="kategorie-pills">
@@ -136,7 +136,8 @@
 
       <div class="aktive-filter" id="aktive-filter"></div>
 
-      <div class="jobs-grid" id="jobs-grid">
+      <h2 class="sr-only">Suchergebnisse</h2>
+        <div class="jobs-grid" id="jobs-grid">
         <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
       </div>
     </div>

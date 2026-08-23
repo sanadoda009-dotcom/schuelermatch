@@ -570,14 +570,14 @@ function renderBlockEditor() {
     <div class="block-item" data-block-id="${b.id}">
       <div class="block-item-head">
         <span class="block-type-label">${typLabel(b.typ)}</span>
-        <input type="text" class="block-titel-input" placeholder="Titel (optional)" value="${escapeHtml(b.titel || '')}">
+        <input type="text" class="block-titel-input" aria-label="Überschrift des Abschnitts" placeholder="Titel (optional)" value="${escapeHtml(b.titel || '')}">
         <div class="block-item-controls">
           <button type="button" data-move-up title="Nach oben">↑</button>
           <button type="button" data-move-down title="Nach unten">↓</button>
           <button type="button" data-delete title="Löschen">✕</button>
         </div>
       </div>
-      ${b.typ === 'text' ? `<textarea class="block-inhalt-input" placeholder="${escapeHtml(b.platzhalter || 'Dein Text...')}">${escapeHtml(b.inhalt || '')}</textarea><button type="button" class="tipp-btn" title="Beispielsatz einfügen">💡 Formulierungshilfe</button>` : ''}
+      ${b.typ === 'text' ? `<textarea class="block-inhalt-input" aria-label="Text des Abschnitts" placeholder="${escapeHtml(b.platzhalter || 'Dein Text...')}">${escapeHtml(b.inhalt || '')}</textarea><button type="button" class="tipp-btn" title="Beispielsatz einfügen">💡 Formulierungshilfe</button>` : ''}
       ${b.typ === 'skills' ? `<input type="text" class="block-tags-input" placeholder="Komma-getrennt, z.B. Sport, Musik, Technik, Lesen" value="${escapeHtml(b.tags || '')}">` : ''}
       ${b.typ === 'bild' ? `
         <input type="file" class="block-bild-input" accept="image/*" style="display:none;">
@@ -590,8 +590,8 @@ function renderBlockEditor() {
       ${b.typ === 'sprachen' ? `
         ${(b.sprachen || []).map((s, i) => `
           <div class="zeilen-editor">
-            <input type="text" class="sprache-name" data-i="${i}" placeholder="z.B. Deutsch" value="${escapeHtml(s.name || '')}">
-            <select class="sprache-niveau" data-i="${i}">
+            <input type="text" class="sprache-name" aria-label="Sprache" data-i="${i}" placeholder="z.B. Deutsch" value="${escapeHtml(s.name || '')}">
+            <select class="sprache-niveau" aria-label="Sprachniveau" data-i="${i}">
               ${CEFR_NIVEAUS.map(n => `<option ${s.niveau === n ? 'selected' : ''}>${n}</option>`).join('')}
             </select>
             <button type="button" class="zeile-weg" data-i="${i}" title="Entfernen">✕</button>
@@ -602,8 +602,8 @@ function renderBlockEditor() {
       ${b.typ === 'skillbar' ? `
         ${(b.skills || []).map((s, i) => `
           <div class="zeilen-editor">
-            <input type="text" class="skill-name" data-i="${i}" placeholder="z.B. Teamfähigkeit" value="${escapeHtml(s.name || '')}">
-            <input type="range" class="skill-wert" data-i="${i}" min="0" max="100" step="10" value="${s.wert ?? 60}">
+            <input type="text" class="skill-name" aria-label="Fähigkeit" data-i="${i}" placeholder="z.B. Teamfähigkeit" value="${escapeHtml(s.name || '')}">
+            <input type="range" class="skill-wert" aria-label="Ausprägung in Prozent" data-i="${i}" min="0" max="100" step="10" value="${s.wert ?? 60}">
             <span class="skill-wert-label mono">${s.wert ?? 60}%</span>
             <button type="button" class="zeile-weg" data-i="${i}" title="Entfernen">✕</button>
           </div>

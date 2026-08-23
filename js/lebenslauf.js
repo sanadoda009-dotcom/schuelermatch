@@ -135,19 +135,19 @@ function renderKarten() {
         <div class="ll-foto-zeile">
           <div class="cv-photo-preview" id="ll-foto-preview" style="${sichereMediaUrl(profile.foto_url) ? `background-image:url('${sichereMediaUrl(profile.foto_url)}')` : ''}">${profile.foto_url ? '' : '📷'}</div>
           <div>
-            <input type="file" id="ll-foto" accept="image/*" style="display:none;">
+            <input type="file" id="ll-foto" accept="image/*" aria-label="Profilbild auswählen" style="display:none;">
             <button type="button" class="btn btn-outline" id="ll-foto-btn" style="padding:8px 14px; font-size:0.82rem;">${profile.foto_url ? 'Foto ändern' : 'Foto hochladen'}</button>
             <p class="mono" style="font-size:0.68rem; color:var(--ink-soft); margin-top:6px;">Optional, aber empfohlen (max. 3 MB)</p>
           </div>
         </div>
-        <div class="form-group"><label>Name</label><input type="text" id="ll-name" value="${escapeHtml(profile.name || '')}"></div>
+        <div class="form-group"><label for="ll-name">Name</label><input type="text" id="ll-name" value="${escapeHtml(profile.name || '')}"></div>
         <div class="ll-zwei">
-          <div class="form-group"><label>Schule</label><input type="text" id="ll-schule" value="${escapeHtml(profile.schule || '')}" placeholder="z.B. Gymnasium Musterstadt"></div>
-          <div class="form-group"><label>Klasse</label><input type="text" id="ll-klasse" value="${escapeHtml(profile.klasse || '')}" placeholder="z.B. 9. Klasse"></div>
+          <div class="form-group"><label for="ll-schule">Schule</label><input type="text" id="ll-schule" value="${escapeHtml(profile.schule || '')}" placeholder="z.B. Gymnasium Musterstadt"></div>
+          <div class="form-group"><label for="ll-klasse">Klasse</label><input type="text" id="ll-klasse" value="${escapeHtml(profile.klasse || '')}" placeholder="z.B. 9. Klasse"></div>
         </div>
         <div class="ll-zwei">
-          <div class="form-group"><label>Ort</label><input type="text" id="ll-ort" value="${escapeHtml(profile.ort || '')}" placeholder="z.B. München"></div>
-          <div class="form-group"><label>E-Mail (aus deinem Konto)</label><input type="text" value="${escapeHtml(profile.email || '')}" disabled></div>
+          <div class="form-group"><label for="ll-ort">Ort</label><input type="text" id="ll-ort" value="${escapeHtml(profile.ort || '')}" placeholder="z.B. München"></div>
+          <div class="form-group"><label for="ll-email">E-Mail (aus deinem Konto)</label><input type="text" id="ll-email" value="${escapeHtml(profile.email || '')}" disabled></div>
         </div>
       </div>
     </details>`]
@@ -167,7 +167,7 @@ function renderKarten() {
       </summary>
       <div class="ll-karte-body">
         <div class="form-group"><label>Titel des Abschnitts</label>
-          <input type="text" class="ll-titel" data-id="${b.id}" value="${escapeHtml(b.titel || '')}" placeholder="z.B. Erfahrung"></div>
+          <input type="text" class="ll-titel" aria-label="Überschrift des Abschnitts" data-id="${b.id}" value="${escapeHtml(b.titel || '')}" placeholder="z.B. Erfahrung"></div>
         ${editorFuer(b)}
       </div>
     </details>`)
@@ -180,14 +180,14 @@ function renderKarten() {
 
 function editorFuer(b) {
   if (b.typ === 'text') return `
-    <textarea class="ll-inhalt" data-id="${b.id}" placeholder="${escapeHtml(b.platzhalter || 'Dein Text…')}" rows="4">${escapeHtml(b.inhalt || '')}</textarea>
+    <textarea class="ll-inhalt" aria-label="Text des Abschnitts" data-id="${b.id}" placeholder="${escapeHtml(b.platzhalter || 'Dein Text…')}" rows="4">${escapeHtml(b.inhalt || '')}</textarea>
     <button type="button" class="tipp-btn ll-tipp" data-id="${b.id}">💡 Formulierungshilfe</button>`
   if (b.typ === 'skills') return `
     <input type="text" class="ll-tags" data-id="${b.id}" value="${escapeHtml(b.tags || '')}" placeholder="Komma-getrennt, z.B. Fußball, Zeichnen, Technik">`
   if (b.typ === 'sprachen') return (b.sprachen || []).map((s, i) => `
     <div class="zeilen-editor">
-      <input type="text" class="ll-sprache-name" data-id="${b.id}" data-i="${i}" placeholder="z.B. Deutsch" value="${escapeHtml(s.name || '')}">
-      <select class="ll-sprache-niveau" data-id="${b.id}" data-i="${i}">
+      <input type="text" class="ll-sprache-name" aria-label="Sprache" data-id="${b.id}" data-i="${i}" placeholder="z.B. Deutsch" value="${escapeHtml(s.name || '')}">
+      <select class="ll-sprache-niveau" aria-label="Sprachniveau" data-id="${b.id}" data-i="${i}">
         ${CEFR_NIVEAUS.map(n => `<option ${s.niveau === n ? 'selected' : ''}>${n}</option>`).join('')}
       </select>
       <button type="button" class="zeile-weg" data-zeile-weg="${b.id}" data-i="${i}">✕</button>
@@ -195,8 +195,8 @@ function editorFuer(b) {
     <button type="button" class="tipp-btn" data-sprache-add="${b.id}">+ Sprache</button>`
   if (b.typ === 'skillbar') return (b.skills || []).map((s, i) => `
     <div class="zeilen-editor">
-      <input type="text" class="ll-skill-name" data-id="${b.id}" data-i="${i}" placeholder="z.B. Teamfähigkeit" value="${escapeHtml(s.name || '')}">
-      <input type="range" class="ll-skill-wert" data-id="${b.id}" data-i="${i}" min="0" max="100" step="10" value="${s.wert ?? 60}">
+      <input type="text" class="ll-skill-name" aria-label="Fähigkeit" data-id="${b.id}" data-i="${i}" placeholder="z.B. Teamfähigkeit" value="${escapeHtml(s.name || '')}">
+      <input type="range" class="ll-skill-wert" aria-label="Ausprägung in Prozent" data-id="${b.id}" data-i="${i}" min="0" max="100" step="10" value="${s.wert ?? 60}">
       <button type="button" class="zeile-weg" data-zeile-weg="${b.id}" data-i="${i}">✕</button>
     </div>`).join('') + `
     <button type="button" class="tipp-btn" data-skill-add="${b.id}">+ Fähigkeit</button>`

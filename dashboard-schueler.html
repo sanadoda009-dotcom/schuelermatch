@@ -75,11 +75,12 @@
 </aside>
 
 <main class="jobs-page">
+  <h1 class="sr-only">Dein SchülerMatch-Dashboard</h1>
 
   <!-- JOBS -->
   <div class="dashboard-view active" id="view-jobs">
     <div class="jobs-header">
-      <h1>Deine Matches</h1>
+      <h2>Deine Matches</h2>
       <p style="color:var(--ink-soft);">Jobs die zu deinem Alter passen.</p>
       <div class="stats-row" id="stats-row"></div>
       <div class="verify-banner" id="verify-banner"></div>
@@ -88,7 +89,7 @@
 
     <div class="search-hero">
       <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3" stroke-linecap="round"/></svg>
-      <input type="text" id="filter-suche" placeholder="Welchen Job suchst du? z.B. Nachhilfe, Eisverkauf...">
+      <label class="sr-only" for="filter-suche">Jobs durchsuchen</label><input type="text" id="filter-suche" placeholder="Welchen Job suchst du? z.B. Nachhilfe, Eisverkauf...">
     </div>
 
     <div class="jobs-layout">
@@ -180,6 +181,7 @@
 
         <div class="aktive-filter" id="aktive-filter"></div>
 
+        <h2 class="sr-only">Passende Jobs</h2>
         <div class="jobs-grid" id="jobs-grid">
           <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
         </div>
@@ -190,7 +192,7 @@
   <!-- MEINE BEWERBUNGEN -->
   <div class="dashboard-view" id="view-bewerbungen">
     <div class="jobs-header">
-      <h1 style="font-size:1.6rem;">Meine Bewerbungen</h1>
+      <h2>Meine Bewerbungen</h2>
       <p style="color:var(--ink-soft);">Alle deine Bewerbungen und ihr aktueller Stand – auf einen Blick.</p>
     </div>
     <div id="bewerbungen-container">
@@ -201,7 +203,7 @@
   <!-- NACHRICHTEN -->
   <div class="dashboard-view" id="view-nachrichten">
     <div class="jobs-header">
-      <h1 style="font-size:1.6rem;">Nachrichten</h1>
+      <h2>Nachrichten</h2>
       <p style="color:var(--ink-soft);">Chats mit Firmen, die deine Bewerbung angenommen haben.</p>
     </div>
     <div id="konv-container"></div>
@@ -231,7 +233,7 @@
           <div class="photo-upload-row">
             <div class="cv-photo-preview" id="cv-photo-preview"></div>
             <div>
-              <input type="file" id="cv-foto" accept="image/*" style="display:none;">
+              <input type="file" id="cv-foto" aria-label="Profilbild auswählen" accept="image/*" style="display:none;">
               <button type="button" id="cv-foto-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Foto hochladen</button>
               <p class="mono" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">JPG/PNG, max. 3 MB</p>
             </div>
@@ -297,7 +299,7 @@
   <!-- ABZEICHEN -->
   <div class="dashboard-view" id="view-abzeichen">
     <div class="jobs-header">
-      <h1 style="font-size:1.6rem;">Deine Abzeichen</h1>
+      <h2>Deine Abzeichen</h2>
       <p style="color:var(--ink-soft);">Schalte Abzeichen frei, während du dein Profil aufbaust und dich bewirbst.</p>
     </div>
     <div class="abzeichen-grid" id="abzeichen-grid"></div>
@@ -306,7 +308,7 @@
   <!-- VERIFIZIERUNG -->
   <div class="dashboard-view" id="view-verifizierung">
     <div class="jobs-header">
-      <h1 style="font-size:1.6rem;">Verifizierung</h1>
+      <h2>Verifizierung</h2>
       <p style="color:var(--ink-soft);">Damit stellen wir sicher, dass hier wirklich nur Schüler unterwegs sind.</p>
       <div id="verify-banner-2"></div>
     </div>
@@ -314,7 +316,7 @@
     <div class="post-job-box" style="max-width:640px;">
       <h3 style="margin-bottom:6px;">Option 1: Schülerausweis</h3>
       <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:16px;">Lade ein Foto deines Schülerausweises hoch.</p>
-      <input type="file" id="ausweis-datei" accept="image/*,application/pdf" style="display:none;">
+      <input type="file" id="ausweis-datei" aria-label="Schülerausweis auswählen" accept="image/*,application/pdf" style="display:none;">
       <button type="button" id="ausweis-btn" class="btn btn-green">Schülerausweis hochladen</button>
       <p class="mono" id="ausweis-status" style="font-size:0.75rem; color:var(--ink-soft); margin-top:8px;"></p>
 
@@ -322,7 +324,7 @@
 
       <h3 style="margin-bottom:6px;">Option 2: Schulbestätigung</h3>
       <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:16px;">Hast du keinen Schülerausweis? Lade stattdessen eine Bestätigung deiner Schule hoch (z.B. vom Sekretariat unterschrieben).</p>
-      <input type="file" id="bestaetigung-datei" accept="image/*,application/pdf" style="display:none;">
+      <input type="file" id="bestaetigung-datei" aria-label="Schulbestätigung auswählen" accept="image/*,application/pdf" style="display:none;">
       <button type="button" id="bestaetigung-btn" class="btn btn-outline">Schulbestätigung hochladen</button>
       <p class="mono" id="bestaetigung-status" style="font-size:0.75rem; color:var(--ink-soft); margin-top:8px;"></p>
 
@@ -333,7 +335,7 @@
   <!-- PROFIL -->
   <div class="dashboard-view" id="view-profil">
     <div class="jobs-header">
-      <h1 style="font-size:1.6rem;">Profil</h1>
+      <h2>Profil</h2>
     </div>
     <div class="post-job-box">
       <form id="profile-form">
@@ -407,14 +409,14 @@
           <span>Eigenen Lebenslauf hochladen (PDF)</span>
         </label>
         <div id="cv-upload-zeile" style="display:none; margin:10px 2px 2px;">
-          <input type="file" id="cv-eigen-datei" accept="application/pdf" style="display:none;">
+          <input type="file" id="cv-eigen-datei" aria-label="Eigenes Lebenslauf-PDF auswählen" accept="application/pdf" style="display:none;">
           <button type="button" id="cv-eigen-btn" class="btn btn-outline" style="padding:8px 14px; font-size:0.82rem;">PDF auswählen</button>
           <span class="mono" id="cv-eigen-status" style="font-size:0.7rem; color:var(--ink-soft); margin-left:8px;">Keine Datei</span>
         </div>
       </div>
       <div class="form-group">
         <label>Zeugnis (optional)</label>
-        <input type="file" id="bewerbung-zeugnis" accept="image/*,application/pdf" style="display:none;">
+        <input type="file" id="bewerbung-zeugnis" aria-label="Zeugnis auswählen" accept="image/*,application/pdf" style="display:none;">
         <button type="button" id="bewerbung-zeugnis-btn" class="btn btn-outline" style="padding:9px 16px; font-size:0.85rem;">Zeugnis anhängen</button>
         <p class="mono" id="bewerbung-zeugnis-status" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">Kein Zeugnis ausgewählt</p>
       </div>

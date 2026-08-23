@@ -304,6 +304,30 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 23. August 2026 (Teil 2) - Barrierefreiheit systematisch
+Erste Runde des Dauerauftrags "Webseite laufend verbessern". Bereich: Barrierefreiheit - vorher nie systematisch geprueft.
+
+### Gefunden (eigenes Audit-Skript ueber 13 Seiten)
+- **4 Seiten ohne h1** (login, register, forgot-/reset-password) - Screenreader-Nutzer, die per Ueberschrift navigieren, landen im Nichts.
+- **Dashboard hatte 6x h1** (eine je Ansicht) statt einer.
+- **lebenslauf.html hatte gar keine h1.**
+- **~15 Eingabefelder ohne Namen**: teils nur Platzhalter (verschwinden beim Tippen, werden unzuverlaessig vorgelesen), teils `<label>` OHNE `for=` - die Beschriftung gehoerte technisch zu keinem Feld. Betroffen u.a. Suchfelder, alle Sprach-/Faehigkeiten-Zeilen und die versteckten Datei-Auswahlfelder.
+- **Ueberschriften-Spruenge** h1 -> h3/h4.
+
+### Behoben
+- `.sr-only`-Hilfsklasse ergaenzt (unsichtbar, aber vorgelesen).
+- Auth-Seiten: h2 -> h1 (Aussehen unveraendert ueber CSS).
+- Dashboard: genau eine h1 (unsichtbar), Ansichts-Titel als h2. lebenslauf.html: unsichtbare h1.
+- Alle Felder benannt - entweder per `<label for=>` oder `aria-label`.
+- Deko-Karten im Hero nutzten `<h4>` fuer Beispieltext -> jetzt `div.match-card-name` (keine Pseudo-Ueberschrift mehr).
+- Unsichtbare Zwischenueberschrift vor den Trefferlisten, damit h1 -> h3 nicht springt.
+
+### Bewusst NICHT geaendert
+`KEINE_META_DESCRIPTION` auf 404/Dashboard/Lebenslauf: alles `noindex`-Seiten, dort ist eine Beschreibung zwecklos. War eine Schwaeche der eigenen Pruefung, kein Seitenfehler.
+
+### Tests: 104 -> 117, alle gruen
+Neu `tests/a11y.spec.js`: prueft dauerhaft alle 13 Seiten auf Alternativtexte, benannte Felder und Bedienelemente, genau eine h1, keine Ueberschriften-Spruenge, lang-Attribut und `<main>`-Landmark.
+
 ## Session 23. August 2026 - Ueberlaeufe behoben + Lebenslauf handytauglich
 
 ### Vorgehen: gemessen statt geschaut

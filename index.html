@@ -42,7 +42,7 @@
       <p class="lead">SchülerMatch verbindet Schüler ab 13 Jahren mit geprüften Arbeitgebern in der Nähe – passend zu Alter, Zeit und Interessen. Kein endloses Suchen, kein Kleingedrucktes.</p>
       <form class="search-hero" action="jobs.html" method="get" style="margin-top:28px;">
         <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3" stroke-linecap="round"/></svg>
-        <input type="text" name="q" placeholder="Welchen Job suchst du? z.B. Nachhilfe, Babysitten...">
+        <label class="sr-only" for="hero-suche">Jobs durchsuchen</label><input type="text" id="hero-suche" name="q" placeholder="Welchen Job suchst du? z.B. Nachhilfe, Babysitten...">
       </form>
       <div class="hero-ctas" style="margin-top:16px;">
         <a href="register.html?rolle=schueler" class="btn btn-green">Kostenlos registrieren →</a>
@@ -58,13 +58,13 @@
     <div class="match-stage">
       <div class="match-card card-student">
         <div class="card-avatar"></div>
-        <h4>Lina, 16</h4>
+        <div class="match-card-name">Lina, 16</div>
         <p>Verfügbar: Sa, So · 2km Radius</p>
         <div class="card-tags"><span>Verkauf</span><span>Nachhilfe</span></div>
       </div>
       <div class="match-card card-job">
         <div class="card-avatar"></div>
-        <h4>Eisdiele Roma</h4>
+        <div class="match-card-name">Eisdiele Roma</div>
         <p>Eisverkauf · ab 15 Jahre · 11€/Std</p>
         <div class="card-tags"><span>Sa-So</span><span>1,8km</span></div>
       </div>

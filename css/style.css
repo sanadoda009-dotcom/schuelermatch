@@ -1694,3 +1694,27 @@ h1, h2, h3 { hyphens: auto; }
   .cv-template-chip { min-height: 44px; }
   .ll-karte-body textarea { min-height: 110px; }
 }
+
+/* ============================================================
+   BARRIEREFREIHEIT
+   ============================================================ */
+
+/* Nur für Screenreader: unsichtbar, aber vorgelesen.
+   Für Beschriftungen, die optisch nicht nötig sind. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Auth-Seiten: die Überschrift ist jetzt ein h1 (war h2) – Aussehen bleibt */
+.auth-box h1 { font-size: 1.6rem; margin-bottom: 6px; }
+
+/* Dashboard: die Ansichts-Überschriften sind jetzt h2 (nur EIN h1 pro Seite) */
+.jobs-header h2 { font-size: 1.6rem; margin-bottom: 8px; }
+.jobs-page .jobs-header h2 { font-size: 1.6rem; }
+#view-jobs .jobs-header h2 { font-size: 1.75rem; margin-bottom: 4px; }
+@media (max-width: 900px) { #view-jobs .jobs-header h2 { font-size: 1.5rem; } }
+
+/* Beispiel-Karten im Hero: sehen aus wie Überschriften, sind aber Inhalt */
+.match-card-name { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
