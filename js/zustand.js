@@ -1,0 +1,71 @@
+// Fehler- und Leerzustände – gemeinsame Bausteine.
+//
+// Anlass (gemessen am 23.8.): Überall stand `if (error || !daten.length)`
+// und zeigte dann "Aktuell keine Jobs". Damit bekommt jemand bei einer
+// Server-Störung die Botschaft "es gibt hier nichts" – die schlimmste
+// aller Antworten, weil sie glaubwürdig klingt und niemand wiederkommt.
+// Fiel das Netz ganz aus, warf der Aufruf sogar eine Ausnahme und die
+// grauen Platzhalter blieben für immer stehen.
+//
+// Deshalb: Störung und Leere sind zwei verschiedene Dinge und sehen
+// verschieden aus. Eine Störung sagt, dass sie eine Störung ist, und
+// bietet einen Weg nach vorn.
+
+const WARN_ICON = '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="24" cy="24" r="18"/><path d="M24 15v11" stroke-linecap="round"/><circle cx="24" cy="32.5" r="1.4" fill="currentColor" stroke="none"/></svg>'
+
+// Ein fehlgeschlagener Abruf wird zu einem ehrlichen Zustand im Container.
+// `erneut` ist die Funktion, die den Abruf noch einmal startet.
+export function zeigeLadefehler(container, erneut, text) {
+  if (!container) return
+  container.innerHTML = `
+    <div class="empty-state fehler-state">
+      ${WARN_ICON}
+      <p>${text || 'Die Daten konnten gerade nicht geladen werden.'}</p>
+      <p class="fehler-hinweis">Das liegt meist an der Internetverbindung – die Anzeigen sind nicht weg.</p>
+      <button type="button" class="btn btn-outline fehler-erneut">Nochmal versuchen</button>
+    </div>`
+  container.querySelector('.fehler-erneut')?.addEventListener('click', () => {
+    if (typeof erneut === 'function') erneut()
+    else location.reload()
+  })
+}
+
+// Ganzseitige Variante: wenn nicht nur eine Liste fehlt, sondern die Seite
+// ohne die Daten gar keinen Sinn ergibt (z.B. das eigene Profil).
+export function zeigeSeitenfehler({ titel, text, erneut } = {}) {
+  const ziel = document.querySelector('main') || document.body
+  ziel.innerHTML = `
+    <div class="seiten-fehler">
+      <div class="empty-state fehler-state">
+        ${WARN_ICON}
+        <h1>${titel || 'Gerade nicht erreichbar'}</h1>
+        <p>${text || 'Wir konnten deine Daten nicht laden. Das ist vorübergehend – dein Konto und deine Bewerbungen sind sicher.'}</p>
+        <p class="fehler-hinweis">Prüf am besten kurz deine Internetverbindung.</p>
+        <div class="fehler-knoepfe">
+          <button type="button" class="btn btn-green fehler-erneut">Nochmal versuchen</button>
+          <a class="btn btn-outline" href="index.html">Zur Startseite</a>
+        </div>
+      </div>
+    </div>`
+  ziel.querySelector('.fehler-erneut')?.addEventListener('click', () => {
+    if (typeof erneut === 'function') erneut()
+    else location.reload()
+  })
+}
+
+// Klammert einen Supabase-Aufruf so ein, dass ein Netzausfall (der eine
+// Ausnahme wirft) genauso ankommt wie ein Serverfehler (der `error`
+// zurückgibt). Ohne das bleiben die grauen Platzhalter ewig stehen.
+export async function hole(abfrage) {
+  try {
+    const { data, error } = await abfrage
+    // PGRST116 heißt bei `.single()` nur "kein Treffer" – etwa eine
+    // Job-Anzeige, die es nicht mehr gibt. Das ist ein normaler Zustand
+    // und keine Störung; sonst bekäme jeder tote Link eine
+    // "Verbindungsproblem"-Meldung statt "gibt es nicht mehr".
+    if (error && error.code !== 'PGRST116') return { data: null, gestoert: true }
+    return { data: data ?? null, gestoert: false }
+  } catch {
+    return { data: null, gestoert: true }
+  }
+}

@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 23. August 2026.**
-> Alles ist committet und gepusht, **142 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **156 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -11,9 +11,10 @@
 > **Laufender Dauerauftrag:** Sanad hat per `/loop` erteilt, die Seite fortlaufend in allen
 > Bereichen zu verbessern (60-Sekunden-Takt). Die Schleife wurde beim Sitzungswechsel gestoppt –
 > zum Fortsetzen `/loop` mit demselben Text neu starten.
-> Erledigt: Barrierefreiheit, Ladezeit/jsPDF, Schriftschnitte, Tastaturbedienung & Fokus-Sichtbarkeit.
-> **Als Nächstes geplant: Fehler- und Leerzustände** (was sieht man, wenn nichts da ist oder etwas
-> schiefgeht?), danach Formular-Fehlermeldungen und Bildgrößen gegen Layout-Sprünge.
+> Erledigt: Barrierefreiheit, Ladezeit/jsPDF, Schriftschnitte, Tastaturbedienung & Fokus-Sichtbarkeit,
+> Fehler- und Leerzustände (dabei ein echter Bug gefunden: Weiterleitungsschleife bei Server-Störung).
+> **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
+> was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
 
 ## 🚀 Vor dem Launch (Pflicht)
 1. **Rechtliche Prüfung** – der einzige echte Blocker:

@@ -1793,3 +1793,27 @@ main[tabindex="-1"]:focus { outline: none; }
   font: inherit; color: inherit; text-align: left; cursor: pointer;
 }
 .job-titel-btn:focus-visible { outline: 2px solid var(--match-green-dark); outline-offset: 3px; border-radius: 6px; }
+
+/* ===================================================================
+   FEHLERZUSTAENDE (siehe js/zustand.js)
+   -------------------------------------------------------------------
+   Bewusst anders als der Leerzustand: Ein leerer Bereich ist normal,
+   eine Stoerung nicht. Sie soll erkennbar sein, ohne zu erschrecken -
+   deshalb das warme Rot nur als Akzent, nicht als Flaeche.
+   =================================================================== */
+.fehler-state svg { color: var(--coral); opacity: 0.75; }
+.fehler-state h1 { font-size: 1.35rem; margin: 0; }
+.fehler-state p { max-width: 420px; }
+.fehler-hinweis { font-size: 0.85rem; opacity: 0.8; }
+.fehler-erneut { margin-top: 4px; }
+.fehler-knoepfe { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+/* Nebeneinander stehen hier ein <button> und ein <a> - ohne das hier waeren sie
+   unterschiedlich hoch, weil beide ihre eigene Standard-Zeilenhoehe mitbringen. */
+.fehler-knoepfe .btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  line-height: 1.35; text-decoration: none;
+  /* .fehler-erneut bringt einen margin-top mit; im Flex-Container frisst der
+     genau die 4px, um die der Knopf sonst niedriger ist als der Link daneben. */
+  margin-top: 0;
+}
+.seiten-fehler { min-height: 60vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }

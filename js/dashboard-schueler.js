@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { hole, zeigeLadefehler } from './zustand.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf, erzeugeLebenslaufPdf, lebenslaufAlsBlob } from './pdf.js'
@@ -397,7 +398,11 @@ async function renderMeineBewerbungen() {
     container.innerHTML = `
       <div class="empty-state">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8h24v32H12z M18 16h12M18 22h12M18 28h8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <p>Noch keine Bewerbungen. Stöbere bei den <a href="#" id="bew-zu-jobs" style="color:var(--match-green-dark); text-decoration:underline;">Jobs</a> und bewirb dich mit einem Klick!</p>
+        <p>Noch keine Bewerbungen.</p>
+        <p class="fehler-hinweis">Such dir einen Job aus – bewerben dauert keine Minute.</p>
+        <div class="fehler-knoepfe">
+          <button type="button" class="btn btn-green" id="bew-zu-jobs">Jobs ansehen</button>
+        </div>
       </div>`
     document.getElementById('bew-zu-jobs')?.addEventListener('click', (e) => {
       e.preventDefault()
@@ -1027,15 +1032,29 @@ async function ladeJobs() {
     query = query.lte('mindestalter', profile.alter_jahre)
   }
 
-  const { data: jobs, error } = await query.order('erstellt_am', { ascending: false })
+  const { data: jobs, gestoert } = await hole(query.order('erstellt_am', { ascending: false }))
 
-  if (error || !jobs?.length) {
+  // Eine Störung ist etwas anderes als "es gibt nichts für dich".
+  if (gestoert) {
     renderStats(0, 0)
     renderOnboarding()
+    zeigeLadefehler(grid, ladeJobs, 'Deine Jobs konnten gerade nicht geladen werden.')
+    return
+  }
+
+  if (!jobs.length) {
+    renderStats(0, 0)
+    renderOnboarding()
+    // Die Liste ist nach dem Alter gefiltert – deshalb der Weg zur
+    // vollständigen Börse statt einer Sackgasse.
     grid.innerHTML = `
       <div class="empty-state">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
-        <p>Aktuell keine passenden Jobs verfügbar. Schau bald wieder vorbei!</p>
+        <p>Für dein Alter ist gerade nichts dabei.</p>
+        <p class="fehler-hinweis">Neue Anzeigen kommen laufend dazu. In der offenen Jobbörse siehst du auch Jobs mit höherem Mindestalter.</p>
+        <div class="fehler-knoepfe">
+          <a class="btn btn-outline" href="jobs.html">Alle Jobs ansehen</a>
+        </div>
       </div>`
     return
   }
@@ -1218,7 +1237,9 @@ function renderJobs(jobs) {
       <div class="empty-state">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
         <p>${nurGemerkte ? 'Du hast noch keine Jobs gemerkt. Klick auf das Herz bei einem Job!' : 'Keine Jobs passen zu diesem Filter.'}</p>
+        <button type="button" class="btn btn-outline" id="filter-reset-leer" style="margin-top:14px;">${nurGemerkte ? 'Wieder alle Jobs zeigen' : 'Filter zurücksetzen'}</button>
       </div>`
+    document.getElementById('filter-reset-leer')?.addEventListener('click', alleFilterZuruecksetzen)
     return
   }
 

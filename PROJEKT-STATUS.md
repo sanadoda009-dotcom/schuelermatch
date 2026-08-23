@@ -304,6 +304,35 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 23. August 2026 (Teil 6) - Fehler- und Leerzustaende
+
+Runde 5 des Dauerauftrags. Frage: Was sieht man, wenn nichts da ist oder etwas schiefgeht? Dazu die Datenbank kuenstlich kaputtgemacht (Server antwortet mit 500) und das Netz komplett gekappt, und dann auf jeder Seite nachgesehen, was ankommt.
+
+**Der schwerwiegendste Fund - ein echter Bug, kein Schoenheitsfehler:**
+Bei einer Server-Stoerung landeten eingeloggte Nutzer in einer **endlosen Weiterleitungsschleife**. Ursache in `js/session.js`: Ein fehlgeschlagener Profil-Abruf lieferte `null`, und die Rollenpruefung `profile?.role !== expectedRole` behandelte das wie "falsche Rolle" - also Weiterleitung. Weil dort dasselbe passierte, lud sich die Seite immer wieder neu, solange der Server nicht antwortete. Gemessen: 5 Seitenaufrufe in 6 Sekunden, ohne Ende. Eine **Firma landete dabei zusaetzlich im Schueler-Dashboard**. Jetzt wird zwischen "konnte nicht laden" und "andere Rolle" unterschieden; nur der zweite Fall leitet weiter, und niemals auf die Seite, auf der man schon steht.
+
+**Die weiteren Funde:**
+1. **Eine Stoerung wurde als Leerzustand ausgegeben.** Ueberall stand `if (error || !daten.length)` und zeigte dann "Aktuell keine Jobs - schau bald wieder vorbei!". Das ist die schlimmste aller Antworten: Sie klingt glaubwuerdig, also kommt niemand wieder. Betraf Startseite, Jobboerse, Job-Detail, beide Dashboards.
+2. **Ohne Netz blieben die grauen Platzhalter fuer immer stehen.** Ein Netzausfall wirft eine Ausnahme statt `error` zurueckzugeben - die Ladefunktion brach mittendrin ab, und niemand raeumte auf. Auf `job.html` stand dauerhaft "Lade Job...".
+3. **Die Leerzustaende waren Sackgassen.** "Noch keine Bewerbungen. Stoebere bei den Jobs" - eine Wegbeschreibung statt einer Tuer. Gleiches bei "keine Jobs verfuegbar", "keine passenden Jobs" und "noch keine Jobs gepostet". Einzig der Filter-Leerzustand auf der Jobboerse machte es richtig und hatte einen Knopf.
+
+**Was gebaut wurde:**
+- **`js/zustand.js` (neu)** - die gemeinsame Stelle dafuer. `hole()` klammert jeden Supabase-Aufruf so ein, dass ein Netzausfall genauso ankommt wie ein Serverfehler. `zeigeLadefehler()` ersetzt einen Listenbereich durch eine ehrliche Meldung mit "Nochmal versuchen"-Knopf, `zeigeSeitenfehler()` macht dasselbe ganzseitig fuer die Dashboards (dort ergibt die Seite ohne Profil keinen Sinn).
+- **Wichtige Feinheit:** `PGRST116` (bei `.single()` = "kein Treffer") gilt bewusst NICHT als Stoerung. Sonst bekaeme jeder tote Job-Link eine "Verbindungsproblem"-Meldung statt "gibt es nicht mehr". Genau das ging beim Umbau kurz kaputt - der bestehende Test `job-detail.spec.js` hat es gefangen.
+- **Jeder Leerzustand hat jetzt eine Tuer**: Jobboerse leer -> "Profil anlegen" / "Ich suche Schueler"; Schueler ohne passende Jobs -> "Alle Jobs ansehen" (die Dashboard-Liste ist nach Alter gefiltert, die offene Boerse nicht); Schueler ohne Bewerbungen -> "Jobs ansehen" als richtiger Knopf statt Fliesstext-Link; Firma ohne Anzeigen -> "Ersten Job posten"; Dashboard-Filter ohne Treffer -> "Filter zuruecksetzen" (fehlte dort, anders als auf der Jobboerse).
+- **Optisch unterscheidbar:** Stoerung = warmes Rot mit Warnzeichen, Leere = neutrales Symbol. Auf einen Blick erkennbar, ob etwas kaputt ist oder einfach nichts da.
+
+**Ergebnis der Nachmessung:** Weiterleitungsschleife weg (5 Aufrufe -> 1, Firma bleibt im Firmen-Dashboard). Alle Stoerungsfaelle melden sich ehrlich und bieten einen Weg nach vorn. Keine haengenden Platzhalter mehr - ohne Netz dauert es rund 8 Sekunden, weil supabase-js viermal wiederholt, aber es endet.
+
+**Dauerhaft abgesichert:** `tests/zustaende.spec.js` (14 Tests) haelt drei Regeln fest: eine Stoerung sagt, dass sie eine ist; eine Stoerung wird nie als Leerzustand ausgegeben; ein Leerzustand ist keine Sackgasse.
+
+**Suite jetzt: 156 Tests, alle gruen** (vorher 142).
+
+**Nebenbei behoben:** Die zwei Knoepfe im ganzseitigen Fehler waren 4px unterschiedlich hoch. Zwei falsche Vermutungen (Zeilenhoehe, Rahmenlinie) wurden nachgemessen und verworfen - die Ursache war ein `margin-top: 4px` am Knopf, den der Flex-Container beim Strecken abzieht.
+
+**Bewusst NICHT geaendert:** Die rund 8 Sekunden bis zur Fehlermeldung ohne Netz. Die kommen von den Wiederholungsversuchen in supabase-js, und die sind sinnvoll - kurze Funkloecher werden so ueberbrueckt, ohne dass der Nutzer etwas merkt. Ein Zwischenhinweis ("dauert laenger als sonst") waere denkbar, aber zusaetzliche Mechanik fuer einen seltenen Fall.
+
+
 ## Session 23. August 2026 (Teil 5) - Tastaturbedienung & Fokus-Sichtbarkeit
 
 Runde 4 des Dauerauftrags. Frage: Kann man die Seite komplett ohne Maus bedienen - und sieht man dabei immer, wo man gerade steht? Erst gemessen (Wegwerf-Skripte, die jedes fokussierbare Element anspringen und den gerenderten Fokus-Stil auslesen), dann gefixt, dann neu gemessen.

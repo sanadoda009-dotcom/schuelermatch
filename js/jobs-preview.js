@@ -1,19 +1,25 @@
 import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
+import { hole, zeigeLadefehler } from './zustand.js'
 
 async function ladeVorschauJobs() {
   const grid = document.getElementById('preview-jobs-grid')
   if (!grid) return
 
-  const { data: jobs, error } = await supabase
+  // Störung und Leere sind zwei verschiedene Dinge – siehe zustand.js.
+  const { data: jobs, gestoert } = await hole(supabase
     .from('jobs')
     .select('*')
     .eq('aktiv', true)
     .order('erstellt_am', { ascending: false })
-    .limit(3)
+    .limit(3))
 
-  if (error || !jobs?.length) {
-    grid.innerHTML = `<p style="text-align:center; grid-column:1/-1; color:var(--ink-soft);">Aktuell keine Jobs – schau bald wieder vorbei!</p>`
+  if (gestoert) {
+    zeigeLadefehler(grid, ladeVorschauJobs, 'Die Job-Vorschau konnte gerade nicht geladen werden.')
+    return
+  }
+  if (!jobs?.length) {
+    grid.innerHTML = `<p style="text-align:center; grid-column:1/-1; color:var(--ink-soft);">Gerade ist keine Anzeige online – die ersten kommen bald.</p>`
     return
   }
 

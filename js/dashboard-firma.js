@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { hole, zeigeLadefehler } from './zustand.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
@@ -346,19 +347,34 @@ async function loescheJob(jobId, btn) {
 async function ladeEigeneJobs() {
   const list = document.getElementById('meine-jobs')
 
-  const { data: jobs, error } = await supabase
+  const { data: jobs, gestoert } = await hole(supabase
     .from('jobs')
     .select('*')
     .eq('firma_id', profile.id)
-    .order('erstellt_am', { ascending: false })
+    .order('erstellt_am', { ascending: false }))
 
-  if (error || !jobs?.length) {
+  // Wichtig für Firmen: "Störung" darf nie wie "deine Anzeigen sind weg"
+  // aussehen – das wäre ein Grund, die Plattform nicht mehr zu nutzen.
+  if (gestoert) {
+    renderStats(0, 0)
+    zeigeLadefehler(list, ladeEigeneJobs, 'Deine Anzeigen konnten gerade nicht geladen werden.')
+    return
+  }
+
+  if (!jobs.length) {
     renderStats(0, 0)
     list.innerHTML = `
       <div class="empty-state">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
-        <p>Noch keine Jobs gepostet. Leg oben deinen ersten an!</p>
+        <p>Noch keine Anzeige veröffentlicht.</p>
+        <p class="fehler-hinweis">Das Posten ist kostenlos und dauert wenige Minuten.</p>
+        <div class="fehler-knoepfe">
+          <button type="button" class="btn btn-green" id="leer-job-posten">Ersten Job posten</button>
+        </div>
       </div>`
+    document.getElementById('leer-job-posten')?.addEventListener('click', () => {
+      document.querySelector('.sidebar-item[data-view="posten"]')?.click()
+    })
     return
   }
 

@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
 import { passtZurSuche } from './suche.js'
+import { hole, zeigeLadefehler } from './zustand.js'
 
 let alleJobs = []
 let aktiveKategorie = ''
@@ -62,17 +63,29 @@ function setzeKategorie(kat) {
 async function ladeJobs() {
   const grid = document.getElementById('jobs-grid')
 
-  const { data: jobs, error } = await supabase
+  const { data: jobs, gestoert } = await hole(supabase
     .from('jobs')
     .select('*')
     .eq('aktiv', true)
-    .order('erstellt_am', { ascending: false })
+    .order('erstellt_am', { ascending: false }))
 
-  if (error || !jobs?.length) {
+  // Eine Server-Stoerung darf nicht als "es gibt keine Jobs" erscheinen.
+  if (gestoert) {
+    zeigeLadefehler(grid, ladeJobs, 'Die Jobs konnten gerade nicht geladen werden.')
+    return
+  }
+
+  if (!jobs?.length) {
+    // Ein Leerzustand braucht eine Tür, keine Wegbeschreibung.
     grid.innerHTML = `
       <div class="empty-state">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
-        <p>Aktuell keine Jobs verfügbar. Schau bald wieder vorbei!</p>
+        <p>Gerade ist keine einzige Anzeige online.</p>
+        <p class="fehler-hinweis">Leg dir jetzt ein Profil an – dann kannst du dich sofort bewerben, wenn die ersten Jobs kommen.</p>
+        <div class="fehler-knoepfe">
+          <a class="btn btn-green" href="register.html">Profil anlegen</a>
+          <a class="btn btn-outline" href="register.html?rolle=firma">Ich suche Schüler</a>
+        </div>
       </div>`
     return
   }

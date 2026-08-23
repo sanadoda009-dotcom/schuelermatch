@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
+import { hole, zeigeLadefehler } from './zustand.js'
 
 function escapeHtml(str) {
   const div = document.createElement('div'); div.textContent = str ?? ''; return div.innerHTML
@@ -58,9 +59,16 @@ async function ladeJob() {
     return
   }
 
-  const { data: job, error } = await supabase.from('jobs').select('*').eq('id', id).eq('aktiv', true).single()
+  const { data: job, gestoert } = await hole(
+    supabase.from('jobs').select('*').eq('id', id).eq('aktiv', true).single())
 
-  if (error || !job) {
+  // Ohne Netz blieb hier frueher fuer immer "Lade Job..." stehen.
+  if (gestoert) {
+    zeigeLadefehler(el, ladeJob, 'Diese Anzeige konnte gerade nicht geladen werden.')
+    return
+  }
+
+  if (!job) {
     el.innerHTML = '<h1>Job nicht verfügbar</h1><p>Diese Anzeige gibt es nicht mehr oder sie wurde pausiert.</p><p><a href="jobs.html" style="color:var(--match-green-dark);text-decoration:underline;">Alle aktuellen Jobs ansehen →</a></p>'
     return
   }
