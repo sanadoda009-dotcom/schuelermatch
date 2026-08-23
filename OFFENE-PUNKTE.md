@@ -1,4 +1,18 @@
-# SchülerMatch – Offene Punkte (Stand: 23. Juli 2026)
+# SchülerMatch – Offene Punkte
+
+> **Stand 23. August 2026 – frisch übergeben an eine neue Chat-Sitzung.**
+> Alles ist committet und gepusht (letzter Commit `c009454`), **121 E2E-Tests grün**, Live-Stand deployed.
+> Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
+>
+> **Teststart:** `npm test` im Projektordner. Node liegt portable unter
+> `AppData/Local/Programs/nodejs-portable` → PATH ergänzen.
+> Läuft die Vorschau (`preview_start`), vor einem vollen Testlauf stoppen – beide teilen Port 5500.
+>
+> **Laufender Dauerauftrag:** Sanad hat per `/loop` erteilt, die Seite fortlaufend in allen
+> Bereichen zu verbessern (60-Sekunden-Takt). Die Schleife wurde beim Sitzungswechsel gestoppt –
+> zum Fortsetzen `/loop` mit demselben Text neu starten.
+> Erledigt: Barrierefreiheit, Ladezeit/jsPDF, Schriftschnitte.
+> **Als Nächstes geplant: Tastaturbedienung & Fokus-Sichtbarkeit.** (Stand: 23. Juli 2026)
 
 ## 🚀 Vor dem Launch (Pflicht)
 1. **Rechtliche Prüfung** – der einzige echte Blocker:
