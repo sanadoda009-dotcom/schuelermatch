@@ -85,7 +85,25 @@ export async function erzeugeLebenslaufPdfMitAnkern(daten) {
   return baueDokument(daten)
 }
 
+// jsPDF ist rund 93 KB gross, wird aber nur gebraucht, wenn wirklich ein PDF
+// entsteht (Download, Bewerbungs-Anhang, Live-Vorschau). Darum erst bei Bedarf
+// laden statt auf jeder Dashboard-Seite mitzuschleppen.
+let jspdfLaedt = null
+function ladeJsPdf() {
+  if (window.jspdf) return Promise.resolve()
+  if (jspdfLaedt) return jspdfLaedt
+  jspdfLaedt = new Promise((fertig, fehler) => {
+    const s = document.createElement('script')
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+    s.onload = () => fertig()
+    s.onerror = () => { jspdfLaedt = null; fehler(new Error('PDF-Bibliothek konnte nicht geladen werden')) }
+    document.head.appendChild(s)
+  })
+  return jspdfLaedt
+}
+
 async function baueDokument(daten) {
+  await ladeJsPdf()
   if (!window.jspdf) throw new Error('PDF-Bibliothek nicht geladen')
   const { jsPDF } = window.jspdf
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })

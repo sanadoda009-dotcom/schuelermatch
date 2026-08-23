@@ -304,6 +304,33 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 23. August 2026 (Teil 3) - Ladezeit: jsPDF wird nachgeladen
+
+### Gemessen (Live-Transfergroessen, mit Brotli)
+| Ressource | Groesse |
+|---|---|
+| index.html / jobs.html | 4,5 / 2,4 KB |
+| style.css | 19,5 KB |
+| **jsPDF** | **93 KB** |
+| pdf.js | 72 KB (wurde schon bei Bedarf geladen) |
+| Schriften | 20 Dateien / 357 KB gesamt, 9 Schnitte |
+| supabase-js (Einstieg) | 4,7 KB |
+
+### Behoben
+`jspdf.umd.min.js` hing als fester `<script>`-Tag in **drei** Seiten (dashboard-schueler, dashboard-firma, lebenslauf) und wurde bei jedem Aufruf geladen - gebraucht wird es aber nur, wenn wirklich ein PDF entsteht. Eine Firma, die nur Bewerber durchsieht, lud 93 KB umsonst.
+- `js/pdf.js` laedt jsPDF jetzt selbst nach (`ladeJsPdf()`, merkt sich das laufende Promise, damit parallele Aufrufe nur einmal laden). Alle PDF-Wege laufen ohnehin durch `baueDokument()` - eine einzige Stelle.
+- Die drei Script-Tags entfernt. Fehlerbehandlung der Aufrufer vorher geprueft: `ladeLebenslaufAlsPdf` faengt ab und zeigt einen Toast, `lebenslaufAlsBlob` wird vom Aufrufer umschlossen.
+- CSP erlaubt cdnjs bereits - das dynamisch eingefuegte Script laeuft.
+
+### Stolperfalle beim Pruefen dokumentiert
+Der erste Testlauf meldete 2 von 3 Tests rot - aber die Fehler waren **Zeitueberschreitungen**, keine gescheiterten Pruefungen: Der Rechner war durch OneDrive-Sync blockiert (3 Tests brauchten 4,4 Minuten statt 20 Sekunden, selbst `echo` lief in einen Timeout). Wiederholung nach der Beruhigung: 3/3 gruen in 13,6 Sekunden. **Lehre**: Bei roten Tests immer erst die Fehlerart ansehen - Timeout unter Last ist kein Defekt. Zwischenzeitlich wurde nichts committet, die Live-Seite blieb unberuehrt.
+
+### Tests: 117 -> 120, alle gruen
+Neu `tests/pdf-nachladen.spec.js`: Dashboard und Firmen-Dashboard laden jsPDF nachweislich NICHT vorab; die Lebenslauf-Vorschau laedt es bei Bedarf nach und erzeugt ein echtes PDF (dafuer wird das CDN in genau diesem Test wieder zugelassen). PDF-Erzeugung war vorher gar nicht getestet.
+
+### Offen fuer die naechste Runde
+Schriften: 9 Schnitte (Inter 400/500/600/700, Space Grotesk 500/600/700, IBM Plex Mono 400/500). Pruefen, welche wirklich benutzt werden - je eingesparter Schnitt rund 15-20 KB.
+
 ## Session 23. August 2026 (Teil 2) - Barrierefreiheit systematisch
 Erste Runde des Dauerauftrags "Webseite laufend verbessern". Bereich: Barrierefreiheit - vorher nie systematisch geprueft.
 
