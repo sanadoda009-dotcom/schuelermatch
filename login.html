@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="css/style.css">
 <script src="js/monitoring.js"></script>
 <script src="js/gate.js"></script>
+<script defer src="js/tastatur.js"></script>
 <link rel="icon" type="image/png" href="assets/favicon.png">
 </head>
 <body class="auth-page">
@@ -28,8 +29,8 @@
     <p class="sub">Logge dich in deinen Account ein.</p>
 
     <div class="role-tabs">
-      <div class="role-tab active" onclick="setRole('schueler', this)">Ich bin Schüler</div>
-      <div class="role-tab" onclick="setRole('firma', this)">Ich bin Arbeitgeber</div>
+      <button type="button" class="role-tab active" aria-pressed="true" onclick="setRole('schueler', this)">Ich bin Schüler</button>
+      <button type="button" class="role-tab" aria-pressed="false" onclick="setRole('firma', this)">Ich bin Arbeitgeber</button>
     </div>
 
     <form id="login-form">
@@ -56,8 +57,12 @@
 <script type="module" src="js/auth.js"></script>
 <script>
   function setRole(role, el) {
-    document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.role-tab').forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-pressed', 'false');
+    });
     el.classList.add('active');
+    el.setAttribute('aria-pressed', 'true');
     document.getElementById('login-form').dataset.role = role;
   }
 </script>

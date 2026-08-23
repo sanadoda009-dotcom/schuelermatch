@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="css/style.css">
 <script src="js/monitoring.js"></script>
 <script src="js/gate.js"></script>
+<script defer src="js/tastatur.js"></script>
 <link rel="icon" type="image/png" href="assets/favicon.png">
 </head>
 <body class="auth-page">
@@ -28,8 +29,8 @@
     <p class="sub">Kostenlos – dauert 2 Minuten.</p>
 
     <div class="role-tabs">
-      <div class="role-tab active" id="tab-schueler" onclick="setRole('schueler')">Ich bin Schüler</div>
-      <div class="role-tab" id="tab-firma" onclick="setRole('firma')">Ich bin Arbeitgeber</div>
+      <button type="button" class="role-tab active" id="tab-schueler" aria-pressed="true" onclick="setRole('schueler')">Ich bin Schüler</button>
+      <button type="button" class="role-tab" id="tab-firma" aria-pressed="false" onclick="setRole('firma')">Ich bin Arbeitgeber</button>
     </div>
 
     <form id="register-form" data-role="schueler" novalidate>
@@ -96,8 +97,11 @@
 <script type="module" src="js/auth.js"></script>
 <script>
   function setRole(role) {
-    document.getElementById('tab-schueler').classList.toggle('active', role === 'schueler');
-    document.getElementById('tab-firma').classList.toggle('active', role === 'firma');
+    const istSchueler = role === 'schueler';
+    document.getElementById('tab-schueler').classList.toggle('active', istSchueler);
+    document.getElementById('tab-firma').classList.toggle('active', !istSchueler);
+    document.getElementById('tab-schueler').setAttribute('aria-pressed', String(istSchueler));
+    document.getElementById('tab-firma').setAttribute('aria-pressed', String(!istSchueler));
     document.getElementById('schueler-fields').style.display = role === 'schueler' ? 'block' : 'none';
     document.getElementById('firma-fields').style.display = role === 'firma' ? 'block' : 'none';
     document.getElementById('register-form').dataset.role = role;

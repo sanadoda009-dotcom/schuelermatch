@@ -231,7 +231,12 @@ function renderJobs(jobs) {
 
   grid.querySelectorAll('[data-detail]').forEach(karte => {
     karte.addEventListener('click', () => oeffneDetail(karte.dataset.detail))
-    karte.addEventListener('keydown', e => { if (e.key === 'Enter') oeffneDetail(karte.dataset.detail) })
+    // role="button" heisst fuer Tastaturnutzer: Enter UND Leertaste muessen ausloesen.
+    karte.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' && e.key !== ' ') return
+      e.preventDefault()   // sonst scrollt die Leertaste die Seite
+      oeffneDetail(karte.dataset.detail)
+    })
   })
 }
 

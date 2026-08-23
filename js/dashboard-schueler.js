@@ -1234,7 +1234,7 @@ function renderJobs(jobs) {
         <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
         <span class="job-badge" style="margin-right:44px;">${ICONS.age} ab ${job.mindestalter} J.</span>
       </div>
-      <h3>${escapeHtml(job.titel)}</h3>
+      <h3><button type="button" class="job-titel-btn" data-detail-btn="${job.id}">${escapeHtml(job.titel)}</button></h3>
       <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${dist != null ? ` <span class="distanz-chip">${dist} km</span>` : ''}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
       ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
       <div class="job-meta">
@@ -1258,6 +1258,12 @@ function renderJobs(jobs) {
       if (e.target.closest('button')) return // Buttons (Merken/Bewerben) nicht abfangen
       oeffneDetail(karte.dataset.detail)
     })
+  })
+  // Tastatur-Zugang zur Karte: der Jobtitel ist ein echter Knopf.
+  // (Kein role="button" auf der Karte selbst - sie enthaelt bereits
+  //  Knoepfe zum Merken/Bewerben, das liest sich in Screenreadern falsch.)
+  grid.querySelectorAll('button[data-detail-btn]').forEach(btn => {
+    btn.addEventListener('click', () => oeffneDetail(btn.dataset.detailBtn))
   })
 }
 

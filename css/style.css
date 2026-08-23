@@ -288,6 +288,8 @@ section { padding: 130px 24px; }
   flex: 1; padding: 10px; text-align: center; border-radius: 10px;
   border: 1.5px solid var(--line); cursor: pointer; font-weight: 600;
   font-size: 0.88rem; transition: all 0.15s;
+  /* Sind echte <button> (damit per Tastatur bedienbar) - Browser-Optik zuruecksetzen */
+  background: var(--card); color: var(--ink); font-family: 'Inter', sans-serif;
 }
 .role-tab.active { border-color: var(--match-green); background: rgba(0,200,150,0.08); color: var(--match-green-dark); }
 .consent-group { background: var(--paper); border-radius: 10px; padding: 14px; }
@@ -1739,3 +1741,55 @@ h1, h2, h3 { hyphens: auto; }
 .consent-label .mono { font-weight: 400; }
 /* Niveau im Sprach-Abzeichen: <b> hätte auf 600 hochgerechnet */
 .cv-sprache-badge b { font-weight: 500; }
+
+/* ===================================================================
+   TASTATURBEDIENUNG – sichtbarer Fokus überall
+   -------------------------------------------------------------------
+   Viele Eingabefelder setzten weiter oben bewusst `outline: none` und
+   zeigten den Fokus nur über eine dezent geänderte Rahmenfarbe. Mit der
+   Maus fällt das nicht auf; wer sich mit der Tab-Taste durch die Seite
+   bewegt, verliert dabei aber die Orientierung. Deshalb hier – bewusst
+   ganz am Ende der Datei, damit es die früheren Regeln überschreibt –
+   ein einheitlicher Fokus-Ring.
+
+   `:focus-visible` heißt: nur bei Tastatur-Fokus. Beim Mausklick in ein
+   Feld bleibt die Optik unverändert.
+   =================================================================== */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible,
+[role="button"]:focus-visible,
+[contenteditable]:focus-visible {
+  outline: 2px solid var(--match-green-dark);
+  outline-offset: 2px;
+}
+/* Checkboxen/Radios sitzen dicht am Text – etwas mehr Abstand, sonst
+   verschmilzt der Ring mit der Beschriftung. */
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible { outline-offset: 3px; }
+
+/* „Zum Inhalt springen“: unsichtbar, bis man mit Tab darauf landet.
+   Erspart Tastaturnutzern auf jeder Unterseite die komplette Navigation. */
+.skip-link {
+  position: absolute; left: 12px; top: -60px; z-index: 100000;
+  background: var(--card); color: var(--match-green-dark);
+  border: 2px solid var(--match-green-dark); border-radius: 10px;
+  padding: 10px 16px; font-weight: 600; font-size: 0.92rem;
+  text-decoration: none; box-shadow: 0 6px 20px rgba(22,26,31,0.15);
+  transition: top 0.15s;
+}
+.skip-link:focus { top: 12px; }
+/* Der Inhaltsbereich bekommt beim Anspringen tabindex="-1"; dort soll
+   kein Ring erscheinen, der Sprung selbst ist die Rückmeldung. */
+main[tabindex="-1"]:focus { outline: none; }
+
+/* Jobtitel im Schueler-Dashboard ist ein echter <button>, damit die Karte
+   auch per Tastatur zu oeffnen ist. Optisch soll er eine Ueberschrift
+   bleiben - deshalb die Browser-Optik komplett zuruecksetzen. */
+.job-titel-btn {
+  background: none; border: none; padding: 0; margin: 0;
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.job-titel-btn:focus-visible { outline: 2px solid var(--match-green-dark); outline-offset: 3px; border-radius: 6px; }

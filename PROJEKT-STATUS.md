@@ -304,6 +304,33 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 23. August 2026 (Teil 5) - Tastaturbedienung & Fokus-Sichtbarkeit
+
+Runde 4 des Dauerauftrags. Frage: Kann man die Seite komplett ohne Maus bedienen - und sieht man dabei immer, wo man gerade steht? Erst gemessen (Wegwerf-Skripte, die jedes fokussierbare Element anspringen und den gerenderten Fokus-Stil auslesen), dann gefixt, dann neu gemessen.
+
+**Was die Messung fand (alles echte Fehler, keine Theorie):**
+1. **Auf jeder Filterseite war KEIN einziges Eingabefeld sichtbar fokussiert.** Sechs Felder auf `jobs.html` und im Schueler-Dashboard, dazu die grosse Suche auf der Startseite. Ursache: mehrere CSS-Regeln setzen `outline: none` und zeigen den Fokus nur ueber eine dezent geaenderte Rahmenfarbe - mit der Maus faellt das nicht auf, per Tab-Taste verliert man die Orientierung komplett.
+2. **Die Rollen-Auswahl auf Login und Registrierung war per Tastatur gar nicht erreichbar.** "Ich bin Schueler" / "Ich bin Arbeitgeber" waren `<div>` mit `onclick` - kein Tabstopp, kein Enter. Wer keine Maus benutzt, konnte sich nicht als Firma registrieren.
+3. **Kein einziger modaler Dialog reagierte auf Escape**, der Fokus sprang beim Oeffnen nicht hinein und blieb auch nicht darin. Man tabbte hinter den offenen Dialog und sah nichts mehr. Betraf alle `.modal-overlay` (Job-Detail auf Jobboerse und im Dashboard, Bewerbung, Chat, Admin-Dokumente, Melden).
+4. **Job-Karten im Schueler-Dashboard waren per Tastatur nicht zu oeffnen** - der Klick-Handler haengt nur am Klick-Ereignis. (Auf der Jobboerse ging Enter, aber nicht die Leertaste, obwohl die Karte `role="button"` traegt.)
+5. **Kein "Zum Inhalt springen"-Link** auf allen 15 Seiten - man muss sich auf jeder Unterseite neu durch die komplette Navigation tabben.
+6. Das Seitenmenue auf dem Handy schob sich ueber den Inhalt, ohne den Fokus mitzunehmen, und liess sich nicht mit Escape schliessen.
+
+**Was gebaut wurde:**
+- **`js/tastatur.js` (neu, auf allen 15 Seiten eingebunden)** - eine zentrale Stelle statt Flickwerk pro Seite. Sie baut den Sprunglink, gibt jedem `.modal-overlay` beim Oeffnen `role="dialog"`/`aria-modal`, schickt den Fokus hinein, haelt ihn per Tab-Falle darin, schliesst auf Escape (ueber den echten Schliessen-Knopf, damit die Aufraeum-Logik der Seite mitlaeuft) und setzt den Fokus danach zurueck auf den Knopf, der den Dialog geoeffnet hat. Ein MutationObserver erfasst auch spaeter erzeugte Dialoge (Melden-Dialog). Das Seitenmenue laeuft ueber denselben Mechanismus, aber nur im Handy-Layout (erkannt daran, ob der Hamburger-Knopf sichtbar ist) und ohne Dialog-Rolle, weil es eine `<nav>` bleibt.
+- **Fokus-Block in `css/style.css`** (bewusst ganz am Ende, damit er die frueheren `outline: none`-Regeln ueberschreibt): einheitlicher Ring fuer alle Felder, `[tabindex]` und `[role=button]` - per `:focus-visible`, also nur bei Tastaturbedienung. Beim Mausklick ins Feld aendert sich nichts. Dazu die `.skip-link`-Optik (unsichtbar, faehrt bei Fokus von oben ein).
+- **Rollen-Auswahl** in `login.html` und `register.html` sind jetzt echte `<button type="button">` mit `aria-pressed`. Damit funktionieren Tab, Enter und Leertaste ohne eigenen Code. CSS-Reset ergaenzt, damit sie optisch unveraendert bleiben (per Screenshot geprueft).
+- **Job-Karten**: auf der Jobboerse loest jetzt auch die Leertaste aus (mit `preventDefault`, sonst scrollt die Seite weg). Im Schueler-Dashboard wurde der **Jobtitel zu einem echten Knopf** - dort enthaelt die Karte bereits Knoepfe zum Merken und Bewerben, und ein `role="button"` um Knoepfe herum liest sich in Screenreadern falsch.
+
+**Ergebnis der Nachmessung:** null Befunde auf allen 11 oeffentlichen Seiten und in beiden Dashboards. Alle Dialoge: Fokus springt hinein, bleibt drin, Escape schliesst, Fokus kehrt zurueck.
+
+**Dauerhaft abgesichert:** `tests/tastatur.spec.js` (21 Tests) - die Messung selbst wurde zum Test umgebaut, damit das nicht zurueckfaellt. Prueft je Seite jedes fokussierbare Element auf sichtbaren Fokus, den Sprunglink (erster Tabstopp, faehrt sichtbar ein, landet wirklich im `<main>`), die Rollen-Knoepfe, das komplette Dialog-Verhalten inkl. Fokus-Rueckgabe und das Seitenmenue.
+
+**Suite jetzt: 142 Tests, alle gruen** (vorher 121).
+
+**Bewusst NICHT geaendert:** Die `outline: none`-Regeln weiter oben im CSS bleiben stehen - sie werden vom neuen Block am Dateiende ueberschrieben. Sie herauszunehmen haette jede einzelne Regel angefasst, ohne dass sich am Ergebnis etwas aendert. Ebenfalls nicht angefasst: eine echte Pfeiltasten-Navigation fuer die Rollen-Auswahl (ARIA-Tabs-Muster) - zwei Umschalt-Knoepfe mit `aria-pressed` sind hier das einfachere und robustere Muster.
+
+
 ## Session 23. August 2026 (Teil 4) - Schriftschnitte: Ladezeit UND Darstellung
 
 Nicht geraten, sondern im Browser gemessen: fuer jedes sichtbare Element die tatsaechlich gerenderte Kombination aus Schriftfamilie und Gewicht gesammelt und mit dem verglichen, was die Seite von Google Fonts laedt.
