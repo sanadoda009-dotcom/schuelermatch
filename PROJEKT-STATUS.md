@@ -304,6 +304,29 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 23. August 2026 (Teil 4) - Schriftschnitte: Ladezeit UND Darstellung
+
+Nicht geraten, sondern im Browser gemessen: fuer jedes sichtbare Element die tatsaechlich gerenderte Kombination aus Schriftfamilie und Gewicht gesammelt und mit dem verglichen, was die Seite von Google Fonts laedt.
+
+### Zwei Arten von Fehlern gefunden
+1. **Geladen, aber nie benutzt**: Space Grotesk 500 - reine Ladezeit-Verschwendung.
+2. **Benutzt, aber nicht geladen** (das war die Ueberraschung): Inter 900, IBM Plex Mono 600 und 700. Fehlt ein Schnitt, rechnet der Browser ihn **kuenstlich hoch** ("faux bold") - sichtbar unsauberer Fettdruck. Das war ein Darstellungsfehler, den vorher niemand bemerkt hatte.
+
+### Ursache in allen Faellen: geerbtes "bolder"
+`<b>` bedeutet nicht "700", sondern "fetter ALS der Elternwert". In einem Element mit Gewicht 600 landet das bei **900**. Betroffen:
+- `<b id="radius-wert">` im Umkreis-Filter (Label hat 600) -> Inter 900
+- Mono-`<h4>` in der Lebenslauf-Vorschau -> Mono 700 (Mono gibt es nur in 400/500)
+- `.ll-karte-typ` erbt 600 von der Kartenkopfzeile -> Mono 600
+- Kleingedrucktes in der Elterneinwilligung erbt 600 vom Label
+- `<b>` im Sprach-Abzeichen ("C1") -> Mono 600
+
+### Behoben
+Ueberall feste Gewichte statt relativer Vererbung gesetzt; Space Grotesk 500 aus der Font-URL aller 16 Seiten entfernt.
+**Endstand gemessen: kein fehlender Schnitt, kein ungenutzter.**
+
+### Tests: 120 -> 121, alle gruen
+Neu `tests/schriften.spec.js`: sammelt ueber 13 Seiten alle gerenderten Familie/Gewicht-Kombinationen und prueft beide Richtungen - nichts Verlangtes darf fehlen, nichts Geladenes ungenutzt bleiben. Faengt kuenftig auch ein versehentliches `<b>` in einem 600er-Kontext.
+
 ## Session 23. August 2026 (Teil 3) - Ladezeit: jsPDF wird nachgeladen
 
 ### Gemessen (Live-Transfergroessen, mit Brotli)

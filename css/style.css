@@ -1718,3 +1718,24 @@ h1, h2, h3 { hyphens: auto; }
 
 /* Beispiel-Karten im Hero: sehen aus wie Überschriften, sind aber Inhalt */
 .match-card-name { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+
+/* ============================================================
+   SCHRIFTSCHNITTE: kein künstlicher Fettdruck mehr
+   Gemessen: An drei Stellen wurde ein Schnitt verlangt, den wir gar
+   nicht laden – der Browser rechnet ihn dann künstlich hoch, was
+   sichtbar schlechter aussieht. Ursache war jeweils ein geerbtes
+   "bolder" statt eines festen Werts.
+   ============================================================ */
+
+/* <b> heißt "fetter als der Elternwert" – in einem 600er-Label landet
+   das bei 900, das laden wir nicht. Fester Wert statt relativ. */
+#radius-wert { font-weight: 700; }
+
+/* IBM Plex Mono gibt es hier nur in 400 und 500. Überall, wo Mono
+   fett geerbt hätte, den vorhandenen Schnitt festschreiben. */
+.mono b, b.mono { font-weight: 500; }
+.cv-preview-section h4, .ll-karte-typ { font-weight: 500; }
+/* Kleingedrucktes in der Einwilligung erbte 600 vom Label */
+.consent-label .mono { font-weight: 400; }
+/* Niveau im Sprach-Abzeichen: <b> hätte auf 600 hochgerechnet */
+.cv-sprache-badge b { font-weight: 500; }
