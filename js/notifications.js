@@ -53,17 +53,21 @@ async function sammle(rolle, profileId) {
     })
   }
 
-  return items
+  return { items, ungelesen: (msgs || []).length }
 }
 
-export function initGlocke({ rolle, profileId, onNavigate }) {
+export function initGlocke({ rolle, profileId, onNavigate, onUngelesen }) {
   const btn = document.getElementById('glocke-btn')
   const badge = document.getElementById('glocke-badge')
   const dd = document.getElementById('glocke-dropdown')
   if (!btn) return () => {}
 
   async function render() {
-    const items = await sammle(rolle, profileId)
+    const { items, ungelesen } = await sammle(rolle, profileId)
+    // Die Zahl weitergeben, statt sie das Dashboard separat abfragen zu
+    // lassen - das war eine komplett doppelte Abfrage auf dieselbe Tabelle
+    // mit derselben Bedingung.
+    onUngelesen?.(ungelesen)
     const frischN = items.filter(i => i.frisch).length
     badge.textContent = frischN
     badge.classList.toggle('aktiv', frischN > 0)

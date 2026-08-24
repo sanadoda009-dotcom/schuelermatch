@@ -143,14 +143,19 @@ async function init() {
   // aktualisiert danach nur noch ein Haekchen - gleiche Hoehe, kein Sprung.
   renderOnboarding()
 
-  await ladeJobs()
-  aktualisiereNachrichtenBadge()
-
+  // Die Glocke VOR dem Warten auf die Jobs starten: Sie braucht nur die
+  // eigene Profil-ID und kann parallel laufen. Vorher stand sie dahinter
+  // und verlaengerte die Kette um rund eine Sekunde.
+  // Sie liefert die Zahl ungelesener Nachrichten gleich mit - das spart
+  // die separate Zaehl-Abfrage, die exakt dasselbe wissen wollte.
   initGlocke({
     rolle: 'schueler',
     profileId: profile.id,
+    onUngelesen: setzeNachrichtenBadge,
     onNavigate: (ziel) => document.querySelector(`.sidebar-item[data-view="${ziel}"]`)?.click()
   })
+
+  await ladeJobs()
 }
 
 /* ---------- CV-VORLAGEN & FORMULIERUNGSHILFE ---------- */
@@ -223,10 +228,16 @@ function zeigeView(view) {
 
 let chatCleanup = null
 
-async function aktualisiereNachrichtenBadge() {
-  const n = await zaehleUngelesen(profile.id)
+function setzeNachrichtenBadge(n) {
   const el = document.getElementById('badge-nachrichten')
   if (el) el.textContent = n > 0 ? n : ''
+}
+
+// Nach dem Lesen eines Chats muss das Badge neu gezaehlt werden - dann
+// gibt es keine laufende Glocken-Abfrage, aus der man die Zahl nehmen
+// koennte, also hier weiterhin ein eigener (seltener) Aufruf.
+async function aktualisiereNachrichtenBadge() {
+  setzeNachrichtenBadge(await zaehleUngelesen(profile.id))
 }
 
 async function renderKonversationen() {

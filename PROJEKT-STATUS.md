@@ -304,6 +304,30 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 24. August 2026 (Teil 4) - Datenabfragen beim Laden
+
+Runde 9 des Dauerauftrags. Frage: Wie viele Abfragen laufen beim Oeffnen einer Seite, und warten sie unnoetig aufeinander?
+
+**Gemessen (alle Abfragen mit Zeitstempel mitgeschnitten):**
+- Oeffentliche Seiten sind sparsam: Jobboerse und Startseite je **eine** Abfrage, Job-Detail zwei (Job + Bewertungen, parallel). Nichts zu tun.
+- **Schueler-Dashboard: sechs Abfragen, davon fuenf hintereinander.** Von der ersten bis zur letzten vergingen rund **1000ms** - fast reine Warteschlange, weil jede erst startete, wenn die vorige fertig war.
+- **Die Tabelle `nachrichten` wurde ZWEIMAL abgefragt** - mit exakt derselben Bedingung. Einmal fuer das Zahlen-Abzeichen in der Seitenleiste, einmal fuer die Glocke oben rechts. Die zweite Abfrage holte dabei alles, was die erste wissen wollte.
+
+**Behoben:**
+- `sammle()` in `js/notifications.js` gibt die Zahl ungelesener Nachrichten jetzt mit zurueck, statt sie wegzuwerfen. `initGlocke()` reicht sie ueber `onUngelesen` ans Dashboard weiter. Die separate Zaehl-Abfrage entfaellt.
+- Die Glocke startet jetzt **vor** `await ladeJobs()` statt danach. Sie braucht nur die eigene Profil-ID und kann parallel laufen.
+
+**Ergebnis:** Von sechs Abfragen laufen jetzt nur noch **zwei** hintereinander statt fuenf. Die Spanne von der ersten bis zur letzten Abfrage sank von rund **1000ms auf 300ms**.
+
+**Wichtig zur Messung:** Die absoluten Ladezeiten schwankten zwischen den Durchlaeufen um mehrere Sekunden, je nach Rechnerlast. Aussagekraeftig ist nur die **Spanne zwischen erster und letzter Abfrage** - die misst die Warteschlange selbst. Deshalb pruefen die Tests auch keine Millisekunden, sondern **wie oft welche Tabelle gefragt wird**: das ist reproduzierbar.
+
+**Bewusst NICHT geaendert:** Die Tabelle `bewerbungen` wird weiterhin zweimal abgefragt - einmal vom Dashboard (alle Bewerbungen), einmal von der Glocke (nur die mit Statusaenderung). Die beiden haben unterschiedliche Filter, liegen in verschiedenen Modulen und laufen inzwischen **parallel**. Sie zusammenzulegen wuerde die Module aneinanderbinden, ohne dass der Nutzer etwas davon merkt.
+
+**Dauerhaft abgesichert:** `tests/datenabfragen.spec.js` (5 Tests): Nachrichten nur einmal, Gesamtzahl der Abfragen gedeckelt, Glocke nicht am Ende der Kette, oeffentliche Seiten mit genau einer Abfrage.
+
+**Suite jetzt: 182 Tests, alle gruen** (vorher 177).
+
+
 ## Session 24. August 2026 (Teil 3) - Texte und Teilen-Vorschau
 
 Runde 8 des Dauerauftrags. Frage: Verstehen 13-Jaehrige die Texte?
