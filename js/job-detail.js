@@ -95,6 +95,20 @@ async function ladeJob() {
   ldScript.textContent = JSON.stringify(jsonLd, (k, v) => v === undefined ? undefined : v)
   document.head.appendChild(ldScript)
   document.title = `${job.titel} – SchülerMatch`
+  // Teilen-Vorschau auf diesen Job umschreiben (siehe Kommentar in job.html).
+  const setzeMeta = (eigenschaft, wert) => {
+    const el = document.querySelector(`meta[property="${eigenschaft}"]`)
+    if (el) el.setAttribute('content', wert)
+  }
+  setzeMeta('og:title', `${job.titel}${job.ort ? ' in ' + job.ort : ''} – SchülerMatch`)
+  setzeMeta('og:url', location.href)
+  const teile = []
+  if (job.stundenlohn) teile.push(`${job.stundenlohn} € pro Stunde`)
+  if (job.mindestalter) teile.push(`ab ${job.mindestalter} Jahren`)
+  if (job.verfuegbarkeit) teile.push(job.verfuegbarkeit)
+  setzeMeta('og:description', teile.length
+    ? teile.join(' · ') + '. Kostenlos bewerben auf SchülerMatch.'
+    : 'Jugendschutzgeprüfter Minijob, kostenlos für Schüler.')
   document.querySelector('meta[name="description"]')?.setAttribute('content',
     `${job.titel}${job.ort ? ' in ' + job.ort : ''} – ab ${job.mindestalter} Jahren${job.stundenlohn ? ', ' + job.stundenlohn + ' €/Std' : ''}. Kostenlos bewerben auf SchülerMatch.`)
 
@@ -125,7 +139,7 @@ async function ladeJob() {
 
     <div class="legal-highlight" style="margin-top:24px;">
       <h2>Bewerben</h2>
-      <p>Um dich zu bewerben, brauchst du ein kostenloses (verifiziertes) Schüler-Konto. Danach kannst du mit einem Klick über die Plattform Kontakt aufnehmen.</p>
+      <p>Zum Bewerben brauchst du ein kostenloses Schüler-Konto. Wir prüfen einmal kurz, ob du wirklich Schüler:in bist – danach bewirbst du dich mit einem Klick.</p>
       <div class="hero-ctas" style="margin-top:14px;">
         <a href="register.html?rolle=schueler" class="btn btn-green">Kostenlos registrieren & bewerben</a>
         <a href="login.html" class="btn btn-outline">Ich habe schon ein Konto</a>

@@ -304,6 +304,32 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 24. August 2026 (Teil 3) - Texte und Teilen-Vorschau
+
+Runde 8 des Dauerauftrags. Frage: Verstehen 13-Jaehrige die Texte?
+
+**Ehrliches Ergebnis: Die Texte sind bereits gut.** Gemessen ueber alle Seiten: 5-8 Woerter pro Satz im Schnitt, genau **ein** Satz ueber 20 Woertern. Da war fast nichts zu holen. (Zwischendurch meldete die Messung faelschlich "keine schweren Woerter" - die Wortsuche war kaputt, ein Escaping-Fehler im Pruefskript. Erst nach der Reparatur kamen echte Treffer. Ohne die Gegenprobe haette ich ein falsches "alles gut" gemeldet.)
+
+**Die wenigen echten Treffer:**
+- "Verfuegbarkeit" stand als Lebenslauf-Baustein und auf der Startseite - fuer einen 13-Jaehrigen ein Amtswort. Jetzt: **"Wann ich Zeit habe"**. In den Firmen-Formularen bleibt es stehen (Erwachsene), in den Rechtstexten ebenso.
+- Auf der Job-Detailseite stand "ein kostenloses (verifiziertes) Schueler-Konto" - eine Klammer mitten im Satz, die nichts erklaert. Jetzt ausgeschrieben: "Wir pruefen einmal kurz, ob du wirklich Schueler:in bist."
+- "Match"/"Matching" bleibt: Das ist der Produktname.
+
+**Der eigentliche Fund lag woanders.** Beim Durchsehen der Seiten-Metadaten fiel auf: **Open Graph gab es nur auf zwei von 15 Seiten** - ausgerechnet nicht auf `job.html`, der einzigen Seite mit einem eingebauten "Link kopieren"-Knopf. Wer einen Job per WhatsApp weiterschickte, verschickte nur eine nackte URL ohne jede Vorschau. Fuer eine Plattform, die ueber Weiterempfehlung waechst, ist das teuer.
+
+**Behoben:**
+- `job.html` und `jugendarbeitsschutz.html` haben jetzt Teilen-Angaben.
+- `js/job-detail.js` schreibt sie nach dem Laden auf den **echten Job** um: Titel mit Ort, dazu Stundenlohn, Mindestalter und Arbeitszeit als Beschreibung.
+
+**Ehrliche Einschraenkung:** Dienste wie WhatsApp fuehren kein JavaScript aus und sehen daher die allgemeine Fassung ("Minijob fuer Schueler"), nicht den konkreten Jobtitel. Job-genaue Vorschauen braeuchten serverseitiges Rendering, das es bei statischem Hosting nicht gibt. Die allgemeine Vorschau ist trotzdem deutlich besser als gar keine.
+
+**Offen geblieben (bewusst):** Es gibt **kein `og:image`** - auf keiner Seite. Beim Teilen erscheint also nur Text, kein Bild. Das Logo ist 480x91 Pixel und damit zu schmal; empfohlen sind rund 1200x630. Dafuer muesste erst ein Banner-Bild gestaltet werden - eigenes Thema, kein Nebenbei-Fix.
+
+**Dauerhaft abgesichert:** `tests/texte-und-teilen.spec.js` (9 Tests): kein Satz ueber 25 Woertern, Schnitt unter 15, kein Amtsdeutsch auf der Startseite, Teilen-Angaben auf allen vier oeffentlichen Seiten vorhanden und auf dem Job-Detail mit dem echten Titel gefuellt.
+
+**Suite jetzt: 177 Tests, alle gruen** (vorher 168). Ein bestehender Mobil-Test musste mitgezogen werden, weil er auf den alten Baustein-Namen klickte.
+
+
 ## Session 24. August 2026 (Teil 2) - Layout-Spruenge
 
 Runde 7 des Dauerauftrags. Frage: Springt der Inhalt beim Laden weg, waehrend man schon liest oder tippt? Gemessen wurde die echte Verschiebung im Browser (CLS ueber einen PerformanceObserver), nicht das Markup.
