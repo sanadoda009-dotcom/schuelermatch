@@ -304,6 +304,28 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 - Merkliste: Meldung sagte das Gegenteil
+
+Runde 16 des Dauerauftrags. Merkliste (Herz-Knopf) und Bewerbungsfluss durchgesehen.
+
+**Der Fehler:** In `toggleMerken()` lief die Erfolgsmeldung **unabhaengig davon, ob das Speichern geklappt hatte** - und sagte dabei das Gegenteil dessen, was der Nutzer wollte:
+
+- Jemand tippt auf das Herz, um einen Job zu merken. Das Speichern scheitert. Meldung: **"Job entfernt"**.
+- Jemand entfernt einen Job. Das Loeschen scheitert. Meldung: **"Job gemerkt ❤"**.
+
+In beiden Faellen wurde der Fehler selbst mit keinem Wort erwaehnt. Der Grund: Die Meldung las den Zustand aus `gemerkteIds`, und der aendert sich bei einem Fehler ja gerade nicht - also stand dort immer der alte Wert.
+
+**Behoben:** Bei einem Fehler kommt jetzt eine ehrliche Meldung ("Das Merken hat gerade nicht geklappt") und die Erfolgsmeldung bleibt aus.
+
+**Ausserdem:** Drei weitere Stellen im Schueler-Dashboard reichten noch rohe englische Fehlertexte durch (Zeugnis hochladen, Lebenslauf hochladen, PDF-Vorschau) - dasselbe Muster, das Runde 6 an anderen Stellen behoben hatte. Jetzt ueber `verstaendlich()`.
+
+**Der Bewerbungsfluss war in Ordnung** - Fehler werden abgefangen, der Knopf zurueckgesetzt, die Meldungen stimmen. Dass eine Bewerbung auch dann abgeht, wenn das automatische Lebenslauf-PDF scheitert, ist eine bewusste und im Code dokumentierte Entscheidung.
+
+**Dauerhaft abgesichert:** `tests/merken.spec.js` (4 Tests). **Gegen den alten Code geprueft: genau einer faellt um** - der zum Meldungstext. Das Herz blieb auch vorher schon korrekt ungefuellt; falsch war allein die Meldung darunter. Die anderen drei sind als Absicherung gekennzeichnet, nicht als Fehlerbeleg.
+
+**Suite jetzt: 218 Tests, alle gruen** (vorher 214). Laufzeit dieses Durchlaufs: 9,2 Minuten.
+
+
 ## Session 24. August 2026 (Teil 10) - Umkreissuche: Ortsdaten gingen verloren
 
 Runde 15 des Dauerauftrags. Der Geo-Teil (`js/geo.js`) war bisher nie geprueft worden.

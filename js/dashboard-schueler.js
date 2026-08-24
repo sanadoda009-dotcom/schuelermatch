@@ -1232,20 +1232,34 @@ async function toggleMerken(jobId, btn) {
   const istGemerkt = gemerkteIds.has(jobId)
   btn.disabled = true
 
-  if (istGemerkt) {
-    const { error } = await supabase.from('gemerkte_jobs')
-      .delete().eq('schueler_id', profile.id).eq('job_id', jobId)
-    if (!error) gemerkteIds.delete(jobId)
-  } else {
-    const { error } = await supabase.from('gemerkte_jobs')
-      .insert({ schueler_id: profile.id, job_id: jobId })
-    if (!error) gemerkteIds.add(jobId)
+  // Frueher lief die Erfolgsmeldung auch dann, wenn das Speichern
+  // fehlschlug - und sagte dabei das GEGENTEIL: Wer einen Job merken
+  // wollte und scheiterte, las "Job entfernt". Der Fehler selbst wurde
+  // gar nicht erwaehnt.
+  let fehler = null
+  try {
+    const { error } = istGemerkt
+      ? await supabase.from('gemerkte_jobs')
+          .delete().eq('schueler_id', profile.id).eq('job_id', jobId)
+      : await supabase.from('gemerkte_jobs')
+          .insert({ schueler_id: profile.id, job_id: jobId })
+    fehler = error
+  } catch (e) {
+    fehler = e
   }
 
   btn.disabled = false
-  const jetztGemerkt = gemerkteIds.has(jobId)
-  btn.classList.toggle('gemerkt', jetztGemerkt)
-  toast(jetztGemerkt ? 'Job gemerkt ❤' : 'Job entfernt')
+
+  if (fehler) {
+    toast(verstaendlich(fehler, istGemerkt ? 'Das Entfernen' : 'Das Merken'), 'fehler')
+    return
+  }
+
+  if (istGemerkt) gemerkteIds.delete(jobId)
+  else gemerkteIds.add(jobId)
+
+  btn.classList.toggle('gemerkt', !istGemerkt)
+  toast(istGemerkt ? 'Job entfernt' : 'Job gemerkt ❤')
   if (nurGemerkte) wendeJobFilterAn()
 }
 
@@ -1512,7 +1526,7 @@ function initCvWahl() {
     try {
       const doc = await erzeugeLebenslaufPdf(cvExportDaten())
       window.open(doc.output('bloburl'), '_blank')
-    } catch (err) { toast('Vorschau nicht möglich: ' + err.message, 'fehler') }
+    } catch (err) { toast(verstaendlich(err, 'Die Vorschau'), 'fehler') }
   })
 }
 
@@ -1573,7 +1587,7 @@ async function sendeBewerbung(e) {
     const path = `${profile.id}/${jobId}/zeugnis.${ext}`
     const { error: uploadError } = await supabase.storage.from('zeugnisse').upload(path, zeugnisDatei, { upsert: true })
     if (uploadError) {
-      toast('Fehler beim Hochladen des Zeugnisses: ' + uploadError.message, 'fehler')
+      toast(verstaendlich(uploadError, 'Das Hochladen des Zeugnisses'), 'fehler')
       btn.disabled = false
       btn.textContent = 'Bewerbung absenden'
       return
@@ -1604,7 +1618,7 @@ async function sendeBewerbung(e) {
       const { error: upErr } = await supabase.storage.from('zeugnisse')
         .upload(lebenslaufPfad, cvEigenDatei, { upsert: true, contentType: 'application/pdf' })
       if (upErr) {
-        toast('Fehler beim Hochladen des Lebenslaufs: ' + upErr.message, 'fehler')
+        toast(verstaendlich(upErr, 'Das Hochladen des Lebenslaufs'), 'fehler')
         btn.disabled = false
         btn.textContent = 'Bewerbung absenden'
         return
