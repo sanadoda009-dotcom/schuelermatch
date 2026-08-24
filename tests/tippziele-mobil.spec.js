@@ -7,7 +7,7 @@
 // 38x32, der Herz-Knopf auf den Job-Karten 36x36. Eine frühere Runde
 // hatte das nur für den Lebenslauf-Editor gelöst – der Rest der Seite
 // war ungedeckt.
-const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, FIRMA, warteAufDashboard } = require('./helpers/supabase-fake')
+const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, FIRMA, ADMIN, warteAufDashboard, warteAufAdmin } = require('./helpers/supabase-fake')
 
 const PRUEFUNG = `(() => {
   const sichtbar = el => {
@@ -101,4 +101,16 @@ test('keine Seite scrollt seitlich', async ({ page }) => {
       document.documentElement.scrollWidth > document.documentElement.clientWidth + 2)
     expect(scrollt, `${pfad} scrollt waagerecht`).toBe(false)
   }
+})
+
+// Der Betreiber-Bereich wurde bei sechs Runden Qualitaetsarbeit uebersehen -
+// er stand in keiner einzigen dieser Pruefungen. Deshalb hier ausdruecklich
+// mit dabei.
+test('Tippziele gross genug: Admin-Bereich', async ({ page }) => {
+  await setupDashboard(page.context(), { user: ADMIN, db: defaultDb({
+    profiles: [profilZeile(ADMIN, { ist_admin: true }), profilZeile(SCHUELER), profilZeile(FIRMA)] }) })
+  await page.goto('/admin.html')
+  await warteAufAdmin(page)
+  await page.waitForTimeout(800)
+  expect(await page.evaluate(PRUEFUNG)).toEqual([])
 })

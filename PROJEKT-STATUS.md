@@ -304,6 +304,31 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 24. August 2026 (Teil 7) - Betreiber-Bereich nachgezogen
+
+Runde 12 des Dauerauftrags. Der Admin-Bereich war bisher nur unter Sicherheitsaspekten betrachtet worden, nie auf Bedienbarkeit.
+
+**Der eigentliche Fund war eine Luecke im Vorgehen, nicht im Code:** Ein Abgleich zeigte, dass `admin.html` in **keiner einzigen** der sieben Qualitaetspruefungen der letzten Runden vorkam - weder bei Barrierefreiheit, Tastatur, Tippzielen, Layout-Spruengen, Fehlerzustaenden, Texten noch Schriften. Sechs Runden Verbesserungsarbeit sind an ihm vorbeigelaufen.
+
+**Was die nachgeholte Messung ergab - erfreulich viel war schon in Ordnung:**
+- **Tastaturbedienung, Fokus, Layout-Spruenge: alles gruen.** Die zentralen Loesungen aus Runde 4 (`js/tastatur.js`) und Runde 5 (`js/zustand.js`) greifen dort automatisch mit, ohne dass jemand daran gedacht hatte. Genau dafuer waren sie zentral gebaut.
+- Bei einer Server-Stoerung zeigt der Bereich korrekt eine ehrliche Meldung statt haengender Platzhalter.
+
+**Zwei echte Fehler gefunden und behoben:**
+1. **Vier `<h1>` auf einer Seite** - eines je Reiter (Verifizierung, Firmen, Meldungen, Statistik). Fuer Screenreader-Nutzer ist das eine Seite mit vier Titeln. Jetzt: eine unsichtbare Seiten-h1 ("Betreiber-Bereich"), die Reiter sind h2. Damit stimmt auch die Reihenfolge bis zum h3 im Dokument-Dialog.
+2. **Zwei Tippziele unter 44px auf dem Handy** (Logo 132x25, Zurueck-Link 67x41). Ursache: Die Regel aus Runde 10 hiess `nav .logo` - der Betreiber-Bereich hat aber eine eigene Kopfzeile (`header.ll-topbar`), keine `<nav>`. Regel verallgemeinert.
+
+**Zwei Vermutungen, die sich NICHT bestaetigt haben:**
+- Ich hielt es fuer moeglich, dass Verifizierungs-Dokumente nur in der Datenbank, nicht im Storage geloescht werden - das waere ein Datenschutzproblem gewesen. **Nachgesehen: falsch.** Die Datei wird zuerst im Storage geloescht, und schlaegt das fehl, bricht der ganze Vorgang ab.
+- Ich erwartete fehlende Rueckfragen bei folgenreichen Aktionen. **Auch falsch:** Ablehnen, Verifizierung zurueckziehen und Sperren haben alle eine Zwei-Klick-Bestaetigung direkt am Knopf.
+
+**Nebenbei:** Der ganzseitige Fehlertext versprach "dein Konto und deine Bewerbungen sind sicher" - im Betreiber-Bereich unpassend. Jetzt neutral formuliert.
+
+**Dauerhaft abgesichert:** `admin.html` ist jetzt fester Bestandteil von vier Pruefungen (`a11y`, `tastatur`, `layout-spruenge`, `tippziele-mobil`), damit ihn kuenftige Runden nicht wieder uebersehen.
+
+**Suite jetzt: 200 Tests, alle gruen** (vorher 196).
+
+
 ## Session 24. August 2026 (Teil 6) - Chat robuster gemacht
 
 Runde 11 des Dauerauftrags. Der Chat war der letzte Bereich, den keine Runde angefasst hatte.

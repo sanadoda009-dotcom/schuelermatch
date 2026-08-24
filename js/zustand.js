@@ -39,7 +39,7 @@ export function zeigeSeitenfehler({ titel, text, erneut } = {}) {
       <div class="empty-state fehler-state">
         ${WARN_ICON}
         <h1>${titel || 'Gerade nicht erreichbar'}</h1>
-        <p>${text || 'Wir konnten deine Daten nicht laden. Das ist vorübergehend – dein Konto und deine Bewerbungen sind sicher.'}</p>
+        <p>${text || 'Wir konnten die Daten nicht laden. Das ist vorübergehend – dein Konto und alles Gespeicherte sind sicher.'}</p>
         <p class="fehler-hinweis">Prüf am besten kurz deine Internetverbindung.</p>
         <div class="fehler-knoepfe">
           <button type="button" class="btn btn-green fehler-erneut">Nochmal versuchen</button>

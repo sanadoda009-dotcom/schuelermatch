@@ -2,7 +2,7 @@
 // Prüft, was Screenreader-Nutzer wirklich braucht – und hält es dauerhaft:
 // Jedes Eingabefeld braucht einen Namen, jede Seite genau eine h1,
 // Überschriften dürfen keine Ebene überspringen.
-const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, FIRMA } = require('./helpers/supabase-fake')
+const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, FIRMA, ADMIN, warteAufAdmin } = require('./helpers/supabase-fake')
 
 const PRUEFUNG = `(() => {
   const f = []
@@ -73,4 +73,16 @@ test.describe('eingeloggte Seiten', () => {
     await page.waitForTimeout(400)
     expect(await page.evaluate(PRUEFUNG)).toEqual([])
   })
+})
+
+// Der Betreiber-Bereich wurde bei sechs Runden Qualitaetsarbeit uebersehen -
+// er stand in keiner einzigen dieser Pruefungen. Deshalb hier ausdruecklich
+// mit dabei.
+test('barrierefrei: Admin-Bereich', async ({ page }) => {
+  await setupDashboard(page.context(), { user: ADMIN, db: defaultDb({
+    profiles: [profilZeile(ADMIN, { ist_admin: true }), profilZeile(SCHUELER), profilZeile(FIRMA)] }) })
+  await page.goto('/admin.html')
+  await warteAufAdmin(page)
+  await page.waitForTimeout(800)
+  expect(await page.evaluate(PRUEFUNG)).toEqual([])
 })

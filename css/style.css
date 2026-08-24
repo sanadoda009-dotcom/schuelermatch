@@ -1901,5 +1901,6 @@ main[tabindex="-1"]:focus { outline: none; }
   nav { gap: 12px; }
 
   /* Das Logo fuehrt zur Startseite und war nur 25px hoch */
-  nav .logo { display: inline-flex; align-items: center; min-height: 44px; }
+  /* Nicht nur in <nav>: Der Betreiber-Bereich hat eine eigene Kopfzeile. */
+  .logo, .ll-zurueck { display: inline-flex; align-items: center; min-height: 44px; }
 }

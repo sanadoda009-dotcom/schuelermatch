@@ -5,7 +5,7 @@
 // Filterseite kein einziges Eingabefeld sichtbar fokussiert, die
 // Rollen-Auswahl auf Login/Register war per Tastatur gar nicht erreichbar,
 // und keiner der modalen Dialoge reagierte auf Escape.
-const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, FIRMA, warteAufDashboard } = require('./helpers/supabase-fake')
+const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, FIRMA, ADMIN, warteAufDashboard, warteAufAdmin } = require('./helpers/supabase-fake')
 
 // Prüft für jedes fokussierbare Element, ob ein Tastaturnutzer SIEHT,
 // wo er gerade steht — und ob nichts Klickbares unerreichbar ist.
@@ -226,4 +226,16 @@ test.describe('eingeloggt', () => {
     await expect(page.locator('#sidebar')).not.toHaveClass(/open/)
     expect(await page.evaluate(() => document.activeElement?.id)).toBe('sidebar-toggle')
   })
+})
+
+// Der Betreiber-Bereich wurde bei sechs Runden Qualitaetsarbeit uebersehen -
+// er stand in keiner einzigen dieser Pruefungen. Deshalb hier ausdruecklich
+// mit dabei.
+test('Tastatur: Admin-Bereich', async ({ page }) => {
+  await setupDashboard(page.context(), { user: ADMIN, db: defaultDb({
+    profiles: [profilZeile(ADMIN, { ist_admin: true }), profilZeile(SCHUELER), profilZeile(FIRMA)] }) })
+  await page.goto('/admin.html')
+  await warteAufAdmin(page)
+  await page.waitForTimeout(800)
+  expect(await page.evaluate(PRUEFUNG)).toEqual([])
 })

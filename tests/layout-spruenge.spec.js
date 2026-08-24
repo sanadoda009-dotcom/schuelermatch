@@ -8,7 +8,7 @@
 //
 // Dieser Test hält die Grenze. Er misst echte Layout-Verschiebungen im
 // Browser, nicht Vermutungen über das Markup.
-const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, FIRMA } = require('./helpers/supabase-fake')
+const { test, expect, setupDashboard, defaultDb, profilZeile, SCHUELER, FIRMA, ADMIN } = require('./helpers/supabase-fake')
 
 // Googles Schwellenwert für "gut". Darüber merkt man das Springen.
 const GRENZE = 0.1
@@ -69,4 +69,12 @@ test('die Statistik-Zeile reserviert ihren Platz', async ({ page }) => {
     return el ? parseFloat(getComputedStyle(el).minHeight) : 0
   })
   expect(hoehe).toBeGreaterThanOrEqual(96)
+})
+
+// Auch der Betreiber-Bereich soll beim Laden nicht springen.
+test('springt nicht: Admin-Bereich', async ({ page }) => {
+  await setupDashboard(page.context(), { user: ADMIN, db: defaultDb({
+    profiles: [profilZeile(ADMIN, { ist_admin: true }), profilZeile(SCHUELER), profilZeile(FIRMA)] }) })
+  const wert = await sprung(page, '/admin.html', 4000)
+  expect(wert, 'Layout-Sprung im Admin-Bereich').toBeLessThan(GRENZE)
 })
