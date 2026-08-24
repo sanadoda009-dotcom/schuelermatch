@@ -304,6 +304,26 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 (Teil 2) - Bestaetigungsmail erneut anfordern
+
+Runde 17 des Dauerauftrags. Der Registrierungs-Trichter vom ersten Besuch bis zum fertigen Profil.
+
+**Vieles war besser als erwartet:** Die "Fast geschafft"-Ansicht nach der Registrierung nennt die E-Mail-Adresse, erklaert den naechsten Schritt und weist auf den Spam-Ordner hin. Der Verifizierungs-Hinweis steht prominent im Dashboard und wird auf der Job-Detailseite vorab erklaert. Die Fehlermeldung bei der Registrierung ist bewusst allgemein gehalten, damit niemand herausfinden kann, welche E-Mail-Adressen registriert sind.
+
+**Die Luecke - eine Sackgasse im wichtigsten Trichter:**
+Kam die Bestaetigungsmail nicht an (Zustellproblem, Tippfehler in der Adresse), gab es **keinen Weg weiter**. Kein erneutes Senden, keine Korrektur. Der Rat "schau im Spam-Ordner" war alles. Wer die Mail nicht bekam, konnte sich nie einloggen - und die Plattform nie nutzen. Beim Login dasselbe: Die Meldung "bitte bestaetige zuerst deine E-Mail" nannte keinen Ausweg.
+
+**Behoben:**
+- In der "Fast geschafft"-Ansicht gibt es jetzt einen Knopf **"E-Mail erneut senden"**.
+- Beim Login erscheint derselbe Knopf unter der Fehlermeldung, wenn die Adresse noch nicht bestaetigt ist.
+- Supabase begrenzt das Anfordern zeitlich und antwortet dabei englisch ("For security purposes, you can only request this after 51 seconds"). Dieser Text wird uebersetzt: "Gerade eben schon versucht. Warte kurz und probier es dann noch einmal."
+- Nach erfolgreichem Senden sperrt sich der Knopf 30 Sekunden, damit niemand aus Ungeduld in die Sperre des Anbieters laeuft. Nach einem Fehlversuch wird er schon nach 3 Sekunden wieder frei.
+
+**Dauerhaft abgesichert:** `tests/bestaetigungsmail.spec.js` (5 Tests). **Alle fuenf fallen gegen den alten Code um.**
+
+**Suite jetzt: 223 Tests, alle gruen** (vorher 218). Laufzeit 5,9 Minuten.
+
+
 ## Session 25. August 2026 - Merkliste: Meldung sagte das Gegenteil
 
 Runde 16 des Dauerauftrags. Merkliste (Herz-Knopf) und Bewerbungsfluss durchgesehen.

@@ -73,6 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Unbestätigte E-Mail klar vom falschen Passwort unterscheiden
         if ((error.message || '').toLowerCase().includes('not confirmed')) {
           showError(loginForm, 'Bitte bestätige zuerst deine E-Mail-Adresse – wir haben dir einen Link geschickt (auch im Spam-Ordner nachsehen).')
+          // Auch hier muss man die Mail neu anfordern koennen - sonst ist
+          // der Login eine Sackgasse, solange die Mail fehlt.
+          zeigeErneutSendenBeimLogin(loginForm, email)
         } else {
           showError(loginForm, 'Falsche E-Mail oder Passwort.')
         }
@@ -160,9 +163,14 @@ document.addEventListener('DOMContentLoaded', () => {
             <h2>Fast geschafft!</h2>
             <p>Wir haben dir eine E-Mail an <b>${escapeHtmlAuth(email)}</b> geschickt.</p>
             <p>Klick auf den Link darin, um dein Konto zu bestätigen – danach kannst du dich einloggen.</p>
-            <p class="auth-bestaetigen-hinweis">Keine Mail? Schau im Spam-Ordner nach.</p>
-            <a href="login.html" class="btn btn-green btn-full" style="margin-top:14px;">Zum Login</a>
+            <p class="auth-bestaetigen-hinweis">Keine Mail? Schau zuerst im Spam-Ordner nach.</p>
+            <button type="button" class="btn btn-outline btn-full" id="mail-erneut" style="margin-top:10px;">E-Mail erneut senden</button>
+            <p class="auth-bestaetigen-hinweis" id="erneut-status" role="status"></p>
+            <a href="login.html" class="btn btn-green btn-full" style="margin-top:6px;">Zum Login</a>
           </div>`
+        // Ohne diesen Knopf steckte jemand fest, dessen Mail nicht ankam:
+        // Es gab keinen Weg, sie noch einmal anzufordern.
+        verdrahteErneutSenden(registerForm, email)
         return
       }
 
@@ -171,6 +179,62 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
 })
+
+// Fordert die Bestaetigungsmail neu an. Supabase begrenzt das zeitlich;
+// deshalb wird der Knopf nach einem Versuch kurz gesperrt und ein
+// Fehlschlag ehrlich benannt statt still geschluckt.
+async function sendeBestaetigungNeu(email, statusEl, btn) {
+  if (!email) return
+  btn.disabled = true
+  const alterText = btn.textContent
+  btn.textContent = 'Wird gesendet…'
+  statusEl.textContent = ''
+
+  let fehler = null
+  try {
+    const { error } = await supabase.auth.resend({ type: 'signup', email })
+    fehler = error
+  } catch (e) {
+    fehler = e
+  }
+
+  btn.textContent = alterText
+
+  if (fehler) {
+    const roh = (fehler.message || '').toLowerCase()
+    statusEl.textContent = roh.includes('rate') || roh.includes('seconds') || roh.includes('limit')
+      ? 'Gerade eben schon versucht. Warte kurz und probier es dann noch einmal.'
+      : 'Das hat nicht geklappt. Prüf deine Internetverbindung und versuch es gleich nochmal.'
+    // Nach einem Fehlversuch wieder freigeben, damit man es erneut kann.
+    setTimeout(() => { btn.disabled = false }, 3000)
+    return
+  }
+
+  statusEl.textContent = 'Neue E-Mail ist unterwegs. Schau auch im Spam-Ordner nach.'
+  // Kurze Sperre gegen mehrfaches Antippen.
+  setTimeout(() => { btn.disabled = false }, 30000)
+}
+
+function verdrahteErneutSenden(container, email) {
+  const btn = container.querySelector('#mail-erneut')
+  const statusEl = container.querySelector('#erneut-status')
+  if (!btn || !statusEl) return
+  btn.addEventListener('click', () => sendeBestaetigungNeu(email, statusEl, btn))
+}
+
+// Beim Login gibt es die Ansicht nicht - dort wird der Knopf unter die
+// Fehlermeldung gehaengt.
+function zeigeErneutSendenBeimLogin(form, email) {
+  if (form.querySelector('#mail-erneut')) return
+  const box = document.createElement('div')
+  box.innerHTML = `
+    <button type="button" class="btn btn-outline btn-full" id="mail-erneut" style="margin-top:10px;">Bestätigungs-E-Mail erneut senden</button>
+    <p class="auth-bestaetigen-hinweis" id="erneut-status" role="status"></p>`
+  const meldung = form.querySelector('.auth-msg--error')
+  if (meldung) meldung.after(box)
+  else form.prepend(box)
+  verdrahteErneutSenden(form, email)
+}
 
 function escapeHtmlAuth(str) {
   const div = document.createElement('div')
