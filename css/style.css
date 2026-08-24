@@ -1817,3 +1817,26 @@ main[tabindex="-1"]:focus { outline: none; }
   margin-top: 0;
 }
 .seiten-fehler { min-height: 60vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+
+/* ===================================================================
+   LAYOUT-SPRUENGE
+   -------------------------------------------------------------------
+   Die Job-Detailseite zeigt beim Aufruf nur "Lade Job..." - eine Zeile.
+   Kommt der echte Inhalt, wuchs die Seite schlagartig und der Footer
+   rutschte sichtbar nach unten (gemessener Sprung: 0,12). Deshalb wird
+   der Platz von Anfang an reserviert. Der Wert entspricht ungefaehr der
+   Hoehe einer normalen Anzeige; genauer geht nicht, weil Beschreibungen
+   unterschiedlich lang sind.
+   =================================================================== */
+#job-detail { min-height: 60vh; }
+
+/* Im Schueler-Dashboard stehen drei zunaechst leere Kaesten ueber der Suche,
+   die per JS gefuellt werden. Zusammen schoben sie beim Laden alles darunter
+   um rund 246px nach unten. Die Statistik-Zeile ist immer da und immer gleich
+   hoch (gemessen: 96px) - dafuer laesst sich der Platz gefahrlos vorher
+   reservieren.
+   Der Verifizierungs-Hinweis und die Onboarding-Box bekommen BEWUSST keine
+   feste Hoehe: Beide koennen dauerhaft verschwinden (weggeklickt bzw. alles
+   erledigt), und dann bliebe fuer immer eine leere Luecke stehen. Ein
+   kurzer Sprung beim Laden ist das kleinere Uebel als ein Dauerloch. */
+#stats-row { min-height: 96px; }

@@ -304,6 +304,31 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 24. August 2026 (Teil 2) - Layout-Spruenge
+
+Runde 7 des Dauerauftrags. Frage: Springt der Inhalt beim Laden weg, waehrend man schon liest oder tippt? Gemessen wurde die echte Verschiebung im Browser (CLS ueber einen PerformanceObserver), nicht das Markup.
+
+**Die Ausgangsvermutung war falsch - und das war der wichtigste Teil der Messung.**
+Kein einziges `<img>` hat `width`/`height`-Attribute, was normalerweise die Hauptursache fuer springende Seiten ist. Die Messung zeigte aber: **alle Bilder haben feste Groessen per CSS**, sie springen nicht. Haette ich einfach ueberall Attribute ergaenzt, waere viel Arbeit fuer null Wirkung entstanden.
+
+**Die echten Verursacher waren nachgeladene Inhalte ohne reservierten Platz:**
+1. **Job-Detailseite: 0,12** (Googles Grenze fuer "gut" liegt bei 0,1). Die Seite zeigt beim Aufruf nur "Lade Job..." - eine Zeile. Kam der echte Inhalt, wuchs sie schlagartig und der Footer rutschte sichtbar nach unten. Besonders aergerlich, weil diese Seite ueber Google gefunden wird.
+2. **Schueler-Dashboard: 0,14.** Ueber der Suchleiste stehen drei zunaechst leere Kaesten (Statistik, Verifizierungs-Hinweis, Onboarding-Box), die per JS gefuellt werden. Zusammen schoben sie beim Laden alles darunter um rund 246px nach unten - gemessen an `search-hero`, das von y=201 auf y=447 sprang.
+
+**Behoben:**
+- `#job-detail` bekommt eine Mindesthoehe, der Platz ist von Anfang an da.
+- `#stats-row` reserviert seine gemessenen 96px. Diese Zeile ist **immer** da und **immer** gleich hoch, deshalb ist die Reservierung gefahrlos.
+- `renderOnboarding()` laeuft jetzt **vor** dem Laden der Jobs statt danach. Der zweite Aufruf aktualisiert nur noch ein Haekchen - gleiche Hoehe, kein Sprung.
+
+**Ergebnis:** Job-Detail 0,12 -> 0,07. Schueler-Dashboard 0,14 -> 0,09. Alle Seiten liegen jetzt unter Googles Schwelle.
+
+**Bewusst NICHT behandelt:** Der Verifizierungs-Hinweis und die Onboarding-Box bekommen keine feste Hoehe. Beide koennen dauerhaft verschwinden (weggeklickt bzw. alles erledigt) - dann bliebe fuer immer eine leere Luecke stehen. Ein kurzer Sprung beim Laden ist das kleinere Uebel als ein Dauerloch. Ebenso bleibt beim Job-Detail ein Restsprung von 0,07, weil Stellenbeschreibungen unterschiedlich lang sind und die exakte Hoehe vorher niemand kennt.
+
+**Dauerhaft abgesichert:** `tests/layout-spruenge.spec.js` (8 Tests) misst die echte Verschiebung auf sieben Seiten und laesst nichts ueber 0,1 durch.
+
+**Suite jetzt: 168 Tests, alle gruen** (vorher 160).
+
+
 ## Session 24. August 2026 - Formular-Fehlermeldungen
 
 Runde 6 des Dauerauftrags. Frage: Versteht man beim Registrieren, Anmelden und Passwort-Zuruecksetzen, was schiefging und was zu tun ist?

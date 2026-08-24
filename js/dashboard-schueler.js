@@ -137,6 +137,12 @@ async function init() {
     wendeJobFilterAn()
   })
 
+  // Vor den Jobs rendern, nicht danach: Sonst erscheint die Box erst, wenn
+  // die Job-Liste schon steht, und schiebt die ganze Seite nach unten
+  // (gemessener Layout-Sprung von 0,14). Der zweite Aufruf in ladeJobs()
+  // aktualisiert danach nur noch ein Haekchen - gleiche Hoehe, kein Sprung.
+  renderOnboarding()
+
   await ladeJobs()
   aktualisiereNachrichtenBadge()
 
