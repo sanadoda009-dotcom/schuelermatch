@@ -1904,3 +1904,32 @@ main[tabindex="-1"]:focus { outline: none; }
   /* Nicht nur in <nav>: Der Betreiber-Bereich hat eine eigene Kopfzeile. */
   .logo, .ll-zurueck { display: inline-flex; align-items: center; min-height: 44px; }
 }
+
+/* ===================================================================
+   JOBIDEEN (jobideen.html)
+   -------------------------------------------------------------------
+   Aus dem Wettbewerbsvergleich am 25.8.: schuelerjobs.de fuehrt
+   "Jobideen" als eigenen Menuepunkt. Der Vorteil fuer uns: Die Seite
+   hat Inhalt, auch solange noch keine Firmen Anzeigen geschaltet haben.
+   =================================================================== */
+.ideen-liste { display: grid; gap: 14px; margin-top: 18px; }
+@media (min-width: 720px) { .ideen-liste { grid-template-columns: 1fr 1fr; } }
+
+.idee {
+  border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px 18px; background: var(--card);
+}
+.idee h3 { font-size: 1rem; margin: 0 0 6px; }
+.idee p { margin: 0; }
+
+/* Alter und Verdienst stehen direkt unter der Ueberschrift - genau die
+   zwei Angaben, wegen denen man die Seite ueberhaupt liest. */
+.idee-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px !important; }
+.idee-alter, .idee-lohn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+}
+.idee-alter { background: rgba(43,47,143,0.09); color: var(--indigo); }
+.idee-lohn { background: rgba(0,200,150,0.12); color: var(--match-green-dark); }
+
+.legal-page .ideen-liste + section { margin-top: 32px; }

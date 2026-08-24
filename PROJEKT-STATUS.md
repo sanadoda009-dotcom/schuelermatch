@@ -304,6 +304,45 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 (Teil 4) - NEUE RICHTUNG: Weiterentwicklung statt Fehlersuche
+
+**Der Auftrag hat sich geaendert.** Bis hierher ging es 15 Runden lang um Messen und Fehlerbeheben. Sanad hat umgesteuert: kuenftig **weiterentwickeln, andere Webseiten vergleichen und daraus lernen**.
+
+### Wettbewerbsvergleich (25.8.)
+Angesehen: **zenjob.com** (Schichtvermittlung fuer Studierende) und **schuelerjobs.de** (direkter Wettbewerber).
+
+Was die haben und wir nicht:
+- **Jobideen als eigener Menuepunkt** (schuelerjobs.de) - Inspiration statt nur Suche
+- **Ferienjobs gleichrangig im Titel** bei beiden; bei uns nur eine Filter-Option unter fuenf
+- **Erfahrungsberichte echter Nutzer** mit Namen und Zitat (zenjob)
+- **Staedte-Seiten** ("Jobs in Berlin, Hamburg, Muenchen...")
+- **Berufsbilder als Einstieg** ("Kellner*in", "Kassierer*in") statt nur Kategorien
+- **Job-Alarm per E-Mail** (dort "Jobletter")
+- **Ratgeber/Blog**
+
+Was fuer uns spricht: schuelerjobs.de bewirbt auf der Startseite prominent einen Job **ab 18 Jahren** - auf einer Seite fuer Schueler. Unsere Altersfilterung mit Mindestalter an jeder Anzeige ist ein echter Vorteil.
+
+### Gebaut: `jobideen.html`
+
+**Warum diese Idee zuerst:** Sie loest das Henne-Ei-Problem zum Start. Solange keine Firmen inseriert haben, ist die Jobboerse leer - die Jobideen-Seite hat trotzdem Inhalt, den Google findet und der Besuchern einen Grund gibt wiederzukommen.
+
+**Inhalt:** 21 Jobideen, sortiert nach dem Alter, ab dem sie erlaubt sind (13 / 15 / 16). Jede mit Altersangabe, ueblichem Verdienst und einem ehrlichen Tipp aus der Praxis - etwa dass man sich fuer Eisverkauf im Maerz bewerben muss, weil im Juni alles weg ist, oder dass Prospektverteilen nach Menge bezahlt wird und man vorher ausrechnen sollte, was das pro Stunde bedeutet.
+
+Dazu die Rechtslage an den richtigen Stellen eingebaut: die 2-Stunden-Grenze unter 15, die Ferienregel ab 15 (bis zu 4 Wochen Vollzeit im Jahr - das wissen die wenigsten), die 22-Uhr-Grenze ab 16 und die 556-Euro-Minijobgrenze.
+
+**Verlinkt** im Hauptmenue und im Footer von Startseite, Jobboerse, Job-Detail und Jugendarbeitsschutz; in `sitemap.xml` eingetragen.
+
+**Lehre aus Runde 12 angewendet:** Die neue Seite wurde sofort in **alle fuenf** Qualitaetspruefungen aufgenommen (Barrierefreiheit, Tastatur, Layout-Spruenge, Texte/Teilen, Tippziele) - nicht erst, wenn es jemand merkt.
+
+**Suite jetzt: 233 Tests, alle gruen** (vorher 227).
+
+### Naechste Ideen aus dem Vergleich (noch offen)
+- **Ferienjob-Bereich**: eigener Einstieg statt versteckter Filter, plus die Ferienregeln erklaert
+- **Job-Alarm per E-Mail**: bindet Besucher, die heute nichts finden
+- **Staedte-Seiten**: staerkster SEO-Hebel, lohnt aber erst mit echten Anzeigen
+- **Erfahrungsberichte**: erst moeglich, wenn es echte Nutzer gibt
+
+
 ## Session 25. August 2026 (Teil 3) - Schutz-Trigger waren nirgends gesichert
 
 Runde 18 des Dauerauftrags. Ausgangspunkt war der Firmen-Freigabe-Ablauf.

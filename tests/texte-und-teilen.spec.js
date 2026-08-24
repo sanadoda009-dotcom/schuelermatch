@@ -33,6 +33,7 @@ const FUER_SCHUELER = [
   ['Startseite', '/index.html'],
   ['Jobbörse', '/jobs.html'],
   ['Jugendarbeitsschutz', '/jugendarbeitsschutz.html'],
+  ['Jobideen', '/jobideen.html'],
 ]
 
 for (const [name, pfad] of FUER_SCHUELER) {
@@ -72,6 +73,7 @@ test.describe('Teilen-Vorschau', () => {
     ['Jobbörse', '/jobs.html'],
     ['Job-Detail', '/job.html?id=aaaaaaaa-0000-4000-8000-000000000001'],
     ['Jugendarbeitsschutz', '/jugendarbeitsschutz.html'],
+    ['Jobideen', '/jobideen.html'],
   ]) {
     test(`vorhanden auf: ${name}`, async ({ page }) => {
       await setupDashboard(page.context(), {})
