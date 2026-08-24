@@ -66,8 +66,61 @@ function toenung(rgb, anteil = 0.9) {
 // Versatz von Zeilen-Oberkante zur Schrift-Grundlinie (10pt-Text)
 const BASIS = F_TEXT * PT // 3.53mm
 
-function ohneEmojis(s) {
-  return (s || '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{FE0F}\u{200D}]/gu, '').trim()
+// Zeichen, die die PDF-Standardschrift nicht kennt, aber sinnvoll
+// ersetzt werden koennen. Ohne diese Tabelle macht jsPDF aus einem
+// polnischen "\u0141ukasz" ein "Aukasz" und aus "\u015eeyma" ein "^eyma" -
+// gemessen am 24.8. Der eigene Name im Lebenslauf war dann schlicht falsch.
+const PDF_ERSATZ = {
+  // Tuerkisch
+  '\u015e': 'S', '\u015f': 's', '\u0130': 'I', '\u0131': 'i', '\u011e': 'G', '\u011f': 'g',
+  // Polnisch
+  '\u0141': 'L', '\u0142': 'l', '\u0104': 'A', '\u0105': 'a', '\u0118': 'E', '\u0119': 'e',
+  '\u0179': 'Z', '\u017a': 'z', '\u017b': 'Z', '\u017c': 'z',
+  // Rumaenisch, Serbisch, Kroatisch
+  '\u0218': 'S', '\u0219': 's', '\u021a': 'T', '\u021b': 't', '\u0110': 'D', '\u0111': 'd',
+  // Waehrung und Typografie
+  '\u20ac': ' EUR', '\u201e': '"', '\u201c': '"', '\u201d': '"', '\u2018': "'", '\u2019': "'",
+  '\u2013': '-', '\u2014': '-', '\u2026': '...', '\u00a0': ' ', '\u202f': ' ',
+}
+
+// Kyrillisch in lateinische Umschrift. Besser ein lesbares "Dmitrij" als
+// die Zeichenfolge "<8B@89", die jsPDF sonst daraus macht.
+const KYRILLISCH = {
+  '\u0430':'a','\u0431':'b','\u0432':'v','\u0433':'g','\u0434':'d','\u0435':'e','\u0451':'jo','\u0436':'zh','\u0437':'z','\u0438':'i',
+  '\u0439':'j','\u043a':'k','\u043b':'l','\u043c':'m','\u043d':'n','\u043e':'o','\u043f':'p','\u0440':'r','\u0441':'s','\u0442':'t',
+  '\u0443':'u','\u0444':'f','\u0445':'h','\u0446':'c','\u0447':'ch','\u0448':'sh','\u0449':'shch','\u044a':'','\u044b':'y','\u044c':'',
+  '\u044d':'e','\u044e':'ju','\u044f':'ja',
+}
+
+// Bereitet Text fuer das PDF auf: Emojis raus (die kann die Schrift nicht),
+// Sonderzeichen ersetzen, Akzente notfalls abtrennen.
+// Exportiert, damit die Zeichen-Aufbereitung geprueft werden kann, ohne
+// dass ein Test die PDF-Bibliothek aus dem Netz laden muss.
+export function ohneEmojis(s) {
+  const ohneBilder = (s || '')
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{FE0F}\u{200D}]/gu, '')
+
+  return [...ohneBilder].map(z => {
+    // Alles bis 255 kann die Standardschrift direkt - inklusive der
+    // deutschen Umlaute und des scharfen S.
+    if (z.charCodeAt(0) < 256) return z
+    if (PDF_ERSATZ[z]) return PDF_ERSATZ[z]
+
+    const klein = z.toLowerCase()
+    if (KYRILLISCH[klein]) {
+      const um = KYRILLISCH[klein]
+      return z === klein ? um : um.charAt(0).toUpperCase() + um.slice(1)
+    }
+
+    // Letzter Versuch: Akzent abtrennen. Macht aus dem vietnamesischen
+    // "\u1ec5" ein "e" statt eines falschen Zeichens.
+    const zerlegt = z.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    if (zerlegt && zerlegt.charCodeAt(0) < 256) return zerlegt
+
+    // Nicht darstellbar (z.B. arabische oder chinesische Schrift):
+    // lieber weglassen als eine Zeichenfolge aus Muell erzeugen.
+    return ''
+  }).join('').replace(/\s{2,}/g, ' ').trim()
 }
 
 /* ============================================================
@@ -181,7 +234,7 @@ async function baueDokument(daten) {
         doc.setFont('helvetica', 'normal'); doc.setFontSize(F_TEXT); doc.setTextColor(...C_TEXT)
         doc.text(ohneEmojis(s.name), RAND_LINKS, yL + BASIS)
         doc.setFontSize(F_META); doc.setTextColor(...C_GRAU)
-        doc.text(s.niveau || '', RAND_LINKS + LINKS_W, yL + BASIS, { align: 'right' })
+        doc.text(ohneEmojis(s.niveau || ''), RAND_LINKS + LINKS_W, yL + BASIS, { align: 'right' })
         yL += LH_TEXT
       }
       yL += ABST_ABSCHNITT
@@ -207,7 +260,7 @@ async function baueDokument(daten) {
       ;({ y: yL, seite: seiteL } = abschnittsTitelLinks(zustand, yL, seiteL, b.titel || 'Interessen'))
       doc.setFont('helvetica', 'normal'); doc.setFontSize(F_TEXT); doc.setTextColor(...C_TEXT)
       const text = (b.tags || '').split(',').map(t => ohneEmojis(t)).filter(Boolean).join(' · ')
-      for (const t of doc.splitTextToSize(text, LINKS_W)) {
+      for (const t of doc.splitTextToSize(ohneEmojis(text), LINKS_W)) {
         ;({ y: yL, seite: seiteL } = platzLinks(zustand, yL, seiteL, LH_TEXT))
         doc.text(t, RAND_LINKS, yL + BASIS)
         yL += LH_TEXT
@@ -388,7 +441,7 @@ function textAbschnittRechts(zustand, y, titel, text) {
   doc.setTextColor(...C_TEXT)
   const absaetze = ohneEmojis(text).split(/\n+/).filter(Boolean)
   for (let a = 0; a < absaetze.length; a++) {
-    for (const zeile of doc.splitTextToSize(absaetze[a], RECHTS_W)) {
+    for (const zeile of doc.splitTextToSize(ohneEmojis(absaetze[a]), RECHTS_W)) {
       y = platzRechts(zustand, y, LH_TEXT)
       y += LH_TEXT
       doc.text(zeile, RECHTS_X, y - LH_TEXT + F_TEXT * PT)

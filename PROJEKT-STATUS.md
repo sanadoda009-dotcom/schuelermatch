@@ -304,6 +304,37 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 24. August 2026 (Teil 8) - Namen im Lebenslauf-PDF
+
+Runde 13 des Dauerauftrags. Der PDF-Export war in den Tests komplett ausgeklammert (jsPDF wird dort abgeklemmt) - also nie geprueft.
+
+**Der Fund - und er trifft ausgerechnet die Zielgruppe:**
+Der Export nutzt die PDF-Standardschrift "helvetica". Die kennt nur westeuropaeische Zeichen. Alles darueber hinaus wurde **nicht weggelassen, sondern durch ein falsches Zeichen ersetzt**. Am echten Export gemessen:
+
+| Eingabe | landete im PDF |
+|---|---|
+| `Şeyma Çelik` | `^eyma Çelik` |
+| `Łukasz` | `Aukasz` |
+| `Nguyễn` | `NguyÅn` |
+| `Дмитрий` | `<8B@89` |
+| `12 € pro Stunde` | `12  pro Stunde` |
+| `„Zitat“ – Strich` | `Zitat  Strich` |
+
+Fuer eine Schueler-Plattform in Deutschland ist das nicht nebensaechlich: Viele Schueler haben tuerkische, polnische, arabische oder russische Namen. Im **wichtigsten Dokument ihrer Bewerbung** stand dann ein entstellter Name - ein Lukasz hiess dort "Aukasz". Und das Euro-Zeichen verschwand ersatzlos.
+
+**Behoben** in `js/pdf.js`: Die vorhandene Emoji-Filterung wurde zu einer vollstaendigen Zeichen-Aufbereitung ausgebaut. Latin-1 (inklusive der deutschen Umlaute) geht unveraendert durch; fuer tuerkische, polnische, rumaenische und serbische Buchstaben gibt es eine Ersatztabelle; Kyrillisch wird in lateinische Umschrift gewandelt ("Dmitrij" statt Zeichenmuell); vietnamesische und andere Akzente werden per Unicode-Zerlegung auf den Grundbuchstaben zurueckgefuehrt; Euro-Zeichen wird zu "EUR", typografische Anfuehrungszeichen und Gedankenstriche zu ihren einfachen Entsprechungen. Was sich gar nicht sinnvoll uebertragen laesst (arabische, chinesische Schrift), wird weggelassen statt als Muell gedruckt.
+
+**Ausserdem:** An drei Stellen ging Text bisher voellig ungefiltert ins PDF (Textbausteine links, Sprachniveau, Absaetze im Anschreiben) - jetzt laufen alle ueber dieselbe Aufbereitung.
+
+**Ehrliche Einschraenkung:** Das ist eine Umschrift, keine originalgetreue Darstellung. "Şeyma" wird zu "Seyma". Der Name ist damit korrekt lesbar, aber nicht exakt geschrieben. Die saubere Loesung waere eine eingebettete Unicode-Schrift - die kostet mehrere hundert Kilobyte Ladezeit bei jedem PDF und loest Arabisch wegen der Schreibrichtung trotzdem nicht. Fuer den Zweck (ein lesbarer Lebenslauf) ist die Umschrift der bessere Kompromiss.
+
+**Dauerhaft abgesichert:** `tests/pdf-zeichen.spec.js` (7 Tests). Die Aufbereitungs-Funktion wird dafuer exportiert, damit der Test **ohne** die PDF-Bibliothek aus dem Netz auskommt - schnell und unabhaengig.
+
+**Suite jetzt: 207 Tests, alle gruen** (vorher 200).
+
+**Nebenbei geprueft:** Ob mehr Test-Arbeiter die Laufzeit senken. Ergebnis: nein (5m48 mit vier statt 5m00 mit Standard). Die Zeit steckt in Wartezeiten der Tests, nicht in Rechenlast - der Rechner hat vier Kerne, mehr Parallelitaet bringt hier nichts.
+
+
 ## Session 24. August 2026 (Teil 7) - Betreiber-Bereich nachgezogen
 
 Runde 12 des Dauerauftrags. Der Admin-Bereich war bisher nur unter Sicherheitsaspekten betrachtet worden, nie auf Bedienbarkeit.
