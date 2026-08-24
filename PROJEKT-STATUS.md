@@ -304,6 +304,29 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 (Teil 3) - Schutz-Trigger waren nirgends gesichert
+
+Runde 18 des Dauerauftrags. Ausgangspunkt war der Firmen-Freigabe-Ablauf.
+
+**Der Ablauf selbst ist gut gebaut:** Eine neue Firma sieht ein Banner ("Dein Konto wird geprueft. Du kannst schon Jobs anlegen - sobald wir dich freigeben, werden sie automatisch sichtbar. Du bekommst dann eine E-Mail."), kann also sofort loslegen. Beim Job-Posten sagt die Rueckmeldung ehrlich "sichtbar, sobald dein Konto freigegeben ist". Gesperrte Konten bekommen eine eigene Meldung mit Kontaktmoeglichkeit.
+
+**Die Pruefung eines Versprechens fuehrte zum eigentlichen Fund.** Das Banner sagt "Du bekommst dann eine E-Mail" - kommt die wirklich? In der Repo-Datei `mail-webhooks-einrichten.sql` standen nur Trigger fuer `bewerbungen`, nichts fuer `profiles`. Es sah nach einem leeren Versprechen aus.
+
+**In der Datenbank nachgesehen: Das Versprechen wird eingehalten.** Die Trigger `firma_freigabe_mail` und `profil_verifiziert_mail` existieren dort - sie wurden nur nie ins Repo eingetragen. Meine Vermutung war also falsch.
+
+**Dabei kam aber Groesseres heraus:** In der Datenbank waren **zehn** Trigger aktiv, im Repo standen **zwei**. Nicht gesichert waren unter anderem **alle sechs Schutz-Trigger** - darunter `trg_schuetze_profil`, der die kritischste Luecke des Security-Audits vom 26.7. schliesst: Ohne ihn kann sich jeder eingeloggte Nutzer per `update profiles set ist_admin = true` selbst zum Administrator machen. RLS allein hilft dagegen nicht, weil die Zeile dem Nutzer ja gehoert - geschuetzt werden muessen einzelne **Spalten**.
+
+Waere die Datenbank je neu aufgesetzt worden - Umzug, Wiederherstellung, oder weil Supabase ein pausiertes Projekt zurueckstellt -, waeren alle diese Regeln ersatzlos verschwunden. **Und niemand haette es gemerkt**, bis jemand die Luecke nutzt.
+
+**Behoben:**
+- **Neu: `supabase/schutz-trigger.sql`** - alle sechs Schutz-Trigger samt ihrer Funktionen und `ist_admin()`, mit Erklaerung, wogegen jede Regel schuetzt. Wiederholbar ausfuehrbar.
+- `mail-webhooks-einrichten.sql` um die beiden fehlenden Mail-Trigger ergaenzt.
+
+**Dauerhaft abgesichert:** `tests/db-sicherung.spec.js` (4 Tests) vergleicht die Liste der aktiven Trigger mit dem, was im Repo steht, prueft dass zu jedem Trigger auch seine Funktion gesichert ist, dass die Profil-Regel genau die vier kritischen Felder einfriert - und dass das E-Mail-Versprechen im Banner durch einen Trigger und einen Zweig in der Edge Function gedeckt ist. **Alle vier fallen ohne die neuen Dateien um.** Der Test braucht keinen Browser und laeuft in unter zwei Sekunden.
+
+**Suite jetzt: 227 Tests, alle gruen** (vorher 223).
+
+
 ## Session 25. August 2026 (Teil 2) - Bestaetigungsmail erneut anfordern
 
 Runde 17 des Dauerauftrags. Der Registrierungs-Trichter vom ersten Besuch bis zum fertigen Profil.

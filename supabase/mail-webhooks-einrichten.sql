@@ -50,6 +50,23 @@ create trigger bewerbung_mail_update
   after update of status on public.bewerbungen
   for each row execute function public.mail_ereignis_webhook();
 
+-- Firmen-Freigabe und Schüler-Verifizierung.
+-- WICHTIG: Diese beiden fehlten hier lange, obwohl sie in der Datenbank
+-- eingerichtet waren (nachträglich angelegt, aber nie hier eingetragen).
+-- Beim Wiederaufbau der Datenbank wären sie verlorengegangen - und damit
+-- zwei Mails, die die Oberfläche ausdrücklich verspricht:
+--   "Du bekommst dann eine E-Mail" (Firmen-Prüfbanner)
+--   Freischalt-Mail nach der Schüler-Verifizierung
+drop trigger if exists firma_freigabe_mail on public.profiles;
+create trigger firma_freigabe_mail
+  after update of firma_status on public.profiles
+  for each row execute function public.mail_ereignis_webhook();
+
+drop trigger if exists profil_verifiziert_mail on public.profiles;
+create trigger profil_verifiziert_mail
+  after update of verifiziert on public.profiles
+  for each row execute function public.mail_ereignis_webhook();
+
 -- Täglicher Digest um 16:00 UTC
 select cron.unschedule('mail-digest-taeglich')
 where exists (select 1 from cron.job where jobname = 'mail-digest-taeglich');
