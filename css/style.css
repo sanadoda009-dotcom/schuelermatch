@@ -1840,3 +1840,66 @@ main[tabindex="-1"]:focus { outline: none; }
    erledigt), und dann bliebe fuer immer eine leere Luecke stehen. Ein
    kurzer Sprung beim Laden ist das kleinere Uebel als ein Dauerloch. */
 #stats-row { min-height: 96px; }
+
+/* ===================================================================
+   TIPPZIELE AUF DEM HANDY
+   -------------------------------------------------------------------
+   Gemessen auf einem Pixel 7 mit echter Touch-Emulation: Viele haeufig
+   genutzte Knoepfe lagen unter den empfohlenen 44x44 Pixeln - der
+   "Anzeigen"-Knopf am Passwortfeld war nur 15px hoch, das Hamburger-
+   Menue 38x32. Fruehere Runden hatten das nur fuer den Lebenslauf-
+   Editor geloest; der Rest der Seite blieb ungedeckt.
+
+   Nicht angefasst: Links im Fliesstext (die sind naturgemaess zeilenhoch)
+   und die Einwilligungs-Checkbox - die sitzt in einem <label>, also ist
+   der ganze Text die Trefferflaeche, nicht das 18px-Kaestchen.
+   =================================================================== */
+@media (pointer: coarse) {
+  /* Menue-Knoepfe: werden auf jeder Seite angetippt */
+  .nav-toggle, .hamburger-btn, .glocke-btn {
+    min-width: 44px; min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .nav-toggle { flex-direction: column; gap: 5px; }
+
+  /* "Anzeigen" am Passwortfeld war 61x15 - kaum zu treffen */
+  .pw-toggle { min-height: 44px; padding: 0 10px; display: inline-flex; align-items: center; }
+
+  /* Schliessen-Kreuze und Wegklick-Knoepfe */
+  .filter-schliessen, .onboard-weg {
+    min-width: 44px; min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  /* Teilen-Knopf auf der Jobseite */
+  .share-btn { min-height: 44px; }
+
+  /* Eingabefelder und Auswahlmenues: lagen bei 38-40px */
+  .form-group input, .form-group select,
+  .filter-gruppe input, .filter-gruppe select,
+  .sort-wahl select, .filter-leeren, .filter-oeffnen {
+    min-height: 44px;
+  }
+
+  /* Knoepfe allgemein lagen bei 41-43px - knapp daneben ist auch daneben */
+  .btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .pill { min-height: 44px; }
+
+  /* Herz-Knopf auf den Job-Karten: 36x36, wird oft angetippt */
+  .merken-btn { min-width: 44px; min-height: 44px; }
+
+  /* Footer-Links und der "Alle Jobs"-Ruecksprung: mehr Luft zum Treffen */
+  footer a, .footer-links a, a.mono { display: inline-block; padding: 13px 0; }
+
+  /* Eintraege im Seitenmenue */
+  .sidebar-item { min-height: 44px; }
+
+  /* Auf dem Handy standen Logo und der Knopf rechts daneben ohne jeden
+     Abstand direkt aneinander (gemessen: beide enden/beginnen bei 205px).
+     Das gab es schon vorher, fiel aber weniger auf, solange das Logo
+     halb so hoch war wie der Knopf. */
+  nav { gap: 12px; }
+
+  /* Das Logo fuehrt zur Startseite und war nur 25px hoch */
+  nav .logo { display: inline-flex; align-items: center; min-height: 44px; }
+}

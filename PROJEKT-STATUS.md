@@ -304,6 +304,33 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 24. August 2026 (Teil 5) - Tippziele auf dem Handy
+
+Runde 10 des Dauerauftrags. Gemessen auf einem Pixel 7 mit echter Touch-Emulation: Apple und Google empfehlen mindestens **44x44 Pixel** fuer alles, was man mit dem Finger trifft.
+
+**Gefunden - und das betraf fast jede Seite:**
+- Der **"Anzeigen"-Knopf am Passwortfeld war 61x15 Pixel** - 15 Pixel hoch. Praktisch nicht zu treffen, und ihn braucht jeder beim Anmelden.
+- Das **Hamburger-Menue 38x32**, der **Herz-Knopf auf den Job-Karten 36x36**, die Schliessen-Kreuze im Filter **32x27**, der Wegklick-Knopf der Onboarding-Box **28x28**.
+- Dutzende Knoepfe und Eingabefelder lagen bei 38-43 Pixeln, also knapp daneben.
+- Eine fruehere Runde hatte 44px-Regeln eingefuehrt, aber **nur fuer den Lebenslauf-Editor**. Der Rest der Seite war ungedeckt.
+
+**Behoben** ueber eine erweiterte `@media (pointer: coarse)`-Regel: Menue-Knoepfe, Glocke, Passwort-Umschalter, Schliessen-Kreuze, Teilen-Knopf, Herz-Knopf, alle `.btn`, Kategorie-Pills, Seitenmenue-Eintraege, Eingabefelder, Auswahlmenues, Footer-Links und das Logo.
+
+**Ergebnis:** Von 10 zu kleinen Zielen auf der Jobboerse und 10 im Dashboard auf **null** - auf allen sieben geprueften Seiten.
+
+**Zwei bewusste Ausnahmen, beide nach Pruefung:**
+- Die **Einwilligungs-Checkbox** ist nur 18x18 - sie sitzt aber in einem `<label>`, also ist der ganze Text die Trefferflaeche. Sah in der Messung wie ein Fehler aus, ist keiner.
+- Der **Jobtitel-Knopf** im Dashboard ist 25px hoch. Er existiert nur, damit die Karte per Tastatur erreichbar ist (Runde 4); angetippt wird die ganze Karte.
+
+**Nebenbefund:** Auf dem Handy standen **Logo und der Knopf rechts daneben ohne jeden Abstand** direkt aneinander (beide bei exakt 205px). Nachgemessen mit dem alten CSS: **das gab es schon vorher** - es fiel nur weniger auf, solange das Logo halb so hoch war wie der Knopf. Jetzt mit `gap: 12px`.
+
+**Ebenfalls gegengeprueft:** Der Umbruch der Sortier-Zeile auf dem Handy sah nach einer neuen Verschlechterung aus. Messung mit altem und neuem CSS: bestand vorher genauso (Filter y=339 vs. 344). Kein neuer Schaden.
+
+**Dauerhaft abgesichert:** `tests/tippziele-mobil.spec.js` (10 Tests, laeuft im Mobil-Projekt): kein Tippziel unter 44px auf acht Seiten, Abstand in der Kopfzeile, keine Seite scrollt waagerecht.
+
+**Suite jetzt: 192 Tests, alle gruen** (vorher 182). Ein Durchlauf zeigte einen roten Test, der einzeln sofort gruen war - Parallel-Last, kein Defekt. Zweiter Volldurchlauf: alles gruen.
+
+
 ## Session 24. August 2026 (Teil 4) - Datenabfragen beim Laden
 
 Runde 9 des Dauerauftrags. Frage: Wie viele Abfragen laufen beim Oeffnen einer Seite, und warten sie unnoetig aufeinander?
