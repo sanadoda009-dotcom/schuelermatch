@@ -304,6 +304,27 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 24. August 2026 (Teil 6) - Chat robuster gemacht
+
+Runde 11 des Dauerauftrags. Der Chat war der letzte Bereich, den keine Runde angefasst hatte.
+
+**Zwei belegte Fehler:**
+1. **Der getippte Text ging beim Fehlschlag verloren.** Das Eingabefeld wurde geleert, *bevor* die Nachricht gesendet war. Schlug das Senden fehl, sah man nur "Nachricht konnte nicht gesendet werden" - und musste alles neu tippen. Jetzt wird erst geleert, wenn die Nachricht wirklich angekommen ist.
+2. **Ein Ladefehler sah aus wie ein leerer Chat.** Bei einer Stoerung stand da "Noch keine Nachrichten - schreib die erste!", als waere der ganze Verlauf geloescht. Das ist dasselbe Muster, das Runde 5 an anderen Stellen behoben hatte; der Chat war uebersehen worden. Jetzt sagt er, dass gerade nicht geladen werden konnte - und ein bereits sichtbarer Verlauf bleibt stehen.
+
+**Eine Vermutung, die sich NICHT bestaetigt hat:** Ich hielt das fehlende Abfangen von Netzfehlern beim Senden fuer einen dritten Fehler - das Eingabefeld muesste dauerhaft gesperrt bleiben. **Gegengeprueft gegen den alten Code: war es nicht.** supabase-js gibt solche Fehler als Wert zurueck, statt eine Ausnahme zu werfen. Das Abfangen bleibt als Vorsichtsmassnahme drin, ist aber keine Fehlerbehebung. Der zugehoerige Test ist als Absicherung markiert.
+
+**Zwei Verbesserungen ohne vorherigen Fehler:**
+- Wer nach oben scrollt, um aeltere Nachrichten zu lesen, wurde vom 8-Sekunden-Takt alle acht Sekunden wieder nach unten gerissen. Jetzt wird nur noch nach unten gesprungen, wenn man ohnehin unten stand.
+- Der Takt pausiert, solange der Tab im Hintergrund liegt, und laedt beim Zurueckkommen sofort einmal nach.
+
+**Wie die Tests geprueft wurden:** Alle vier liefen gegen den **alten** Code, um zu sehen, ob sie die Fehler ueberhaupt fangen. Zwei fielen um (die belegten Fehler), zwei blieben gruen - einer davon war die Gegenprobe, der andere entlarvte meine falsche Vermutung. Ohne diesen Schritt haette ich einen wertlosen Test fuer einen nie existierenden Fehler eingebaut und im Statusbericht behauptet, ihn behoben zu haben.
+
+**Dauerhaft abgesichert:** `tests/chat-robust.spec.js` (4 Tests).
+
+**Suite jetzt: 196 Tests, alle gruen** (vorher 192).
+
+
 ## Session 24. August 2026 (Teil 5) - Tippziele auf dem Handy
 
 Runde 10 des Dauerauftrags. Gemessen auf einem Pixel 7 mit echter Touch-Emulation: Apple und Google empfehlen mindestens **44x44 Pixel** fuer alles, was man mit dem Finger trifft.

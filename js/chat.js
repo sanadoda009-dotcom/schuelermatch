@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { toast } from './toast.js'
 import { oeffneMeldeDialog, meldeButtonHtml } from './melden.js'
+import { hole, verstaendlich } from './zustand.js'
 
 function escapeHtml(str) {
   const div = document.createElement('div')
@@ -87,8 +88,22 @@ export async function ladeChat(container, bewerbungId, meineId) {
   const input = container.querySelector('.chat-input')
 
   async function render() {
-    const { data } = await supabase.from('nachrichten')
-      .select('*').eq('bewerbung_id', bewerbungId).order('erstellt_am', { ascending: true })
+    // Merken, ob der Nutzer gerade unten steht. Wer nach oben gescrollt hat,
+    // um aeltere Nachrichten zu lesen, soll vom 8-Sekunden-Takt nicht
+    // staendig wieder nach unten gerissen werden.
+    const warUnten = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 60
+
+    const { data, gestoert } = await hole(supabase.from('nachrichten')
+      .select('*').eq('bewerbung_id', bewerbungId).order('erstellt_am', { ascending: true }))
+
+    // Eine Stoerung darf nicht als "noch keine Nachrichten" erscheinen -
+    // sonst sieht es aus, als waere der Verlauf geloescht worden.
+    if (gestoert) {
+      if (!thread.querySelector('.chat-msg')) {
+        thread.innerHTML = '<p class="cv-preview-empty" style="text-align:center;">Die Nachrichten konnten gerade nicht geladen werden. Wir versuchen es weiter.</p>'
+      }
+      return
+    }
 
     thread.innerHTML = (data && data.length)
       ? data.map(m => {
@@ -102,7 +117,7 @@ export async function ladeChat(container, bewerbungId, meineId) {
           ${fremd ? warnungHtml(warnungFuer(m.text)) : ''}`
         }).join('')
       : '<p class="cv-preview-empty" style="text-align:center;">Noch keine Nachrichten – schreib die erste!</p>'
-    thread.scrollTop = thread.scrollHeight
+    if (warUnten) thread.scrollTop = thread.scrollHeight
 
     // Melden-Buttons verdrahten (nur an Nachrichten der Gegenseite)
     thread.querySelectorAll('[data-melde-nachricht]').forEach(b => {
@@ -123,20 +138,51 @@ export async function ladeChat(container, bewerbungId, meineId) {
     e.preventDefault()
     const text = input.value.trim()
     if (!text) return
-    input.value = ''
+
+    // Das Feld wird erst geleert, wenn die Nachricht wirklich drin ist.
+    // Vorher wurde sofort geleert - schlug das Senden fehl, war der
+    // getippte Text weg und musste neu geschrieben werden.
     input.disabled = true
-    const { error } = await supabase.from('nachrichten').insert({ bewerbung_id: bewerbungId, absender_id: meineId, text })
-    input.disabled = false
-    input.focus()
-    if (error) { toast('Nachricht konnte nicht gesendet werden.', 'fehler'); return }
+    let fehler = null
+    try {
+      const { error } = await supabase.from('nachrichten')
+        .insert({ bewerbung_id: bewerbungId, absender_id: meineId, text })
+      fehler = error
+    } catch (e) {
+      // Ohne diesen Fang blieb das Eingabefeld bei einem Netzausfall
+      // fuer immer gesperrt - man konnte gar nichts mehr schreiben.
+      fehler = e
+    } finally {
+      input.disabled = false
+      input.focus()
+    }
+
+    if (fehler) {
+      toast(verstaendlich(fehler, 'Die Nachricht'), 'fehler')
+      return
+    }
+
+    input.value = ''
     await render()
   })
 
   await render()
 
-  // Automatisch alle 8 Sek. aktualisieren (einfaches Polling, kein Live-Chat nötig)
-  const intervall = setInterval(render, 8000)
-  return () => clearInterval(intervall)
+  // Automatisch alle 8 Sek. aktualisieren (einfaches Polling, kein Live-Chat nötig).
+  // Liegt der Tab im Hintergrund, wird nicht abgefragt - das sparte sonst
+  // niemandem etwas und lief bei einem Netzausfall endlos ins Leere.
+  const intervall = setInterval(() => {
+    if (!document.hidden) render()
+  }, 8000)
+  // Kommt der Tab zurueck, sofort einmal nachladen statt bis zu 8 Sekunden
+  // auf veraltete Nachrichten zu schauen.
+  const beiRueckkehr = () => { if (!document.hidden) render() }
+  document.addEventListener('visibilitychange', beiRueckkehr)
+
+  return () => {
+    clearInterval(intervall)
+    document.removeEventListener('visibilitychange', beiRueckkehr)
+  }
 }
 
 // Zählt ungelesene Nachrichten für einen Nutzer (für die Glocke/Badge).
