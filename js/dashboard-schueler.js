@@ -7,7 +7,7 @@ import { initSidebar } from './sidebar.js'
 import { toast } from './toast.js'
 import { ladeChat, zaehleUngelesen } from './chat.js'
 import { initGlocke } from './notifications.js'
-import { geocode, distanzKm } from './geo.js'
+import { geocode, distanzKm, uebernehmeKoordinaten } from './geo.js'
 import { passtZurSuche } from './suche.js'
 import { oeffneMeldeDialog, meldeButtonHtml } from './melden.js'
 import { sichereMediaUrl } from './sicher.js'
@@ -1018,10 +1018,11 @@ async function speichereProfil(e) {
     ort: document.getElementById('profile-ort').value
   }
 
-  // Wohnort in Koordinaten umwandeln (für den Umkreis-Filter)
-  const koord = await geocode(updates.ort)
-  updates.lat = koord?.lat ?? null
-  updates.lon = koord?.lon ?? null
+  // Wohnort in Koordinaten umwandeln (für den Umkreis-Filter).
+  // Bei einer Stoerung des Geo-Dienstes bleiben vorhandene Koordinaten
+  // stehen, statt geloescht zu werden - siehe js/geo.js.
+  const geo = await geocode(updates.ort)
+  const ortUnbekannt = uebernehmeKoordinaten(updates, geo)
 
   const { error } = await supabase.from('profiles').update(updates).eq('id', profile.id)
 
@@ -1031,6 +1032,10 @@ async function speichereProfil(e) {
   if (error) {
     toast(verstaendlich(error), 'fehler')
     return
+  }
+
+  if (ortUnbekannt) {
+    toast('Profil gespeichert. Den Ort konnten wir aber nicht finden – prüf die Schreibweise, sonst zeigen wir dir keine Entfernungen an.', 'fehler')
   }
 
   profile = { ...profile, ...updates }

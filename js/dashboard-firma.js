@@ -7,7 +7,7 @@ import { initSidebar } from './sidebar.js'
 import { toast } from './toast.js'
 import { ladeChat } from './chat.js'
 import { initGlocke } from './notifications.js'
-import { geocode } from './geo.js'
+import { geocode, uebernehmeKoordinaten } from './geo.js'
 import { sichereMediaUrl } from './sicher.js'
 
 let profile
@@ -263,10 +263,11 @@ async function speichereJob(e) {
   btn.disabled = true
   btn.textContent = editingJobId ? 'Wird gespeichert...' : 'Wird gepostet...'
 
-  // Ort in Koordinaten umwandeln (für den Umkreis-Filter der Schüler)
-  const koord = await geocode(daten.ort)
-  daten.lat = koord?.lat ?? null
-  daten.lon = koord?.lon ?? null
+  // Ort in Koordinaten umwandeln (für den Umkreis-Filter der Schüler).
+  // Klemmt der Geo-Dienst, bleiben vorhandene Koordinaten erhalten -
+  // sonst verschwaende eine bestehende Anzeige aus der Umkreissuche.
+  const geo = await geocode(daten.ort)
+  const ortUnbekannt = uebernehmeKoordinaten(daten, geo)
 
   let error
 
@@ -289,6 +290,11 @@ async function speichereJob(e) {
   if (warBearbeitung) toast('Job aktualisiert')
   else if (profile.firma_status === 'freigegeben') toast('Job veröffentlicht! 🎉')
   else toast('Job gespeichert – sichtbar, sobald dein Konto freigegeben ist', 'info')
+  if (ortUnbekannt) {
+    // Ohne Koordinaten taucht die Anzeige in der Umkreissuche der Schüler
+    // nicht auf - das sollte die Firma wissen.
+    toast('Den Ort konnten wir nicht zuordnen. Prüf die Schreibweise, sonst finden Schüler die Anzeige nicht über die Umkreissuche.', 'fehler')
+  }
   document.querySelector('.sidebar-item[data-view="jobs"]')?.click() // zur Job-Übersicht
   await ladeEigeneJobs()
 }

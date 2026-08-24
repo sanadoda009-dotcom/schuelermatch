@@ -304,6 +304,30 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 24. August 2026 (Teil 10) - Umkreissuche: Ortsdaten gingen verloren
+
+Runde 15 des Dauerauftrags. Der Geo-Teil (`js/geo.js`) war bisher nie geprueft worden.
+
+**Der Fehler - stiller Datenverlust:**
+`geocode()` gab bei **jedem** Problem dasselbe zurueck (`null`) - egal ob der Ort nicht existierte oder der Dienst gerade nicht antwortete. Beide Aufrufer schrieben daraufhin `lat = null, lon = null` in die Datenbank.
+
+Praktisch hiess das: Ein Schueler aendert nur seinen **Namen**, waehrend der Geo-Dienst klemmt - und verliert dabei seine gespeicherten Koordinaten. Danach taucht er in der Umkreissuche nicht mehr auf und sieht keine Entfernungen mehr. **Ohne jeden Hinweis.** Bei Firmen dasselbe: Eine bestehende Anzeige waere aus der Umkreissuche der Schueler verschwunden, nur weil beim Bearbeiten der Geo-Dienst kurz gestoert war.
+
+**Zweiter Fehler:** Kein Zeitlimit. Antwortete der Dienst gar nicht (statt einen Fehler zu liefern), wartete `fetch` unbegrenzt - und mit ihm das Speichern des ganzen Profils.
+
+**Behoben:**
+- `geocode()` liefert jetzt drei unterscheidbare Ergebnisse: gefunden (mit Koordinaten), **unbekannt** (Tippfehler im Ort) und **gestoert** (Dienst nicht erreichbar).
+- Neue Hilfsfunktion `uebernehmeKoordinaten()`: schreibt Koordinaten nur, wenn etwas Verlaessliches bekannt ist. **Bei einer Stoerung bleiben die Felder unangetastet** - vorhandene Werte ueberleben.
+- **Zeitlimit von 8 Sekunden** per AbortController.
+- Bei unbekanntem Ort bekommen Schueler und Firmen jetzt einen Hinweis ("pruef die Schreibweise, sonst zeigen wir dir keine Entfernungen an"), statt dass es stillschweigend passiert.
+
+**Dauerhaft abgesichert:** `tests/geo.spec.js` (7 Tests). **Alle sieben fallen gegen den alten Code um** - sie belegen also echte Fehler und sind nicht nur Beiwerk.
+
+**Suite jetzt: 214 Tests, alle gruen** (vorher 207).
+
+**Zur Laufzeit:** Dieser Volldurchlauf brauchte 18,6 Minuten statt der ueblichen 6. Nachgemessen: Die sieben neuen Tests brauchen allein **eine** Minute - sie sind nicht die Ursache. Es ist dieselbe Schwankung, die Runde 14 dokumentiert hat (Faktor zwei bis drei je nach Auslastung des Rechners). Kein Anlass, erneut zu optimieren.
+
+
 ## Session 24. August 2026 (Teil 9) - Versuch: Testlaufzeit senken (gescheitert)
 
 Runde 14. Anlass war die Bitte, die Pausen zwischen den Runden zu verkuerzen. Die Pause selbst liegt beim Minimum von 60 Sekunden - die eigentliche Wartezeit ist der volle Testlauf mit 5-6 Minuten. Also: Versuch, den zu beschleunigen.
