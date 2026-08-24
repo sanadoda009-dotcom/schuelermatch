@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { hole, zeigeLadefehler } from './zustand.js'
+import { hole, zeigeLadefehler, verstaendlich } from './zustand.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf, erzeugeLebenslaufPdf, lebenslaufAlsBlob } from './pdf.js'
@@ -1012,7 +1012,7 @@ async function speichereProfil(e) {
   btn.textContent = 'Speichern'
 
   if (error) {
-    toast('Fehler: ' + error.message, 'fehler')
+    toast(verstaendlich(error), 'fehler')
     return
   }
 
@@ -1413,7 +1413,7 @@ function verdrahteBewertenBox(job, meine) {
       sterne: gewaehlt,
       kommentar: kommentar || null
     }, { onConflict: 'firma_id,schueler_id' })
-    if (error) { status.textContent = 'Fehler: ' + error.message; return }
+    if (error) { status.textContent = verstaendlich(error); return }
     toast('Danke für deine Bewertung! ⭐')
     renderDetailBewertungen(job)
   })
@@ -1422,7 +1422,7 @@ function verdrahteBewertenBox(job, meine) {
   if (del) del.addEventListener('click', async () => {
     const { error } = await supabase.from('bewertungen').delete()
       .eq('firma_id', job.firma_id).eq('schueler_id', profile.id)
-    if (error) { document.getElementById('bewertung-status').textContent = 'Fehler: ' + error.message; return }
+    if (error) { document.getElementById('bewertung-status').textContent = verstaendlich(error); return }
     toast('Bewertung gelöscht')
     renderDetailBewertungen(job)
   })
@@ -1604,7 +1604,7 @@ async function sendeBewerbung(e) {
   btn.textContent = 'Bewerbung absenden'
 
   if (error) {
-    toast('Fehler beim Absenden: ' + error.message, 'fehler')
+    toast(verstaendlich(error), 'fehler')
     return
   }
 

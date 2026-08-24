@@ -69,3 +69,24 @@ export async function hole(abfrage) {
     return { data: null, gestoert: true }
   }
 }
+
+// Macht aus einem technischen Fehler einen Satz, den auch ein 13-Jährigen
+// versteht. Rohe Supabase-Meldungen sind englisch und nennen Tabellen- und
+// Spaltennamen ("new row violates row-level security policy for table ...").
+// Für den Admin-Bereich bleibt der technische Text bewusst stehen - dort
+// hilft er beim Nachsehen, was los war.
+export function verstaendlich(error, was = 'Das') {
+  const roh = (error?.message || '').toLowerCase()
+  if (!roh) return was + ' hat gerade nicht geklappt. Versuch es gleich nochmal.'
+  if (roh.includes('failed to fetch') || roh.includes('network'))
+    return 'Keine Verbindung. Prüf kurz dein Internet und versuch es nochmal.'
+  if (roh.includes('row-level security') || roh.includes('permission') || roh.includes('denied'))
+    return 'Dafür fehlt dir die Berechtigung. Melde dich neu an – wenn das nicht hilft, schreib uns.'
+  if (roh.includes('duplicate') || roh.includes('unique'))
+    return 'Das gibt es schon – doppelt geht hier nicht.'
+  if (roh.includes('too large') || roh.includes('size'))
+    return 'Die Datei ist zu groß. Nimm eine kleinere.'
+  if (roh.includes('jwt') || roh.includes('expired') || roh.includes('session'))
+    return 'Du warst zu lange weg. Bitte melde dich neu an.'
+  return was + ' hat gerade nicht geklappt. Versuch es gleich nochmal.'
+}

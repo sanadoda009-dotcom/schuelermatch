@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { hole, zeigeLadefehler } from './zustand.js'
+import { hole, zeigeLadefehler, verstaendlich } from './zustand.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
@@ -207,7 +207,7 @@ async function speichereProfil(e) {
   btn.textContent = 'Speichern'
 
   if (error) {
-    toast('Fehler: ' + error.message, 'fehler')
+    toast(verstaendlich(error), 'fehler')
     return
   }
 
@@ -279,7 +279,7 @@ async function speichereJob(e) {
   btn.disabled = false
 
   if (error) {
-    toast('Fehler: ' + error.message, 'fehler')
+    toast(verstaendlich(error), 'fehler')
     btn.textContent = editingJobId ? 'Änderungen speichern 🚀' : 'Job veröffentlichen 🚀'
     return
   }
@@ -337,7 +337,7 @@ async function loescheJob(jobId, btn) {
   if (btn) clearTimeout(btn._t)
   const { error } = await supabase.from('jobs').delete().eq('id', jobId)
   if (error) {
-    toast('Fehler beim Löschen: ' + error.message, 'fehler')
+    toast(verstaendlich(error), 'fehler')
     return
   }
   toast('Job gelöscht')
@@ -469,7 +469,7 @@ async function ladeEigeneJobs() {
       const neuerWert = btn.dataset.aktiv !== 'true'
       const { error } = await supabase.from('jobs').update({ aktiv: neuerWert }).eq('id', btn.dataset.pause)
       if (error) {
-        toast('Fehler: ' + error.message, 'fehler')
+        toast(verstaendlich(error), 'fehler')
         btn.disabled = false
         return
       }
@@ -518,7 +518,7 @@ async function ladeEigeneJobs() {
       btn.disabled = false
       btn.textContent = 'Zeugnis'
       if (error) {
-        toast('Fehler: ' + error.message, 'fehler')
+        toast(verstaendlich(error), 'fehler')
         return
       }
       window.open(data.signedUrl, '_blank')
@@ -536,7 +536,7 @@ async function ladeEigeneJobs() {
         .update({ status: wert })
         .eq('id', btn.dataset.statusId)
       if (error) {
-        toast('Fehler: ' + error.message, 'fehler')
+        toast(verstaendlich(error), 'fehler')
         btn.disabled = false
         return
       }

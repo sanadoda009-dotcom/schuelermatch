@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { breite: '80%', farbe: '#00c896', text: 'Gut' },
         { breite: '100%', farbe: '#00a87d', text: 'Stark' }
       ]
-      const s = stufen[pw.length < 8 ? 0 : punkte]
+      const s = stufen[pw.length < 10 ? 0 : punkte]
       meter.firstElementChild.style.width = pw ? s.breite : '0'
       meter.firstElementChild.style.background = s.farbe
       label.textContent = pw ? s.text : ''
@@ -103,7 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const emailFeld = document.getElementById('reg-email')
       const pwFeld = document.getElementById('reg-password')
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { feldFehler(emailFeld, 'Bitte gib eine gültige E-Mail ein.'); fehler = true }
-      if (password.length < 8) { feldFehler(pwFeld, 'Mindestens 8 Zeichen.'); fehler = true }
+      // 10, nicht 8: Supabase lehnt kuerzere Passwoerter ab. Stand hier frueher 8,
+      // kam man durch die Formularpruefung und bekam dann nur die generische
+      // Meldung "Bitte pruefe deine Eingaben" - ohne je den Grund zu erfahren.
+      if (password.length < 10) { feldFehler(pwFeld, 'Mindestens 10 Zeichen.'); fehler = true }
 
       if (role === 'firma') {
         name = document.getElementById('firma-name').value

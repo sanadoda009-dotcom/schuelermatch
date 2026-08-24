@@ -304,6 +304,24 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 24. August 2026 - Formular-Fehlermeldungen
+
+Runde 6 des Dauerauftrags. Frage: Versteht man beim Registrieren, Anmelden und Passwort-Zuruecksetzen, was schiefging und was zu tun ist?
+
+**Der Hauptfund - eine Sackgasse im wichtigsten Trichter:**
+Das Registrierungsformular verlangte **8 Zeichen**, Supabase aber **10** (die Mindestlaenge wurde am 28.7. erhoeht, das Formular blieb stehen). Wer 8 oder 9 Zeichen eintippte, kam durch die Formularpruefung, wurde vom Server abgelehnt - und bekam nur die generische Meldung *"Registrierung momentan nicht moeglich. Bitte pruefe deine Eingaben"*. Der eigentliche Grund wurde **nie genannt**. Beim Passwort-Zuruecksetzen fehlte die Pruefung ganz und der **rohe englische Supabase-Text** wurde angezeigt ("Password should be at least 10 characters.").
+
+**Behoben:**
+- Mindestlaenge an fuenf Stellen auf 10 vereinheitlicht (, , Pruefung und Staerke-Anzeige in ). Die Meldung steht am Feld und nennt die Zahl.
+- : prueft jetzt vorher selbst, faengt Netzausfaelle ab und uebersetzt die drei realistischen Server-Antworten ins Deutsche (zu kurz / Link abgelaufen / sonstiges) statt den englischen Rohtext durchzureichen.
+- ** in  (neu)**: macht aus technischen Fehlern einen Satz, den auch ein 13-Jaehriger versteht. An **10 nutzersichtbaren Stellen** eingesetzt (4x Schueler-Dashboard, 6x Firmen-Dashboard) - darunter das Absenden einer Bewerbung, der wichtigste Moment fuer einen Schueler. Vorher stand dort , also englischer Text mit Tabellen- und Spaltennamen.
+- **Im Admin-Bereich bleibt der technische Text bewusst stehen** - dort hilft er beim Nachsehen, was los war.
+
+**Dauerhaft abgesichert:**  (4 Tests). Nagelt vor allem fest, dass Formular und Server dieselbe Mindestlaenge verlangen - genau das Auseinanderlaufen war die Ursache.
+
+**Suite jetzt: 160 Tests, alle gruen** (vorher 156).
+
+
 ## Session 23. August 2026 (Teil 6) - Fehler- und Leerzustaende
 
 Runde 5 des Dauerauftrags. Frage: Was sieht man, wenn nichts da ist oder etwas schiefgeht? Dazu die Datenbank kuenstlich kaputtgemacht (Server antwortet mit 500) und das Netz komplett gekappt, und dann auf jeder Seite nachgesehen, was ankommt.
