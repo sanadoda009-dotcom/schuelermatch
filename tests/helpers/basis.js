@@ -90,6 +90,34 @@ function neuerUnbestaetigterUser(req) {
   }
 }
 
+// Google Fonts werden in Tests nicht gebraucht - der Browser wartet sonst
+// bei jedem Seitenaufruf auf einen echten Netzabruf.
+async function blockiereSchriften(context) {
+  await context.route(/(fonts\.googleapis\.com|fonts\.gstatic\.com)/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }))
+}
+
+// supabase-js kommt von jsdelivr und wird zwingend gebraucht. Deshalb pro
+// Worker-Prozess EINMAL holen und danach aus dem Speicher ausliefern.
+const cdnCache = new Map()
+async function cacheJsdelivr(context) {
+  await context.route(/cdn\.jsdelivr\.net/, async route => {
+    const url = route.request().url()
+    if (!cdnCache.has(url)) {
+      try {
+        const res = await route.fetch()
+        const headers = { ...res.headers() }
+        delete headers['content-encoding']
+        delete headers['content-length']
+        cdnCache.set(url, { status: res.status(), headers, body: await res.body() })
+      } catch {
+        return route.abort()
+      }
+    }
+    const t = cdnCache.get(url)
+    await route.fulfill({ status: t.status, headers: t.headers, body: t.body })
+  })
+}
+
 // Erweiterte test-Funktion: Gate-Bypass + Supabase-Mock sind immer aktiv.
 const test = base.test.extend({
   // Von Tests überschreibbare Mock-Antworten (per test.use({ antworten: ... }))
@@ -103,6 +131,13 @@ const test = base.test.extend({
       try { sessionStorage.setItem('sm-zugang-ok', '1') } catch {}
     })
     await installiereSupabaseMock(context, antworten)
+    // Externe Ressourcen abklemmen bzw. zwischenspeichern. Ohne das holte
+    // JEDER Test Google Fonts und supabase-js frisch aus dem Netz - der
+    // langsamste Test brauchte dadurch 53 Sekunden statt weniger als einer.
+    // (Die Schwester-Datei supabase-fake.js macht das laengst; basis.js
+    //  war dabei uebersehen worden.)
+    await blockiereSchriften(context)
+    await cacheJsdelivr(context)
     await use(context)
   },
 })

@@ -346,7 +346,7 @@ async function installGeocodeMock(context) {
 // Ohne das haengen die Dashboard-Tests unter Parallel-Last am CDN und die
 // Module-Kette bricht gelegentlich ab -> init() laeuft nie, Karten fehlen.
 async function blockiereSchwereCdns(context) {
-  await context.route(/(fonts\.googleapis\.com|fonts\.gstatic\.com|cdnjs\.cloudflare\.com)/, r => r.abort())
+  await context.route(/(fonts\.googleapis\.com|fonts\.gstatic\.com|cdnjs\.cloudflare\.com)/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }))
 }
 
 // supabase-js kommt von jsdelivr und wird von der App zwingend gebraucht -

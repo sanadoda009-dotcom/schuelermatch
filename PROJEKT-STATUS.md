@@ -304,6 +304,26 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 24. August 2026 (Teil 9) - Versuch: Testlaufzeit senken (gescheitert)
+
+Runde 14. Anlass war die Bitte, die Pausen zwischen den Runden zu verkuerzen. Die Pause selbst liegt beim Minimum von 60 Sekunden - die eigentliche Wartezeit ist der volle Testlauf mit 5-6 Minuten. Also: Versuch, den zu beschleunigen.
+
+**Ergebnis: nicht gelungen.** Drei Hypothesen geprueft, alle drei waren nicht die Ursache:
+1. **Feste Wartezeiten im Testcode** (48,6s verteilt auf 48 Stellen). Klang nach dem Hauptgrund, ist aber bei paralleler Ausfuehrung nur ein Bruchteil.
+2. **Fehlende Ressourcen-Blockade in `tests/helpers/basis.js`.** Tatsaechlich holte jeder Test dort Google Fonts und supabase-js frisch aus dem Netz - die Schwester-Datei `supabase-fake.js` macht das laengst, `basis.js` war uebersehen worden. Behoben, aber **messbar nicht schneller**.
+3. **OneDrive als Bremse.** Das Projekt liegt in einem synchronisierten Ordner. Gegenprobe mit einer Kopie ausserhalb: **60s statt 47s** - ausserhalb sogar langsamer. Widerlegt.
+
+**Warum keine belastbare Optimierung moeglich war:** Derselbe Test brauchte in drei Messungen 53s, 48s und 28s. Bei einer Schwankung um Faktor zwei laesst sich nicht feststellen, ob eine Aenderung etwas bringt. Die Laufzeit haengt an der Tagesform des Rechners (vier Kerne), nicht an einem behebbaren Defekt im Testaufbau.
+
+**Was trotzdem bleibt - und einen eigenen Wert hat:**
+- `basis.js` klemmt jetzt Google Fonts ab und puffert supabase-js pro Worker. Damit sind **alle** Tests unabhaengig vom Netz; vorher haetten sie bei schlechter Verbindung oder offline gehangen. Acht Testdateien waren betroffen.
+- Blockierte Schriften werden mit einer leeren, gueltigen Antwort beantwortet statt mit einem Abbruch - das erzeugt keine Konsolenfehler mehr.
+
+**Suite weiterhin: 207 Tests, alle gruen** (Laufzeit 6,3 Min - unveraendert).
+
+**Fuer die Zukunft:** Wer die Laufzeit ernsthaft senken will, muesste die Zahl der Seitenaufrufe reduzieren (mehrere Pruefungen je Aufruf buendeln). Das macht die Tests aber unuebersichtlicher und schlechter isoliert - der Preis waere hoeher als der Gewinn.
+
+
 ## Session 24. August 2026 (Teil 8) - Namen im Lebenslauf-PDF
 
 Runde 13 des Dauerauftrags. Der PDF-Export war in den Tests komplett ausgeklammert (jsPDF wird dort abgeklemmt) - also nie geprueft.
