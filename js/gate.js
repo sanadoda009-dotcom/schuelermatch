@@ -26,8 +26,8 @@ const GATE_KEY = 'sm-zugang-ok'
     gate.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#faf8f4;display:flex;align-items:center;justify-content:center;padding:24px;font-family:Inter,system-ui,sans-serif;'
     gate.innerHTML = `
       <div style="background:#fff;border:1px solid #e7e3da;border-radius:24px;padding:40px;max-width:400px;width:100%;box-shadow:0 20px 50px rgba(22,26,31,0.1);text-align:center;">
-        <div style="width:44px;height:44px;border-radius:12px;margin:0 auto 18px;background:linear-gradient(135deg,#00c896,#2b2f8f);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-family:'Space Grotesk',sans-serif;">SM</div>
-        <h1 style="font-family:'Space Grotesk',sans-serif;font-size:1.4rem;margin:0 0 6px;color:#161a1f;">SchülerMatch</h1>
+        <div style="width:44px;height:44px;border-radius:12px;margin:0 auto 18px;background:linear-gradient(135deg,#00c896,#2b2f8f);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-family:'Bricolage Grotesque',sans-serif;">SM</div>
+        <h1 style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.4rem;margin:0 0 6px;color:#161a1f;">SchülerMatch</h1>
         <p style="color:#5a6270;font-size:0.9rem;margin:0 0 22px;">Diese Seite ist gerade im Aufbau. Bitte gib das Zugangspasswort ein.</p>
         <input id="sm-gate-pw" type="password" placeholder="Passwort" style="width:100%;padding:13px 15px;border:1.5px solid #e7e3da;border-radius:12px;font-size:1rem;outline:none;box-sizing:border-box;margin-bottom:12px;">
         <p id="sm-gate-err" style="color:#ff6b4a;font-size:0.82rem;min-height:18px;margin:0 0 10px;"></p>

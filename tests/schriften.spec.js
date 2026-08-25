@@ -12,7 +12,7 @@ const SAMMLE = `(() => {
     const cs = getComputedStyle(el)
     if (cs.display === 'none' || !(el.textContent||'').trim()) return
     const fam = (cs.fontFamily||'').split(',')[0].replace(/["']/g,'').trim()
-    if (['Space Grotesk','Inter','IBM Plex Mono'].includes(fam)) k.add(fam + ' ' + cs.fontWeight)
+    if (['Bricolage Grotesque','IBM Plex Sans','IBM Plex Mono'].includes(fam)) k.add(fam + ' ' + cs.fontWeight)
   })
   return [...k]
 })()`
@@ -32,7 +32,11 @@ test('geladene und benutzte Schriftschnitte stimmen ueberein', async ({ page }) 
     await page.waitForTimeout(400)
     ;(await page.evaluate(SAMMLE)).forEach(x => alle.add(x))
   }
-  const GELADEN = new Set(['Space Grotesk 600','Space Grotesk 700','Inter 400','Inter 500','Inter 600','Inter 700','IBM Plex Mono 400','IBM Plex Mono 500'])
+  // Am 25.8. umgestellt: Space Grotesk -> Bricolage Grotesque,
+  // Inter -> IBM Plex Sans (passt zum vorhandenen Plex Mono).
+  // Grund: Beide alten Schriften stehen auf jeder zweiten generierten
+  // Seite; die Seite sollte weniger nach Vorlage aussehen.
+  const GELADEN = new Set(['Bricolage Grotesque 600','Bricolage Grotesque 700','IBM Plex Sans 400','IBM Plex Sans 500','IBM Plex Sans 600','IBM Plex Sans 700','IBM Plex Mono 400','IBM Plex Mono 500'])
   const fehlend = [...alle].filter(k => !GELADEN.has(k)).sort()
   const ungenutzt = [...GELADEN].filter(k => !alle.has(k)).sort()
 

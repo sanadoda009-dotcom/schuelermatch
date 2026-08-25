@@ -304,6 +304,29 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 (Teil 13) - Schriftwechsel: weniger nach Vorlage aussehen
+
+Auf Wunsch von Sanad (*"kannst du die schrift und etc weniger ki aussehnd lassen"*).
+
+**Bestandsaufnahme, was eine Seite generiert aussehen laesst:**
+- Schriften: **Space Grotesk + Inter** - genau die Kombination, die der Design-Pruefer zweimal gemeldet hatte. Beide stehen auf jeder zweiten KI-erzeugten Seite.
+- Rund **120 Emoji** als Symbole (Rakete, Konfetti, Gluehbirne, Eis, Hund ...)
+- **15 Farbverlaeufe**
+
+**Drei Alternativen gerendert und Sanad gezeigt** statt blind umzustellen - es ist eine Markenentscheidung. Ehrlicher Hinweis dabei: Zwei der drei unterschieden sich kaum vom Ist-Zustand, und die Schrift ist ohnehin nicht der groesste Hebel.
+
+**Gewaehlt: Bricolage Grotesque (Ueberschriften) + IBM Plex Sans (Text).**
+- Bricolage Grotesque ist eine variable Schrift mit eigenwilligen Details - deutlich mehr Charakter als Space Grotesk.
+- IBM Plex Sans passt zum bereits verwendeten **IBM Plex Mono**: Damit steht die Seite jetzt auf einer stimmigen Familie statt auf zwei zufaellig kombinierten Schriften.
+- Umgestellt in **20 HTML-Dateien**, im CSS (18 + 23 Stellen) und in `js/gate.js`.
+
+**Emoji und Verlaeufe bleiben** - ausdrueckliche Entscheidung von Sanad.
+
+**Nachgezogen:** `tests/schriften.spec.js` aus Runde 3 hatte die alten Namen fest eingetragen und faellt sonst um. Er prueft weiterhin, dass kein Schnitt geladen wird, der nirgends benutzt wird.
+
+**Suite: 346 Tests, alle gruen** (unveraendert).
+
+
 ## Session 25. August 2026 (Teil 12) - Bei wem bewerbe ich mich eigentlich?
 
 Runde 27. Die Job-Detailseite durchgesehen - der Moment, in dem sich ein Schueler entscheidet.

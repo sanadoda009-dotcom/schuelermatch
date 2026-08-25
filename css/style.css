@@ -24,7 +24,7 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: 'Inter', sans-serif;
+  font-family: 'IBM Plex Sans', sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -42,7 +42,7 @@ body {
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }
 }
-h1, h2, h3, .display { font-family: 'Space Grotesk', sans-serif; font-weight: 700; margin: 0; }
+h1, h2, h3, .display { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; margin: 0; }
 /* Variante "Zwei Seiten, ein Match": Indigo strukturiert (Abschnitts-Überschriften) */
 h2 { color: var(--indigo); }
 .mono { font-family: 'IBM Plex Mono', monospace; }
@@ -64,7 +64,7 @@ nav.scrolled {
   border-bottom-color: var(--line);
   box-shadow: 0 4px 20px rgba(22,26,31,0.06);
 }
-.logo { display: flex; align-items: center; gap: 9px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.35rem; }
+.logo { display: flex; align-items: center; gap: 9px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 1.35rem; }
 .logo-mark {
   width: 30px; height: 30px; border-radius: 9px;
   background: linear-gradient(135deg, var(--match-green), var(--indigo));
@@ -79,7 +79,7 @@ nav.scrolled {
 /* BUTTONS */
 .btn {
   border: none; border-radius: 12px; padding: 12px 22px;
-  font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.95rem;
+  font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 0.95rem;
   cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .btn-dark { background: var(--ink); color: white; }
@@ -145,7 +145,7 @@ a:focus-visible, button:focus-visible, .btn:focus-visible {
 .hero-ctas { margin-top: 30px; display: flex; gap: 14px; flex-wrap: wrap; }
 .trust-row { margin-top: 36px; display: flex; gap: 28px; flex-wrap: wrap; }
 .trust-row div { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--ink-soft); }
-.trust-row b { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; color: var(--ink); }
+.trust-row b { display: block; font-family: 'Bricolage Grotesque', sans-serif; font-size: 1.4rem; color: var(--ink); }
 
 /* MATCH VISUAL */
 .match-stage {
@@ -166,7 +166,7 @@ a:focus-visible, button:focus-visible, .btn:focus-visible {
   margin-bottom: 14px;
 }
 .card-job .card-avatar { background: linear-gradient(135deg, var(--coral), var(--indigo)); border-radius: 10px; }
-.match-card h4 { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; margin-bottom: 4px; }
+.match-card h4 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 1rem; margin-bottom: 4px; }
 .match-card p { font-size: 0.82rem; color: var(--ink-soft); margin: 0 0 12px; }
 .card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 .card-tags span {
@@ -178,7 +178,7 @@ a:focus-visible, button:focus-visible, .btn:focus-visible {
   position: absolute; z-index: 3;
   background: var(--ink); color: white;
   padding: 10px 20px; border-radius: 100px;
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.95rem;
+  font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 0.95rem;
   display: flex; align-items: center; gap: 8px;
   box-shadow: 0 12px 30px rgba(22,26,31,0.25);
 }
@@ -206,7 +206,7 @@ section { padding: 130px 24px; }
 .step-num {
   width: 36px; height: 36px; border-radius: 10px;
   background: var(--paper); display: flex; align-items: center; justify-content: center;
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.95rem;
+  font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 0.95rem;
   margin-bottom: 18px; color: var(--match-green-dark);
 }
 .step-card h3 { font-size: 1.1rem; margin-bottom: 8px; }
@@ -242,7 +242,7 @@ section { padding: 130px 24px; }
 .faq-question {
   width: 100%; text-align: left; background: none; border: none; cursor: pointer;
   padding: 22px 26px; display: flex; align-items: center; justify-content: space-between;
-  font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.02rem; color: var(--ink);
+  font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 1.02rem; color: var(--ink);
 }
 .faq-question .faq-icon { font-size: 1.3rem; color: var(--match-green-dark); transition: transform 0.25s ease; flex-shrink: 0; margin-left: 16px; }
 .faq-item.open .faq-icon { transform: rotate(45deg); }
@@ -275,7 +275,7 @@ section { padding: 130px 24px; }
 .form-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 7px; }
 .form-group input, .form-group select, .form-group textarea {
   width: 100%; padding: 12px 14px; border: 1.5px solid var(--line);
-  border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem;
+  border-radius: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.95rem;
   background: var(--paper); color: var(--ink); outline: none;
   transition: border-color 0.15s;
 }
@@ -289,7 +289,7 @@ section { padding: 130px 24px; }
   border: 1.5px solid var(--line); cursor: pointer; font-weight: 600;
   font-size: 0.88rem; transition: all 0.15s;
   /* Sind echte <button> (damit per Tastatur bedienbar) - Browser-Optik zuruecksetzen */
-  background: var(--card); color: var(--ink); font-family: 'Inter', sans-serif;
+  background: var(--card); color: var(--ink); font-family: 'IBM Plex Sans', sans-serif;
 }
 .role-tab.active { border-color: var(--match-green); background: rgba(0,200,150,0.08); color: var(--match-green-dark); }
 .consent-group { background: var(--paper); border-radius: 10px; padding: 14px; }
@@ -305,7 +305,7 @@ section { padding: 130px 24px; }
 .search-hero input {
   width: 100%; padding: 16px 20px 16px 50px; font-size: 1.05rem;
   border: 1.5px solid var(--line); border-radius: 16px; background: var(--card);
-  outline: none; font-family: 'Inter', sans-serif;
+  outline: none; font-family: 'IBM Plex Sans', sans-serif;
   box-shadow: 0 4px 18px rgba(22,26,31,0.05);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -316,7 +316,7 @@ section { padding: 130px 24px; }
 .pill {
   border: 1.5px solid var(--line); background: var(--card); color: var(--ink-soft);
   padding: 8px 16px; border-radius: 100px; font-weight: 600; font-size: 0.85rem;
-  cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s;
+  cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; transition: all 0.15s;
 }
 .pill:hover { border-color: var(--ink); color: var(--ink); }
 .pill.active { background: var(--indigo); border-color: var(--indigo); color: #fff; }
@@ -344,7 +344,7 @@ section { padding: 130px 24px; }
 
 /* LOHN-HERVORHEBUNG */
 .job-meta .lohn-highlight {
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.95rem;
+  font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 0.95rem;
   color: var(--match-green-dark);
 }
 
@@ -352,7 +352,7 @@ section { padding: 130px 24px; }
 .filter-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
 .filter-row input, .filter-row select {
   padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px;
-  font-family: 'Inter', sans-serif; font-size: 0.9rem; background: var(--card); color: var(--ink);
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 0.9rem; background: var(--card); color: var(--ink);
   outline: none; transition: border-color 0.15s;
 }
 .filter-row input:focus, .filter-row select:focus { border-color: var(--match-green); }
@@ -423,7 +423,7 @@ section { padding: 130px 24px; }
 /* BEWERBUNGS-STATUS (kein Button, sondern Status-Anzeige) */
 .job-status {
   margin-top: 14px; padding: 11px 14px; border-radius: 12px; text-align: center;
-  font-size: 0.85rem; font-weight: 600; font-family: 'Inter', sans-serif;
+  font-size: 0.85rem; font-weight: 600; font-family: 'IBM Plex Sans', sans-serif;
   border: 1px dashed var(--line); cursor: default; box-sizing: border-box;
 }
 .job-status--ausstehend { background: rgba(255,193,7,0.08); color: #a67c00; border-color: rgba(255,193,7,0.3); }
@@ -457,7 +457,7 @@ section { padding: 130px 24px; }
   position: relative; display: flex; align-items: center; gap: 12px;
   text-align: left; background: none; border: none; padding: 12px 16px;
   border-radius: 12px; font-weight: 600; font-size: 0.95rem; cursor: pointer;
-  color: var(--ink); font-family: 'Inter', sans-serif; transition: background 0.15s, color 0.15s;
+  color: var(--ink); font-family: 'IBM Plex Sans', sans-serif; transition: background 0.15s, color 0.15s;
 }
 .sidebar-item svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
 .sidebar-item:hover { background: var(--paper); }
@@ -522,7 +522,7 @@ section { padding: 130px 24px; }
   background: var(--card); border: 1px solid var(--line); border-radius: 14px;
   padding: 16px 22px; min-width: 140px;
 }
-.stat-box b { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; color: var(--ink); }
+.stat-box b { display: block; font-family: 'Bricolage Grotesque', sans-serif; font-size: 1.6rem; color: var(--ink); }
 .stat-box span { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--ink-soft); }
 
 /* SO SCHÜTZEN WIR DICH */
@@ -561,7 +561,7 @@ section { padding: 130px 24px; }
   display: flex; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);
   font-size: 0.8rem; color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace;
 }
-.job-insights b { color: var(--ink); font-family: 'Space Grotesk', sans-serif; }
+.job-insights b { color: var(--ink); font-family: 'Bricolage Grotesque', sans-serif; }
 
 /* BENACHRICHTIGUNGS-GLOCKE */
 .glocke-wrap { position: relative; }
@@ -588,7 +588,7 @@ section { padding: 130px 24px; }
 .glocke-titel { font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-soft); padding: 10px 12px 6px; }
 .benachr-item {
   display: flex; gap: 10px; align-items: flex-start; padding: 11px 12px; border-radius: 10px;
-  text-align: left; width: 100%; background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif;
+  text-align: left; width: 100%; background: none; border: none; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif;
 }
 .benachr-item:hover { background: var(--paper); }
 .benachr-item .b-icon { font-size: 1.1rem; flex-shrink: 0; }
@@ -602,7 +602,7 @@ section { padding: 130px 24px; }
 .konv-item {
   display: flex; align-items: center; gap: 12px; text-align: left; width: 100%;
   background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-  padding: 14px 16px; cursor: pointer; font-family: 'Inter', sans-serif; transition: border-color 0.15s, transform 0.15s;
+  padding: 14px 16px; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; transition: border-color 0.15s, transform 0.15s;
 }
 .konv-item:hover { border-color: rgba(0,200,150,0.4); transform: translateY(-2px); }
 .konv-item .cv-photo-preview { width: 42px; height: 42px; font-size: 1rem; }
@@ -622,7 +622,7 @@ section { padding: 130px 24px; }
 .chat-msg--anderer { align-self: flex-start; background: var(--card); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
 .chat-zeit { display: block; font-size: 0.66rem; opacity: 0.6; margin-top: 3px; text-align: right; }
 .chat-form { display: flex; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--line); }
-.chat-input { flex: 1; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.92rem; background: var(--paper); outline: none; }
+.chat-input { flex: 1; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.92rem; background: var(--paper); outline: none; }
 .chat-input:focus { border-color: var(--match-green); }
 
 /* TOAST-NACHRICHTEN */
@@ -728,7 +728,7 @@ footer .logo { color: white; }
   background-size: cover; background-position: center;
   display: flex; align-items: center; justify-content: center;
   color: white; font-weight: 700; font-size: 1.3rem;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Bricolage Grotesque', sans-serif;
 }
 
 .cv-preview {
@@ -744,7 +744,7 @@ footer .logo { color: white; }
   background-size: cover; background-position: center;
   display: flex; align-items: center; justify-content: center;
   color: white; font-weight: 700; font-size: 1.5rem;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Bricolage Grotesque', sans-serif;
 }
 .cv-preview-name { font-size: 1.3rem; }
 .cv-preview-school { font-size: 0.85rem; color: var(--ink-soft); margin-top: 3px; }
@@ -789,7 +789,7 @@ footer .logo { color: white; }
 .block-item-controls button:hover { background: var(--card); }
 .block-item input[type="text"], .block-item textarea {
   width: 100%; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 8px;
-  font-family: 'Inter', sans-serif; font-size: 0.9rem; background: var(--card); margin-bottom: 8px;
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 0.9rem; background: var(--card); margin-bottom: 8px;
 }
 .block-item textarea { min-height: 90px; resize: vertical; }
 .block-image-preview { width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px; margin-top: 8px; display: block; border: 1px solid var(--line); }
@@ -806,7 +806,7 @@ footer .logo { color: white; }
   display: inline-flex; align-items: center; gap: 6px;
   background: none; border: 1.5px solid var(--line); border-radius: 10px;
   padding: 8px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
-  color: var(--ink-soft); font-family: 'Inter', sans-serif; transition: all 0.15s;
+  color: var(--ink-soft); font-family: 'IBM Plex Sans', sans-serif; transition: all 0.15s;
 }
 .share-btn:hover { border-color: var(--ink); color: var(--ink); }
 
@@ -815,7 +815,7 @@ footer .logo { color: white; }
 .cv-template-chip {
   border: 1.5px dashed var(--line); background: var(--paper); border-radius: 12px;
   padding: 10px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
-  color: var(--ink-soft); font-family: 'Inter', sans-serif; transition: all 0.15s;
+  color: var(--ink-soft); font-family: 'IBM Plex Sans', sans-serif; transition: all 0.15s;
 }
 .cv-template-chip:hover { border-color: var(--match-green); color: var(--match-green-dark); background: rgba(0,200,150,0.06); }
 
@@ -828,7 +828,7 @@ footer .logo { color: white; }
 .tipp-btn {
   display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
   background: rgba(43,47,143,0.06); border: 1px solid var(--line);
-  cursor: pointer; font-size: 0.8rem; font-family: 'Inter', sans-serif; font-weight: 500;
+  cursor: pointer; font-size: 0.8rem; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500;
   color: var(--indigo); padding: 8px 14px; border-radius: 999px;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
@@ -844,7 +844,7 @@ footer .logo { color: white; }
 .zeilen-editor { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .zeilen-editor input[type="text"] { flex: 1; margin-bottom: 0 !important; }
 .zeilen-editor input[type="range"] { flex: 1; accent-color: var(--match-green); }
-.zeilen-editor select { padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); font-family: 'Inter', sans-serif; font-size: 0.85rem; }
+.zeilen-editor select { padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem; }
 .skill-wert-label { font-size: 0.72rem; color: var(--ink-soft); min-width: 38px; text-align: right; }
 .zeile-weg { background: none; border: 1px solid var(--line); border-radius: 6px; width: 28px; height: 28px; cursor: pointer; color: var(--ink-soft); flex-shrink: 0; }
 .zeile-weg:hover { border-color: var(--coral); color: var(--coral); }
@@ -942,7 +942,7 @@ footer .logo { color: white; }
 .sterne-anzeige { display: inline-flex; gap: 1px; color: #f5b301; font-size: 0.95rem; line-height: 1; letter-spacing: 1px; }
 .sterne-anzeige .leer { color: var(--line); }
 .bewertung-summary { display: flex; align-items: center; gap: 10px; margin: 8px 0; flex-wrap: wrap; }
-.bewertung-summary .schnitt { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); }
+.bewertung-summary .schnitt { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--ink); }
 .bewertung-summary .anzahl { color: var(--ink-soft); font-size: 0.85rem; }
 .bewertung-liste { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
 .bewertung-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
@@ -954,13 +954,13 @@ footer .logo { color: white; }
 
 /* Sterne-Auswahl (interaktiv) */
 .bewerten-box { margin-top: 22px; padding: 18px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--paper); }
-.bewerten-box h4 { margin: 0 0 4px; font-family: 'Space Grotesk', sans-serif; font-size: 1rem; }
+.bewerten-box h4 { margin: 0 0 4px; font-family: 'Bricolage Grotesque', sans-serif; font-size: 1rem; }
 .bewerten-box .hinweis { font-size: 0.82rem; color: var(--ink-soft); margin: 0 0 12px; }
 .sterne-wahl { display: inline-flex; gap: 5px; font-size: 1.8rem; cursor: pointer; color: var(--line); line-height: 1; }
 .sterne-wahl span { transition: color 0.12s, transform 0.12s; }
 .sterne-wahl span:hover { transform: scale(1.15); }
 .sterne-wahl span.aktiv { color: #f5b301; }
-.bewerten-box textarea { width: 100%; box-sizing: border-box; margin-top: 12px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.9rem; background: var(--card); color: var(--ink); resize: vertical; min-height: 68px; outline: none; }
+.bewerten-box textarea { width: 100%; box-sizing: border-box; margin-top: 12px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.9rem; background: var(--card); color: var(--ink); resize: vertical; min-height: 68px; outline: none; }
 .bewerten-box textarea:focus { border-color: var(--match-green); }
 
 /* ============================================================
@@ -971,7 +971,7 @@ footer .logo { color: white; }
   background: var(--card); border: 1px solid var(--line); border-radius: 14px;
   padding: 14px 22px; min-width: 100px;
 }
-.bew-stats b { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; color: var(--ink); }
+.bew-stats b { display: block; font-family: 'Bricolage Grotesque', sans-serif; font-size: 1.5rem; color: var(--ink); }
 .bew-stats span { font-size: 0.78rem; color: var(--ink-soft); }
 .bew-liste { display: flex; flex-direction: column; gap: 14px; }
 .bew-card {
@@ -1489,7 +1489,7 @@ footer .logo { color: white; }
 }
 .filter-gruppe input, .filter-gruppe select {
   width: 100%; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px;
-  font-family: 'Inter', sans-serif; font-size: 0.9rem;
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 0.9rem;
   background: var(--paper); color: var(--ink); outline: none; transition: border-color 0.15s;
 }
 .filter-gruppe input:focus, .filter-gruppe select:focus { border-color: var(--match-green); }
@@ -1515,7 +1515,7 @@ footer .logo { color: white; }
 .filter-oeffnen {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 10px 16px; border: 1.5px solid var(--line); border-radius: 10px;
-  background: var(--card); color: var(--ink); font-family: 'Inter', sans-serif;
+  background: var(--card); color: var(--ink); font-family: 'IBM Plex Sans', sans-serif;
   font-size: 0.88rem; font-weight: 600; cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
@@ -1531,7 +1531,7 @@ footer .logo { color: white; }
 .sort-wahl span { font-size: 0.78rem; color: var(--ink-soft); white-space: nowrap; }
 .sort-wahl select {
   padding: 9px 12px; border: 1.5px solid var(--line); border-radius: 10px;
-  font-family: 'Inter', sans-serif; font-size: 0.85rem;
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 0.85rem;
   background: var(--card); color: var(--ink); outline: none; cursor: pointer;
 }
 .sort-wahl select:focus { border-color: var(--match-green); }
@@ -1719,7 +1719,7 @@ h1, h2, h3 { hyphens: auto; }
 @media (max-width: 900px) { #view-jobs .jobs-header h2 { font-size: 1.5rem; } }
 
 /* Beispiel-Karten im Hero: sehen aus wie Überschriften, sind aber Inhalt */
-.match-card-name { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+.match-card-name { font-family: 'Bricolage Grotesque', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
 
 /* ============================================================
    SCHRIFTSCHNITTE: kein künstlicher Fettdruck mehr
@@ -1969,7 +1969,7 @@ main[tabindex="-1"]:focus { outline: none; }
   width: 100%; text-align: left; cursor: pointer;
   border: 1.5px solid var(--line); border-radius: 12px;
   background: var(--card); color: var(--ink);
-  font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 500;
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 0.95rem; font-weight: 500;
   padding: 15px 18px; min-height: 52px;
   transition: border-color 0.15s, transform 0.1s;
 }
@@ -1978,7 +1978,7 @@ main[tabindex="-1"]:focus { outline: none; }
 
 .finder-zurueck {
   background: none; border: none; cursor: pointer; padding: 12px 2px;
-  color: var(--ink-soft); font-family: 'Inter', sans-serif;
+  color: var(--ink-soft); font-family: 'IBM Plex Sans', sans-serif;
   font-size: 0.85rem; margin-top: 14px;
 }
 .finder-zurueck:hover { color: var(--ink); }
@@ -2064,7 +2064,7 @@ main[tabindex="-1"]:focus { outline: none; }
   width: 30px; height: 30px; border-radius: 50%;
   background: var(--verlauf-tief); color: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.85rem;
+  font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 0.85rem;
 }
 
 /* Rechtlicher Hinweis - sichtbar, aber nicht so laut wie der Fliesstext */
@@ -2112,7 +2112,7 @@ main[tabindex="-1"]:focus { outline: none; }
   width: 38px; height: 38px; border-radius: 11px;
   display: flex; align-items: center; justify-content: center;
   background: var(--paper); color: var(--indigo);
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.95rem;
+  font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 0.95rem;
   margin-bottom: 4px;
 }
 
