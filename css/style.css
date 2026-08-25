@@ -8,8 +8,29 @@
   --card: #ffffff;
   --line: #e7e3da;
   --match-green: #00c896;
-  --match-green-dark: #00a87d;
-  --coral: #ff6b4a;
+  /* Am 26.8. gemessen: Dieses Token ist fast ausschliesslich SCHRIFT-
+     farbe (rund 48 Stellen: Verweise im Fliesstext, Lohnangaben,
+     Status-Etiketten, Zwischenueberschriften). Mit #00a87d kam es auf
+     hellem Grund auf 2,9-3,0:1 - noetig sind 4,5:1. Der neue Ton ist
+     dasselbe Gruen, nur tiefer, und liegt bei 5,1:1. Er stammt nicht
+     von aussen, sondern steckte schon als Anfang von --verlauf-tief
+     in der Palette.
+     WICHTIG: --match-green (#00c896) bleibt unangetastet. Das ist die
+     Markenfarbe fuer Flaechen, Logo, Verlaeufe und Schrift auf dunklem
+     Grund - dort ist sie richtig. Geaendert wird nur, was als kleine
+     Schrift auf hellem Grund steht. */
+  --match-green-dark: #00795c;
+  /* Am 26.8. gemessen: Das alte #ff6b4a hatte auf hellem Grund nur
+     2,66:1 - noetig sind 4,5:1. Betroffen war ausgerechnet die
+     Fehlermeldung unter einem Formularfeld, also der Text, den jemand
+     am dringendsten lesen muss. Dieser Ton ist dieselbe Farbe, nur
+     tiefer, und kommt auf 6,1:1 (weisse Schrift darauf: ebenfalls 6,1).
+     Nicht #b04a30, obwohl der die 4,5 auch schafft: Auf den blassen
+     Coral-Toenungen der Status-Etiketten landete der nur bei 4,48 -
+     genau auf der Kante. Dieser Ton haelt dort 5,2:1.
+     Geprueft: Coral steht nirgends auf dunklem Grund - die Klasse
+     .eyebrow-light heisst nur so, sitzt aber auf hellem Papier. */
+  --coral: #a5442c;
   --indigo: #2b2f8f;
   /* Marken-Verlauf aus dem Logo: Teal (Schüler) -> Indigo (Arbeitgeber) = das Match */
   --verlauf: linear-gradient(120deg, #00c896 0%, #2b2f8f 100%);
@@ -504,7 +525,7 @@ section { padding: 130px 24px; }
 .ampel-gruen .ampel-dot { background: var(--match-green); }
 .ampel-gelb { background: rgba(240,180,41,0.12); color: #a67c00; }
 .ampel-gelb .ampel-dot { background: #f0b429; }
-.ampel-rot { background: rgba(255,107,74,0.1); color: var(--coral); }
+.ampel-rot { background: rgba(165,68,44,0.1); color: var(--coral); }
 .ampel-rot .ampel-dot { background: var(--coral); }
 
 /* VERIFIZIERUNG */
@@ -514,7 +535,7 @@ section { padding: 130px 24px; }
 }
 .verify-badge--ok { background: rgba(0,200,150,0.1); color: var(--match-green-dark); border: 1px solid rgba(0,200,150,0.25); }
 .verify-badge--pending { background: rgba(255,193,7,0.12); color: #a67c00; border: 1px solid rgba(255,193,7,0.3); }
-.verify-badge--missing { background: rgba(255,107,74,0.1); color: var(--coral); border: 1px solid rgba(255,107,74,0.25); }
+.verify-badge--missing { background: rgba(165,68,44,0.1); color: var(--coral); border: 1px solid rgba(165,68,44,0.25); }
 
 /* DASHBOARD STATS */
 .stats-row { display: flex; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
@@ -540,8 +561,8 @@ section { padding: 130px 24px; }
 
 .arbeitszeit-chip {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
-  background: rgba(255,107,74,0.08); color: var(--coral);
-  border: 1px solid rgba(255,107,74,0.2);
+  background: rgba(165,68,44,0.08); color: var(--coral);
+  border: 1px solid rgba(165,68,44,0.2);
   padding: 2px 8px; border-radius: 100px; margin-left: 6px; white-space: nowrap;
 }
 
@@ -716,7 +737,7 @@ footer .logo { color: white; }
 }
 .status-ausstehend { background: rgba(255,193,7,0.12); color: #a67c00; border: 1px solid rgba(255,193,7,0.3); }
 .status-angenommen { background: rgba(0,200,150,0.1); color: var(--match-green-dark); border: 1px solid rgba(0,200,150,0.25); }
-.status-abgelehnt { background: rgba(255,107,74,0.1); color: var(--coral); border: 1px solid rgba(255,107,74,0.25); }
+.status-abgelehnt { background: rgba(165,68,44,0.1); color: var(--coral); border: 1px solid rgba(165,68,44,0.25); }
 
 /* POST JOB BOX (Firmen-Dashboard) */
 .post-job-box {
@@ -911,7 +932,7 @@ footer .logo { color: white; }
 /* INLINE-FELDFEHLER */
 .form-group input.invalid, .form-group select.invalid {
   border-color: var(--coral);
-  box-shadow: 0 0 0 3px rgba(255,107,74,0.12);
+  box-shadow: 0 0 0 3px rgba(165,68,44,0.12);
 }
 .field-error { color: var(--coral); font-size: 0.78rem; margin: 6px 0 0; }
 .consent-label input.invalid { outline: 2px solid var(--coral); outline-offset: 2px; }
@@ -1156,7 +1177,7 @@ footer .logo { color: white; }
   font-size: 0.9rem; line-height: 1.5;
 }
 .firma-status-banner--neu { background: rgba(240,180,41,0.13); border: 1px solid rgba(240,180,41,0.35); color: #7a5600; }
-.firma-status-banner--gesperrt { background: rgba(255,107,74,0.1); border: 1px solid rgba(255,107,74,0.3); color: var(--coral); }
+.firma-status-banner--gesperrt { background: rgba(165,68,44,0.1); border: 1px solid rgba(165,68,44,0.3); color: var(--coral); }
 .firma-status-banner a { color: inherit; text-decoration: underline; }
 .job-badge--pruefung { background: rgba(240,180,41,0.18); color: #7a5600; }
 .admin-badge {
@@ -1340,7 +1361,7 @@ footer .logo { color: white; }
   color: var(--ink-soft); font-size: 0.78rem; font-family: inherit;
   padding: 5px 8px; border-radius: 8px; transition: color 0.15s, background 0.15s;
 }
-.melde-btn:hover { color: var(--coral); background: rgba(255,107,74,0.08); }
+.melde-btn:hover { color: var(--coral); background: rgba(165,68,44,0.08); }
 .melde-btn svg { flex-shrink: 0; }
 
 .melde-intro {
@@ -1362,7 +1383,7 @@ footer .logo { color: white; }
 }
 .melde-notfall {
   font-size: 0.82rem; line-height: 1.6;
-  background: rgba(255,107,74,0.08); border-left: 3px solid var(--coral);
+  background: rgba(165,68,44,0.08); border-left: 3px solid var(--coral);
   border-radius: 8px; padding: 11px 13px; margin-top: 4px;
 }
 
@@ -1381,7 +1402,7 @@ footer .logo { color: white; }
 .meldung-card .kopf { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
 .meldung-grund-chip {
   font-size: 0.74rem; font-weight: 600; padding: 3px 9px; border-radius: 999px;
-  background: rgba(255,107,74,0.12); color: var(--coral);
+  background: rgba(165,68,44,0.12); color: var(--coral);
 }
 .meldung-status-chip {
   font-size: 0.72rem; padding: 3px 9px; border-radius: 999px;

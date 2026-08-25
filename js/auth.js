@@ -42,18 +42,23 @@ document.addEventListener('DOMContentLoaded', () => {
       if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) punkte++
       if (/\d/.test(pw) || /[^A-Za-z0-9]/.test(pw)) punkte++
 
+      // farbe = Balken (Grafik, darf kraeftig sein).
+      // schrift = Beschriftung daneben. Am 26.8. gemessen: mit der
+      // Balkenfarbe kam "Okay" auf 1,86:1 und "Gut" auf 2,16:1 - noetig
+      // sind 4,5:1. Dieselben Farben, nur so weit abgedunkelt, dass man
+      // sie auf Weiss lesen kann.
       const stufen = [
-        { breite: '10%', farbe: '#ff6b4a', text: 'Zu kurz (min. 8 Zeichen)' },
-        { breite: '35%', farbe: '#ff6b4a', text: 'Schwach' },
-        { breite: '60%', farbe: '#f0b429', text: 'Okay' },
-        { breite: '80%', farbe: '#00c896', text: 'Gut' },
-        { breite: '100%', farbe: '#00a87d', text: 'Stark' }
+        { breite: '10%', farbe: '#ff6b4a', schrift: '#a5442c', text: 'Zu kurz (min. 8 Zeichen)' },
+        { breite: '35%', farbe: '#ff6b4a', schrift: '#a5442c', text: 'Schwach' },
+        { breite: '60%', farbe: '#f0b429', schrift: '#8a6100', text: 'Okay' },
+        { breite: '80%', farbe: '#00c896', schrift: '#00795c', text: 'Gut' },
+        { breite: '100%', farbe: '#00a87d', schrift: '#046a52', text: 'Stark' }
       ]
       const s = stufen[pw.length < 10 ? 0 : punkte]
       meter.firstElementChild.style.width = pw ? s.breite : '0'
       meter.firstElementChild.style.background = s.farbe
       label.textContent = pw ? s.text : ''
-      label.style.color = s.farbe
+      label.style.color = s.schrift
     })
   }
 

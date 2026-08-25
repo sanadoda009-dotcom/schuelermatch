@@ -30,7 +30,7 @@ const GATE_KEY = 'sm-zugang-ok'
         <h1 style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.4rem;margin:0 0 6px;color:#161a1f;">SchülerMatch</h1>
         <p style="color:#5a6270;font-size:0.9rem;margin:0 0 22px;">Diese Seite ist gerade im Aufbau. Bitte gib das Zugangspasswort ein.</p>
         <input id="sm-gate-pw" type="password" placeholder="Passwort" style="width:100%;padding:13px 15px;border:1.5px solid #e7e3da;border-radius:12px;font-size:1rem;outline:none;box-sizing:border-box;margin-bottom:12px;">
-        <p id="sm-gate-err" style="color:#ff6b4a;font-size:0.82rem;min-height:18px;margin:0 0 10px;"></p>
+        <p id="sm-gate-err" style="color:#a5442c;font-size:0.82rem;min-height:18px;margin:0 0 10px;"></p>
         <button id="sm-gate-btn" style="width:100%;padding:13px;border:none;border-radius:12px;background:#00c896;color:#161a1f;font-weight:600;font-size:1rem;cursor:pointer;">Betreten</button>
       </div>`
     document.body.appendChild(gate)

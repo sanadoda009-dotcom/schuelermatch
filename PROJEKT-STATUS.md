@@ -305,6 +305,48 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 3) - Kann man den Text eigentlich lesen?
+
+Sanad hatte gefragt, wofuer das Coral-Orange ueberhaupt da ist, und dann entschieden: *"mach was am besten ist und du fuer richtig haeltst."*
+
+Aus der einen Farbfrage wurde ein Befund ueber die ganze Seite.
+
+### Der blinde Fleck
+Alle bisherigen Pruefungen fragen, ob Elemente **da**, **gross genug** oder **bedienbar** sind. Keine fragte, ob man den Text **lesen** kann. Farbe fiel ueber Monate durch das Raster.
+
+Eine Messung aller Textknoten auf 14 Oberflaechen (12 oeffentliche Seiten + beide Dashboards) ergab rund **90 Stellen unter dem geforderten Kontrast**:
+
+| Stellen | Was | gemessen | noetig |
+|---|---|---|---|
+| ~48 | Marken-Gruen `#00a87d` als Fliesstextfarbe | 2,9-3,0:1 | 4,5:1 |
+| 6 | Warnfarbe `#ff6b4a` als Schrift | 2,7-2,8:1 | 4,5:1 |
+| 1 | Passwort-Anzeige "Okay" bei der Registrierung | **1,86:1** | 4,5:1 |
+
+### Behoben an den Token, nicht an den Regeln
+- **`--match-green-dark`: `#00a87d` -> `#00795c`** (5,1:1). Dieses Token ist fast ausschliesslich Schriftfarbe - Verweise im Fliesstext, Lohnangaben, Status-Etiketten, Zwischenueberschriften. Der Ton kam nicht von aussen: Er steckte schon als Anfang von `--verlauf-tief` in der Palette.
+- **`--coral`: `#ff6b4a` -> `#a5442c`** (6,1:1). Erst war `#b04a30` vorgesehen; auf den blassen Coral-Toenungen der Status-Etiketten landete der aber bei **4,48** - genau auf der Kante. Ein Ton tiefer haelt dort 5,2:1.
+- **`js/auth.js`**: Balkenfarbe und Schriftfarbe der Passwort-Anzeige getrennt. Der Balken ist eine Grafik und darf kraeftig bleiben; die Beschriftung daneben braucht Lesbarkeit. Vorher benutzten beide dieselbe Farbe.
+- **`js/gate.js`**: Fehlertext im Zugangs-Overlay mitgezogen.
+
+**`--match-green` (`#00c896`) blieb unangetastet.** Das ist die Markenfarbe fuer Flaechen, Logo, Verlaeufe und Schrift auf dunklem Grund - dort ist sie richtig. Geaendert wurde nur, was als kleine Schrift auf hellem Grund steht. Wichtig nach der zurueckgenommenen Palette vom Vortag: **Das hier ist kein Farbwechsel, sondern ein Abdunkeln derselben Farben.**
+
+### Vorher geprueft, nicht angenommen
+Die Sorge war, dass ein dunkleres Coral auf dunklem Grund umkippt (`#a5442c` kommt auf `--ink` nur auf ~3:1). Eine Messung aller sichtbaren Coral-Stellen zeigte: **Coral steht nirgends auf dunklem Grund.** Die Klasse `.eyebrow-light` heisst nur so, sitzt aber auf hellem Papier.
+
+### Zwei Fehlalarme der eigenen Messung
+Beide behoben, beide in `helpers/kontrast.js` dokumentiert - ein Test, der falsch Alarm schlaegt, wird irgendwann ignoriert:
+1. Ein durchsichtiger Knopf sass auf einer **dunklen Karte**; gemessen wurde gegen die helle Seitenfarbe (1,06:1 gemeldet, in Wirklichkeit einwandfrei).
+2. Die Onboarding-Karte hat einen Verlauf aus fast durchsichtigen Stopps (Alpha 0,06). Als deckend gerechnet ergab das 1,59:1, obwohl dort dunkle Schrift auf fast weissem Grund steht.
+
+Die Messung sammelt jetzt alle Schichten zwischen Text und Seite ein und rechnet sie von unten nach oben uebereinander.
+
+### Neu: `tests/kontrast.spec.js` (15 Pruefungen)
+12 oeffentliche Seiten, beide Dashboards, plus die Passwort-Anzeige mit drei verschiedenen Eingaben - die erscheint erst beim Tippen und waere der Flaechenmessung sonst entgangen.
+
+**Gegenprobe gemacht:** gegen den Stand von vorher faellt der Test auf **allen 15** Pruefungen um.
+
+**Suite: 375 -> 390 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 2) - Gruene Schrift auf gruenem Knopf
 
 Gefunden auf dem Bildschirmfoto der frisch gebauten Ferienjob-Seite: "Ferienjobs ansehen" stand gruen auf gruenem Verlauf. Die Ursache war keine neue Zeile, sondern eine alte:
