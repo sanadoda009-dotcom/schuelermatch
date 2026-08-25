@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcher Schülerjob passt zu mir? – Test in 1 Minute</title>
+<meta name="description" content="Fünf Fragen, dann weißt du, welche Schülerjobs zu deinem Alter, deiner Zeit und dir passen. Kostenlos und ohne Anmeldung.">
+<meta property="og:title" content="Welcher Schülerjob passt zu mir?">
+<meta property="og:description" content="Fünf Fragen, eine Minute – dann weißt du, welche Jobs zu dir passen. Ohne Anmeldung.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="de_DE">
+<meta property="og:url" content="https://schuelermatch.de/job-finder.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/monitoring.js"></script>
+<script src="js/gate.js"></script>
+<script defer src="js/tastatur.js"></script>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo"><img src="assets/logo.png" alt="SchülerMatch" class="logo-img"></a>
+  <div class="nav-links">
+    <a href="index.html">Start</a>
+    <a href="jobs.html">Jobs</a>
+    <a href="job-finder.html">Job-Finder</a>
+    <a href="jobideen.html">Jobideen</a>
+  </div>
+  <a href="login.html" class="btn btn-dark">Login</a>
+  <button class="nav-toggle" aria-label="Menü öffnen" aria-expanded="false"><span></span><span></span><span></span></button>
+</nav>
+<script src="js/nav.js"></script>
+
+<main class="legal-page wrap">
+  <h1>Welcher Job passt zu dir?</h1>
+  <p class="legal-sub">Fünf Fragen, etwa eine Minute – ohne Anmeldung</p>
+
+  <div class="finder-box">
+    <div class="finder-kopf">
+      <span class="finder-schritt" id="finder-schritt">Frage 1 von 5</span>
+      <div class="finder-balken"><div class="finder-fortschritt" id="finder-fortschritt"></div></div>
+    </div>
+
+    <!-- Der Hinweis steht BEWUSST ausserhalb von #finder-inhalt: Das Skript
+         ersetzt den Inhalt dieses Bereichs komplett, ein noscript darin
+         waere also sofort weg. -->
+    <noscript>
+      <p>Für diesen Test brauchst du JavaScript. Schau dir stattdessen unsere
+      <a href="jobideen.html">Jobideen nach Alter</a> an – dort steht alles, was der Test auch vorschlägt.</p>
+    </noscript>
+
+    <div id="finder-inhalt" tabindex="-1"></div>
+  </div>
+
+  <section>
+    <h2>Wie das gemeint ist</h2>
+    <p>Der Test ist eine Orientierung, kein Urteil. Wenn dir etwas anderes einfällt, das dich reizt – mach das. Alle Vorschläge findest du ausführlicher auf der Seite <a href="jobideen.html">Jobideen für Schüler</a>, dort steht auch, worauf du bei jedem Job achten solltest.</p>
+    <p>Deine Antworten bleiben auf deinem Gerät. Wir speichern nichts davon.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="logo"><img src="assets/logo-light.png" alt="SchülerMatch" class="footer-logo-img"></div>
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="job-finder.html">Job-Finder</a>
+      <a href="jobideen.html">Jobideen</a>
+      <a href="jugendarbeitsschutz.html">Jugendarbeitsschutz</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="mailto:sanadoda009@gmail.com">Kontakt</a>
+    </div>
+  </div>
+  <div class="footer-bottom wrap">© 2026 SchülerMatch</div>
+</footer>
+
+<script type="module" src="js/job-finder.js"></script>
+</body>
+</html>

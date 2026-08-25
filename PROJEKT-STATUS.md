@@ -304,6 +304,35 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 (Teil 5) - Job-Finder: der Test, der zum Namen passt
+
+Runde 20. Weiter im neuen Stil: erst vergleichen, dann bauen.
+
+### Angesehen: ausbildung.de
+Dort steht auf der Startseite: *"Du weisst noch nicht, welcher Beruf zu dir passt? In 3 Minuten schlauer mit dem Berufscheck!"* - ein kurzer Orientierungstest fuer alle, die noch keine Vorstellung haben. Dazu der Dreischritt "Orientieren. Entdecken. Bewerben."
+
+**Warum das hier besonders gut passt:** Die Plattform heisst **SchuelerMatch** - gematcht wurde bisher aber nur nach Alter und Ort. Ein 14-Jaehriger, der nicht weiss, was er ueberhaupt machen koennte, bekam nur eine Filterliste.
+
+### Gebaut: `job-finder.html` + `js/job-finder.js`
+
+Fuenf Fragen, etwa eine Minute: Alter, drinnen oder draussen, wie viel Kontakt zu Menschen, wann Zeit ist, was am wichtigsten ist (Geld / Flexibilitaet / etwas lernen). Danach vier passende Jobideen - jede mit einer **Begruendung**, warum gerade sie vorgeschlagen wird. Ein Ergebnis ohne Begruendung wirkt beliebig.
+
+**Drei Entscheidungen, die im Code stehen:**
+- **Punkte statt harter Filter.** Nur das Alter ist eine echte Grenze - alles andere gibt Punkte. Sonst bleibt bei ungewoehnlichen Kombinationen nichts uebrig, und ein leeres Ergebnis hilft niemandem.
+- **Das Alter ist unverhandelbar.** Ein Vorschlag, den man gar nicht machen darf, waere schlimmer als kein Vorschlag. Ein Test haelt das fest.
+- **Laeuft komplett im Browser.** Keine Anmeldung, keine Daten an den Server. Das senkt die Huerde - und bei Minderjaehrigen ist es auch datenschutzrechtlich der einfachere Weg.
+
+Am Ende fuehrt das Ergebnis weiter: "Jobs in meiner Naehe" und "Profil anlegen". Ohne naechsten Schritt waere auch ein gutes Ergebnis eine Sackgasse.
+
+**Verlinkt** im Hauptmenue aller oeffentlichen Seiten, in den Footern, in `sitemap.xml` - und mit einem Hinweis direkt unter "Was willst du machen?" auf der Startseite ("Noch keine Ahnung? Finde es in einer Minute heraus").
+
+**Eigener Fehler unterwegs, gefunden durch den Test:** Der `<noscript>`-Hinweis stand zuerst *innerhalb* des Bereichs, den das Skript komplett ersetzt - er war also sofort weg. Jetzt steht er daneben, mit einem Kommentar, warum.
+
+**Dauerhaft abgesichert:** `tests/job-finder.spec.js` (10 Tests): Altersgrenze wird nie ueberschritten, es kommt immer ein Ergebnis, die Vorschlaege passen zur Antwort (draussen + wenig Kontakt fuehrt nicht zu "Service im Cafe"), Zurueck-Knopf, Neustart, Weiterfuehrung und der Hinweis ohne JavaScript. Ausserdem in **alle fuenf** Qualitaetspruefungen aufgenommen.
+
+**Suite jetzt: 248 Tests, alle gruen** (vorher 233).
+
+
 ## Session 25. August 2026 (Teil 4) - NEUE RICHTUNG: Weiterentwicklung statt Fehlersuche
 
 **Der Auftrag hat sich geaendert.** Bis hierher ging es 15 Runden lang um Messen und Fehlerbeheben. Sanad hat umgesteuert: kuenftig **weiterentwickeln, andere Webseiten vergleichen und daraus lernen**.

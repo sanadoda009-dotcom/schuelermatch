@@ -52,6 +52,7 @@ for (const [name, pfad] of [
   ['Registrierung', '/register.html'],
   ['Jugendarbeitsschutz', '/jugendarbeitsschutz.html'],
   ['Jobideen', '/jobideen.html'],
+  ['Job-Finder', '/job-finder.html'],
 ]) {
   test(`Tippziele groß genug: ${name}`, async ({ page }) => {
     await setupDashboard(page.context(), {})

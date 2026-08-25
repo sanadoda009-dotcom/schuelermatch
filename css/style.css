@@ -1933,3 +1933,65 @@ main[tabindex="-1"]:focus { outline: none; }
 .idee-lohn { background: rgba(0,200,150,0.12); color: var(--match-green-dark); }
 
 .legal-page .ideen-liste + section { margin-top: 32px; }
+
+/* ===================================================================
+   JOB-FINDER (job-finder.html)
+   -------------------------------------------------------------------
+   Aus dem Vergleich mit ausbildung.de am 25.8.: Deren "Berufscheck"
+   fuehrt Leute weiter, die noch nicht wissen, was sie wollen. Passt
+   besonders gut hierher, weil die Plattform SchuelerMatch heisst -
+   gematcht wurde bisher aber nur nach Alter und Ort.
+   =================================================================== */
+.finder-box {
+  border: 1px solid var(--line); border-radius: 18px;
+  background: var(--card); padding: 26px 24px 30px; margin-bottom: 36px;
+}
+
+.finder-kopf { margin-bottom: 22px; }
+.finder-schritt {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+  color: var(--ink-soft); display: block; margin-bottom: 8px;
+}
+.finder-balken { height: 4px; background: var(--paper); border-radius: 99px; overflow: hidden; }
+.finder-fortschritt {
+  height: 100%; width: 0; border-radius: 99px;
+  background: var(--verlauf-tief); transition: width 0.3s ease;
+}
+
+.finder-frage { font-size: 1.3rem !important; margin-bottom: 6px !important; }
+.finder-hinweis { font-size: 0.88rem; margin-bottom: 18px !important; }
+
+/* Antworten sind grosse Flaechen statt Radiobuttons: Auf dem Handy
+   trifft man sie sicher, und ein Tipp genuegt statt Auswaehlen +
+   Weiter-Knopf. */
+.finder-antworten { display: grid; gap: 10px; }
+.finder-antwort {
+  width: 100%; text-align: left; cursor: pointer;
+  border: 1.5px solid var(--line); border-radius: 12px;
+  background: var(--card); color: var(--ink);
+  font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 500;
+  padding: 15px 18px; min-height: 52px;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.finder-antwort:hover { border-color: var(--match-green); }
+.finder-antwort:active { transform: scale(0.99); }
+
+.finder-zurueck {
+  background: none; border: none; cursor: pointer; padding: 12px 2px;
+  color: var(--ink-soft); font-family: 'Inter', sans-serif;
+  font-size: 0.85rem; margin-top: 14px;
+}
+.finder-zurueck:hover { color: var(--ink); }
+
+/* Der beste Treffer wird hervorgehoben - sonst wirken vier
+   gleichrangige Karten wie eine beliebige Liste. */
+.finder-ergebnis .idee--top { border-color: var(--match-green); position: relative; }
+.idee-top-marke {
+  position: absolute; top: -9px; left: 16px;
+  background: var(--match-green); color: #fff;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem;
+  padding: 2px 9px; border-radius: 99px;
+}
+
+.finder-weiter { margin-top: 24px; }
+.finder-weiter p { margin-bottom: 12px; }
