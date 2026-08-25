@@ -2175,3 +2175,74 @@ main[tabindex="-1"]:focus { outline: none; }
    eine Nachfrage, ob die Stelle ueberhaupt noch frei ist. */
 .job-datum { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
 .job-datum.job-alt { color: var(--coral); }
+
+/* ===================================================================
+   FERIENKALENDER (ferienjob.html)
+   -------------------------------------------------------------------
+   Der Countdown ist die eigentliche Antwort auf die Frage, mit der
+   Schueler auf die Seite kommen: "Wann habe ich frei, und lohnt sich
+   das Suchen jetzt schon?" Deshalb steht er als ruhige Flaeche ueber
+   der Terminliste, nicht als Randnotiz daneben.
+   =================================================================== */
+.ferien-waehler { margin: 16px 0 14px; }
+.ferien-waehler label {
+  display: block; margin-bottom: 6px;
+  font-size: 0.85rem; font-weight: 600; color: var(--ink);
+}
+.ferien-waehler select {
+  width: 100%; max-width: 320px;
+  /* min-height statt reinem Padding: mit 11px Polsterung kam das Feld auf
+     43px und fiel damit knapp unter die 44px, die eine Fingerkuppe
+     braucht (gemessen am 26.8. vom Tippziel-Test). */
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--card); color: var(--ink);
+  font-family: inherit; font-size: 0.95rem;
+}
+.ferien-waehler select:focus-visible {
+  outline: 2px solid var(--indigo); outline-offset: 2px;
+}
+
+.ferien-countdown {
+  background: var(--ink); color: #fff;
+  border-radius: 16px; padding: 26px 24px;
+  margin: 0 0 4px;
+}
+.ferien-countdown .ferien-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--match-green); margin: 0 0 8px;
+}
+.ferien-countdown .ferien-gross {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.7rem; line-height: 1.15; font-weight: 700;
+  color: #fff; margin: 0;
+}
+.ferien-countdown .ferien-klein {
+  margin: 8px 0 0; font-size: 0.9rem;
+  /* Auf dem dunklen Grund braucht die Nebenzeile genug Helligkeit,
+     sonst rutscht sie unter 4,5:1 Kontrast. */
+  color: rgba(255,255,255,0.82);
+}
+/* Laufende Ferien: gruener Rand als Signal "das gilt jetzt gerade". */
+.ferien-countdown.laeuft { box-shadow: inset 0 0 0 2px var(--match-green); }
+/* Kein Termin hinterlegt - dann kein Countdown-Auftritt, nur ein Hinweis. */
+.ferien-countdown.leer {
+  background: var(--paper); border: 1px solid var(--line);
+}
+.ferien-countdown.leer .ferien-gross { color: var(--ink); font-size: 1.15rem; }
+.ferien-countdown.leer .ferien-klein { color: var(--ink-soft); }
+
+.ferien-jetzt {
+  display: inline-block; margin-left: 6px;
+  background: var(--match-green); color: var(--ink);
+  border-radius: 5px; padding: 1px 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+  .ferien-countdown { padding: 22px 18px; }
+  .ferien-countdown .ferien-gross { font-size: 1.4rem; }
+}

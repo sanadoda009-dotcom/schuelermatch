@@ -19,6 +19,7 @@ Kostenlose Matching-Plattform für Minijobs: Schüler (5.–13. Klasse, ~10–20
 - `login.html`, `register.html`, `forgot-password.html`, `reset-password.html`
 - `dashboard-schueler.html` – Sidebar-Navigation: Jobs / Lebenslauf / Verifizierung / Profil
 - `dashboard-firma.html` – Sidebar-Navigation: Jobs verwalten / Firmenprofil
+- `ferienjob.html` - Ferienjob-Ratgeber mit Ferienkalender (16 Bundeslaender, Countdown bis zu den naechsten Ferien)
 - `impressum.html`, `datenschutz.html`
 
 ## Datenbank (Supabase Postgres)
@@ -303,6 +304,39 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
   - Weiterhin NICHT abgedeckt: Chat-Verlauf/Senden, Admin-Panel, echte Uploads (Storage nur als Erfolg gemockt) - Kandidaten fuer spaeter.
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
+
+## Session 26. August 2026 - Ferienjob: der Bereich, der zur Jahreszeit passt
+
+Sanad hat aus vier Vorschlaegen den Ferienjob-Bereich gewaehlt. Saisonal der richtige Zeitpunkt: Die Herbstferien beginnen je nach Bundesland zwischen dem 5. Oktober und dem 2. November, gesucht wird also **jetzt**.
+
+**Befund vorweg:** "Ferienjob" gab es laengst - als Wert der Spalte `arbeitszeit`, als Auswahl im Job-Formular und als Filter-Option in der Jobboerse. Was fehlte, war jede Erklaerung, was in den Ferien ueberhaupt gilt. Die **4-Wochen-Regel** (max. 4 Wochen im Kalenderjahr, nur in den Ferien) kennt kaum ein Schueler, obwohl der ganze Ferienjob daran haengt.
+
+### Gebaut
+- `ferienjob.html` - Regeln, Verdienst, Bewerbungszeitpunkt
+- `js/ferien.js` - Ferienkalender: 16 Bundeslaender x 4 Zeitraeume, dazu die Datumsrechnerei
+- `js/ferienjob.js` - Bundesland waehlen, Countdown, Terminliste
+
+**Der Countdown ist der eigentliche Grund fuer die Seite.** Er beantwortet die Frage, mit der jemand herkommt: "Wann habe ich frei, und lohnt sich das Suchen jetzt schon?" Die Wahl des Bundeslands wird gemerkt.
+
+### Warum die Termine fest im Code stehen
+Naheliegend waere `ferien-api.de` gewesen - die antwortete beim Bauen aber mit **HTTP 429**. Ein Countdown, der leer bleibt, sobald ein Fremddienst hustet, ist schlechter als eine gepflegte Tabelle. Und ein einmal festgelegter Ferientermin aendert sich nicht mehr.
+
+**Wartung:** Der Bestand reicht bis zu den Sommerferien 2027. Danach ergaenzen. Laeuft er aus, sagt die Seite das ehrlich ("Keine Termine hinterlegt") statt veraltete Angaben zu zeigen - ein Test deckt genau diesen Fall ab.
+
+### Inhalt
+4-Wochen-Regel als Jahresbudget · 8 Std/Tag, 40 Std/Woche, 6-20 Uhr · Pausen- und Ruhezeiten · Altersstufen (unter 13 / 13-14 / 15-17 / ab 18) · kurzfristige Beschaeftigung: bis 70 Arbeitstage **keine Sozialabgaben, unabhaengig vom Verdienst** · Lohnsteuer per Steuererklaerung zurueckholen (Grundfreibetrag 12.348 EUR) · typische Ferienjobs · Bewerbung 4-6 Wochen vorher.
+
+### Nebenbefund: veraltete Zahl auf drei Seiten
+`eltern.html`, `fairer-lohn.html` und `jobideen.html` nannten **556 EUR** als Minijob-Grenze. Das ist der Wert von 2025; seit dem 1.1.2026 sind es **603 EUR** (Mindestlohn 13,90 EUR). Auf einer Seite, die Minderjaehrigen erklaert, was ihnen zusteht, ist eine falsche Geldzahl kein Schoenheitsfehler. Korrigiert.
+
+### Zwei Funde aus den Tests
+1. **`innerText` liefert den gerenderten Text.** Die Countdown-Kopfzeile wird per CSS in Versalien gesetzt, also scheiterten gross/klein-empfindliche Pruefungen an "HERBSTFERIEN IN HESSEN". Die Tests pruefen jetzt ohne Ruecksicht auf Gross-/Kleinschreibung - das ist auch das richtigere Verhalten, denn geprueft wird, was ein Nutzer sieht.
+2. **Der Bundesland-Waehler war 43px hoch** - einen Pixel unter den 44, die eine Fingerkuppe braucht. Vom Tippziel-Test gefunden, mit `min-height: 46px` behoben. Genau dafuer ist der Test da.
+
+### Verlinkt
+Footer aller 12 oeffentlichen Seiten · `sitemap.xml` · in die Seitenlisten von `a11y.spec.js` und `tippziele-mobil.spec.js` aufgenommen.
+
+**Suite: 346 -> 362 Tests, alle gruen.** 16 neue in `tests/ferienjob.spec.js`, davon 7 fuer die Datumsrechnerei mit festen Stichtagen (laufende Ferien, letzter Ferientag, ausgelaufener Bestand, Plausibilitaet aller 64 Zeitraeume).
 
 ## Session 25. August 2026 (Teil 13) - Schriftwechsel: weniger nach Vorlage aussehen
 

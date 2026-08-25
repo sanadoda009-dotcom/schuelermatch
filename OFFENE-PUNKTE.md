@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
-> **Stand 23. August 2026.**
-> Alles ist committet und gepusht, **346 E2E-Tests grün**, Live-Stand deployed.
+> **Stand 26. August 2026.**
+> Alles ist committet und gepusht, **362 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -49,6 +49,14 @@ Ein umfassender Audit wurde durchgeführt; 8 von 11 Befunden sind bereits gefixt
    - ⚠️ Recovery-Codes sicher aufbewahren! Nachträglich unter github.com/settings/auth/recovery-codes
    - NOCH OFFEN: MFA **innerhalb der App** für Admins (admin.html). Braucht Frontend-Ausbau (Einrichtungs-/Abfrage-Bildschirme + Supabase-TOTP-Anbindung) — eigenes kleines Projekt, kein Dashboard-Schalter.
 3. **Gate vor Launch entfernen** (#11): `js/gate.js` → `GATE_AKTIV=false` (ist bewusst client-seitig, nur Bauphasen-Schild).
+
+## 🗓 Wiedervorlage: Ferientermine
+Der Ferienkalender auf `ferienjob.html` steht fest in `js/ferien.js`.
+Hinterlegt sind Herbst 2026 bis **Sommer 2027**. Sobald die Sommerferien 2027
+vorbei sind, zeigt die Seite fuer jedes Land "Keine Termine hinterlegt" -
+dann die naechsten Zeitraeume aus dem KMK-Ferienkalender ergaenzen
+(https://www.kmk.org/service/ferien.html). Der Test `tests/ferienjob.spec.js`
+prueft die Plausibilitaet der Tabelle mit.
 
 ## 📌 Gut zu wissen
 - Admin-Bereich: `schuelermatch.de/admin.html` (Konten: s.weisioda@ + halawaisi3@)

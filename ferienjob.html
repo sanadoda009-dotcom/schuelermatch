@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ferienjob für Schüler – Regeln, Verdienst und Termine – SchülerMatch</title>
+<meta name="description" content="Ferienjob als Schüler: die 4-Wochen-Regel, wie viel du verdienen darfst, was von deinem Lohn übrig bleibt – und wann in deinem Bundesland die nächsten Ferien sind.">
+<meta property="og:title" content="Ferienjob für Schüler – SchülerMatch">
+<meta property="og:description" content="Was in den Ferien erlaubt ist, was übrig bleibt und wann deine nächsten Ferien anfangen.">
+<meta property="og:type" content="article">
+<meta property="og:locale" content="de_DE">
+<meta property="og:url" content="https://schuelermatch.de/ferienjob.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/monitoring.js"></script>
+<script src="js/gate.js"></script>
+<script defer src="js/tastatur.js"></script>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo"><img src="assets/logo.png" alt="SchülerMatch" class="logo-img"></a>
+  <div class="nav-links">
+    <a href="jobs.html">Jobs</a>
+    <a href="job-finder.html">Job-Finder</a>
+    <a href="jobideen.html">Jobideen</a>
+    <a href="fuer-firmen.html">Für Arbeitgeber</a>
+  </div>
+  <a href="login.html" class="btn btn-dark">Login</a>
+  <button class="nav-toggle" aria-label="Menü öffnen" aria-expanded="false"><span></span><span></span><span></span></button>
+</nav>
+<script src="js/nav.js"></script>
+
+<main class="legal-page wrap">
+  <h1>Ferienjob als Schüler</h1>
+  <p class="legal-sub">Was erlaubt ist, was übrig bleibt – und wann deine Ferien anfangen</p>
+
+  <section class="legal-highlight">
+    <h2>Die Regel, an der alles hängt</h2>
+    <p>Bist du <b>zwischen 15 und 17</b> und noch vollzeitschulpflichtig, darfst du <b>höchstens 4 Wochen im Kalenderjahr</b> arbeiten – und zwar nur in den Schulferien. Das sind 20 Arbeitstage, die du frei über das Jahr verteilen kannst: eine Woche im Herbst, drei im Sommer, wie du willst.</p>
+    <p>Diese vier Wochen sind ein Jahresbudget, kein Budget pro Ferien. Wer im Sommer vier Wochen gearbeitet hat, ist für dieses Jahr fertig.</p>
+  </section>
+
+  <section>
+    <h2>Wann sind deine nächsten Ferien?</h2>
+    <p>Such dir dein Bundesland aus. Die Termine merkt sich die Seite für deinen nächsten Besuch.</p>
+
+    <div class="ferien-waehler">
+      <label for="bundesland">Dein Bundesland</label>
+      <select id="bundesland"></select>
+    </div>
+
+    <div class="ferien-countdown" id="ferien-countdown" aria-live="polite">
+      <p class="ferien-gross">Ferientermine werden geladen …</p>
+    </div>
+
+    <div class="lohn-tabelle" id="ferien-liste"></div>
+
+    <p class="firma-hinweis">Termine nach den Ferienkalendern der Kultusministerkonferenz, Stand August 2026. Einzelne bewegliche Ferientage sind nicht aufgeführt. Ohne Gewähr – im Zweifel gilt, was deine Schule sagt.</p>
+
+    <div class="fehler-knoepfe" style="justify-content:flex-start;">
+      <a class="btn btn-green" href="jobs.html?zeit=Ferienjob">Ferienjobs ansehen</a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Was in den Ferien anders ist</h2>
+    <p>Während der Schulzeit darfst du als 15- bis 17-Jähriger nur zwei Stunden am Tag arbeiten. In den Ferien wird daraus deutlich mehr:</p>
+    <ul>
+      <li><b>8 Stunden pro Tag</b>, höchstens <b>40 Stunden pro Woche</b></li>
+      <li>Nur zwischen <b>6 und 20 Uhr</b></li>
+      <li><b>Fünf Tage die Woche</b>, Samstag und Sonntag bleiben frei. Ausnahmen gibt es unter anderem in Gastronomie, Landwirtschaft und Krankenhäusern – dann bekommst du einen anderen Tag frei.</li>
+      <li>Pausen sind Pflicht: <b>30 Minuten</b> bei mehr als 4½ Stunden, <b>60 Minuten</b> bei mehr als 6 Stunden</li>
+      <li>Nach Feierabend mindestens <b>12 Stunden Ruhe</b> bis zum nächsten Arbeitsbeginn</li>
+    </ul>
+    <p>Das ist kein Verhandlungsspielraum. Ein Arbeitgeber, der dich zehn Stunden einplant, verstößt gegen das Gesetz – auch wenn du selbst einverstanden wärst.</p>
+  </section>
+
+  <section>
+    <h2>Was für dein Alter gilt</h2>
+
+    <div class="lohn-tabelle">
+      <div class="lohn-zeile lohn-kopf"><span>Alter</span><span>Pro Tag</span><span>Wochen</span></div>
+      <div class="lohn-zeile"><span>Unter 13</span><span>–</span><span>–</span></div>
+      <div class="lohn-zeile"><span>13 bis 14</span><span>2 Std</span><span>–</span></div>
+      <div class="lohn-zeile"><span>15 bis 17</span><span>8 Std</span><span>4</span></div>
+      <div class="lohn-zeile"><span>Ab 18</span><span>8 Std</span><span>unbegrenzt</span></div>
+    </div>
+
+    <ul>
+      <li><b>Unter 13:</b> Arbeiten ist nicht erlaubt, auch nicht in den Ferien.</li>
+      <li><b>13 und 14:</b> Nur leichte Tätigkeiten und nur mit Einwilligung der Eltern – und in den Ferien bleibt es bei zwei Stunden am Tag. Die 4-Wochen-Regel bringt dir in diesem Alter noch nichts. Zeitungen austragen, Nachhilfe, Babysitten und Gartenarbeit gehen trotzdem.</li>
+      <li><b>15 bis 17:</b> Der Ferienjob im eigentlichen Sinn – vier Wochen im Jahr, acht Stunden am Tag.</li>
+      <li><b>Ab 18:</b> Das Jugendarbeitsschutzgesetz gilt nicht mehr für dich. Dafür hast du Anspruch auf den gesetzlichen Mindestlohn von 13,90 € pro Stunde.</li>
+    </ul>
+    <p>Alle Einzelheiten stehen unter <a href="jugendarbeitsschutz.html">Jugendarbeitsschutz</a>.</p>
+  </section>
+
+  <section>
+    <h2>Was von deinem Lohn übrig bleibt</h2>
+    <p>Ein Ferienjob zählt fast immer als <b>kurzfristige Beschäftigung</b>: begrenzt auf drei Monate oder 70 Arbeitstage im Jahr. Das hat eine angenehme Folge.</p>
+    <p><b>Es fallen keine Sozialabgaben an</b> – keine Kranken-, Renten-, Arbeitslosen- oder Pflegeversicherung, und zwar unabhängig davon, wie viel du verdienst. Anders als beim laufenden Minijob gibt es hier keine 603-Euro-Grenze.</p>
+    <p>Lohnsteuer kann der Arbeitgeber trotzdem einbehalten. Die holst du dir zurück: Wer im ganzen Jahr weniger als <b>12.348 €</b> verdient hat, zahlt keine Einkommensteuer. Eine Steuererklärung im Folgejahr genügt, und das Geld kommt zurück. Für die meisten Schüler ist das der komplette einbehaltene Betrag.</p>
+    <p>Am <b>Kindergeld</b> ändert ein Ferienjob nichts, solange du zur Schule gehst.</p>
+    <p>Was ein fairer Stundenlohn ist, steht unter <a href="fairer-lohn.html">Fairer Lohn</a>.</p>
+  </section>
+
+  <section>
+    <h2>Welche Jobs es in den Ferien gibt</h2>
+    <p>In den Ferien wird anderes gesucht als während des Schuljahres. Typisch sind Stellen, bei denen für ein paar Wochen mehr Hände gebraucht werden:</p>
+    <ul>
+      <li><b>Einzelhandel:</b> Regale einräumen, Inventur, Kasse – viele Läden überbrücken damit den Urlaub der Stammbelegschaft</li>
+      <li><b>Gastronomie und Eisdielen:</b> Service, Küchenhilfe, Theke. In den Sommerferien der Klassiker.</li>
+      <li><b>Lager und Versand:</b> Kommissionieren und Verpacken, oft gut bezahlt</li>
+      <li><b>Ernte und Gartenbau:</b> saisonal, körperlich, meist im Freien</li>
+      <li><b>Messen und Veranstaltungen:</b> Auf- und Abbau, Garderobe, Einlass – kurze Einsätze, ab 16</li>
+      <li><b>Ferienbetreuung:</b> Unterstützung bei Ferienfreizeiten, wenn du gut mit jüngeren Kindern kannst</li>
+    </ul>
+    <p>Mehr Ideen mit Einstiegsalter findest du unter <a href="jobideen.html">Jobideen</a>.</p>
+  </section>
+
+  <section>
+    <h2>Wann du dich bewerben solltest</h2>
+    <p>Früher, als die meisten denken. Wer sich in der ersten Ferienwoche umschaut, kommt zu spät – die guten Stellen sind dann weg.</p>
+    <ul>
+      <li><b>4 bis 6 Wochen vorher</b> ist der richtige Zeitpunkt. Betriebe planen ihren Ferienbedarf mit Vorlauf.</li>
+      <li><b>Sag gleich dazu, wann du kannst.</b> „Vom 17. bis 31. Oktober, ganztags" ist für einen Arbeitgeber wertvoller als jede Formulierung über Motivation.</li>
+      <li><b>Nenn deine vier Wochen ehrlich.</b> Wenn du im Sommer schon zwei Wochen gearbeitet hast, sag es – der Arbeitgeber muss das wissen und trägt das Risiko mit.</li>
+      <li><b>Eine Bewerbung reicht selten.</b> Fünf bis zehn Anfragen sind normal.</li>
+    </ul>
+    <p>Einen Lebenslauf kannst du dir auf SchülerMatch in wenigen Minuten <a href="lebenslauf.html">kostenlos erstellen</a> und als PDF herunterladen.</p>
+  </section>
+
+  <section class="legal-highlight">
+    <h2>Auf SchülerMatch</h2>
+    <p>Arbeitgeber können ihre Anzeige als Ferienjob kennzeichnen. Du filterst danach und siehst nur Stellen, die in deine freien Wochen passen – zusammen mit dem Mindestalter und dem Stundenlohn.</p>
+    <div class="fehler-knoepfe" style="justify-content:flex-start;">
+      <a class="btn btn-green" href="jobs.html?zeit=Ferienjob">Ferienjobs ansehen</a>
+      <a class="btn btn-outline" href="jugendarbeitsschutz.html">Deine Rechte</a>
+    </div>
+    <p class="firma-hinweis">Diese Seite erklärt die Regeln in einfachen Worten und ist keine Rechtsberatung. Verbindlich sind das Jugendarbeitsschutzgesetz und die Auskunft deines zuständigen Gewerbeaufsichtsamts. Bei Fragen zur Sozialversicherung hilft die <a href="https://www.minijob-zentrale.de" target="_blank" rel="noopener noreferrer">Minijob-Zentrale</a>.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="logo"><img src="assets/logo-light.png" alt="SchülerMatch" class="footer-logo-img"></div>
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="ferienjob.html">Ferienjob</a>
+      <a href="fairer-lohn.html">Fairer Lohn</a>
+      <a href="fuer-firmen.html">Für Arbeitgeber</a>
+      <a href="eltern.html">Für Eltern</a>
+      <a href="job-finder.html">Job-Finder</a>
+      <a href="jobideen.html">Jobideen</a>
+      <a href="jugendarbeitsschutz.html">Jugendarbeitsschutz</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="mailto:sanadoda009@gmail.com">Kontakt</a>
+    </div>
+  </div>
+  <div class="footer-bottom wrap">© 2026 SchülerMatch</div>
+</footer>
+
+<script type="module" src="js/ferienjob.js"></script>
+</body>
+</html>
