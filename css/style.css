@@ -2069,3 +2069,10 @@ main[tabindex="-1"]:focus { outline: none; }
 
 /* Rechtlicher Hinweis - sichtbar, aber nicht so laut wie der Fliesstext */
 .firma-hinweis { font-size: 0.82rem; opacity: 0.85; margin-top: 14px !important; }
+
+/* Aktuelle Seite in der Navigation markieren.
+   Angelegt am 25.8., als die Navigation vereinheitlicht wurde: Vorher
+   hatte jede Seite eine andere Leiste, und man sah nie, wo man ist. */
+.nav-links a[aria-current="page"] {
+  color: var(--indigo); font-weight: 600;
+}

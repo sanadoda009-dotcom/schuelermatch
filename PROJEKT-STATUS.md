@@ -304,6 +304,31 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 (Teil 8) - Navigation vereinheitlicht (Aufraeumen nach dem Wachstum)
+
+Runde 23. Kein Wettbewerbsvergleich diesmal, sondern das Aufraeumen dessen, was die letzten Runden angerichtet hatten.
+
+**Der Befund:** In drei Runden waren vier neue Seiten dazugekommen (Jobideen, Job-Finder, Eltern, Arbeitgeber), und bei jeder hatte ich die Menueleiste ein Stueck erweitert. Ergebnis: **fuenf verschiedene Navigationen**.
+
+- Startseite: So funktioniert's | Fuer Schueler | Fuer Firmen | Jobs | Job-Finder
+- Jobboerse: Jobs | Job-Finder | Fuer Schueler | Fuer Firmen
+- Jobideen/Job-Finder/Eltern: Start | Jobs | Job-Finder | Jobideen
+- Arbeitgeber: Start | Jobs | Job-Finder | Fuer Arbeitgeber
+- Jugendarbeitsschutz: Start | Jobs | Job-Finder
+
+Wer von der Startseite auf "Jobideen" klickte, verlor "Fuer Arbeitgeber" aus dem Menue. Und **"Fuer Firmen" zeigte noch auf einen Seitenanker** (`#firmen`), obwohl es inzwischen eine eigene Seite gab - auf jeder anderen Seite lief dieser Link ins Leere.
+
+**Zweiter Fund:** Auf `jugendarbeitsschutz.html` fehlte der Hamburger-Knopf. Dort war das Menue **auf dem Handy ueberhaupt nicht erreichbar** - die Links sind per CSS ausgeblendet, und ohne Knopf kommt man nicht dran. Das hatte keine der bisherigen Pruefungen gefunden: Sie pruefen, ob sichtbare Elemente gross genug sind, nicht ob etwas fehlt.
+
+**Behoben:** Eine einheitliche Leiste auf allen neun oeffentlichen Seiten - **Jobs | Job-Finder | Jobideen | Fuer Arbeitgeber**. Dazu `aria-current="page"` auf dem aktiven Eintrag, farblich hervorgehoben: Man sieht jetzt, wo man ist. "Fuer Eltern" steht bewusst nur im Footer - Eltern kommen ueber Suche oder Link, nicht ueber das Hauptmenue.
+
+**Ein eigener Fehler, vom Test gefangen:** Beim Vereinheitlichen habe ich den Knopf auf der Startseite von "Jetzt starten" zu "Login" gemacht - eine bewusste fruehere Entscheidung ueberschrieben. Der bestehende Test `landing.spec.js` fiel darueber. Auf der Startseite ist "Jetzt starten" richtig (die meisten Besucher haben dort noch kein Konto), auf Unterseiten "Login". Jetzt mit Kommentar im Code, damit es nicht nochmal passiert.
+
+**Dauerhaft abgesichert:** `tests/navigation.spec.js` (21 Tests): identisches Menue auf allen neun Seiten, Hamburger-Knopf ueberall vorhanden, aktive Seite markiert, kein Menuelink zeigt ins Leere (auch keine Anker mehr), und die Seiten ausserhalb des Menues bleiben ueber den Footer erreichbar.
+
+**Suite jetzt: 297 Tests, alle gruen** (vorher 276).
+
+
 ## Session 25. August 2026 (Teil 7) - Arbeitgeber-Seite: das staerkste Argument stand nirgends
 
 Runde 22. Fuer Unternehmen gab es bisher nur einen Kasten auf der Startseite mit vier Stichpunkten - dabei haengt der Start der Plattform an ihnen. Ohne Anzeigen ist die Jobboerse leer.
