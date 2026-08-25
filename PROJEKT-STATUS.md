@@ -304,6 +304,32 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 (Teil 7) - Arbeitgeber-Seite: das staerkste Argument stand nirgends
+
+Runde 22. Fuer Unternehmen gab es bisher nur einen Kasten auf der Startseite mit vier Stichpunkten - dabei haengt der Start der Plattform an ihnen. Ohne Anzeigen ist die Jobboerse leer.
+
+### Der Kern: Jugendarbeitsschutz als Verkaufsargument
+Wer Minderjaehrige beschaeftigt, haftet nach dem Jugendarbeitsschutzgesetz - Bussgelder bis **30.000 Euro**. Ein Cafe-Besitzer, der eine Aushilfe sucht, hat genau davor Respekt: zu jung, zu spaet, zu lang, verbotene Taetigkeit, fehlende Elterneinwilligung.
+
+**Und genau das nimmt SchuelerMatch ihm ab:** Er traegt ein Mindestalter ein, und die Anzeige wird nur Schuelern gezeigt, die es erfuellen. Keine Bewerbungen von Vierzehnjaehrigen auf eine Stelle ab 16. Das ist der Unterschied zu einem Aushang im Fenster oder einer allgemeinen Jobboerse - und es stand bisher nirgends.
+
+### Gebaut: `fuer-firmen.html`
+- Drei Schritte zur Anzeige (Konto, Anzeige, Bewerbungen)
+- Die fuenf haeufigsten Stolperfallen des Jugendarbeitsschutzes, konkret benannt
+- Was die Plattform bietet: nur verifizierte Schueler, Bewerbungen mit Lebenslauf, Chat ohne Handynummer-Austausch, Umkreissuche
+- Verlinkt direkt auf die Einverstaendniserklaerung fuer Eltern (die der Arbeitgeber ohnehin braucht)
+- **Fuer wen es NICHT passt** - Vollzeit, gefaehrliche Maschinen, feste Verfuegbarkeit waehrend der Schulzeit. Ehrlichkeit spart beiden Seiten Zeit.
+
+### Zwei bewusste Entscheidungen
+**Keine erfundene Reichweite.** Die Seite sagt offen: *"SchuelerMatch startet gerade. Wir haben noch keine tausenden Nutzer, die wir Ihnen versprechen koennten - und wir behaupten es auch nicht."* Erfundene Zahlen waeren der schnellste Weg, das Vertrauen eines Arbeitgebers zu verlieren. Ein Test prueft, dass keine Nutzerzahlen auf der Seite stehen.
+
+**Ehrlich zum Preis.** Zurzeit kostenlos - aber mit dem Zusatz, dass das nicht ewig so bleibt und wir es rechtzeitig ankuendigen. Wer das erst erfaehrt, wenn die Rechnung kommt, kommt nicht wieder.
+
+**Dauerhaft abgesichert:** `tests/fuer-firmen.spec.js` (11 Tests). Darunter zwei, die inhaltlich pruefen statt nur technisch: dass **keine Nutzerzahlen** versprochen werden, und dass die Altersangaben **nicht der Elternseite widersprechen** - inzwischen erklaeren drei Seiten dasselbe Gesetz.
+
+**Suite jetzt: 276 Tests, alle gruen** (vorher 260).
+
+
 ## Session 25. August 2026 (Teil 6) - Elternseite mit Einverstaendniserklaerung
 
 Runde 21. Diesmal aus einer anderen Richtung verglichen: Bisher ging es immer um die Schuelerseite - dabei haengt das Henne-Ei-Problem an den Firmen und an den **Eltern**.

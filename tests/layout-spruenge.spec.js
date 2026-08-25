@@ -38,6 +38,7 @@ for (const [name, pfad] of [
   ['Jobideen', '/jobideen.html'],
   ['Job-Finder', '/job-finder.html'],
   ['Für Eltern', '/eltern.html'],
+  ['Für Arbeitgeber', '/fuer-firmen.html'],
 ]) {
   test(`springt nicht: ${name}`, async ({ page }) => {
     await setupDashboard(page.context(), {})

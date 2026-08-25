@@ -2045,3 +2045,27 @@ main[tabindex="-1"]:focus { outline: none; }
   .legal-page { padding: 0; max-width: none; }
   body { background: #fff; }
 }
+
+/* ===================================================================
+   ARBEITGEBER-SEITE (fuer-firmen.html)
+   -------------------------------------------------------------------
+   Bisher gab es fuer Unternehmen nur einen kleinen Kasten auf der
+   Startseite. Das staerkste Argument stand nirgends: Wer Minderjaehrige
+   beschaeftigt, haftet nach dem Jugendarbeitsschutzgesetz - und die
+   Mindestalter-Pruefung nimmt ihm genau dieses Risiko ab.
+   =================================================================== */
+.firma-schritte { counter-reset: schritt; list-style: none; padding: 0; }
+.firma-schritte li {
+  position: relative; padding-left: 46px; margin-bottom: 18px;
+}
+.firma-schritte li::before {
+  counter-increment: schritt; content: counter(schritt);
+  position: absolute; left: 0; top: -2px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--verlauf-tief); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.85rem;
+}
+
+/* Rechtlicher Hinweis - sichtbar, aber nicht so laut wie der Fliesstext */
+.firma-hinweis { font-size: 0.82rem; opacity: 0.85; margin-top: 14px !important; }
