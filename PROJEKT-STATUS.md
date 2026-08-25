@@ -304,6 +304,38 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 (Teil 11) - Die Suche verzeiht jetzt, wie Menschen tippen
+
+Runde 26. Nach fuenf Runden mit neuen Inhaltsseiten wieder zurueck zum Produkt selbst.
+
+### Gemessen mit 23 Eingaben, wie sie ein 15-Jaehriger tippt
+**Neun davon fanden nichts**, obwohl passende Jobs da waren:
+
+| Eingabe | Problem |
+|---|---|
+| `muenchen`, `cafe`, `einraeumen` | Umlaute umschrieben |
+| `nachhilfe job`, `job nachhilfe`, `gassi gehen` | ein Fuellwort dazwischen |
+| `kellnerin` | andere Wortform |
+| `nachhife` | Tippfehler |
+| `supermarkt` | Umgangssprache |
+
+Das Fuellwort-Problem war das heimtueckischste: Die Suche verlangte, dass **jedes** Wort im Anzeigentext vorkommt. "nachhilfe job" scheiterte daran, dass "job" nirgends steht - obwohl der Nutzer damit gar nichts Bestimmtes meinte.
+
+### Vier Schritte in `js/suche.js`
+1. **Umlaute vereinheitlichen** - "muenchen" und "München" werden zur selben Zeichenfolge, ebenso "cafe" und "café".
+2. **Fuellwoerter ignorieren** (job, arbeit, stelle, suche, gehen, als, fuer ...). Bleibt danach nichts uebrig ("ich suche einen job"), wird **alles** gezeigt statt nichts - der Nutzer hat ja nichts Konkretes gesagt.
+3. **Ein Tippfehler erlaubt** - ein Zeichen zu viel, zu wenig oder falsch. **Bewusst erst ab fuenf Zeichen**: Sonst faende "hund" auch "rund" und "hand".
+4. **Woerterbuch erweitert** um weibliche Formen (kellnerin, verkaeuferin), Umgangssprache (supermarkt, laden, markt) und Faecher (mathe, englisch).
+
+**Ergebnis: 0 von 23 Eingaben scheitern** (vorher 9).
+
+**Dauerhaft abgesichert:** `tests/suche.spec.js` (22 Tests) - und zwar **zweiseitig**. Die eine Haelfte prueft, dass gefunden wird, was gemeint ist. Die andere, dass die Suche **nicht einfach alles findet**: "pizzabaecker", "zahnarzt" und "flugbegleiter" muessen leer bleiben, "hand" darf nicht "Hunde" treffen, und zwei Woerter muessen wirklich eingrenzen (Nachhilfe gibt es in Muenchen, nicht in Augsburg). Eine zu grosszuegige Toleranz waere nicht besser als gar keine.
+
+**Gegen den alten Code geprueft: 10 der 22 Tests fallen um.**
+
+**Suite jetzt: 337 Tests, alle gruen** (vorher 315).
+
+
 ## Session 25. August 2026 (Teil 10) - Fairer Lohn: die Regel, die kaum jemand kennt
 
 Runde 25.
