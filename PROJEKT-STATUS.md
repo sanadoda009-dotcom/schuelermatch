@@ -305,6 +305,30 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 2) - Gruene Schrift auf gruenem Knopf
+
+Gefunden auf dem Bildschirmfoto der frisch gebauten Ferienjob-Seite: "Ferienjobs ansehen" stand gruen auf gruenem Verlauf. Die Ursache war keine neue Zeile, sondern eine alte:
+
+```
+.legal-page a { color: var(--match-green-dark); text-decoration: underline; }
+```
+
+Diese Regel ist **spezifischer als** `.btn-green` (Klasse + Typ schlaegt Klasse allein) und faerbte damit jeden Knopf ein, der als `<a>` in einer Ratgeberseite steht.
+
+**Gemessen: 1,77:1** statt der vorgesehenen 5,4:1. Gefordert sind 4,5:1. Betroffen waren `fairer-lohn.html`, `jobideen.html`, `fuer-firmen.html` - und die neue `ferienjob.html` gleich mit. Auf den ersten dreien seit Monaten unentdeckt.
+
+**Warum keiner der bestehenden Tests das fand:** Sie pruefen, ob Elemente da, gross genug und bedienbar sind - nicht, ob man ihre Schrift lesen kann. Der Tippziel-Test misst Flaechen, der a11y-Test Struktur und Beschriftungen. Farbe fiel durch das Raster.
+
+**Fix:** `.legal-page a.btn` holt Knopffarbe und fehlende Unterstreichung zurueck. Nach der Aenderung ueberall **5,4:1**.
+
+**Neu: `tests/knopf-kontrast.spec.js`** (11 Seiten). Rechnet den WCAG-Kontrast jeder Knopfschrift gegen ihren tatsaechlichen Hintergrund - bei Verlaeufen gegen die schlechtere Endfarbe, bei durchsichtigen Knoepfen gegen den ersten undurchsichtigen Vorfahren.
+
+Der letzte Punkt kam aus einem **Fehlalarm des eigenen Tests**: Auf der Startseite sitzt ein durchsichtiger Knopf auf einer dunklen Karte. Die erste Fassung mass gegen die Seitenfarbe und meldete 1,06:1, obwohl weiss auf dunkler Karte einwandfrei ist. Ein Test, der falsch Alarm schlaegt, wird irgendwann ignoriert - deshalb laeuft er jetzt die Vorfahren hoch.
+
+**Gegenprobe gemacht:** Test gegen das alte CSS laufen lassen - er faellt auf genau den vier betroffenen Seiten um. Er prueft also wirklich etwas.
+
+**Suite: 364 -> 375 Tests.**
+
 ## Session 26. August 2026 - Ferienjob: der Bereich, der zur Jahreszeit passt
 
 Sanad hat aus vier Vorschlaegen den Ferienjob-Bereich gewaehlt. Saisonal der richtige Zeitpunkt: Die Herbstferien beginnen je nach Bundesland zwischen dem 5. Oktober und dem 2. November, gesucht wird also **jetzt**.
