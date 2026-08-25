@@ -304,6 +304,28 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 (Teil 9) - Startseite: mehrere Einstiege statt einem
+
+Runde 24.
+
+### Angesehen: studentjob.de
+Deren Startseite bietet **mehrere Einstiege nebeneinander** an: nach Jobart (Ferienjob, Nebenjob, Minijob), nach Stadt, ein "weiss noch nicht so recht, was ich suche" - und einen eigenen Kasten fuer Arbeitgeber, prominent oben statt versteckt. Das Prinzip dahinter: Nicht jeder kommt mit derselben Frage.
+
+### Das Problem bei uns
+Nach vier neuen Seiten in drei Runden war die Startseite noch auf dem alten Stand. Job-Finder, Jobideen, Eltern- und Arbeitgeber-Seite waren dort nur **kleine Textlinks** - der ganze neue Inhalt praktisch unsichtbar. Wer als Vierzehnjaehriger ohne Vorstellung ankam, sah eine Kategorienliste und eine Jobboerse, die gerade noch leer ist.
+
+### Gebaut: Abschnitt "Womit faengst du an?"
+Vier Karten, jede fuer eine andere Absicht:
+1. **Ich weiss noch nicht, was** -> Job-Finder (steht bewusst an erster Stelle - wer schon weiss, was er sucht, findet die Boerse ohnehin ueber das Menue)
+2. **Zeig mir, was moeglich ist** -> Jobideen
+3. **Ich weiss schon, was ich suche** -> Jobboerse
+4. **Ich bin ein Elternteil** -> Elternseite, dezent abgesetzt, damit Schueler nicht faelschlich dort landen
+
+**Dauerhaft abgesichert:** `tests/startseite-wege.spec.js` (5 Tests). Prueft nicht nur, dass die Karten da sind, sondern dass die **Wege wirklich funktionieren**: Klick auf die erste Karte fuehrt zum Test, und der Test laedt auch; Klick auf die Jobboerse zeigt wirklich Jobs. Ausserdem, dass der Einstieg fuer Unentschlossene vorn steht.
+
+**Suite jetzt: 302 Tests, alle gruen** (vorher 297).
+
+
 ## Session 25. August 2026 (Teil 8) - Navigation vereinheitlicht (Aufraeumen nach dem Wachstum)
 
 Runde 23. Kein Wettbewerbsvergleich diesmal, sondern das Aufraeumen dessen, was die letzten Runden angerichtet hatten.
