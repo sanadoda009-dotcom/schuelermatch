@@ -35,7 +35,7 @@ test.describe('Desktop', () => {
     await oeffneDashboard(page)
     await oeffneFilter(page)
 
-    for (const text of ['Ort', 'Bereich', 'Mindestlohn', 'Wann arbeiten?']) {
+    for (const text of ['Ort', 'Bereich', 'Stundenlohn ab', 'Wann arbeiten?']) {
       await expect(page.locator('#filter-panel label', { hasText: text }).first()).toBeVisible()
     }
   })

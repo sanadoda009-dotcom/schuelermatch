@@ -304,6 +304,30 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 (Teil 10) - Fairer Lohn: die Regel, die kaum jemand kennt
+
+Runde 25.
+
+### Der Fund im Ratgeber von schuelerjobs.de
+Ein Satz, der bei uns nirgends vorkam: *"Ein Recht auf einen bestimmten Stundenlohn hast du als Schueler nicht - auch nicht auf den Mindestlohn."*
+
+**Das stimmt.** Das Mindestlohngesetz gilt nach § 22 Absatz 2 nicht fuer Personen unter 18 ohne abgeschlossene Berufsausbildung. Fuer eine Plattform, die Minderjaehrige schuetzen will, ist das ein Kernthema: Wer es nicht weiss, haelt ein schlechtes Angebot womoeglich fuer gesetzlich garantiert - oder denkt umgekehrt, ihm stuenden 12,82 Euro zu.
+
+### Nebenbei ein eigener Fehler
+Unser Filter hiess **"Mindestlohn"**. Genau das Wort, das den falschen Eindruck erweckt - dabei ist ein Mindestbetrag gemeint, den man selbst haben moechte. Heisst jetzt **"Stundenlohn ab"** (in Jobboerse und Schueler-Dashboard). Zwei bestehende Tests mussten nachgezogen werden.
+
+### Gebaut: `fairer-lohn.html`
+- Die Mindestlohn-Ausnahme ganz oben, mit Fundstelle - **und dem Zusatz, was daraus NICHT folgt**: kein Mindestlohn heisst nicht, dass man alles annehmen muss
+- Eine Tabelle mit ueblichen Loehnen nach Taetigkeit und Alter (10 Zeilen), plus Faustregel: unter 8 Euro genauer hinsehen
+- **Woran man erkennt, dass etwas nicht stimmt**: Bezahlung nach Menge ohne Rechnung, unbezahlte Probearbeit ueber Stunden, "Trinkgeld gleicht das aus", Ausweichen beim Thema Geld, Vorkasse
+- **Drei Saetze zum Nachfragen**, die man wirklich sagen kann. Mit 15 nach mehr Geld zu fragen ist unangenehm - fertige Formulierungen helfen mehr als der Rat "verhandle einfach".
+- Was am Ende uebrig bleibt (556-Euro-Grenze, Kindergeld)
+
+**Dauerhaft abgesichert:** `tests/fairer-lohn.spec.js` (8 Tests). Darunter zwei inhaltliche: dass die Seite auch sagt, was aus der Ausnahme **nicht** folgt - und dass die **Loehne mit der Jobideen-Seite uebereinstimmen**. Zwei Seiten mit Zahlen duerfen sich nicht widersprechen.
+
+**Suite jetzt: 315 Tests, alle gruen** (vorher 302).
+
+
 ## Session 25. August 2026 (Teil 9) - Startseite: mehrere Einstiege statt einem
 
 Runde 24.

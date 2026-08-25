@@ -48,7 +48,7 @@ test.describe('Desktop', () => {
     await oeffneFilter(page)
 
     await expect(page.locator('.filter-gruppe label')).toHaveCount(4)
-    for (const text of ['Ort', 'Dein Alter', 'Mindestlohn', 'Wann arbeiten?']) {
+    for (const text of ['Ort', 'Dein Alter', 'Stundenlohn ab', 'Wann arbeiten?']) {
       await expect(page.locator('.filter-gruppe label', { hasText: text })).toBeVisible()
     }
   })

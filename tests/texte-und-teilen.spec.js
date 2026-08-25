@@ -37,6 +37,7 @@ const FUER_SCHUELER = [
   ['Job-Finder', '/job-finder.html'],
   ['Für Eltern', '/eltern.html'],
   ['Für Arbeitgeber', '/fuer-firmen.html'],
+  ['Fairer Lohn', '/fairer-lohn.html'],
 ]
 
 for (const [name, pfad] of FUER_SCHUELER) {

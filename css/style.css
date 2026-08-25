@@ -2126,3 +2126,33 @@ main[tabindex="-1"]:focus { outline: none; }
    abgesetzt, damit Schueler nicht faelschlich dort landen. */
 .weg-karte--andere { background: var(--paper); }
 .weg-karte--andere .weg-icon { background: var(--card); }
+
+/* ===================================================================
+   LOHNTABELLE (fairer-lohn.html)
+   -------------------------------------------------------------------
+   Aus dem Ratgeber-Vergleich am 25.8.: "Ein Recht auf einen bestimmten
+   Stundenlohn hast du als Schueler nicht - auch nicht auf den
+   Mindestlohn." Das stimmt (MiLoG § 22 Abs. 2) und stand bei uns
+   nirgends. Fuer eine Plattform, die Minderjaehrige schuetzen will,
+   ist das ein Kernthema.
+
+   Bewusst keine <table>: Auf dem Handy bricht eine dreispaltige
+   Tabelle unschoen um. Als Raster laesst sie sich sauber umbauen.
+   =================================================================== */
+.lohn-tabelle { margin: 18px 0 22px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.lohn-zeile {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 14px;
+  padding: 11px 16px; align-items: center;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem; color: var(--ink-soft);
+}
+.lohn-zeile:last-child { border-bottom: none; }
+.lohn-zeile span:nth-child(2), .lohn-zeile span:nth-child(3) {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; text-align: right; white-space: nowrap;
+}
+.lohn-zeile span:nth-child(3) { color: var(--match-green-dark); font-weight: 500; min-width: 62px; }
+
+.lohn-kopf {
+  background: var(--paper); color: var(--ink); font-weight: 600;
+}
+.lohn-kopf span:nth-child(2), .lohn-kopf span:nth-child(3) { color: var(--ink); }
