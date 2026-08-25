@@ -304,6 +304,42 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 (Teil 6) - Elternseite mit Einverstaendniserklaerung
+
+Runde 21. Diesmal aus einer anderen Richtung verglichen: Bisher ging es immer um die Schuelerseite - dabei haengt das Henne-Ei-Problem an den Firmen und an den **Eltern**.
+
+### Angesehen: schuelerjobs.de aus Eltern- und Firmensicht
+Die 404-Seite dort verriet die ganze Seitenstruktur. Auffaellig:
+- **Informationen fuer Eltern** (eigene Rubrik, mit Einverstaendniserklaerung zum Download)
+- Taschengeldtabelle 2026 (Nachschlagewerk, das gesucht wird)
+- Schuelerjobs in den Sommerferien / in deiner Stadt (saisonal und lokal)
+- Referenzen und "in den Medien" (Vertrauen fuer Firmen)
+- Anzeigenpreise / Inserieren
+
+### Gebaut: `eltern.html`
+
+**Warum ausgerechnet Eltern:** Sie werden hier gleich doppelt gebraucht - fuer die Anmeldung unter 16 (Art. 8 DSGVO) und fuer den Job selbst, den jeder seriose Arbeitgeber schriftlich bestaetigt haben will. Dazu sind sie oft diejenigen, die die Plattform pruefen, **bevor** das Kind sich ueberhaupt anmeldet. Fuer die gab es bisher nichts.
+
+**Inhalt:**
+- Altersgrenzen in Elternsprache (unter 13 / 13-14 / ab 15 / ab 16)
+- **Die zwei Arten von Einwilligung auseinandergehalten** - das wird staendig verwechselt: die Zustimmung zum Konto (Datenschutz) ist etwas anderes als die Einverstaendniserklaerung fuer den Job
+- **"Wie sicher ist das hier?"** mit konkreten Antworten statt Beteuerungen: Firmen werden von Hand freigegeben, Schueler verifiziert, Kontakt laeuft ueber unseren Chat (keine Handynummer noetig), automatische Warnungen bei Kontaktdaten/Vorkasse/Alleintreffen, Melden mit einem Klick
+- Worauf beim Job zu achten ist (Vorstellungsgespraech, Arbeitsvertrag, Minijob-Zentrale, 556-Euro-Grenze, Kindergeld)
+
+**Dazu eine Einverstaendniserklaerung zum Ausdrucken.** Kein PDF noetig - die Vorlage steht als Teil der Seite, und eine Druck-Regel blendet beim Ausdrucken alles andere aus. So sieht man vorher genau, was auf dem Papier landet. Der Hinweis "keine Rechtsberatung" steht **auf der Vorlage selbst**, nicht nur daneben.
+
+**Verlinkt** im Footer aller acht oeffentlichen Seiten und in `sitemap.xml`.
+
+**Dauerhaft abgesichert:** `tests/eltern.spec.js` (7 Tests): Vorlage vollstaendig, Rechtsberatungs-Hinweis vorhanden, beim Drucken bleibt wirklich nur die Vorlage uebrig, die zwei Einwilligungsarten werden unterschieden, die Altersangaben stimmen mit der Jugendarbeitsschutz-Seite ueberein, die Sicherheitsmerkmale werden konkret benannt, und die Seite ist von ueberall erreichbar. Ausserdem in alle fuenf Qualitaetspruefungen aufgenommen.
+
+**Suite jetzt: 260 Tests, alle gruen** (vorher 248).
+
+### Noch offen aus dem Vergleich
+- Ferienjob-Bereich, Job-Alarm per E-Mail, Staedte-Seiten, Erfahrungsberichte
+- **Taschengeldtabelle** - neu dazugekommen: ein Nachschlagewerk, nach dem tatsaechlich gesucht wird
+- **Seite fuer Firmen** ("Warum hier inserieren?") - bisher gibt es fuer Unternehmen keinen eigenen Einstieg
+
+
 ## Session 25. August 2026 (Teil 5) - Job-Finder: der Test, der zum Namen passt
 
 Runde 20. Weiter im neuen Stil: erst vergleichen, dann bauen.

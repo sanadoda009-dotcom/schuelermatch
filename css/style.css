@@ -1995,3 +1995,53 @@ main[tabindex="-1"]:focus { outline: none; }
 
 .finder-weiter { margin-top: 24px; }
 .finder-weiter p { margin-bottom: 12px; }
+
+/* ===================================================================
+   ELTERNSEITE + DRUCKVORLAGE (eltern.html)
+   -------------------------------------------------------------------
+   Aus dem Vergleich am 25.8.: schuelerjobs.de hat "Informationen fuer
+   Eltern" samt Einverstaendniserklaerung zum Download. Eltern muessen
+   bei uns ohnehin zustimmen - und sie sind oft diejenigen, die die
+   Plattform pruefen, bevor das Kind sich anmeldet.
+
+   Die Vorlage ist am Bildschirm sichtbar (man soll sehen, was man
+   ausdruckt), beim Drucken bleibt aber NUR sie uebrig.
+   =================================================================== */
+.druck-vorlage {
+  border: 1px solid var(--line); border-radius: 14px;
+  background: var(--card); padding: 30px 28px; margin: 0 0 32px;
+}
+.druck-vorlage h2 { font-size: 1.15rem; margin-bottom: 22px; }
+.druck-block { margin-bottom: 22px; }
+
+.druck-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
+  color: var(--ink-soft); margin: 0 0 2px !important;
+}
+/* Schreiblinie zum Ausfuellen mit der Hand */
+.druck-linie {
+  border-bottom: 1px solid var(--ink-soft);
+  height: 26px; margin: 0 0 14px !important;
+}
+.druck-text { margin-bottom: 24px !important; }
+
+.druck-unterschrift {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 34px;
+}
+.druck-fuss {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem;
+  color: var(--ink-soft); margin-top: 26px !important;
+}
+
+@media print {
+  /* Alles ausser der Vorlage verschwindet - sonst druckt man drei Seiten
+     Erklaertext mit, den niemand auf Papier braucht. */
+  nav, footer, .skip-link, .legal-page h1, .legal-sub,
+  .legal-page section { display: none !important; }
+  .druck-vorlage {
+    border: none; padding: 0; margin: 0;
+    page-break-inside: avoid;
+  }
+  .legal-page { padding: 0; max-width: none; }
+  body { background: #fff; }
+}

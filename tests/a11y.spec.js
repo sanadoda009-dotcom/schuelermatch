@@ -35,7 +35,7 @@ const PRUEFUNG = `(() => {
 const OEFFENTLICH = [
   '/index.html', '/jobs.html', '/login.html', '/register.html',
   '/job.html?id=aaaaaaaa-0000-4000-8000-000000000001',
-  '/jugendarbeitsschutz.html', '/jobideen.html', '/job-finder.html', '/impressum.html', '/datenschutz.html',
+  '/jugendarbeitsschutz.html', '/jobideen.html', '/job-finder.html', '/eltern.html', '/impressum.html', '/datenschutz.html',
   '/forgot-password.html', '/reset-password.html', '/404.html',
 ]
 
