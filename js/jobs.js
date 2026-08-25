@@ -229,10 +229,11 @@ function renderJobs(jobs) {
     <div class="job-card job-card--clickable" data-detail="${job.id}" role="button" tabindex="0" aria-label="Details zu ${escapeHtml(job.titel)}">
       ${istNeu(job) ? '<span class="neu-badge">NEU</span>' : ''}
       <div class="job-card-top">
-        <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
+        <div class="company-logo">${escapeHtml(((job.firma_name || job.titel || '?')[0]).toUpperCase())}</div>
         <span class="job-badge">${ICONS.age} ab ${job.mindestalter} J.</span>
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
+      ${job.firma_name ? `<p class="job-firma">bei ${escapeHtml(job.firma_name)}</p>` : ''}
       <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
       ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
       <div class="job-meta">

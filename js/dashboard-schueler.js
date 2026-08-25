@@ -1288,10 +1288,11 @@ function renderJobs(jobs) {
       ${job.erstellt_am && (Date.now() - new Date(job.erstellt_am).getTime()) < 72 * 3600 * 1000 ? '<span class="neu-badge">NEU</span>' : ''}
       <button class="merken-btn ${gemerkteIds.has(job.id) ? 'gemerkt' : ''}" data-merken="${job.id}" aria-label="Job merken" title="Job merken">${herzSvg}</button>
       <div class="job-card-top">
-        <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
+        <div class="company-logo">${escapeHtml(((job.firma_name || job.titel || '?')[0]).toUpperCase())}</div>
         <span class="job-badge" style="margin-right:44px;">${ICONS.age} ab ${job.mindestalter} J.</span>
       </div>
       <h3><button type="button" class="job-titel-btn" data-detail-btn="${job.id}">${escapeHtml(job.titel)}</button></h3>
+      ${job.firma_name ? `<p class="job-firma">bei ${escapeHtml(job.firma_name)}</p>` : ''}
       <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${dist != null ? ` <span class="distanz-chip">${dist} km</span>` : ''}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
       ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
       <div class="job-meta">

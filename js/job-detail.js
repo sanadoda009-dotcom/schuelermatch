@@ -50,6 +50,25 @@ async function ladeBewertungenHtml(firmaId) {
   </section>`
 }
 
+// Wie alt ist die Anzeige? Eine Stelle von vor einem halben Jahr ist
+// meist längst vergeben - das sollte man sehen, bevor man Zeit in eine
+// Bewerbung steckt.
+function alterDerAnzeige(erstelltAm) {
+  if (!erstelltAm) return ''
+  const tage = Math.floor((Date.now() - new Date(erstelltAm).getTime()) / 86400000)
+  if (tage < 0) return ''
+  const text = tage < 1 ? 'heute eingestellt'
+    : tage === 1 ? 'gestern eingestellt'
+    : tage < 7 ? `vor ${tage} Tagen eingestellt`
+    : tage < 14 ? 'vor einer Woche eingestellt'
+    : tage < 60 ? `vor ${Math.floor(tage / 7)} Wochen eingestellt`
+    : `vor ${Math.floor(tage / 30)} Monaten eingestellt`
+  // Ab zwei Monaten dezent hervorheben - dann lohnt eine Nachfrage,
+  // ob die Stelle ueberhaupt noch frei ist.
+  const alt = tage >= 60 ? ' job-alt' : ''
+  return `<span class="job-datum${alt}">${text}</span>`
+}
+
 async function ladeJob() {
   const el = document.getElementById('job-detail')
   const id = new URLSearchParams(location.search).get('id')
@@ -115,8 +134,13 @@ async function ladeJob() {
   el.innerHTML = `
     <a href="jobs.html" class="mono" style="color:var(--ink-soft); font-size:0.82rem;">← Alle Jobs</a>
     <div style="display:flex; align-items:center; gap:16px; margin:16px 0 8px;">
-      <div class="company-logo" style="width:60px; height:60px; font-size:1.5rem;">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
-      <h1 style="font-size:2rem;">${escapeHtml(job.titel)}</h1>
+      <div class="company-logo" style="width:60px; height:60px; font-size:1.5rem;">${escapeHtml(((job.firma_name || job.titel || '?')[0]).toUpperCase())}</div>
+      <div>
+        <h1 style="font-size:2rem;">${escapeHtml(job.titel)}</h1>
+        ${job.firma_name
+          ? `<p class="job-firma">bei ${escapeHtml(job.firma_name)}</p>`
+          : ''}
+      </div>
     </div>
     <p class="company-name" style="font-size:1rem;">${ICONS.pin} ${escapeHtml(job.ort || '')}
       ${job.kategorie ? `<span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}
@@ -128,6 +152,7 @@ async function ladeJob() {
       ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
       ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
       <span>👁 ${job.aufrufe || 0} Aufrufe</span>
+      ${alterDerAnzeige(job.erstellt_am)}
     </div>
 
     <section>

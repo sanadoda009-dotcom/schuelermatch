@@ -2156,3 +2156,22 @@ main[tabindex="-1"]:focus { outline: none; }
   background: var(--paper); color: var(--ink); font-weight: 600;
 }
 .lohn-kopf span:nth-child(2), .lohn-kopf span:nth-child(3) { color: var(--ink); }
+
+/* ===================================================================
+   FIRMENNAME UND ALTER DER ANZEIGE
+   -------------------------------------------------------------------
+   Am 25.8. gemessen: Die Spalte firma_name gab es laengst, war aber bei
+   KEINEM Job gefuellt - sie wurde beim Posten nie geschrieben. Schueler
+   sahen also nie, bei wem sie sich bewerben. Fuer Minderjaehrige ist
+   das eine Vertrauensfrage; und Google bekam "Arbeitgeber auf
+   SchuelerMatch" statt des echten Namens.
+   =================================================================== */
+.job-firma {
+  color: var(--ink-soft); font-size: 0.85rem;
+  margin: 2px 0 0 !important;
+}
+
+/* Alter der Anzeige. Ab zwei Monaten dezent hervorgehoben - dann lohnt
+   eine Nachfrage, ob die Stelle ueberhaupt noch frei ist. */
+.job-datum { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
+.job-datum.job-alt { color: var(--coral); }

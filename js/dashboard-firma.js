@@ -269,6 +269,13 @@ async function speichereJob(e) {
   const geo = await geocode(daten.ort)
   const ortUnbekannt = uebernehmeKoordinaten(daten, geo)
 
+  // Den Firmennamen in die Anzeige kopieren. Die Spalte gab es schon, sie
+  // wurde nur nie gefuellt - Schueler sahen deshalb nie, bei wem sie sich
+  // bewerben, und Google bekam "Arbeitgeber auf SchuelerMatch" statt des
+  // echten Namens. Bewusst kopiert statt verknuepft: Die Anzeige soll
+  // zeigen, wer damals inseriert hat.
+  if (profile.name) daten.firma_name = profile.name
+
   let error
 
   if (editingJobId) {

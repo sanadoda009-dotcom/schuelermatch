@@ -304,6 +304,33 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 25. August 2026 (Teil 12) - Bei wem bewerbe ich mich eigentlich?
+
+Runde 27. Die Job-Detailseite durchgesehen - der Moment, in dem sich ein Schueler entscheidet.
+
+### Der Fund: Der Arbeitgeber wurde nirgends genannt
+Die Jobs-Tabelle hat seit jeher eine Spalte `firma_name`. In der Produktionsdatenbank nachgesehen: **bei keinem der vier Jobs gefuellt**. Der Grund stand im Code - beim Posten wurde sie schlicht nie geschrieben.
+
+Folgen:
+- **Schueler sahen nie, bei wem sie sich bewerben.** Fuer Minderjaehrige ist das eine Vertrauensfrage - und unsere eigene Elternseite verspricht ausdruecklich, dass Unternehmen geprueft werden. Dann sollte man auch sehen, welches.
+- Die strukturierten Daten fuer die **Google-Jobsuche** meldeten "Arbeitgeber auf SchuelerMatch" statt des echten Namens.
+- Das Kuerzel im Kreis neben dem Titel kam vom **Jobtitel**, nicht von der Firma. Die CSS-Klasse heisst `company-name` und zeigte den **Ort**.
+
+### Zweiter Fund: Kein Alter der Anzeige
+Auf den Karten gibt es ein "NEU"-Abzeichen fuer die ersten 72 Stunden - auf der Detailseite stand nichts. Eine Stelle von vor einem halben Jahr ist meist laengst vergeben; das sollte man sehen, bevor man Zeit in eine Bewerbung steckt.
+
+### Behoben
+- `js/dashboard-firma.js` schreibt den Firmennamen jetzt beim Posten mit. **Bewusst kopiert statt verknuepft**: Die Anzeige soll zeigen, wer damals inseriert hat.
+- Firmenname auf der Detailseite und auf beiden Kartenansichten (Boerse und Dashboard), das Kuerzel im Kreis kommt jetzt von der Firma.
+- Alter der Anzeige in Alltagssprache ("vor 3 Tagen eingestellt", "vor 2 Monaten eingestellt"). **Ab zwei Monaten dezent rot** - dann lohnt eine Nachfrage, ob die Stelle ueberhaupt noch frei ist.
+
+**Die vier bestehenden Jobs wurden NICHT angefasst** - es sind bewusste Testdaten. Der Code kommt mit fehlendem Firmennamen sauber zurecht; ein eigener Test prueft, dass dann kein "bei undefined" erscheint.
+
+**Dauerhaft abgesichert:** `tests/firmenname.spec.js` (9 Tests): Name auf Boerse und Detailseite, sauberes Verhalten ohne Namen, die Datumstexte in allen Stufen, Hervorhebung ab zwei Monaten (und keine davor) - und dass **Google den echten Namen bekommt**.
+
+**Suite jetzt: 346 Tests, alle gruen** (vorher 337).
+
+
 ## Session 25. August 2026 (Teil 11) - Die Suche verzeiht jetzt, wie Menschen tippen
 
 Runde 26. Nach fuenf Runden mit neuen Inhaltsseiten wieder zurueck zum Produkt selbst.
