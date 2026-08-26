@@ -5,6 +5,7 @@ import { supabase } from './supabase.js'
 import { requireAuth, logout } from './session.js'
 import { toast } from './toast.js'
 import { sichereMediaUrl } from './sicher.js'
+import { istPdf } from './dokument-pfad.js'
 
 let profile
 let alleSchueler = []
@@ -183,9 +184,11 @@ async function zeigeDokument(pfad, spalte, name) {
     return
   }
 
-  const istPdf = pfad.toLowerCase().endsWith('.pdf')
+  // istPdf steht in js/dokument-pfad.js, damit Upload und Anzeige
+  // dieselbe Vorstellung davon haben, was ein Pfad bedeutet.
+  const zeigeAlsPdf = istPdf(pfad)
   const quelle = sichereMediaUrl(data.signedUrl)
-  inhalt.innerHTML = istPdf
+  inhalt.innerHTML = zeigeAlsPdf
     ? `<iframe src="${quelle}" class="dok-frame" title="Dokument"></iframe>`
     : `<img src="${quelle}" class="dok-bild" alt="Verifizierungs-Dokument">`
 }

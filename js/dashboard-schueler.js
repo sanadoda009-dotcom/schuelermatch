@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { hole, zeigeLadefehler, verstaendlich } from './zustand.js'
 import { requireAuth, logout } from './session.js'
+import { pruefeDatei, dokumentPfad, verwaisterPfad } from './dokument-pfad.js'
 import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf, erzeugeLebenslaufPdf, lebenslaufAlsBlob } from './pdf.js'
 import { initSidebar } from './sidebar.js'
@@ -920,6 +921,15 @@ async function ladeVerifizierungsDokument(e, dateiname, spalte) {
   const file = e.target.files[0]
   if (!file) return
 
+  // Groesse und Dateiart pruefen, bevor etwas losgeschickt wird. Der
+  // Bucket lehnt beides ohnehin ab - aber mit einer englischen Meldung.
+  const pruefung = pruefeDatei(file)
+  if (!pruefung.ok) {
+    toast(pruefung.fehler, 'fehler')
+    e.target.value = ''
+    return
+  }
+
   const btnId = dateiname === 'ausweis' ? 'ausweis-btn' : 'bestaetigung-btn'
   const btnText = dateiname === 'ausweis' ? 'Schülerausweis hochladen' : 'Schulbestätigung hochladen'
   const btn = document.getElementById(btnId)
@@ -927,8 +937,14 @@ async function ladeVerifizierungsDokument(e, dateiname, spalte) {
   btn.disabled = true
   btn.textContent = 'Wird hochgeladen...'
 
-  const ext = file.name.split('.').pop()
-  const path = `${profile.id}/${dateiname}.${ext}`
+  // Der Speicherort haengt am MIME-Typ, NICHT am Dateinamen. Sonst
+  // ergaeben „ausweis.jpg" und „ausweis.pdf" zwei Pfade, in der
+  // Datenbank staende nur einer - und der Ausweis eines Minderjaehrigen
+  // bliebe fuer immer im Storage liegen. Siehe js/dokument-pfad.js.
+  const path = dokumentPfad(profile.id, dateiname, file.type)
+  // Falls vorher schon etwas da war und der Pfad sich aendert: die alte
+  // Datei muss nach dem Hochladen weg.
+  const alterPfad = verwaisterPfad(profile[spalte], path)
 
   const { error: uploadError } = await supabase.storage.from('verifizierung').upload(path, file, { upsert: true })
 
@@ -938,6 +954,14 @@ async function ladeVerifizierungsDokument(e, dateiname, spalte) {
   if (uploadError) {
     toast('Fehler beim Hochladen: ' + uploadError.message, 'fehler')
     return
+  }
+
+  if (alterPfad) {
+    const { error: restError } = await supabase.storage.from('verifizierung').remove([alterPfad])
+    // Das neue Dokument liegt schon - deshalb kein Abbruch. Aber der
+    // Schueler muss erfahren, dass die alte Datei noch da ist.
+    if (restError)
+      toast('Hinweis: Die vorherige Datei konnte nicht entfernt werden. Bitte melde dich bei uns.', 'fehler')
   }
 
   const { error: updateError } = await supabase.from('profiles').update({ [spalte]: path }).eq('id', profile.id)
