@@ -327,6 +327,44 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 8) - Job-Alarm: die Oberflaeche
+
+Zweiter Teil des Job-Alarms. Der Motor stand seit Teil 7, jetzt kommt die Bedienung dazu.
+
+### Wo sie sitzt
+**Unter der Jobliste, nicht darueber.** Wer dort ankommt, hat gerade durchgescrollt und nichts Passendes gefunden - genau dann ist ein Alarm etwas wert. Und genau dann stehen die Filter schon so, wie der Schueler sie haben will: Der Alarm **uebernimmt sie einfach**, statt ein zweites Formular zu verlangen.
+
+Drei Zustaende: kein Alarm (Angebot), laeuft (zeigt die Kriterien, "Auf aktuelle Filter setzen" / "Ausschalten"), aus (Wiedereinschalten).
+
+### Solange die Tabelle fehlt, ist die Karte unsichtbar
+Die Datenbank-Aenderung aus Teil 7 steht noch aus. Statt einer Fehlermeldung blendet sich die Karte stumm aus - ein Schueler soll nichts von einer halbfertigen Baustelle mitbekommen. Ein Test sichert genau das ab, mit der Antwort, die PostgREST bei einer unbekannten Tabelle wirklich schickt (`42P01`).
+
+### Zwei Funde beim Testen
+
+**1. Ein echter Bug in meinem eigenen Code - und die Datei hatte gewarnt.**
+`geocode()` gibt **nie `null`** zurueck, sondern immer ein Objekt mit `status`: `'ok'`, `'unbekannt'` oder `'gestoert'`. Mein `if (geo) { lat = geo.lat }` war deshalb immer wahr und schrieb bei unbekanntem Ort `undefined` in die Felder - die dann still aus dem JSON fielen.
+
+`js/geo.js` erklaert im Kopfkommentar genau diese Unterscheidung, und zwar weil eine **fruehere Fassung desselben Fehlers Nutzern still ihre Koordinaten geloescht hat**: Wer nur seinen Namen aenderte, waehrend der Geo-Dienst klemmte, verschwand aus der Umkreissuche, ohne es zu merken.
+
+Jetzt sauber unterschieden:
+- `ok` -> uebernehmen
+- `unbekannt` -> leeren, es wird ueber den Ortsnamen verglichen
+- `gestoert` -> die bisherigen Koordinaten **nur behalten, wenn der Ort derselbe ist**. Bei einem neuen Ort werden sie verworfen; sie zeigten sonst auf die alte Stadt, und der Umkreis suchte am falschen Fleck.
+
+Beide Faelle haben jetzt einen eigenen Test.
+
+**Beinahe haette ich das ueberdeckt.** Der Test meldete `undefined` statt `null`; ein `toBeNull()` in ein `== null` zu aendern haette ihn gruen gemacht und den Bug verdeckt.
+
+**2. Eine Luecke im Test-Helfer.**
+`helpers/supabase-fake.js` beachtete den `vnd.pgrst.object`-Kopf nur bei GET. Nach `insert`/`update` kam trotzdem eine Liste zurueck, waehrend PostgREST ein Objekt liefert. Wer `.insert(...).select().single()` schreibt, bekam im Test ein Array und im Echtbetrieb ein Objekt - **ein Test konnte gruen sein, obwohl die Seite kaputt war**. Behoben; gilt jetzt fuer POST und PATCH genauso.
+
+### Neu
+`js/job-alarm.js`, Karte in `dashboard-schueler.html`, `aktuelleFilter()` in `js/dashboard-schueler.js` (liest dieselben Felder wie `wendeJobFilterAn()`), CSS.
+
+`tests/job-alarm.spec.js` (9 Pruefungen): Angebot ohne Alarm; ohne Ort wird nichts gespeichert, sondern erklaert; Rueckfall auf den Wohnort aus dem Profil; Uebernahme aller Filter samt Koordinaten; unbekannter Ort; beide Geo-Stoerfaelle; Ausschalten; und die verborgene Karte bei fehlender Tabelle.
+
+**Suite: 421 -> 430 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 7) - Job-Alarm: der Motor
 
 Der Job-Alarm stand in OFFENE-PUNKTE.md als **staerkster Wachstums-Hebel**: Wer heute nichts Passendes findet, geht sonst und kommt nicht wieder.

@@ -186,6 +186,12 @@
         <div class="jobs-grid" id="jobs-grid">
           <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
         </div>
+
+        <!-- Job-Alarm: steht bewusst UNTER der Liste. Wer hier ankommt,
+             hat gerade nichts Passendes gefunden - genau dann ist der
+             Alarm etwas wert. Bleibt verborgen, solange die Tabelle in
+             der Datenbank fehlt (siehe js/job-alarm.js). -->
+        <section class="alarm-karte" id="alarm-karte" aria-live="polite" hidden></section>
       </div>
     </div>
   </div>

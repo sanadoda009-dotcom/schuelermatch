@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **421 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **430 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -37,7 +37,9 @@
       Einfügen ist also unproblematisch.
    2. Edge Function `mail-job-alarm` deployen
    3. Zeitplan setzen, z.B. Cron `0 16 * * *`
-   Danach fehlt nur noch die Oberfläche im Schüler-Dashboard.
+   Die **Oberfläche ist seit 26.8. auch fertig** (`js/job-alarm.js`, Karte unter der
+   Jobliste, 9 Tests). Sie bleibt verborgen, solange die Tabelle fehlt — sobald du
+   die drei Schritte gemacht hast, ist der Job-Alarm vollständig da.
 5. ~~**Betreiber-Statistik im Admin**~~ ✅ **ERLEDIGT am 22.8.** — neuer Reiter „Statistik“: Nutzer- und Aktivitätszahlen, Quoten, offene Aufgaben und ein 8-Wochen-Verlauf mit Balken. 5 E2E-Tests.
 6. ~~**Sicherheits-Hinweise im Chat**~~ ✅ **ERLEDIGT am 22.8.** — aufklappbare Regel-Leiste in jedem Chat + automatische Warnung bei Nachrichten mit Handynummer/Messenger, Vorkasse oder Einladung zum Alleintreffen. 6 E2E-Tests.
 

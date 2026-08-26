@@ -177,17 +177,32 @@ function behandleRest(db, method, tabelle, url, headers, body) {
     return { status: 200, body: JSON.stringify(ergebnis) }
   }
 
+  // PostgREST liefert ein OBJEKT statt einer Liste, wenn der Client
+  // .single() oder .maybeSingle() benutzt (Accept: vnd.pgrst.object).
+  // Das galt hier bisher nur fuer GET - nach einem insert/update kam
+  // trotzdem eine Liste zurueck. Code, der `.insert(...).select().single()`
+  // schreibt, bekam damit im Test ein Array und im Echtbetrieb ein Objekt;
+  // ein Test konnte gruen sein, obwohl die Seite kaputt war.
+  // (Gefunden am 26.8. beim Job-Alarm.)
+  function einzelnWennGewuenscht(liste, status) {
+    if (!(headers['accept'] || '').includes('vnd.pgrst.object')) {
+      return { status, body: JSON.stringify(liste) }
+    }
+    if (!liste.length) return { status: 406, body: JSON.stringify({ code: 'PGRST116', message: 'no rows' }) }
+    return { status, body: JSON.stringify(liste[0]) }
+  }
+
   if (method === 'POST') {
     const eingaben = Array.isArray(body) ? body : [body]
     const neu = eingaben.map(e => ({ id: e.id || cryptoId(), erstellt_am: new Date().toISOString(), ...e }))
     rows.push(...neu)
-    return { status: 201, body: JSON.stringify(neu) }
+    return einzelnWennGewuenscht(neu, 201)
   }
 
   if (method === 'PATCH') {
     const treffer = gefiltert()
     treffer.forEach(r => Object.assign(r, body))
-    return { status: 200, body: JSON.stringify(treffer) }
+    return einzelnWennGewuenscht(treffer, 200)
   }
 
   if (method === 'DELETE') {

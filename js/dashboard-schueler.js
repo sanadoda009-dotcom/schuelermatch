@@ -11,6 +11,7 @@ import { geocode, distanzKm, uebernehmeKoordinaten } from './geo.js'
 import { passtZurSuche } from './suche.js'
 import { oeffneMeldeDialog, meldeButtonHtml } from './melden.js'
 import { sichereMediaUrl } from './sicher.js'
+import { initJobAlarm } from './job-alarm.js'
 
 let profile
 let bloecke = []
@@ -156,6 +157,11 @@ async function init() {
   })
 
   await ladeJobs()
+
+  // Nach den Jobs: Die Alarm-Karte sitzt unter der Liste, muss also
+  // nicht auf den ersten Blick da sein. Laeuft die Abfrage schief -
+  // etwa weil die Tabelle noch fehlt -, bleibt die Karte verborgen.
+  initJobAlarm(profile, aktuelleFilter)
 }
 
 /* ---------- CV-VORLAGEN & FORMULIERUNGSHILFE ---------- */
@@ -1100,6 +1106,22 @@ async function ladeJobs() {
 
   alleJobs = jobs
   wendeJobFilterAn()
+}
+
+// Aktueller Filterstand fuer den Job-Alarm. Bewusst dieselben Felder wie
+// in wendeJobFilterAn(): Was der Schueler gerade sieht, soll auch das
+// sein, worauf der Alarm hoert.
+function aktuelleFilter() {
+  const wert = id => (document.getElementById(id)?.value ?? '').trim()
+  const radiusEl = document.getElementById('filter-radius')
+  const radius = radiusEl ? parseInt(radiusEl.value, 10) : 0
+  return {
+    ort: wert('filter-ort') || profile.ort || '',
+    umkreis: radius > 0 ? radius : 25,
+    kategorie: wert('filter-kategorie'),
+    arbeitszeit: wert('filter-arbeitszeit'),
+    minLohn: parseFloat(wert('filter-gehalt')) || null,
+  }
 }
 
 function wendeJobFilterAn() {
