@@ -97,22 +97,42 @@ async function ladeJob() {
   const bewertungenHtml = await ladeBewertungenHtml(job.firma_id)
 
   // Strukturierte Daten (schema.org JobPosting) -> Google-Jobs-Auffindbarkeit
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'JobPosting',
-    title: job.titel,
-    description: job.beschreibung || job.titel,
-    datePosted: job.erstellt_am ? job.erstellt_am.slice(0, 10) : undefined,
-    employmentType: 'PART_TIME',
-    hiringOrganization: { '@type': 'Organization', name: job.firma_name || 'Arbeitgeber auf SchülerMatch' },
-    jobLocation: job.ort ? { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: job.ort, addressCountry: 'DE' } } : undefined,
-    baseSalary: job.stundenlohn ? { '@type': 'MonetaryAmount', currency: 'EUR', value: { '@type': 'QuantitativeValue', value: job.stundenlohn, unitText: 'HOUR' } } : undefined,
-    directApply: true
+  //
+  // Google verlangt fuer eine gueltige Stellenanzeige fuenf Angaben:
+  // title, description, datePosted, hiringOrganization und jobLocation.
+  // Fehlt eine davon, erscheint die Anzeige gar nicht - ohne jede
+  // Rueckmeldung.
+  //
+  // Am 26.8. gemessen: Bei einem Job ohne Ort fiel `jobLocation` still
+  // weg. Herausgekommen waeren ungueltige strukturierte Daten. Jetzt
+  // wird lieber GAR NICHTS ausgeliefert als etwas Unvollstaendiges -
+  // eine fehlerhafte Auszeichnung kann der ganzen Seite schaden, eine
+  // fehlende kostet nur diesen einen Job.
+  if (job.titel && job.erstellt_am && job.ort) {
+    const jsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'JobPosting',
+      title: job.titel,
+      description: job.beschreibung || job.titel,
+      datePosted: job.erstellt_am.slice(0, 10),
+      // Ohne validThrough zeigt Google Anzeigen unbegrenzt weiter, auch
+      // laengst besetzte. 90 Tage passen zur eigenen Logik der Seite,
+      // die eine Anzeige ab zwei Monaten als moeglicherweise veraltet
+      // kennzeichnet. Wird ein Job pausiert, liefert diese Seite ohnehin
+      // "nicht verfuegbar" und gar keine strukturierten Daten mehr.
+      validThrough: new Date(new Date(job.erstellt_am).getTime() + 90 * 864e5)
+        .toISOString().slice(0, 10),
+      employmentType: 'PART_TIME',
+      hiringOrganization: { '@type': 'Organization', name: job.firma_name || 'Arbeitgeber auf SchülerMatch' },
+      jobLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: job.ort, addressCountry: 'DE' } },
+      baseSalary: job.stundenlohn ? { '@type': 'MonetaryAmount', currency: 'EUR', value: { '@type': 'QuantitativeValue', value: job.stundenlohn, unitText: 'HOUR' } } : undefined,
+      directApply: true
+    }
+    const ldScript = document.createElement('script')
+    ldScript.type = 'application/ld+json'
+    ldScript.textContent = JSON.stringify(jsonLd, (k, v) => v === undefined ? undefined : v)
+    document.head.appendChild(ldScript)
   }
-  const ldScript = document.createElement('script')
-  ldScript.type = 'application/ld+json'
-  ldScript.textContent = JSON.stringify(jsonLd, (k, v) => v === undefined ? undefined : v)
-  document.head.appendChild(ldScript)
   document.title = `${job.titel} – SchülerMatch`
   // Teilen-Vorschau auf diesen Job umschreiben (siehe Kommentar in job.html).
   const setzeMeta = (eigenschaft, wert) => {

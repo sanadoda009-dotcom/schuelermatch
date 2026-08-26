@@ -327,6 +327,39 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 9) - Google Jobs: zwei stille Fehler
+
+In der Launch-Liste steht *"sitemap.xml einreichen -> Jobs erscheinen in Google Jobs"*. Ob das klappt, entscheidet sich an der JSON-LD-Auszeichnung auf der Job-Detailseite. Die gab es - aber ungeprueft, und das Tueckische daran: **Fehlt eine Pflichtangabe, erscheint die Anzeige einfach nicht. Google meldet sich nicht.**
+
+Ausgelesen, was tatsaechlich im Browser landet. Zwei Befunde:
+
+### 1. `jobLocation` fiel still weg
+```js
+jobLocation: job.ort ? { ... } : undefined
+```
+Ohne Ort verschwand das Feld - und damit eine der **fuenf Angaben, die Google zwingend verlangt** (title, description, datePosted, hiringOrganization, jobLocation). Herausgekommen waeren ungueltige strukturierte Daten.
+
+In der Datenbank haben aktuell alle vier Jobs einen Ort, der Fall trat also noch nicht ein. Das Job-Formular verlangt den Ort auch. Aber die Zeile war eine Falle fuer den ersten Job, bei dem es anders kommt.
+
+**Jetzt wird lieber gar nichts ausgeliefert als etwas Unvollstaendiges** - eine fehlerhafte Auszeichnung kann der ganzen Seite schaden, eine fehlende kostet nur diesen einen Job.
+
+### 2. `validThrough` fehlte immer
+Ohne diese Angabe zeigt Google Stellenanzeigen unbegrenzt weiter - auch laengst besetzte. Jetzt **90 Tage ab Veroeffentlichung**. Das passt zur eigenen Logik der Seite, die eine Anzeige ab zwei Monaten als moeglicherweise veraltet kennzeichnet. Wird ein Job pausiert, liefert die Seite ohnehin "nicht verfuegbar" und gar keine strukturierten Daten mehr.
+
+### Nebenbefund (nicht angefasst)
+Alle vier Jobs in der Datenbank haben **keinen `firma_name`** - sie stammen von vor dem 25.8., als das Feld eingefuehrt wurde. In Google stuende bei ihnen "Arbeitgeber auf SchuelerMatch" statt eines echten Namens. Es sind bewusste Testdaten, deshalb unveraendert gelassen; neue Anzeigen bekommen den Namen mit.
+
+Ebenfalls aufgefallen: `tests/helpers/fixtures.js` kennt `firma_name` gar nicht. Die Tests laufen damit immer ueber den Ersatzpfad. Der neue Test deckt beide Wege gezielt ab, statt die gemeinsamen Testdaten anzufassen und 430 andere Tests zu wackeln.
+
+### Neu: `tests/google-jobs.spec.js` (7 Pruefungen)
+Alle fuenf Pflichtangaben; Ort als `Place` mit Adresse statt als blosser Text; Datumsformat und `validThrough` nach `datePosted`; Stundenlohn mit `unitText: HOUR` (sonst liest Google es als **Jahresgehalt**); ohne Ort gar keine Daten; Titel als Ersatzbeschreibung; ohne Lohn bleibt die Anzeige gueltig; Firmenname; pausierter Job.
+
+**Ein Test war zuerst falsch gebaut:** Er reichte einen pausierten Job per Mock durch und pruefte damit an der eigentlichen Schutzstelle vorbei - `job-detail.js` fragt mit `.eq('aktiv', true)`, ein pausierter Job kommt vom Server gar nicht erst zurueck. Jetzt bildet der Test genau das nach (PostgREST antwortet mit `PGRST116`) und prueft zusaetzlich, dass die Seite ueberhaupt auf `aktiv=true` filtert.
+
+**Gegenprobe gemacht:** gegen den alten Stand faellt der Test auf beiden Befunden um.
+
+**Suite: 430 -> 437 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 8) - Job-Alarm: die Oberflaeche
 
 Zweiter Teil des Job-Alarms. Der Motor stand seit Teil 7, jetzt kommt die Bedienung dazu.

@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **430 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **437 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -23,6 +23,7 @@
    - Impressum + Datenschutz einmal absegnen lassen (Texte sind fertig vorbereitet)
 2. **Gate abschalten**: in `js/gate.js` → `GATE_AKTIV = false` setzen + pushen
 3. **Google Search Console** einrichten + `sitemap.xml` einreichen (→ Jobs erscheinen in Google Jobs)
+   — *Die strukturierten Daten dafuer wurden am 26.8. geprueft und repariert: `jobLocation` fiel ohne Ort still weg, `validThrough` fehlte ganz. `tests/google-jobs.spec.js` haelt jetzt alle fünf Pflichtangaben fest.*
 
 ## 🔜 Nächste Features (nach Priorität)
 1. ~~**Melden-Funktion**~~ ✅ **ERLEDIGT am 22.8.** — Melde-Button im Job-Detail und an fremden Chat-Nachrichten, 5 Melde-Gründe + Freitext, neuer Admin-Reiter „Meldungen“ mit Filter und Status. 9 E2E-Tests.
