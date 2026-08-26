@@ -328,6 +328,35 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 14) - Der unsichtbare Knopf in der Zusage-Mail
+
+Angesehen wurde etwas, das bisher niemand geprueft hatte: die **Texte der automatischen E-Mails**. Eine Absage geht an einen 14-Jaehrigen; wie die formuliert ist, zaehlt.
+
+**Die Texte sind gut.** Die Absage sagt *"das sagt nichts ueber dich aus"* und *"Bleib dran"* statt einer Floskel. Daran war nichts zu tun.
+
+### Aber die Knoepfe darin hatten zwei Probleme in einer Zeile
+```
+background:linear-gradient(120deg,#00c896,#2b2f8f);color:#fff
+```
+
+**1. Kontrast.** Weisse Schrift auf `#00c896` kommt auf **2,16:1**. Am gruenen Ende des Verlaufs war der Knopftext kaum zu lesen - derselbe Befund, der am selben Tag schon die Web-Knoepfe betraf.
+
+**2. Outlook kennt keine CSS-Verlaeufe.** Sein Renderer stammt aus Word. Die Kurzform `background:` mit einem Verlauf als einzigem Wert ist fuer ihn ungueltig und faellt **komplett weg** - uebrig bleibt weisse Schrift auf weissem Grund. Der Knopf war dort schlicht **unsichtbar**.
+
+Betroffen: die Verifizierungs-Mail, die Firmen-Freischaltung und die **Zusage** - die wichtigste Mail, die diese Seite ueberhaupt verschickt.
+
+### Behoben
+`background-color` als deckender Rueckfall plus `background-image` fuer den Verlauf. Wer Verlaeufe kann, sieht sie; alle anderen sehen eine dunkle Flaeche mit lesbarer Schrift. Der Verlauf beginnt jetzt bei `#00795c` statt `#00c896` - **5,4:1 statt 2,16:1**.
+
+Gleiches Vorgehen beim schmalen Zierbalken oben im Mailrahmen, in allen drei Funktionen: In Outlook fehlte er bisher ersatzlos.
+
+### `tests/mail-knoepfe.spec.js` (5 Pruefungen)
+Die Edge Functions lassen sich hier nicht ausfuehren (Deno, Datenbank, Resend) - aber genau diese Fehlerklasse ist am **Quelltext** erkennbar. Geprueft wird: keine `background:`-Kurzform mit Verlauf · jeder Knopf mit weisser Schrift hat einen dunklen Rueckfall (gerechneter Kontrast) · auch der **Anfang** des Verlaufs ist dunkel genug (die Farbe, die Verlaufs-faehige Clients am linken Rand zeigen) · alle Nutzerwerte werden escaped · jede Mail nennt einen Weg zum Abbestellen.
+
+**Gegenprobe gemacht:** gegen den alten Stand meldet der Test alle vier Stellen namentlich.
+
+**Suite: 504 -> 509 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 13) - Die ungeprueften Zeilen
 
 Der Job-Alarm ist seit Teil 7/8 fertig gebaut. Aber ein Stueck davon war **voellig ungeprueft**: die Logik, die entscheidet, welche Anzeigen ein Schueler zugeschickt bekommt.

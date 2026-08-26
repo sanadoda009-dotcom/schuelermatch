@@ -52,7 +52,7 @@ function vorname(name: unknown): string {
 
 function rahmen(inhalt: string): string {
   return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#161a1f">
-    <div style="height:4px;background:linear-gradient(120deg,#00c896,#2b2f8f);border-radius:4px"></div>
+    <div style="height:4px;background-color:#00795c;background-image:linear-gradient(120deg,#00c896,#2b2f8f);border-radius:4px"></div>
     <div style="padding:24px 4px">${inhalt}</div>
     <p style="font-size:12px;color:#9aa0a8;border-top:1px solid #e7e3da;padding-top:14px">
       Du bekommst diese E-Mail von SchülerMatch. Einstellungen änderst du in deinem Dashboard.
@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
            <p>Übrigens: Dein hochgeladenes Dokument haben wir nach der Prüfung
            direkt wieder gelöscht.</p>
            <p><a href="${SITE_URL}/dashboard-schueler.html"
-             style="display:inline-block;background:linear-gradient(120deg,#00c896,#2b2f8f);color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
+             style="display:inline-block;background-color:#00795c;background-image:linear-gradient(120deg,#00795c,#2b2f8f);color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
              Jetzt Jobs entdecken</a></p>`,
         )
       }
@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
            <p>Deine Anzeigen sind ab sofort für Schüler sichtbar. Neue Jobs, die du postest,
            gehen künftig direkt online.</p>
            <p><a href="${SITE_URL}/dashboard-firma.html"
-             style="display:inline-block;background:linear-gradient(120deg,#00c896,#2b2f8f);color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
+             style="display:inline-block;background-color:#00795c;background-image:linear-gradient(120deg,#00795c,#2b2f8f);color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
              Zum Firmen-Dashboard</a></p>`,
         )
       }
@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
              für <b>„${jobTitel}"</b> angenommen.</p>
              <p>Öffne den Chat im Dashboard, um die nächsten Schritte zu klären.</p>
              <p><a href="${SITE_URL}/dashboard-schueler.html"
-               style="display:inline-block;background:linear-gradient(120deg,#00c896,#2b2f8f);color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
+               style="display:inline-block;background-color:#00795c;background-image:linear-gradient(120deg,#00795c,#2b2f8f);color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
                Zum Chat</a></p>`,
           )
         } else {

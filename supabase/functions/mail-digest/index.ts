@@ -35,7 +35,7 @@ function esc(s: unknown): string {
 
 function rahmen(inhalt: string): string {
   return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#161a1f">
-    <div style="height:4px;background:linear-gradient(120deg,#00c896,#2b2f8f);border-radius:4px"></div>
+    <div style="height:4px;background-color:#00795c;background-image:linear-gradient(120deg,#00c896,#2b2f8f);border-radius:4px"></div>
     <div style="padding:24px 4px">${inhalt}</div>
     <p style="font-size:12px;color:#9aa0a8;border-top:1px solid #e7e3da;padding-top:14px">
       Tägliche Zusammenfassung von SchülerMatch. Im Firmenprofil kannst du auf „sofort" oder „aus" umstellen.
