@@ -328,6 +328,43 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 21) - 16 englische Fehlertexte
+
+Der naechste Punkt aus der Liste, und einer der wenigen, der ohne Sanad
+auskommt: **Formular-Fehlermeldungen**.
+
+Gemessen: **16 Stellen** gaben den englischen Text von Supabase oder der
+Dateiablage direkt an den Nutzer weiter - beim Hochladen des Schuelerausweises,
+beim Speichern des Lebenslaufs, beim Anfordern eines neuen Passworts. Also
+genau dort, wo ein 14-Jaehriger sitzt, der ohnehin unsicher ist.
+
+`verstaendlich()` in `js/zustand.js` gab es laengst und deckte Netz, Rechte,
+Duplikate, Groesse und Sitzung ab. Nur riefen es diese 16 Stellen nicht auf.
+
+### Zwei Faelle fehlten im Uebersetzer
+- **Das Tempolimit der Anmeldedienste.** "For security purposes, you can only
+  request this after 41 seconds" ist der haeufigste Fehler auf den
+  Anmeldeseiten ueberhaupt. Die Sekundenzahl wird jetzt uebernommen - ein
+  blosses "gleich nochmal" laesst Leute im Sekundentakt weiterklicken.
+- **Abgelehnte Dateiart.** `js/dokument-pfad.js` faengt das seit Teil 17
+  vorher ab; die Meldung bleibt fuer den Fall, dass doch etwas durchkommt.
+
+### Ein Nebenbefund beim Passwort-Zuruecksetzen
+`js/forgot-password.js` zeigte `error.message` roh an. Das war nicht nur
+englisch, sondern inkonsequent: Die Erfolgsmeldung sagt bewusst "**Falls** diese
+E-Mail registriert ist", damit sich nicht ablesen laesst, wer ein Konto hat -
+und der Fehlerzweig kippte diesen Schutz wieder um.
+
+### Der Betreiber-Bereich bleibt roh - mit Ansage
+Die 6 Stellen in `js/admin.js` sind **nicht** umgestellt. Dort sitzt die
+einzige Person, die mit "new row violates row-level security policy" etwas
+anfangen kann; ein freundliches "hat gerade nicht geklappt" wuerde die
+Fehlersuche unmoeglich machen. Das steht als Kommentar im Dateikopf und wird
+von einem Test festgehalten, damit es spaeter niemand als Versehen
+"korrigiert".
+
+**Suite: 625 -> 633 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 20) - Derselbe Fehler auf der Schuelerseite
 
 Fortsetzung der Methode aus Teil 19. Diesmal nicht die Texte der Seite, sondern

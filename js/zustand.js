@@ -88,5 +88,24 @@ export function verstaendlich(error, was = 'Das') {
     return 'Die Datei ist zu groß. Nimm eine kleinere.'
   if (roh.includes('jwt') || roh.includes('expired') || roh.includes('session'))
     return 'Du warst zu lange weg. Bitte melde dich neu an.'
+
+  // Tempolimit der Anmeldedienste. Kam bisher auf Englisch beim Nutzer an
+  // ("For security purposes, you can only request this after 41 seconds"),
+  // obwohl gerade dort jemand sitzt, der ohnehin nervös ist.
+  // Die Sekundenzahl wird uebernommen, wenn sie dasteht - "gleich nochmal"
+  // ohne Zahl laesst Leute im Sekundentakt weiterklicken.
+  if (roh.includes('rate limit') || roh.includes('for security purposes') || roh.includes('too many')) {
+    const sek = roh.match(/(\d+)\s*second/)
+    return sek
+      ? `Zu viele Versuche. Bitte warte ${sek[1]} Sekunden und probier es dann nochmal.`
+      : 'Zu viele Versuche in kurzer Zeit. Bitte warte einen Moment und probier es dann nochmal.'
+  }
+
+  // Die Ablage nimmt nur Bilder und PDF. js/dokument-pfad.js faengt das
+  // vorher ab - diese Meldung bleibt fuer den Fall, dass doch etwas
+  // durchkommt.
+  if (roh.includes('mime type') || roh.includes('not supported'))
+    return 'Diese Dateiart geht hier nicht. Nimm ein Bild (JPG, PNG) oder ein PDF.'
+
   return was + ' hat gerade nicht geklappt. Versuch es gleich nochmal.'
 }

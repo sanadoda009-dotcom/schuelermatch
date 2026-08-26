@@ -1,5 +1,13 @@
 // Admin-Bereich: Schüler-Verifizierungen prüfen und freischalten.
 // Zugriff nur für Profile mit ist_admin = true (per RLS zusätzlich in der DB abgesichert).
+//
+// FEHLERMELDUNGEN SIND HIER ABSICHTLICH ROH.
+// Überall sonst laufen sie durch `verstaendlich()` aus js/zustand.js, damit
+// ein 14-Jähriger keinen englischen Datenbanktext vorgesetzt bekommt. Hier
+// sitzt aber der Betreiber - die einzige Person, die mit „new row violates
+// row-level security policy" etwas anfangen kann. Ein freundliches „hat
+// gerade nicht geklappt" würde die Fehlersuche unmöglich machen.
+// Das ist eine Entscheidung, kein Versehen.
 
 import { supabase } from './supabase.js'
 import { requireAuth, logout } from './session.js'

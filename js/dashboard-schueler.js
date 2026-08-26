@@ -712,7 +712,7 @@ async function ladeBlockBildHoch(blockId, file) {
 
   const { error: uploadError } = await supabase.storage.from('lebenslauf-bilder').upload(path, file, { upsert: true })
   if (uploadError) {
-    toast('Fehler beim Hochladen: ' + uploadError.message, 'fehler')
+    toast(verstaendlich(uploadError, 'Das Hochladen'), 'fehler')
     return
   }
 
@@ -909,7 +909,7 @@ async function loescheDokument(e) {
   // 1) Datei aus dem privaten Storage entfernen
   const { error: storageError } = await supabase.storage.from('verifizierung').remove([pfad])
   if (storageError) {
-    toast('Fehler beim Löschen der Datei: ' + storageError.message, 'fehler')
+    toast(verstaendlich(storageError, 'Das Löschen'), 'fehler')
     btn.disabled = false; btn.textContent = 'Dokument löschen'; btn.dataset.confirm = '0'
     return
   }
@@ -917,7 +917,7 @@ async function loescheDokument(e) {
   // 2) Pfad in der Datenbank leeren, damit kein toter Verweis bleibt
   const { error: dbError } = await supabase.from('profiles').update({ [spalte]: null }).eq('id', profile.id)
   if (dbError) {
-    toast('Datei gelöscht, aber DB-Pfad konnte nicht geleert werden: ' + dbError.message, 'fehler')
+    toast('Die Datei ist gelöscht, aber der Eintrag dazu nicht. Lade die Seite neu – bleibt es dabei, schreib uns.', 'fehler')
     return
   }
 
@@ -961,7 +961,7 @@ async function ladeVerifizierungsDokument(e, dateiname, spalte) {
   btn.textContent = btnText
 
   if (uploadError) {
-    toast('Fehler beim Hochladen: ' + uploadError.message, 'fehler')
+    toast(verstaendlich(uploadError, 'Das Hochladen'), 'fehler')
     return
   }
 
@@ -976,7 +976,7 @@ async function ladeVerifizierungsDokument(e, dateiname, spalte) {
   const { error: updateError } = await supabase.from('profiles').update({ [spalte]: path }).eq('id', profile.id)
 
   if (updateError) {
-    toast('Fehler beim Speichern: ' + updateError.message, 'fehler')
+    toast(verstaendlich(updateError, 'Das Speichern'), 'fehler')
     return
   }
 
@@ -1024,7 +1024,7 @@ async function ladeFotoHoch(e) {
     .upload(path, file, { upsert: true })
 
   if (uploadError) {
-    toast('Fehler beim Hochladen: ' + uploadError.message, 'fehler')
+    toast(verstaendlich(uploadError, 'Das Hochladen'), 'fehler')
     btn.disabled = false
     btn.textContent = 'Foto hochladen'
     return
@@ -1041,7 +1041,7 @@ async function ladeFotoHoch(e) {
   btn.textContent = 'Foto hochladen'
 
   if (updateError) {
-    toast('Fehler beim Speichern: ' + updateError.message, 'fehler')
+    toast(verstaendlich(updateError, 'Das Speichern'), 'fehler')
     return
   }
 

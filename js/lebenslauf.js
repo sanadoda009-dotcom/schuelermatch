@@ -5,6 +5,7 @@
 import { supabase } from './supabase.js'
 import { requireAuth } from './session.js'
 import { toast } from './toast.js'
+import { verstaendlich } from './zustand.js'
 import { erzeugeLebenslaufPdfMitAnkern, ladeLebenslaufAlsPdf } from './pdf.js'
 import { sichereMediaUrl } from './sicher.js'
 import { dokumentPfad, pfadAusUrl, pruefeFuerBucket, verwaisterPfad } from './dokument-pfad.js'
@@ -525,14 +526,14 @@ async function ladeFotoHoch(e) {
   const path = dokumentPfad(profile.id, 'avatar', file.type)
   const alterPfad = verwaisterPfad(pfadAusUrl(profile.foto_url, 'avatars'), path)
   const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
-  if (upErr) { toast('Fehler beim Hochladen: ' + upErr.message, 'fehler'); btn.disabled = false; btn.textContent = 'Foto hochladen'; return }
+  if (upErr) { toast(verstaendlich(upErr, 'Das Hochladen'), 'fehler'); btn.disabled = false; btn.textContent = 'Foto hochladen'; return }
   if (alterPfad) await supabase.storage.from('avatars').remove([alterPfad])
 
   const { data } = supabase.storage.from('avatars').getPublicUrl(path)
   const foto_url = data.publicUrl + '?t=' + Date.now()
   const { error: dbErr } = await supabase.from('profiles').update({ foto_url }).eq('id', profile.id)
   btn.disabled = false
-  if (dbErr) { toast('Fehler beim Speichern: ' + dbErr.message, 'fehler'); return }
+  if (dbErr) { toast(verstaendlich(dbErr, 'Das Speichern'), 'fehler'); return }
 
   profile.foto_url = foto_url
   toast('Foto gespeichert!')
@@ -551,7 +552,7 @@ async function ladeBlockBildHoch(blockId, file) {
   const path = dokumentPfad(profile.id, blockId, file.type)
   const alterPfad = verwaisterPfad(pfadAusUrl(b?.bild_url, 'lebenslauf-bilder'), path)
   const { error } = await supabase.storage.from('lebenslauf-bilder').upload(path, file, { upsert: true })
-  if (error) { toast('Fehler beim Hochladen: ' + error.message, 'fehler'); return }
+  if (error) { toast(verstaendlich(error, 'Das Hochladen'), 'fehler'); return }
   if (alterPfad) await supabase.storage.from('lebenslauf-bilder').remove([alterPfad])
   const { data } = supabase.storage.from('lebenslauf-bilder').getPublicUrl(path)
   b.bild_url = data.publicUrl + '?t=' + Date.now()

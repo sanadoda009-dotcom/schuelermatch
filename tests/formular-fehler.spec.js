@@ -53,3 +53,88 @@ test('Passwort zurücksetzen zeigt keinen englischen Rohtext', async ({ page }) 
   expect(text).not.toMatch(/password should|at least 10 characters/)
   expect(text).toMatch(/zu kurz|zu einfach|nicht geklappt/)
 })
+
+// ---------------------------------------------------------------------
+// Rohe Fehlertexte (26.8.)
+//
+// Gemessen: 16 Stellen gaben den englischen Text von Supabase oder der
+// Dateiablage direkt an den Nutzer weiter — beim Hochladen des
+// Schülerausweises, beim Speichern des Lebenslaufs, beim Anfordern eines
+// neuen Passworts. Dort sitzt ein 14-Jähriger, der ohnehin unsicher ist.
+//
+// Alle bis auf den Betreiber-Bereich laufen jetzt durch `verstaendlich()`.
+// Im Betreiber-Bereich bleiben sie ABSICHTLICH roh: Dort sitzt die einzige
+// Person, die mit „new row violates row-level security policy" etwas
+// anfangen kann.
+test.describe('kein englischer Rohtext beim Nutzer', () => {
+  async function uebersetzt(page, meldung) {
+    return page.evaluate(async m => {
+      const z = await import('/js/zustand.js')
+      return z.verstaendlich({ message: m }, 'Das Hochladen')
+    }, meldung)
+  }
+
+  test.beforeEach(async ({ page }) => { await page.goto('/index.html') })
+
+  test('das Tempolimit nennt die Wartezeit', async ({ page }) => {
+    // Der häufigste Fall auf den Anmeldeseiten. „Gleich nochmal" ohne
+    // Zahl lässt Leute im Sekundentakt weiterklicken.
+    const t = await uebersetzt(page, 'For security purposes, you can only request this after 41 seconds.')
+    expect(t).toMatch(/41 Sekunden/)
+    expect(t.toLowerCase()).not.toMatch(/security purposes|request this/)
+  })
+
+  test('auch ohne Sekundenangabe', async ({ page }) => {
+    const t = await uebersetzt(page, 'Email rate limit exceeded')
+    expect(t).toMatch(/warte/i)
+    expect(t.toLowerCase()).not.toMatch(/rate limit/)
+  })
+
+  test('eine abgelehnte Dateiart wird erklärt', async ({ page }) => {
+    const t = await uebersetzt(page, 'mime type application/zip is not supported')
+    expect(t).toMatch(/PDF/)
+    expect(t.toLowerCase()).not.toMatch(/mime type/)
+  })
+
+  test('die bekannten Fälle bleiben, wie sie waren', async ({ page }) => {
+    // Gegenprobe: Die neuen Zweige dürfen die alten nicht verschlucken.
+    const faelle = {
+      'Failed to fetch': /Verbindung/,
+      'new row violates row-level security policy': /Berechtigung/,
+      'duplicate key value violates unique constraint': /schon/,
+      'JWT expired': /neu an/,
+    }
+    for (const [roh, erwartet] of Object.entries(faelle)) {
+      expect(await uebersetzt(page, roh), roh).toMatch(erwartet)
+    }
+  })
+
+  test('„Payload too large" bleibt bei der Größe, nicht beim Tempolimit', async ({ page }) => {
+    // Die Reihenfolge der Zweige entscheidet — „too large" enthält kein
+    // „too many", aber die Prüfungen liegen dicht beieinander.
+    const t = await uebersetzt(page, 'The object exceeded the maximum allowed size')
+    expect(t).toMatch(/zu groß/)
+  })
+
+  test('das Anfordern eines neuen Passworts gibt nichts Rohes preis', async ({ page }) => {
+    // Die Erfolgsmeldung sagt bewusst „FALLS diese E-Mail registriert
+    // ist" — der Fehlerzweig kippte diesen Schutz vorher wieder um.
+    const quelle = await page.evaluate(async () => (await fetch('/js/forgot-password.js')).text())
+    expect(quelle, 'roher Fehlertext').not.toMatch(/error\.message/)
+    expect(quelle).toMatch(/verstaendlich\(/)
+  })
+
+  test('Hochladen und Speichern der Schüler-Seiten sind übersetzt', async ({ page }) => {
+    for (const datei of ['/js/dashboard-schueler.js', '/js/lebenslauf.js']) {
+      const quelle = await page.evaluate(async d => (await fetch(d)).text(), datei)
+      expect(quelle, `${datei}: roher Fehlertext`).not.toMatch(/Err\.message|error\.message/)
+    }
+  })
+
+  test('im Betreiber-Bereich bleiben sie absichtlich roh', async ({ page }) => {
+    // Damit niemand das später als Versehen „korrigiert".
+    const quelle = await page.evaluate(async () => (await fetch('/js/admin.js')).text())
+    expect(quelle).toMatch(/ABSICHTLICH ROH/)
+    expect(quelle).toMatch(/error\.message/)
+  })
+})
