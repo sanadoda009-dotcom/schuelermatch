@@ -3,7 +3,22 @@
 const { test, expect } = require('./helpers/basis')
 
 // Filter setzen heißt: Panel öffnen, Werte eintragen.
+//
+// WICHTIG ist die erste Zeile. `js/jobs.js` ist ein ES-Modul und wird
+// asynchron geladen; erst danach hängt der Klick-Handler am Knopf. Wer
+// direkt nach `goto` klickt, trifft womöglich einen Knopf, der noch
+// nichts tut — der Klick verpufft, das Panel öffnet nie, und die
+// Prüfung darunter läuft in einen Zeitfehler.
+//
+// Genau das passierte am 26.8. zweimal, aber nur im vollen Testlauf:
+// Unter Parallellast lädt das Modul langsamer und die Wettlaufsituation
+// geht verloren. Isoliert bestand derselbe Test sechsmal hintereinander —
+// die Sorte Fehler, die man leicht als „Flakiness" abtut.
+//
+// Sichtbare Job-Karten belegen, dass das Modul gelaufen ist. Zwei
+// Nachbartests warteten schon vorher darauf; im dritten fehlte es.
 async function oeffneFilter(page) {
+  await expect(page.locator('.job-card').first()).toBeVisible()
   await page.locator('#filter-oeffnen').click()
   await expect(page.locator('#filter-panel')).toHaveClass(/offen/)
 }

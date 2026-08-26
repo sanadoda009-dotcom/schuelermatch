@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **480 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **504 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -36,7 +36,9 @@
    1. `supabase/job-alarm.sql` im Supabase-SQL-Editor ausführen — die automatische
       Freigabe hat die Änderung blockiert. Die Datei enthält keine Schlüssel,
       Einfügen ist also unproblematisch.
-   2. Edge Function `mail-job-alarm` deployen
+   2. Edge Function `mail-job-alarm` deployen — **beide Dateien** aus dem Ordner:
+      `index.ts` UND `treffer.js` (die Trefferlogik liegt seit 26.8. separat,
+      damit sie getestet werden kann — ohne sie startet die Funktion nicht)
    3. Zeitplan setzen, z.B. Cron `0 16 * * *`
    Die **Oberfläche ist seit 26.8. auch fertig** (`js/job-alarm.js`, Karte unter der
    Jobliste, 9 Tests). Sie bleibt verborgen, solange die Tabelle fehlt — sobald du

@@ -25,6 +25,10 @@
 //    (aktiv + Firma freigegeben) und für die der Schüler alt genug ist.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// Die Trefferlogik liegt in einem eigenen Modul, damit sie geprueft
+// werden kann - sie entscheidet, wer welche Anzeige zugeschickt
+// bekommt, Altersgrenze inklusive. Siehe tests/job-alarm-treffer.spec.js.
+import { passtZumAlarm } from './treffer.js'
 
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY')!
 const ABSENDER = Deno.env.get('MAIL_ABSENDER') ?? 'SchülerMatch <onboarding@resend.dev>'
@@ -76,22 +80,6 @@ async function sendeMail(an: string, betreff: string, inhalt: string, abmeldeLin
   })
   if (!res.ok) console.error('Resend-Fehler:', res.status, await res.text())
   return res.ok
-}
-
-// Entfernung zweier Punkte in km (Haversine). Dieselbe Rechnung wie in
-// js/geo.js im Frontend, damit Umkreissuche und Alarm gleich messen.
-function entfernungKm(aLat: number, aLon: number, bLat: number, bLon: number): number {
-  const R = 6371
-  const rad = (g: number) => (g * Math.PI) / 180
-  const dLat = rad(bLat - aLat)
-  const dLon = rad(bLon - aLon)
-  const h = Math.sin(dLat / 2) ** 2 +
-    Math.cos(rad(aLat)) * Math.cos(rad(bLat)) * Math.sin(dLon / 2) ** 2
-  return 2 * R * Math.asin(Math.sqrt(h))
-}
-
-function normOrt(s: unknown): string {
-  return String(s ?? '').trim().toLowerCase()
 }
 
 type Job = {
@@ -153,24 +141,7 @@ Deno.serve(async () => {
     const profil = alarm.profil as { name?: string; email?: string; alter_jahre?: number } | null
     if (!profil?.email) continue
 
-    const treffer = sichtbar.filter(j => {
-      if (j.erstellt_am <= alarm.zuletzt_gesendet) return false
-      if (alarm.kategorie && j.kategorie !== alarm.kategorie) return false
-      if (alarm.arbeitszeit && j.arbeitszeit !== alarm.arbeitszeit) return false
-      if (alarm.min_lohn != null && (j.stundenlohn ?? 0) < alarm.min_lohn) return false
-
-      // Jugendschutz: Was der Schüler noch nicht darf, wird ihm auch
-      // nicht vorgeschlagen.
-      if (profil.alter_jahre != null && j.mindestalter != null &&
-          j.mindestalter > profil.alter_jahre) return false
-
-      // Ort: mit Koordinaten über den Umkreis, sonst über den Namen.
-      if (alarm.lat != null && alarm.lon != null && j.lat != null && j.lon != null) {
-        return entfernungKm(alarm.lat, alarm.lon, j.lat, j.lon) <= alarm.umkreis_km
-      }
-      if (alarm.ort) return normOrt(j.ort) === normOrt(alarm.ort)
-      return true
-    })
+    const treffer = sichtbar.filter(j => passtZumAlarm(j, alarm, profil))
 
     if (!treffer.length) continue
 

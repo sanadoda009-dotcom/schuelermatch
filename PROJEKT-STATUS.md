@@ -328,6 +328,50 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 13) - Die ungeprueften Zeilen
+
+Der Job-Alarm ist seit Teil 7/8 fertig gebaut. Aber ein Stueck davon war **voellig ungeprueft**: die Logik, die entscheidet, welche Anzeigen ein Schueler zugeschickt bekommt.
+
+Sie steckte mitten in der Edge Function - und die laesst sich ohne Datenbank und ohne Deno-Laufzeit nicht ausfuehren. Also lief sie in keinem einzigen der 480 Tests.
+
+**Warum das ausgerechnet hier zaehlt:** In dieser Logik sitzt die Altersgrenze. Wer sie falsch herum schreibt, schickt einem 13-Jaehrigen Anzeigen ab 16 zu. Auf einer Plattform fuer Minderjaehrige ist das kein Schoenheitsfehler.
+
+### Herausgezogen
+Neu: `supabase/functions/mail-job-alarm/treffer.js` - reines JavaScript, ohne Deno- oder Supabase-Abhaengigkeiten. Die Edge Function importiert es, und die Testsuite laedt **dasselbe Modul** ueber den Testserver (der liefert das ganze Projektverzeichnis aus).
+
+Kein nachgebauter Zwilling also, sondern der Code, der spaeter wirklich laeuft.
+
+### `tests/job-alarm-treffer.spec.js` (24 Pruefungen)
+**Altersgrenze:** zu jung -> nein · genau das Mindestalter -> ja · ein Jahr zu jung -> nein · ohne Mindestalter an der Anzeige -> nicht ausschliessen · ohne Altersangabe im Profil -> nicht ausschliessen.
+
+**Ort:** innerhalb/ausserhalb des Umkreises · groesserer Umkreis holt den Job zurueck · die gerechnete Entfernung Muenchen-Augsburg liegt zwischen 45 und 65 km · ohne Koordinaten Vergleich ueber den Ortsnamen, unabhaengig von Gross-/Kleinschreibung und Leerzeichen · Alarm ohne Ort schraenkt nicht ein.
+
+**Kategorie, Arbeitszeit, Lohn:** leer heisst "egal", nicht "muss leer sein" · genau der Mindestlohn reicht · **eine Anzeige ohne Lohnangabe erfuellt keinen Mindestlohn** (sonst bekaeme jemand mit "ab 12 EUR" Anzeigen ganz ohne Angabe).
+
+**Keine Wiederholungen:** was vor der letzten Mail da war, geht nicht erneut raus · der Zeitpunkt selbst zaehlt als schon geschickt · eine Sekunde spaeter geht raus.
+
+### Gegenprobe
+Den Altersvergleich absichtlich umgedreht (`>` zu `<`): **13 Tests fallen um**, darunter beide Alterspruefungen. Die Tests pruefen also wirklich etwas.
+
+### Nachgetragen in OFFENE-PUNKTE.md
+Beim Deployen der Edge Function muessen jetzt **beide Dateien** mit: `index.ts` und `treffer.js`. Ohne die zweite startet die Funktion nicht.
+
+### Nebenbei: ein wirklich wackliger Test, endlich erklaert
+Im vollen Lauf fiel zum zweiten Mal an diesem Tag `jobs-filter.spec.js` um - *"jeder Filter im Panel hat eine sichtbare Beschriftung"*. Beim ersten Mal hatte ich es als Flakiness abgetan. Zweimal ist keine Flakiness mehr.
+
+Isoliert bestand der Test **sechsmal hintereinander**. Der Vergleich mit seinen zwei Nachbartests brachte es:
+
+```js
+// Nachbarn:            goto -> auf .job-card warten -> klicken
+// Der wacklige Test:   goto -> sofort klicken
+```
+
+`js/jobs.js` ist ein **ES-Modul** und wird asynchron geladen; erst danach haengt der Klick-Handler am Knopf. Wer sofort klickt, trifft womoeglich einen Knopf, der noch nichts tut - der Klick verpufft, das Panel oeffnet nie. Unter Parallellast laedt das Modul langsamer, und die Wettlaufsituation geht verloren.
+
+Behoben im Helfer `oeffneFilter()` selbst, nicht nur im einen Test: Er wartet jetzt auf eine sichtbare Job-Karte als Beleg, dass das Modul gelaufen ist. Die Begruendung steht als Kommentar daneben.
+
+**Suite: 480 -> 504 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 12) - Wenn etwas nicht mehr da ist
 
 Ein offener Faden aus der Google-Jobs-Runde: Was passiert eigentlich, wenn eine Anzeige verschwunden ist?
