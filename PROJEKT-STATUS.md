@@ -415,11 +415,40 @@ Anmeldekonto unter Authentication > Users (sonst legt der naechste Login ueber
 Mit Probelauf: der Loeschblock endet auf `rollback`, das man bewusst auf `commit`
 aendern muss.
 
-### Tests
-`tests/dokument-pfad.spec.js` (33 Pruefungen) und 5 neue in
-`tests/admin-meldungen.spec.js`.
+### Befund 4: Die dringendste Warteschlange wurde verschwiegen
 
-**Suite: 555 -> 573 Tests, alle gruen.**
+Der Kasten "Wartet auf dich" im Statistik-Reiter zeigte Firmen zur Pruefung und
+offene Meldungen - aber **nicht die Schueler, deren Ausweis auf Pruefung
+wartet**. Dabei ist das die dringendste Warteschlange: Wer nicht verifiziert
+ist, kann sich auf gar nichts bewerben. Fuer ihn steht die ganze Plattform
+still, waehrend der Betreiber im Ueberblick "nichts zu tun" liest.
+
+`betreiber_statistik` liefert die Zahl gar nicht (dort gibt es nur
+`firmen_offen` und `meldungen_offen`). Sie steckt in der Schuelerliste, die der
+Bereich ohnehin laedt - also im Browser geloest, ohne Aenderung an der
+Datenbank.
+
+Dabei war ein Wettlauf zu beachten: Statistik und Schuelerliste werden
+nebenlaeufig geladen. Kommt die Statistik zuerst, zeichnet sie nach, sobald die
+Liste da ist - sonst staende dort dauerhaft eine leere Warteschlange. Ein Test
+prueft ausserdem, dass die Zahl mit der im Schueler-Reiter uebereinstimmt; zwei
+Zaehlungen derselben Sache duerfen nicht auseinanderlaufen.
+
+### Ein Verdacht von mir war falsch
+Ich hielt es fuer moeglich, dass sich das Dokument-Fenster nicht mit Escape
+schliessen laesst - immerhin ein Fenster mit dem Ausweis eines Minderjaehrigen.
+Nachgesehen: Es traegt `modal-overlay` und einen `.modal-close`-Knopf, damit
+greift `js/tastatur.js` automatisch (Escape, Fokusfalle, Fokus zurueck).
+Ebenso geprueft und in Ordnung: Der Toast "E-Mail geht raus" bei der
+Firmen-Freigabe stimmt - der Trigger `firma_freigabe_mail` existiert, ist aktiv,
+und die Mail-Funktion feuert nur beim Wechsel *auf* `freigegeben`, nicht beim
+Sperren.
+
+### Tests
+`tests/dokument-pfad.spec.js` (33 Pruefungen), 5 neue in
+`tests/admin-meldungen.spec.js`, 4 neue in `tests/admin-statistik.spec.js`.
+
+**Suite: 555 -> 577 Tests, alle gruen.**
 
 
 ## Session 26. August 2026 (Teil 16) - Die Warnungen im Chat

@@ -13,6 +13,11 @@ let filter = 'offen'
 let alleFirmen = []
 let firmaFilter = 'neu'
 let alleMeldungen = []
+// Die Statistik kommt aus der Datenbank, die Zahl der wartenden
+// Verifizierungen aus der Schuelerliste. Beide werden nebenlaeufig geladen,
+// deshalb wird gemerkt statt sofort gezeichnet - wer zuerst da ist,
+// zeichnet, der zweite zeichnet nach.
+let statistik = null
 let meldungFilter = 'offen'
 
 const DOKUMENTE = [
@@ -99,6 +104,11 @@ function istOffen(s) {
 function render() {
   const offen = alleSchueler.filter(istOffen).length
   const verifiziert = alleSchueler.filter(s => s.verifiziert).length
+
+  // Die Statistik zeigt die wartenden Verifizierungen mit an. War sie
+  // schon fertig, bevor die Schuelerliste ankam, muss sie nachziehen -
+  // sonst staende dort dauerhaft eine leere Warteschlange.
+  if (statistik) renderStatistik()
 
   document.getElementById('admin-stats').innerHTML = `
     <div class="stat-box"><b>${offen}</b><span>Zu prüfen</span></div>
@@ -532,9 +542,22 @@ async function ladeStatistik() {
     box.innerHTML = `<div class="empty-state"><p>Statistik konnte nicht geladen werden${error ? ': ' + escapeHtml(error.message) : ''}.</p></div>`
     return
   }
+  statistik = data
+  renderStatistik()
+}
 
-  const g = data.gesamt || {}
-  const wochen = Array.isArray(data.wochen) ? data.wochen : []
+function renderStatistik() {
+  const box = document.getElementById('stat-inhalt')
+  if (!box || !statistik) return
+
+  const g = statistik.gesamt || {}
+  const wochen = Array.isArray(statistik.wochen) ? statistik.wochen : []
+
+  // Wartende Schueler-Verifizierungen liefert `betreiber_statistik` nicht -
+  // die Zahl steckt in der Schuelerliste, die dieser Bereich ohnehin laedt.
+  // Sie gehoert in "Wartet auf dich": Ein Schueler ohne Verifizierung kann
+  // sich auf gar nichts bewerben, das ist die dringendste Warteschlange.
+  const schuelerOffen = alleSchueler.filter(istOffen).length
 
   const quote = (teil, ganz) => ganz > 0 ? Math.round((teil / ganz) * 100) + '%' : '–'
   const proJob = g.jobs > 0 ? (g.bewerbungen / g.jobs).toFixed(1) : '–'
@@ -560,10 +583,11 @@ async function ladeStatistik() {
       </div>
     </div>
 
-    ${(g.firmen_offen > 0 || g.meldungen_offen > 0) ? `
+    ${(schuelerOffen > 0 || g.firmen_offen > 0 || g.meldungen_offen > 0) ? `
     <div class="stat-gruppe">
       <h3>Wartet auf dich</h3>
       <div class="stats-row">
+        ${schuelerOffen > 0 ? `<div class="stat-box stat-box--achtung"><b>${schuelerOffen}</b><span>Schüler zu verifizieren</span></div>` : ''}
         ${g.firmen_offen > 0 ? `<div class="stat-box stat-box--achtung"><b>${g.firmen_offen}</b><span>Firmen zu prüfen</span></div>` : ''}
         ${g.meldungen_offen > 0 ? `<div class="stat-box stat-box--achtung"><b>${g.meldungen_offen}</b><span>offene Meldungen</span></div>` : ''}
       </div>
