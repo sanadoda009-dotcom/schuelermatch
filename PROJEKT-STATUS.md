@@ -305,6 +305,47 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 4) - Sagt die Datenschutzerklaerung die Wahrheit?
+
+Die Runde begann mit einer Absicherung: Die Kontrastmessung aus Teil 3 lief nur im hellen Modus. Gibt es einen Dunkelmodus, koennte `#00795c` dort genau das kaputt gemacht haben, was gerade repariert wurde.
+
+**Entwarnung:** Der Dunkelmodus wurde im August entfernt (`e920946`). Kein Risiko.
+
+**Aber beim Nachsehen fiel etwas anderes auf:** Die Datenschutzerklaerung nennt die *"Hell-/Dunkel-Einstellung"* immer noch als gespeicherten Wert - Monate nachdem die Funktion verschwunden ist.
+
+Das fuehrte zu einem systematischen Abgleich: **Stimmt ueberein, was der Code tut und was die Erklaerung behauptet?**
+
+### Befund 1: gespeicherte Werte
+| Schluessel | Wozu | in Abschnitt 7? |
+|---|---|---|
+| `cv-draft-<id>` | Lebenslauf-Entwurf | genannt |
+| `cv-design-<id>` | PDF-Layout und Farbe | genannt |
+| `onboarding-weg-<id>` | "Erste Schritte" ausgeblendet | genannt |
+| `gesehen-<rolle>-<id>` | gesehene Benachrichtigungen | genannt |
+| `sm-bundesland` | Bundesland Ferienjob-Seite | **fehlte** |
+| Hell-/Dunkel | gibt es nicht mehr | **stand noch drin** |
+
+Der fehlende Schluessel war **mein eigener** - in Teil 1 desselben Tages eingefuehrt, ohne die Erklaerung anzufassen. Genau die Sorte Fehler, die niemandem auffaellt, weil Code und Rechtstext an voellig verschiedenen Stellen liegen.
+
+`sm-zugang-ok` (Bauphasen-Sperre, sessionStorage) bleibt bewusst ungenannt - technisch notwendig, verschwindet zum Launch. Die Begruendung steht im Test.
+
+### Befund 2: Fremdserver
+Jeder Host, den die Seite von sich aus kontaktiert, bekommt die IP-Adresse des Besuchers zu sehen. In Deutschland ist das kein theoretisches Risiko - Google Fonts von einem Fremdserver zu laden hat schon Abmahnungen ausgeloest.
+
+Abschnitt 5 nannte Supabase, Vercel, Resend, Open-Meteo, Google Fonts und cdnjs. **Nicht genannt: `cdn.jsdelivr.net`** - von dort laedt `js/supabase.js` die Datenbank-Bibliothek, also auf praktisch jeder Seite. Ergaenzt.
+
+### Neu: `tests/speicher.spec.js` (5 Pruefungen)
+Der Test kann den Rechtstext nicht auf Richtigkeit pruefen. Er kann aber Alarm schlagen, sobald sich der **Bestand** aendert:
+- neuer Speicher-Schluessel im Code -> faellt um
+- Schluessel entfaellt, steht aber noch im Text -> faellt um
+- neuer Fremdserver im Code -> faellt um, mit Namen und Fundstelle
+- Dunkelmodus wieder im Text, obwohl nicht im Code -> faellt um
+- **Sentry**: Sobald jemand den DSN eintraegt (heute leer, also kein Netzwerkverkehr), verlangt der Test die Nennung als Auftragsverarbeiter. Das stand bisher nur als Merkposten in OFFENE-PUNKTE.md.
+
+**Gegenproben gemacht:** Fake-Schluessel eingebaut -> faellt um. Alten Text eingespielt -> faellt um. jsDelivr aus dem Text entfernt -> faellt um, mit der Meldung `cdn.jsdelivr.net - als "jsDelivr" nicht genannt (js/supabase.js)`.
+
+**Suite: 390 -> 395 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 3) - Kann man den Text eigentlich lesen?
 
 Sanad hatte gefragt, wofuer das Coral-Orange ueberhaupt da ist, und dann entschieden: *"mach was am besten ist und du fuer richtig haeltst."*
