@@ -6,6 +6,7 @@ import { requireAuth, logout } from './session.js'
 import { toast } from './toast.js'
 import { sichereMediaUrl } from './sicher.js'
 import { istPdf } from './dokument-pfad.js'
+import { hinweiseZu } from './firmen-pruefung.js'
 
 let profile
 let alleSchueler = []
@@ -349,6 +350,16 @@ function firmaKarte(f) {
       ? '<span class="admin-status admin-status--keins">Gesperrt</span>'
       : '<span class="admin-status admin-status--warten">⏳ Zu prüfen</span>'
 
+  // Anhaltspunkte zur Firma. Die Seite verspricht den Arbeitgebern
+  // "Wir pruefen von Hand, dass ein echtes Unternehmen dahintersteckt" -
+  // dafuer standen bisher nur Name, Ort und E-Mail zur Verfuegung.
+  // Entschieden wird hier nichts, es ist eine Lesehilfe.
+  const hinweise = f.firma_status === 'neu' ? hinweiseZu(f) : []
+  const hinweisListe = hinweise.length
+    ? `<ul class="pruef-hinweise">${hinweise.map(h =>
+        `<li class="pruef-hinweis pruef-hinweis--${h.art}">${escapeHtml(h.text)}</li>`).join('')}</ul>`
+    : ''
+
   const jobListe = jobs.length
     ? `<div class="admin-details" style="grid-template-columns:1fr;">
          ${jobs.map(j => `<div><span>Job</span><b>${escapeHtml(j.titel || 'Ohne Titel')}${j.aktiv ? '' : ' (pausiert)'}</b></div>`).join('')}
@@ -374,6 +385,7 @@ function firmaKarte(f) {
         </div>
         ${status}
       </div>
+      ${hinweisListe}
       ${jobListe}
       <div class="admin-aktionen">${aktionen}</div>
     </div>`

@@ -328,6 +328,93 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 19) - Jedes Versprechen gegen den Code
+
+In Teil 18 fiel zufaellig eine unbelegte Werbeaussage auf. Diese Runde macht
+daraus eine Methode: **jede Sicherheits- und Vertrauenszusage der oeffentlichen
+Seiten gegen das pruefen, was der Code tatsaechlich tut.** Vor der ausstehenden
+rechtlichen Pruefung genau die richtige Frage.
+
+Geprueft wurden die Zusagen auf `index.html`, `eltern.html`, `fuer-firmen.html`
+und `jobs.html`.
+
+### Befund: "die wir geprueft haben" galt nur im Browser
+
+`fuer-firmen.html` verspricht den Arbeitgebern woertlich:
+
+> "Nur Schueler. Wer sich bewirbt, hat einen Schuelerausweis oder eine
+> Schulbescheinigung hochgeladen, **die wir geprueft haben**."
+
+Erzwungen wurde das nur in `js/dashboard-schueler.js` (`if
+(!profile.verifiziert)`). Die Zugriffsregel der Datenbank verlangte lediglich
+`auth.uid() = schueler_id` - **keine Verifizierung**. Wer die Schnittstelle
+direkt anspricht, konnte sich unverifiziert bewerben, und der Arbeitgeber haette
+darauf vertraut, dass jemand die Unterlagen gesehen hat.
+
+Dieselbe Klasse wie das Mindestalter aus Teil 18: eine Zusage, die nur im
+Browser gilt, ist keine Zusage. `supabase/bewerbung-verifiziert.sql` schliesst
+es (Hilfsfunktion `ist_verifiziert()` im Stil von `firma_freigegeben`, dann die
+INSERT-Regel). Nicht selbst eingespielt. Stand: 3 Bewerbungen, davon 0 von
+unverifizierten Schuelern - es ist nichts durchgerutscht.
+
+### Befund: "dass ein echtes Unternehmen dahintersteckt"
+
+`fuer-firmen.html` verspricht: "Wir pruefen von Hand, dass ein echtes
+Unternehmen dahintersteckt." Die Firmenkarte im Betreiber-Bereich zeigte dafuer
+**nur Name, Ort und E-Mail**. Damit laesst sich das kaum pruefen - die Zusage
+war staerker als das, was der Betreiber in der Hand hatte.
+
+`js/firmen-pruefung.js` zieht jetzt aus den vorhandenen Angaben die
+Anhaltspunkte heraus, die etwas aussagen: eigene Domain gegenueber Freemail,
+Wegwerf-Adresse, Rechtsform im Namen, fehlender Ort. Es entscheidet nichts und
+blockiert nichts - die Freigabe bleibt Handarbeit.
+
+**Bewusst zurueckhaltend:** Ein Freemail-Konto ist kein Betrugsverdacht. Ein
+Elternteil, das Nachhilfe sucht, oder ein kleiner Laden hat oft nichts anderes.
+Deshalb steht dort "bei kleinen Anbietern normal - frag im Zweifel nach der
+Firmenanschrift" statt einer roten Warnung. Mehrere Tests pruefen ausdruecklich,
+dass NICHT gewarnt wird. Wer lauter Alarme sieht, klickt sie nach drei Tagen weg
+- dieselbe Ueberlegung wie bei den Chat-Warnungen in Teil 16.
+
+### Geprueft und in Ordnung
+
+- **"Firmen sehen deinen Lebenslauf erst, nachdem du dich beworben hast"** - die
+  Regel "Firma sieht Profil von Bewerbern" erzwingt das sauber ueber einen
+  Abgleich mit `bewerbungen` und `jobs`.
+- **"Der Austausch laeuft ueber den Chat"** - `nachrichten` haengt zwingend an
+  einer `bewerbung_id`, eine Firma kann niemanden ohne Bewerbung anschreiben.
+- **Die Browser-Sperre beim Bewerben** war bereits getestet
+  (`dashboard-schueler.spec.js`), die Luecke sass allein in der Datenbankregel.
+
+### Notiert, nicht geaendert
+
+`avatars` und `lebenslauf-bilder` sind **oeffentliche** Ablagen: Wer die Adresse
+kennt, sieht das Foto ohne Anmeldung. Beide sind derzeit leer, es ist also
+nichts offen. Auf Dauer gehoert das ueberdacht - private Ablage plus signierte
+Adressen, so wie bei `verifizierung` und `zeugnisse`. Das ist ein groesserer
+Umbau und steht in OFFENE-PUNKTE.
+
+### Ein eigener Fehler - vom Kontrast-Test gefangen
+
+Meine neuen CSS-Regeln hiessen `.firma-hinweis`. **Den Namen gab es schon** -
+als Haftungshinweis auf `ferienjob.html`, `fairer-lohn.html` und
+`fuer-firmen.html`. Meine Regel ueberschrieb ihn und legte dort einen grauen
+Hintergrund unter, auf dem der Link zur Minijob-Zentrale nur noch **4,47:1**
+erreichte (noetig sind 4,5:1).
+
+Drei Tests in `tests/kontrast.spec.js` fielen darueber um - auf Seiten, die ich
+gar nicht angefasst hatte. Genau dafuer ist die Kontrast-Pruefung da. Umbenannt
+auf `.pruef-hinweis`, mit Kommentar im CSS, damit der Name nicht wieder
+kollidiert.
+
+Lehre fuer die naechste Runde: **vor einer neuen CSS-Klasse pruefen, ob es den
+Namen schon gibt.** Ein `grep` haette gereicht.
+
+### Tests
+`tests/firmen-pruefung.spec.js` (16 Pruefungen).
+
+**Suite: 597 -> 613 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 18) - Das Formular kannte das Gesetz nicht
 
 Diese Runde folgt Sanads Richtung vom 25.8.: weiterentwickeln statt nur Fehler

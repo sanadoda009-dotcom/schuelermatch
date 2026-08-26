@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **597 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **613 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -16,7 +16,29 @@
 > **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
 > was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
 
-## 🛑 FÜR DICH: zweite SQL-Datei — keine Anzeige unter 13
+## 🛑 FÜR DICH: drei SQL-Dateien warten
+
+Alle drei im Supabase-SQL-Editor ausführen. Jede ist wiederholt ausführbar, jede
+beginnt mit einer Prüfabfrage, und **keine trifft bestehende Daten** – ich habe
+das jeweils nachgesehen.
+
+| Datei | Was sie schließt | Stand heute |
+|---|---|---|
+| `supabase/meldungen-fk.sql` | Eine Missbrauchsmeldung verschwand mit dem Konto des Melders (`ON DELETE CASCADE`) | 0 Meldungen |
+| `supabase/mindestalter-grenze.sql` | Anzeigen „ab 10 Jahren" waren möglich (§ 5 JArbSchG) | niedrigstes Alter: 15 |
+| `supabase/bewerbung-verifiziert.sql` | Bewerben ohne Verifizierung war über die Schnittstelle möglich | 3 Bewerbungen, alle verifiziert |
+
+**Der rote Faden zwischen den letzten beiden:** Die Seite verspricht etwas, und
+erzwungen wurde es nur im Browser. `fuer-firmen.html` sagt Arbeitgebern *„Wer
+sich bewirbt, hat einen Schülerausweis … hochgeladen, die wir geprüft haben"* –
+die Datenbankregel verlangte aber nur, dass man man selbst ist. Wer die
+Schnittstelle direkt anspricht, umgeht jede Prüfung im Browser. Eine Zusage, die
+nur im Browser gilt, ist keine Zusage.
+
+Ich habe keine davon selbst eingespielt: Schema- und Regeländerungen an der
+Produktionsdatenbank gibst du einzeln frei.
+
+### Dazu im Einzelnen: keine Anzeige unter 13
 
 **`supabase/mindestalter-grenze.sql` im Supabase-SQL-Editor ausführen.**
 
@@ -34,10 +56,8 @@ aber erst mit dieser Regel in der Datenbank – wer die Schnittstelle direkt
 anspricht, umgeht alles andere. Niedrigstes Mindestalter aktuell: **15**, es ist
 also nichts Rechtswidriges live und die Regel trifft keine bestehende Zeile.
 
-*(Zusammen mit `supabase/meldungen-fk.sql` sind das zwei SQL-Dateien, die auf dich
-warten. Beide sind wiederholt ausführbar und treffen keine bestehenden Daten.)*
 
-## 🛑 FÜR DICH: eine Zeile SQL, die Meldungen rettet
+### Dazu im Einzelnen: Meldungen überleben den Melder
 
 **`supabase/meldungen-fk.sql` im Supabase-SQL-Editor ausführen.** Dauert eine Minute.
 
@@ -58,6 +78,20 @@ einzeln frei.
 
 Der Betreiber-Bereich ist schon darauf vorbereitet: Fehlt ein Konto, steht dort
 „Konto gelöscht" statt eines leeren Feldes (5 neue Tests).
+
+## 🖼 Zu überdenken: Fotos liegen in öffentlichen Ablagen
+
+`avatars` und `lebenslauf-bilder` sind **öffentliche** Buckets – wer die Adresse
+kennt, sieht das Foto eines Schülers ohne Anmeldung. Die Startseite verspricht
+dagegen: *„Firmen sehen deinen Lebenslauf erst, nachdem du dich beworben hast."*
+Für den Lebenslauf-**Text** stimmt das (die Zugriffsregel erzwingt es sauber),
+für das **Bild** nicht.
+
+Beide Ablagen sind **derzeit leer** – es ist also nichts offen, und es eilt
+nicht. Auf Dauer gehört es umgestellt: private Ablage plus signierte Adressen,
+so wie es bei `verifizierung` und `zeugnisse` schon läuft. Das ist ein größerer
+Umbau (jede Stelle, die ein Bild anzeigt, muss die Adresse anfordern), deshalb
+hier notiert statt nebenbei gemacht.
 
 ## 🗑 Konto löschen (Art. 17 DSGVO) — Anleitung liegt bereit
 
