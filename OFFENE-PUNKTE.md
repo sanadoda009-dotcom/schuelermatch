@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **633 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **660 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -16,28 +16,43 @@
 > **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
 > was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
 
-## 🛑 FÜR DICH: vier SQL-Dateien warten
+## ✅ Am 27.8. eingespielt: vier Regeln in der Datenbank
 
-Alle drei im Supabase-SQL-Editor ausführen. Jede ist wiederholt ausführbar, jede
-beginnt mit einer Prüfabfrage, und **keine trifft bestehende Daten** – ich habe
-das jeweils nachgesehen.
+Alle vier sind **angewendet und nachgeprüft**. Was vorher nur im Browser galt,
+gilt jetzt in der Datenbank.
 
-| Datei | Was sie schließt | Stand heute |
+| Regel | Was sie schließt | Nachgeprüft |
 |---|---|---|
-| `supabase/meldungen-fk.sql` | Eine Missbrauchsmeldung verschwand mit dem Konto des Melders (`ON DELETE CASCADE`) | 0 Meldungen |
-| `supabase/mindestalter-grenze.sql` | Anzeigen „ab 10 Jahren" waren möglich (§ 5 JArbSchG) | niedrigstes Alter: 15 |
-| `supabase/bewerbung-verifiziert.sql` | Bewerben ohne Verifizierung war über die Schnittstelle möglich | 3 Bewerbungen, alle verifiziert |
-| `supabase/alter-grenze.sql` | Registrierung nahm Zehnjährige an (`chk_alter_jahre` liess ab 10 zu) | jüngstes Profil: 15 |
+| `meldungen.melder_id` → SET NULL | Meldung verschwand mit dem Konto des Melders | `delete_rule = SET NULL`, Spalte nullbar |
+| `jobs_mindestalter_jarbschg` | Anzeigen „ab 10 Jahren" waren möglich | `>= 13 and <= 20` |
+| `chk_alter_jahre` | Registrierung nahm Zehnjährige an | `>= 13 and <= 20` |
+| Regel „Schueler bewirbt sich" | Bewerben ohne Verifizierung per Schnittstelle | enthält `ist_verifiziert(auth.uid())` |
 
-**Der rote Faden zwischen den letzten beiden:** Die Seite verspricht etwas, und
-erzwungen wurde es nur im Browser. `fuer-firmen.html` sagt Arbeitgebern *„Wer
-sich bewirbt, hat einen Schülerausweis … hochgeladen, die wir geprüft haben"* –
-die Datenbankregel verlangte aber nur, dass man man selbst ist. Wer die
-Schnittstelle direkt anspricht, umgeht jede Prüfung im Browser. Eine Zusage, die
-nur im Browser gilt, ist keine Zusage.
+Vorher geprüft: alle vier Zählungen 0, keine Regel traf eine bestehende Zeile.
 
-Ich habe keine davon selbst eingespielt: Schema- und Regeländerungen an der
-Produktionsdatenbank gibst du einzeln frei.
+**Eine Falle ist dabei aufgefallen** und wäre um ein Haar unbemerkt geblieben:
+Die alte Bewerbungs-Regel hieß schlicht **„Bewerben"**, nicht wie in meiner
+SQL-Datei angenommen. Sie wurde also nicht ersetzt, sondern stand *daneben* —
+und PostgreSQL verknüpft mehrere erlaubende Regeln mit **ODER**. Die
+großzügigere gewinnt, die neue Prüfung war wirkungslos. Erst die
+Kontrollabfrage *nach* dem Einspielen hat es gezeigt. Alte Regel entfernt, jetzt
+steht dort genau eine.
+
+Danach habe ich die **ganze Datenbank** auf dasselbe Muster abgesucht: Vier
+Tabellen haben mehrere erlaubende Regeln, alle vier gewollt (Admin *oder*
+Eigentümer *oder* Öffentlichkeit). Kein weiterer Altbestand.
+
+### Noch offen: der Job-Alarm
+`supabase/job-alarm.sql` ist **nicht** eingespielt. Die Tabelle allein nützt
+nichts – dazu gehören die Edge Function `mail-job-alarm` (**beide** Dateien,
+`index.ts` UND `treffer.js`) und der Cron `0 16 * * *`. Das Deployment der
+Function kann ich nicht übernehmen, deshalb bleibt es bei dir.
+
+### Die Gegenprobe zur Bewerbungs-Regel
+Die Regel ist nachgeprüft, aber nicht *durchgespielt* – dafür bräuchte es ein
+eingeloggtes, unverifiziertes Konto. Die Anleitung dazu steht am Ende von
+`supabase/bewerbung-verifiziert.sql`. Testkonten danach mit
+`supabase/konto-loeschen.sql` wieder entfernen.
 
 ### Dazu im Einzelnen: keine Anzeige unter 13
 
@@ -195,6 +210,13 @@ Seit 26.8. im Repo gesichert:
 
 Die drei gehören zusammen. Wer `rls-stand.sql` ohne die Trigger einspielt,
 reißt die Lücke wieder auf, die der Trigger schließt.
+
+**`rls-stand.sql` war am 27.8. eine Falle** – sie erklärte weiter die alte,
+großzügige Bewerbungs-Regel. Wer sie eingespielt hätte, um „den Stand
+wiederherzustellen", hätte die gerade geschlossene Lücke wieder aufgerissen.
+Nachgezogen. `tests/sql-konsistenz.spec.js` hält es jetzt fest: Eine
+Sicherungsdatei, die eine Sicherheitsentscheidung zurücknimmt, ist schlimmer als
+keine.
 
 **`supabase/` steht jetzt in `.vercelignore`** – die Dateien waren vorher
 unter schuelermatch.de/supabase/... öffentlich abrufbar.

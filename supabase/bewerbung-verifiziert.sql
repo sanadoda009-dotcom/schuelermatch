@@ -74,6 +74,15 @@ comment on function public.ist_verifiziert(uuid) is
 -- Die Regel
 -- ---------------------------------------------------------------------
 
+-- ACHTUNG, hier steckte eine Falle (aufgefallen erst durch die
+-- Kontrollabfrage nach dem Einspielen am 27.8.):
+-- Die bestehende Regel hiess **"Bewerben"**, nicht "Schueler bewirbt
+-- sich". Sie wurde also nicht ersetzt, sondern stand DANEBEN - und
+-- PostgreSQL verknuepft mehrere erlaubende Regeln mit ODER. Die
+-- grosszuegigere gewinnt, die neue Pruefung war wirkungslos.
+--
+-- Deshalb wird hier ausdruecklich BEIDES entfernt.
+drop policy if exists "Bewerben" on public.bewerbungen;
 drop policy if exists "Schueler bewirbt sich" on public.bewerbungen;
 create policy "Schueler bewirbt sich" on public.bewerbungen
   for insert with check (
@@ -87,6 +96,8 @@ create policy "Schueler bewirbt sich" on public.bewerbungen
 -- ---------------------------------------------------------------------
 -- Erwartet: die Regel enthaelt `ist_verifiziert`.
 
+-- WICHTIG: Es darf GENAU EINE Zeile kommen. Stehen zwei da, gilt die
+-- grosszuegigere - mehrere erlaubende Regeln werden mit ODER verknuepft.
 select polname as regel,
        pg_get_expr(polwithcheck, polrelid) as with_check
 from pg_policy

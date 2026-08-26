@@ -56,6 +56,20 @@ alter table public.meldungen     enable row level security;
 
 -- Ist diese Firma vom Betreiber freigegeben? Steuert, ob ihre Jobs
 -- öffentlich sichtbar sind.
+-- Ist dieses Profil als Schueler verifiziert? Fuer die Bewerbungs-Regel
+-- weiter unten. SECURITY DEFINER wie die anderen: Die Regel muss
+-- `verifiziert` auch dann lesen koennen, wenn die Zugriffsregeln auf
+-- `profiles` das im jeweiligen Zusammenhang nicht hergaeben.
+create or replace function public.ist_verifiziert(u uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce((select verifiziert from public.profiles where id = u), false);
+$$;
+
 create or replace function public.firma_freigegeben(f uuid)
 returns boolean
 language sql
@@ -218,9 +232,26 @@ create policy "Firma sieht Bewerbungen auf eigene Jobs" on public.bewerbungen
     select 1 from public.jobs
     where jobs.id = bewerbungen.job_id and jobs.firma_id = auth.uid()));
 
+-- Bewerben nur nach der Verifizierung (seit 27.8.).
+--
+-- Hier hiess die Regel bis zum 27.8. schlicht "Bewerben" und verlangte
+-- nur `auth.uid() = schueler_id`. `fuer-firmen.html` verspricht den
+-- Arbeitgebern aber: "Wer sich bewirbt, hat einen Schuelerausweis
+-- hochgeladen, den wir geprueft haben" - erzwungen war das nur im
+-- Browser.
+--
+-- ACHTUNG BEIM WIEDEREINSPIELEN: Der alte Name wird ausdruecklich
+-- mitgeloescht. Stuenden beide Regeln da, waere die Luecke wieder offen -
+-- PostgreSQL verknuepft mehrere erlaubende Regeln mit ODER, und die
+-- grosszuegigere gewinnt. Genau das ist am 27.8. passiert und fiel erst
+-- durch die Kontrollabfrage auf.
 drop policy if exists "Bewerben" on public.bewerbungen;
-create policy "Bewerben" on public.bewerbungen
-  for insert with check (auth.uid() = schueler_id);
+drop policy if exists "Schueler bewirbt sich" on public.bewerbungen;
+create policy "Schueler bewirbt sich" on public.bewerbungen
+  for insert with check (
+    auth.uid() = schueler_id
+    and public.ist_verifiziert(auth.uid())
+  );
 
 -- Ohne WITH CHECK; die Spalten friert trg_schuetze_bewerbung ein,
 -- sodass die Firma faktisch nur `status` ändern kann.

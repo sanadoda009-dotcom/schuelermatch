@@ -466,7 +466,7 @@ async function ladeEigeneJobs() {
         ${bewerbungenFuerJob.map(b => `
           <div class="bewerber-item">
             <div style="display:flex; gap:10px; align-items:center;">
-              <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${sichereMediaUrl(b.bewerber.foto_url) ? `background-image:url('${sichereMediaUrl(b.bewerber.foto_url)}')` : ''}">${b.bewerber.foto_url ? '' : escapeHtml((b.bewerber.name || '?')[0].toUpperCase())}</div>
+              <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${sichereMediaUrl(b.bewerber.foto_url) ? `background-image:url('${sichereMediaUrl(b.bewerber.foto_url)}')` : ''}">${sichereMediaUrl(b.bewerber.foto_url) ? '' : escapeHtml((b.bewerber.name || '?')[0].toUpperCase())}</div>
               <div>
                 <strong>${escapeHtml(b.bewerber.name || 'Unbekannt')}</strong>, ${b.bewerber.alter_jahre || '?'} Jahre – ${escapeHtml(b.bewerber.ort || '')}
                 <span class="ampel ${bewerberAmpel(b.bewerber, job).klasse}"><span class="ampel-dot"></span>${bewerberAmpel(b.bewerber, job).text}</span>

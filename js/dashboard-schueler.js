@@ -614,7 +614,7 @@ function renderBlockEditor() {
           <button type="button" class="btn btn-outline block-bild-btn" style="padding:8px 14px; font-size:0.82rem;">${b.bild_url ? 'Bild ändern' : 'Bild auswählen'}</button>
           ${b.bild_url ? `<button type="button" class="btn btn-outline block-bild-remove" style="padding:8px 14px; font-size:0.82rem; color:var(--coral);">Entfernen</button>` : ''}
         </div>
-        ${b.bild_url ? `<img src="${sichereMediaUrl(b.bild_url)}" class="block-image-preview">` : ''}
+        ${sichereMediaUrl(b.bild_url) ? `<img src="${sichereMediaUrl(b.bild_url)}" class="block-image-preview">` : ''}
       ` : ''}
       ${b.typ === 'sprachen' ? `
         ${(b.sprachen || []).map((s, i) => `
@@ -739,7 +739,7 @@ function renderCvPreview() {
       return `<div class="cv-preview-section"><h4>${ICONS.tag}${escapeHtml(b.titel || 'Fähigkeiten')}</h4>${tags.length ? `<div class="cv-tags">${tags.map(t => `<span class="cv-tag">${escapeHtml(t)}</span>`).join('')}</div>` : '<p class="cv-preview-empty">Noch keine Angaben</p>'}</div>`
     }
     if (b.typ === 'bild') {
-      return `<div class="cv-preview-section"><h4>${ICONS.image}${escapeHtml(b.titel || 'Bild')}</h4>${b.bild_url ? `<img src="${sichereMediaUrl(b.bild_url)}" class="cv-preview-image">` : '<p class="cv-preview-empty">Noch kein Bild hochgeladen</p>'}</div>`
+      return `<div class="cv-preview-section"><h4>${ICONS.image}${escapeHtml(b.titel || 'Bild')}</h4>${sichereMediaUrl(b.bild_url) ? `<img src="${sichereMediaUrl(b.bild_url)}" class="cv-preview-image">` : '<p class="cv-preview-empty">Noch kein Bild hochgeladen</p>'}</div>`
     }
     if (b.typ === 'sprachen') {
       const sprachen = (b.sprachen || []).filter(s => s.name?.trim())
@@ -754,7 +754,7 @@ function renderCvPreview() {
 
   document.getElementById('cv-preview').innerHTML = `
     <div class="cv-preview-header">
-      <div class="cv-preview-photo" style="${sichereMediaUrl(fotoUrl) ? `background-image:url('${sichereMediaUrl(fotoUrl)}')` : ''}">${fotoUrl ? '' : escapeHtml(name[0]?.toUpperCase() || '?')}</div>
+      <div class="cv-preview-photo" style="${sichereMediaUrl(fotoUrl) ? `background-image:url('${sichereMediaUrl(fotoUrl)}')` : ''}">${sichereMediaUrl(fotoUrl) ? '' : escapeHtml(name[0]?.toUpperCase() || '?')}</div>
       <div>
         <div class="cv-preview-name">${escapeHtml(name)}</div>
         <div class="cv-preview-school">${escapeHtml(schule || 'Schule noch nicht angegeben')}${klasse ? ' · ' + escapeHtml(klasse) : ''}</div>

@@ -328,6 +328,152 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 27. August 2026 (Teil 2) - Der Schutz, der nicht schuetzte
+
+Nach dem Fund in `rls-stand.sql` die Frage: **Was ist sonst noch nie geprueft
+worden?** Ich habe jede Datei in `js/` danach durchgesehen, wie oft sie in
+Tests vorkommt.
+
+Aufgefallen ist `js/sicher.js` - **19 Zeilen, an neun Stellen benutzt, in keinem
+einzigen Test.** Es ist die Abwehr gegen eingeschleusten Code ueber
+Bild-Adressen: `foto_url` und `bild_url` kann jeder Nutzer selbst setzen, und
+sie landen in `background-image:url('...')` und in `<img src="...">`. Der
+eingeschleuste Code laeuft dann in der Sitzung der Firma, die sich eine
+Bewerbung ansieht.
+
+Dieselbe Lage wie zuvor bei der Trefferlogik des Job-Alarms und den
+Chat-Warnungen.
+
+### Befund 1: Der Kommentar versprach mehr, als der Code hielt
+
+Die Datei sagt woertlich, sie entferne "Zeichen, mit denen man aus url(...)
+oder Attributen ausbrechen koennte (Anfuehrungszeichen, Klammern ...)".
+
+Ersetzt wurde mit `encodeURIComponent` als Ersetzungsfunktion. Die kodiert
+`'`, `(` und `)` aber **absichtlich nicht** - das sind dort "unreservierte"
+Zeichen.
+
+Gemessen mit einem Wegwerf-Test, Zeichen fuer Zeichen, einmal im Pfad und
+einmal in der Abfrage:
+
+| Zeichen | im Pfad |
+|---|---|
+| `'` | **ueberlebt** |
+| `(` | **ueberlebt** |
+| `)` | **ueberlebt** |
+| `;` | **ueberlebt** |
+
+Genau die ersten drei braucht man, um aus `url('...')` auszubrechen, und mit
+`;` haengt man eine eigene CSS-Deklaration an. Der Schutz war an seiner
+wichtigsten Einsatzstelle wirkungslos.
+
+Behoben: eigene Kodierung statt `encodeURIComponent`, dazu `` ` ``, `;`, `{`
+und `}` mit aufgenommen. **Gegenprobe gemacht:** Mit der alten Fassung fallen
+drei Pruefungen um, darunter der CSS-Ausbruch.
+
+### Befund 2: Weder Bild noch Platzhalter
+
+Die Anzeige benutzte den **bereinigten** Wert, die Entscheidung "Bild oder
+Platzhalter" aber die **rohe** Adresse. Bei einer abgelehnten Adresse sagte die
+rohe Pruefung "ja", die Bereinigung lieferte `''` - Ergebnis war ein leeres
+`src` (kaputtes Bildsymbol), und beim Profilfoto verschwand zusaetzlich der
+Ersatzbuchstabe. Man bekam weder das eine noch das andere.
+
+Sechs Stellen umgestellt. Die Knopfbeschriftungen ("Bild aendern" gegenueber
+"Bild auswaehlen") haengen bewusst weiter an der rohen Adresse - dort geht es
+nicht um die Anzeige, sondern darum, ob ueberhaupt etwas hochgeladen wurde. Der
+Test unterscheidet das.
+
+### `tests/sicher.spec.js` (17 Pruefungen)
+`javascript:` in mehreren Schreibweisen und mit eingestreuten Steuerzeichen ·
+`data:`, `vbscript:`, `file:`, `blob:`, `about:` · echte Adressen kommen
+unveraendert durch · jedes Ausbruchszeichen einzeln, **getrennt nach Pfad und
+Abfrage** · der Ausbruch aus einer CSS-Angabe und aus einem `src`-Attribut ·
+zweimaliges Anwenden aendert nichts (die Funktion wird an mehreren Stellen
+doppelt aufgerufen).
+
+### Ein eigener Fehler: die Suite zerschossen
+Ich habe die Vorschau gestartet, waehrend die volle Suite lief - beide teilen
+sich Port 5500. 66 Verbindungsfehler, Lauf unbrauchbar. Genau die Falle, die
+in OFFENE-PUNKTE dokumentiert steht und die ich selbst dort haette nachlesen
+koennen.
+
+## Session 27. August 2026 - Die vier Regeln eingespielt
+
+Sanad hat die vier fertigen SQL-Dateien freigegeben. Eingespielt und einzeln
+nachgeprueft:
+
+- `meldungen.melder_id` von CASCADE auf **SET NULL** (Spalte vorher nullbar
+  gemacht) - eine Missbrauchsmeldung ueberlebt jetzt die Loeschung des Melders.
+- `jobs_mindestalter_jarbschg` **ersetzt** `chk_mindestalter` (ab 10 -> ab 13).
+- `chk_alter_jahre` auf profiles ebenfalls ab 13.
+- Regel "Schueler bewirbt sich" mit Hilfsfunktion `ist_verifiziert()`.
+
+Vorab geprueft: alle vier Zaehlungen 0, keine Regel trifft eine bestehende
+Zeile.
+
+### Die Falle, die um ein Haar durchgegangen waere
+
+Die Kontrollabfrage nach dem Einspielen zeigte **zwei** INSERT-Regeln auf
+`bewerbungen`. Die alte hiess schlicht **"Bewerben"** - meine SQL-Datei loeschte
+aber "Schueler bewirbt sich", einen Namen, den es gar nicht gab. Die alte Regel
+stand also NEBEN der neuen, und **PostgreSQL verknuepft mehrere erlaubende
+Regeln mit ODER**. Die grosszuegigere gewinnt: Die neue Pruefung auf
+`verifiziert` war vollstaendig wirkungslos.
+
+Haette ich nach dem `success: true` aufgehoert, waere die Luecke offen geblieben
+und haette in der Doku als geschlossen gestanden - schlimmer als vorher, weil
+niemand mehr nachgesehen haette.
+
+Danach die ganze Datenbank auf dasselbe Muster abgesucht: vier Tabellen mit
+mehreren erlaubenden Regeln, alle vier gewollt (Admin *oder* Eigentuemer *oder*
+Oeffentlichkeit). Kein weiterer Altbestand.
+
+**Lehre:** Nach einer Regelaenderung nicht die Rueckmeldung des Werkzeugs
+glauben, sondern den Zustand abfragen. Und bei `drop policy if exists` sagt
+"if exists" eben auch dann nichts, wenn der Name falsch ist.
+
+`supabase/bewerbung-verifiziert.sql` entfernt jetzt beide Namen und die
+Pruefabfrage weist ausdruecklich darauf hin, dass GENAU EINE Zeile kommen muss.
+
+### Und der Fund, der daraus folgte: die Sicherungsdatei war eine Falle
+
+Wenn die Regel nicht so hiess wie gedacht - stimmt `supabase/rls-stand.sql`
+dann ueberhaupt noch? Die Datei ist als Wiederherstellungs-Skript gedacht:
+"alle Zugriffsregeln auf einmal".
+
+Abgeglichen: 29 Regeln live, 29 in der Datei, inhaltlich stimmen alle - bis auf
+eine. **Sie erklaerte weiter die alte, grosszuegige Regel `"Bewerben"`.**
+
+Wer sie eingespielt haette, um "den Stand wiederherzustellen", haette die gerade
+geschlossene Luecke wieder aufgerissen. Und zwar unbemerkt: Die neue Regel waere
+stehen geblieben, die alte dazugekommen, und beide zusammen ergeben per ODER
+wieder freien Zugang. Eine Sicherungsdatei, die eine Sicherheitsentscheidung
+still zurueck nimmt, ist schlimmer als keine.
+
+Nachgezogen, samt Hilfsfunktion `ist_verifiziert()` - die fehlte dort ebenfalls,
+das Skript waere beim Wiedereinspielen mitten drin gescheitert.
+
+### `tests/sql-konsistenz.spec.js` (10 Pruefungen)
+Liest die SQL-Dateien von der Festplatte (`supabase/` steht in `.vercelignore`):
+Die Bewerbungs-Regel muss `ist_verifiziert` pruefen · `create policy "Bewerben"`
+darf nicht wieder auftauchen, das `drop` dagegen schon · vor jedem
+`create policy` steht ein passendes `drop` (sonst ist die Datei nicht
+wiederholbar) · jede benutzte Hilfsfunktion ist irgendwo im Ordner definiert ·
+die Abhaengigkeit zu `schutz-trigger.sql` ist vermerkt · die Altersgrenze 13
+steht in beiden SQL-Dateien und im Modul gleich · jede SQL-Datei hat eine
+Begruendung und eine Pruefabfrage.
+
+**Gegenprobe gemacht:** Mit der alten Fassung fallen genau die zwei Pruefungen
+um, die zaehlen.
+
+### Zum zweiten Mal derselbe eigene Fehler
+Beim Ergaenzen der Hilfsfunktion habe ich geprueft, ob `ist_verifiziert` schon
+in der Datei steht - es stand dort, aber nur als Aufruf in der neuen Regel, nicht
+als Definition. Der Waechter war also wahr und der Einbau wurde uebersprungen.
+Genau dasselbe war mir am 26.8. beim Import in `admin.js` passiert.
+**Lehre: auf das pruefen, was man einbauen will, nicht auf den Namen.**
+
 ## Session 26. August 2026 (Teil 21) - 16 englische Fehlertexte
 
 Der naechste Punkt aus der Liste, und einer der wenigen, der ohne Sanad
