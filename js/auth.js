@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { pruefeAlter, brauchtEinwilligung } from './jugendschutz.js'
 
 document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('login-form')
@@ -125,10 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
         alter = document.getElementById('alter').value
         ort = document.getElementById('ort').value
         if (!name.trim()) { feldFehler(document.getElementById('name'), 'Bitte gib deinen Vornamen ein.'); fehler = true }
-        if (!alter) { feldFehler(document.getElementById('alter'), 'Bitte wähle dein Alter.'); fehler = true }
+        // Die Auswahlliste beginnt bei 13 - hier trotzdem geprueft, denn
+        // eine Liste im Browser ist kein Schutz. Siehe js/jugendschutz.js.
+        const alterPruefung = pruefeAlter(alter)
+        if (!alterPruefung.ok) {
+          feldFehler(document.getElementById('alter'), alterPruefung.fehler); fehler = true
+        }
 
-        const braucht16 = !alter || parseInt(alter) < 16
-        if (braucht16 && !document.getElementById('eltern-einwilligung').checked) {
+        if (brauchtEinwilligung(alter) && !document.getElementById('eltern-einwilligung').checked) {
           feldFehler(document.getElementById('eltern-einwilligung'), 'Bitte bestätige die Einwilligung deiner Eltern.'); fehler = true
         }
       }
@@ -145,7 +150,22 @@ document.addEventListener('DOMContentLoaded', () => {
         email,
         password,
         options: {
-          data: { name, role, alter_jahre: alter ? parseInt(alter) : null, ort }
+          data: {
+            name, role, alter_jahre: alter ? parseInt(alter) : null, ort,
+            // Die Einwilligung der Eltern wurde bisher abgefragt und dann
+            // WEGGEWORFEN. Art. 7 Abs. 1 DSGVO verlangt aber, dass sich
+            // nachweisen laesst, dass eingewilligt wurde. Hier landet sie
+            // in `raw_user_meta_data` - ohne Schema-Aenderung, mit dem
+            // Zeitpunkt der Anmeldung daneben.
+            ...(role === 'schueler' ? {
+              eltern_einwilligung: brauchtEinwilligung(alter)
+                ? Boolean(document.getElementById('eltern-einwilligung')?.checked)
+                : null,
+              eltern_einwilligung_am: brauchtEinwilligung(alter)
+                ? new Date().toISOString()
+                : null
+            } : {})
+          }
         }
       })
 

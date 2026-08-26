@@ -54,6 +54,13 @@ order by erstellt_am;
 -- NULL bleibt erlaubt: Es gibt Anzeigen ohne Altersangabe, und die sind
 -- kein Rechtsverstoß, sondern nur unvollständig.
 
+-- WICHTIG: Es gibt bereits eine Regel `chk_mindestalter`, die ab 10
+-- zulaesst. Sie wird ERSETZT, nicht ergaenzt - stuenden beide da, waere
+-- die alte zwar wirkungslos (die strengere gewinnt), aber jeder spaetere
+-- Leser muesste erst herausfinden, welche gilt.
+alter table public.jobs
+  drop constraint if exists chk_mindestalter;
+
 alter table public.jobs
   drop constraint if exists jobs_mindestalter_jarbschg;
 
@@ -73,10 +80,13 @@ comment on constraint jobs_mindestalter_jarbschg on public.jobs is
 -- ---------------------------------------------------------------------
 -- Erwartet: eine Zeile mit der Regel.
 
+-- Erwartet: GENAU EINE Zeile (jobs_mindestalter_jarbschg mit >= 13).
+-- Steht `chk_mindestalter` noch da, wurde der Block oben nicht mit
+-- ausgefuehrt.
 select conname as regel, pg_get_constraintdef(oid) as definition
 from pg_constraint
 where conrelid = 'public.jobs'::regclass
-  and conname = 'jobs_mindestalter_jarbschg';
+  and conname in ('jobs_mindestalter_jarbschg', 'chk_mindestalter');
 
 
 -- Gegenprobe (soll FEHLSCHLAGEN — das ist der Beweis, dass die Regel

@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **613 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **625 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -16,7 +16,7 @@
 > **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
 > was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
 
-## 🛑 FÜR DICH: drei SQL-Dateien warten
+## 🛑 FÜR DICH: vier SQL-Dateien warten
 
 Alle drei im Supabase-SQL-Editor ausführen. Jede ist wiederholt ausführbar, jede
 beginnt mit einer Prüfabfrage, und **keine trifft bestehende Daten** – ich habe
@@ -27,6 +27,7 @@ das jeweils nachgesehen.
 | `supabase/meldungen-fk.sql` | Eine Missbrauchsmeldung verschwand mit dem Konto des Melders (`ON DELETE CASCADE`) | 0 Meldungen |
 | `supabase/mindestalter-grenze.sql` | Anzeigen „ab 10 Jahren" waren möglich (§ 5 JArbSchG) | niedrigstes Alter: 15 |
 | `supabase/bewerbung-verifiziert.sql` | Bewerben ohne Verifizierung war über die Schnittstelle möglich | 3 Bewerbungen, alle verifiziert |
+| `supabase/alter-grenze.sql` | Registrierung nahm Zehnjährige an (`chk_alter_jahre` liess ab 10 zu) | jüngstes Profil: 15 |
 
 **Der rote Faden zwischen den letzten beiden:** Die Seite verspricht etwas, und
 erzwungen wurde es nur im Browser. `fuer-firmen.html` sagt Arbeitgebern *„Wer
@@ -78,6 +79,22 @@ einzeln frei.
 
 Der Betreiber-Bereich ist schon darauf vorbereitet: Fehlt ein Konto, steht dort
 „Konto gelöscht" statt eines leeren Feldes (5 neue Tests).
+
+## 📋 Für die rechtliche Prüfung: Einwilligung ist jetzt nachweisbar
+
+Bei der Registrierung wurde das Häkchen *„Ich habe die Erlaubnis meiner Eltern"*
+abgefragt, geprüft – und dann **weggeworfen**. Es landete nirgends.
+
+Art. 7 Abs. 1 DSGVO verlangt, dass du *nachweisen kannst*, dass eingewilligt
+wurde. Genau danach wird die rechtliche Prüfung fragen.
+
+Seit dem 26.8. wandert die Einwilligung samt Zeitpunkt in die Anmeldedaten
+(`auth.users.raw_user_meta_data`) – dafür war **keine** Schema-Änderung nötig.
+Die Abfrage zum Einsehen steht am Ende von `supabase/alter-grenze.sql`.
+
+Für Konten, die vor dem 26.8. angelegt wurden, gibt es keinen Nachweis. Das sind
+derzeit vier Testkonten, also unkritisch – erwähne es aber bei der rechtlichen
+Prüfung.
 
 ## 🖼 Zu überdenken: Fotos liegen in öffentlichen Ablagen
 

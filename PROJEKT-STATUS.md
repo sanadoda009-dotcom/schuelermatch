@@ -328,6 +328,64 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 20) - Derselbe Fehler auf der Schuelerseite
+
+Fortsetzung der Methode aus Teil 19. Diesmal nicht die Texte der Seite, sondern
+**die Regeln der Datenbank** ausgelesen: alle CHECK-Constraints auf einmal. Zwei
+Funde in einer einzigen Abfrage.
+
+### Befund 1: Die Registrierung nahm Zehnjaehrige an
+
+`chk_alter_jahre` auf `profiles` liess **ab 10** zu, und die Auswahlliste in
+`register.html` bot 10, 11 und 12 an - genau derselbe Fehler wie im
+Anzeigenformular aus Teil 18, nur auf der anderen Seite der Plattform. Ein
+Zehnjaehriger konnte sich ein Konto anlegen, auf einer Seite, die ueberall
+"ab 13" sagt.
+
+Behoben: Liste beginnt bei 13, `pruefeAlter()` in `js/jugendschutz.js` prueft im
+Ablauf, `supabase/alter-grenze.sql` macht es verbindlich. Juengstes Profil in
+der Datenbank: 15 - die Regel trifft keine bestehende Zeile.
+
+Der Text ist bewusst ein anderer als beim Anzeigenformular: Dort liest ihn ein
+Arbeitgeber und der Paragraph gehoert dazu. Hier liest ihn ein Kind - ohne
+Gesetzestext und ohne Vorwurf. Ein Test haelt den Unterschied fest.
+
+### Befund 2: Die Einwilligung der Eltern wurde weggeworfen
+
+Bei der Registrierung wird das Haekchen "Ich habe die Erlaubnis meiner Eltern"
+abgefragt und im Browser geprueft. Gespeichert wurde es **nirgends**: In
+`options.data` standen nur Name, Rolle, Alter und Ort.
+
+**Art. 7 Abs. 1 DSGVO verlangt aber, dass der Verantwortliche nachweisen kann,
+dass eingewilligt wurde.** Genau danach wird die rechtliche Pruefung fragen.
+
+Behoben ohne Schema-Aenderung: `handle_new_user()` liest gezielte Schluessel aus
+`raw_user_meta_data` und ignoriert weitere - `eltern_einwilligung` samt
+Zeitpunkt landet also dort und bleibt erhalten. `supabase/alter-grenze.sql`
+enthaelt die Abfrage, mit der sich der Nachweis einsehen laesst, und beschreibt
+den optionalen Weg, es zusaetzlich ins Profil zu ziehen (mit dem Hinweis, dass
+der Schutz-Trigger die Spalten dann einfrieren muss - sonst koennte jemand die
+eigene Einwilligung nachtraeglich setzen und der Nachweis waere wertlos).
+
+### Nebenbei korrigiert: meine eigene SQL-Datei aus Teil 18
+
+`chk_mindestalter` **gab es bereits** (ab 10). `supabase/mindestalter-grenze.sql`
+haette eine zweite Regel danebengelegt statt sie zu ersetzen. Funktioniert
+haette es - die strengere gewinnt -, aber jeder spaetere Leser haette erst
+herausfinden muessen, welche gilt. Die Datei ersetzt die alte Regel jetzt, und
+die Pruefabfrage am Ende sucht nach beiden Namen.
+
+Gefunden nur, weil ich die Constraints ausgelesen habe, statt meine eigene Datei
+fuer richtig zu halten.
+
+### Ein eigener Fehler im Modul
+`Number('')` ist `0`, und `Number.isInteger(0)` ist wahr. Eine leere Auswahl kam
+damit als "0 Jahre" an und bekam die Meldung "unter 13 ist nicht erlaubt" -
+ein Vorwurf, wo gar kein Bedienfehler vorlag. Betraf beide Pruefungen.
+Ein gemeinsames `alsAlter()` behebt es, zwei Tests halten es fest.
+
+**Suite: 613 -> 625 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 19) - Jedes Versprechen gegen den Code
 
 In Teil 18 fiel zufaellig eine unbelegte Werbeaussage auf. Diese Runde macht

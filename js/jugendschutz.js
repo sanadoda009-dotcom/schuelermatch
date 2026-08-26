@@ -37,10 +37,22 @@ export const ALTERSOPTIONEN = Array.from(
 
 // Prüft das Mindestalter einer Anzeige.
 // Gibt `{ ok: true }` oder `{ ok: false, fehler: '…' }` zurück.
-export function pruefeMindestalter(alter) {
-  const n = Number(alter)
+// Liest eine Altersangabe. Gibt `null` zurueck, wenn gar nichts
+// dasteht — WICHTIG, denn `Number('')` ist 0 und `Number.isInteger(0)`
+// ist wahr. Ohne diesen Schritt bekam eine leere Auswahl die Meldung
+// „unter 13 ist nicht erlaubt" statt „bitte waehle dein Alter".
+function alsAlter(wert) {
+  if (wert === null || wert === undefined) return null
+  const t = String(wert).trim()
+  if (t === '') return null
+  const n = Number(t)
+  return Number.isInteger(n) ? n : null
+}
 
-  if (!Number.isInteger(n))
+export function pruefeMindestalter(alter) {
+  const n = alsAlter(alter)
+
+  if (n === null)
     return { ok: false, fehler: 'Bitte gib ein Mindestalter an.' }
 
   if (n < MIN_ALTER)
@@ -62,8 +74,8 @@ export function pruefeMindestalter(alter) {
 // Die Texte folgen `jugendarbeitsschutz.html`, damit die Seite nicht
 // zweierlei erzählt.
 export function hinweisFuer(alter) {
-  const n = Number(alter)
-  if (!Number.isInteger(n)) return null
+  const n = alsAlter(alter)
+  if (n === null) return null
 
   if (n <= 14)
     return 'Bei 13- und 14-Jährigen sind nur leichte, kindgerechte Tätigkeiten erlaubt – höchstens 2 Stunden am Tag, nicht vor der Schule und nicht nach 18 Uhr. Die Eltern müssen schriftlich einwilligen.'
@@ -72,4 +84,43 @@ export function hinweisFuer(alter) {
     return 'Bei Schulpflichtigen unter 18 gelten während der Schulzeit dieselben engen Grenzen. In den Ferien sind bis zu 8 Stunden täglich möglich, höchstens 4 Wochen im Jahr.'
 
   return null
+}
+
+// ---------------------------------------------------------------------
+// Dieselbe Grenze auf der Schülerseite.
+//
+// Die Registrierung bot als Alter ebenfalls **10, 11 und 12** an — auf
+// einer Plattform, die überall „ab 13" sagt. Ein Zehnjähriger konnte
+// sich ein Konto anlegen. Geprüft wurde der Wert weder im Browser noch
+// in der Datenbank (`chk_alter_jahre` liess ab 10 zu).
+//
+// Der Text ist ein anderer als bei der Anzeige: Hier liest ihn ein Kind,
+// nicht ein Arbeitgeber. Deshalb ohne Paragraphen und ohne Vorwurf.
+export function pruefeAlter(alter) {
+  const n = alsAlter(alter)
+
+  if (n === null)
+    return { ok: false, fehler: 'Bitte wähle dein Alter.' }
+
+  if (n < MIN_ALTER)
+    return {
+      ok: false,
+      fehler: `SchülerMatch ist ab ${MIN_ALTER} Jahren. Jünger darf man in Deutschland leider noch nicht arbeiten.`
+    }
+
+  if (n > MAX_ALTER)
+    return { ok: false, fehler: 'Bitte wähle ein Alter aus der Liste.' }
+
+  return { ok: true }
+}
+
+// Braucht diese Person die Einwilligung der Eltern?
+// Art. 8 DSGVO: In Deutschland ab 16 selbst einwilligungsfähig.
+export const EINWILLIGUNG_BIS = 16
+
+export function brauchtEinwilligung(alter) {
+  const n = alsAlter(alter)
+  // Ohne Altersangabe im Zweifel ja — lieber einmal zu viel fragen.
+  if (n === null) return true
+  return n < EINWILLIGUNG_BIS
 }
