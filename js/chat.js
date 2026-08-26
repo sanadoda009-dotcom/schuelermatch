@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { toast } from './toast.js'
 import { oeffneMeldeDialog, meldeButtonHtml } from './melden.js'
 import { hole, verstaendlich } from './zustand.js'
+import { warnungFuer, warnungHtml } from './chat-warnung.js'
 
 function escapeHtml(str) {
   const div = document.createElement('div')
@@ -43,34 +44,8 @@ function sicherheitsLeisteHtml() {
     </details>`
 }
 
-// Sehr zurueckhaltende Muster - lieber einmal zu wenig warnen als staendig
-// falschen Alarm ausloesen.
-function warnungFuer(text) {
-  const t = (text || '').toLowerCase()
-
-  // Telefonnummer: Leerzeichen/Bindestriche zwischen Ziffern entfernen,
-  // Punkte bewusst NICHT (sonst schlagen Datumsangaben wie 12.03.2026 an).
-  const ziffern = t.replace(/[\s\-\/()]/g, '')
-  if (/\d{7,}/.test(ziffern)) return 'kontakt'
-
-  if (/\b(whatsapp|telegram|snapchat|instagram|insta|tiktok|discord|signal)\b/.test(t)) return 'kontakt'
-  // Wortgrenzen in JS kennen nur ASCII und greifen vor ü/ä/ö nicht,
-  // darum hier bewusst ohne. Die Begriffe sind eindeutig genug.
-  if (/(vorkasse|anzahlung|kaution|gebühr|überweis|paypal|gutschein|amazon-?karte)/.test(t)) return 'geld'
-  if (/(zu mir nach haus|bei mir zuhause|bei mir zu haus|meine wohnung|komm allein|ganz allein)/.test(t)) return 'treffen'
-  return null
-}
-
-const WARN_TEXT = {
-  kontakt: 'Sieht nach Kontaktdaten aus. Bleib lieber hier im Chat – hier bist du geschützt.',
-  geld:    'Achtung: Du musst für einen Job <b>nie</b> im Voraus zahlen. Das ist ein Warnzeichen.',
-  treffen: 'Triff dich nie allein mit jemandem, den du nur online kennst. Nimm jemanden mit und sag deinen Eltern Bescheid.'
-}
-
-function warnungHtml(art) {
-  if (!art) return ''
-  return `<div class="chat-warnung" role="note">⚠️ ${WARN_TEXT[art]}</div>`
-}
+// warnungFuer/warnungHtml liegen seit dem 26.8. in js/chat-warnung.js -
+// dort sind sie pruefbar. Siehe tests/chat-warnung.spec.js.
 
 // Rendert einen Chat-Verlauf in `container` für eine Bewerbung.
 // meineId = eigene Profil-ID. Gibt eine Funktion zum Aufräumen zurück.

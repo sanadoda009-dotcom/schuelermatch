@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **513 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **535 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter

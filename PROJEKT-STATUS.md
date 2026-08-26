@@ -328,6 +328,37 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 16) - Die Warnungen im Chat
+
+Im Chat schreibt ein Minderjaehriger mit einem fremden Erwachsenen. Seit dem 22.8. gibt es dort Hinweise bei Kontaktdaten, Geldforderungen und Treffen unter vier Augen.
+
+**Geprueft wurde die Erkennung nie.** Sie steckte in `js/chat.js` hinter einem Supabase-Import und lief in keinem einzigen Test - dieselbe Lage wie bei der Trefferlogik des Job-Alarms.
+
+Herausgezogen nach `js/chat-warnung.js`. Dabei kamen zwei Befunde heraus.
+
+### Befund 1: E-Mail-Adressen wurden gar nicht erkannt
+Erkannt wurden Telefonnummern und die Namen anderer Messenger - aber **"schreib mir an max@gmail.com" ging glatt durch**. Dabei ist genau das der haeufigste Weg, den geschuetzten Chat zu verlassen.
+
+Ergaenzt. Bewusst einfach gehalten: Es geht nicht um Gueltigkeit nach RFC, sondern darum, dass da offensichtlich eine Adresse steht.
+
+### Befund 2: Fehlalarm bei Terminabsprachen
+Vor der Suche nach einer Ziffernfolge werden Trennzeichen entfernt - auch **Leerzeichen**. Aus *"Ich kann am 12 03 2026 anfangen"* wurde damit `12032026`, und eine harmlose Absprache bekam eine Warnung wegen Kontaktdaten.
+
+Das Tueckische: An `12.03.2026` **hatte** jemand gedacht - Punkte werden ausdruecklich nicht entfernt, mit Kommentar. An dieselbe Schreibweise mit Leerzeichen nicht.
+
+Behoben: Zifferngruppen werden nur noch als Nummer gewertet, wenn mindestens eine Gruppe drei oder mehr Ziffern am Stueck hat. Datum und Uhrzeit bestehen aus ein-, zwei- und vierstelligen Gruppen (`12 03 2026`, `14 30`); eine Telefonnummer hat immer eine laengere Gruppe (`0176`, `1234567`).
+
+**Warum das wichtiger ist, als es klingt:** Eine Warnung, die bei jeder Terminabsprache aufpoppt, liest nach drei Tagen niemand mehr. Ein Fehlalarm beschaedigt genau die Hinweise, auf die es im Ernstfall ankommt.
+
+### `tests/chat-warnung.spec.js` (22 Pruefungen)
+E-Mail in mehreren Schreibweisen · Handynummer mit Bindestrichen und Klammern · fuenf Messenger-Namen · **neun harmlose Nachrichten, die nichts ausloesen duerfen** (Terminabsprachen, Uhrzeiten, Jahreszahlen, Klassenstufe, Stundenlohn) · Vorkasse, Gebuehr mit Umlaut, Gutscheinkarte · Einladung in die Wohnung und "komm allein", aber nicht ein normaler Treffpunkt im Laden.
+
+Dazu zwei Pruefungen an der Einbindung: Die Warnung erscheint nur an **fremden** Nachrichten (sich selbst zu warnen waere sinnlos), und jede Warnart hat einen Text.
+
+**Gegenprobe gemacht:** Mit der alten Erkennung fallen genau drei Tests um - beide E-Mail-Pruefungen und der Fehlalarm bei `12 03 2026`.
+
+**Suite: 513 -> 535 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 15) - Der Job-Finder endete in einer Sackgasse
 
 Angesehen wurde der **Job-Finder**, den ich bisher nie geprueft hatte. Die Startseite verspricht: *"Fuenf Fragen, eine Minute - danach hast du vier Vorschlaege, die zu dir passen."*
