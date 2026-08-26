@@ -328,6 +328,36 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 15) - Der Job-Finder endete in einer Sackgasse
+
+Angesehen wurde der **Job-Finder**, den ich bisher nie geprueft hatte. Die Startseite verspricht: *"Fuenf Fragen, eine Minute - danach hast du vier Vorschlaege, die zu dir passen."*
+
+### Was gut ist
+Die Bewertung ist solide gebaut. **Das Alter ist ein harter Filter**, kein Wunsch (`if (job.ab > antworten.alter) return -1`) - es wird also nie etwas vorgeschlagen, das man nicht machen darf. Der Rest laeuft ueber Punkte statt harter Filter, damit bei ungewoehnlichen Kombinationen nicht plotzlich nichts uebrig bleibt.
+
+Geprueft: Fuer 13-Jaehrige stehen 6 der 18 Ideen zur Verfuegung - vier Vorschlaege gehen also immer auf, ein Leerzustand ist gar nicht moeglich.
+
+### Was fehlte
+**Am Ende wurde das Ergebnis weggeworfen.** Der Test lernt Alter und Vorlieben, und der Knopf hiess dann *"Jobs in meiner Naehe"* und fuehrte auf die **ungefilterte** Jobboerse.
+
+Ein 13-Jaehriger klickte sich also durch fuenf Fragen und landete anschliessend zwischen Anzeigen ab 16.
+
+### Behoben
+- Alle 18 Ideen haben jetzt eine `kategorie`, die **genau** so heisst wie in der Jobboerse.
+- Der Hauptknopf heisst *"Jobs fuer mein Alter"* und traegt `?alter=` in der Adresse - die Beschriftung sagt, was passiert.
+- **Jede Ergebniskarte** bekommt einen eigenen Weg: *"Solche Jobs in deiner Naehe"* mit Kategorie **und** Alter.
+
+`jobs.html` versteht beide Parameter laengst (`lieseUrlParameter()`), es war nur nie jemand auf die Idee gekommen, sie hier zu benutzen.
+
+### Vier neue Tests
+Der Hauptknopf traegt das Alter · jede der vier Karten hat einen Weg mit Kategorie und Alter · **die Kategorien im Finder gibt es auch wirklich in der Jobboerse** (Schreibweise abgeglichen - sonst greift der Filter still nicht und die Liste bleibt einfach leer) · und einmal wirklich geklickt, mit Pruefung, dass der Filter drueben ankommt.
+
+### Zwei eigene Stolperer
+1. Meine Antworttexte in den neuen Tests waren **geraten** ("Nachmittags" statt "Ein paar Stunden nach der Schule"). Die echten stehen in `js/job-finder.js` - die bestehenden Tests hatten sie korrekt.
+2. Ein **bestehender Test** pruefte die alte Knopfbeschriftung und fiel um. Richtig so: Ich hatte sie absichtlich geaendert. Angepasst samt Begruendung im Kommentar.
+
+**Suite: 509 -> 513 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 14) - Der unsichtbare Knopf in der Zusage-Mail
 
 Angesehen wurde etwas, das bisher niemand geprueft hatte: die **Texte der automatischen E-Mails**. Eine Absage geht an einen 14-Jaehrigen; wie die formuliert ist, zaehlt.

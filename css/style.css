@@ -2369,3 +2369,22 @@ main[tabindex="-1"]:focus { outline: none; }
   font-family: 'IBM Plex Mono', monospace;
   font-size: 0.68rem; font-weight: 400; color: var(--ink-soft);
 }
+
+/* ===================================================================
+   JOB-FINDER: Weg vom Ergebnis in die Jobboerse
+   -------------------------------------------------------------------
+   Am 26.8. ergaenzt. Der Test lieferte vier Vorschlaege und einen Knopf
+   auf die UNGEFILTERTE Boerse - die fuenf Antworten waren damit umsonst.
+   Jetzt fuehrt jede Ergebniskarte zu genau solchen Jobs, passend zum
+   angegebenen Alter.
+   =================================================================== */
+.idee-suche {
+  display: inline-block; margin-top: 10px;
+  font-size: 0.85rem; font-weight: 600;
+  color: var(--match-green-dark);
+  text-decoration: none;
+  /* Tippziel: der Text allein waere auf dem Handy zu flach. */
+  padding: 8px 0; min-height: 24px;
+}
+.idee-suche:hover { text-decoration: underline; }
+.idee-suche:focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px; border-radius: 4px; }
