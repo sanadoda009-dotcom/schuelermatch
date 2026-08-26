@@ -328,6 +328,44 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 11) - Der Fehler, den ich selbst gebaut hatte
+
+Diese Runde begann mit einer Zaehlung: Wohin verlinkt die Startseite eigentlich?
+
+```
+  4 job-finder.html      2 jugendarbeitsschutz.html      1 ferienjob.html
+  3 jobs.html            2 eltern.html                   1 taschengeld.html
+  3 jobideen.html                                        1 fairer-lohn.html
+```
+
+**Ferienjob, Taschengeld und Fairer Lohn kamen genau einmal vor - und zwar im Footer.** Kein einziger Link aus dem Inhalt. Zwei dieser Seiten hatte ich am selben Tag selbst gebaut und jeweils bloss in den Footer gehaengt. Dort sterben Links.
+
+Besonders unguenstig beim Ferienjob: Wenn im Oktober die Herbstferien anfangen, findet die Seite niemand - die Seite mit dem Countdown, die genau dann etwas wert ist.
+
+### Warum keine fuenfte Kachel auf der Startseite
+Der naheliegende Ort waere die Wege-Sektion gewesen ("Womit faengst du an?", vier Kacheln fuer vier Absichten). Aber `.wege-grid` hat `repeat(4, 1fr)` - eine fuenfte Karte haette allein in der zweiten Zeile gestanden, auf ein Viertel Breite gestreckt. Das Raster auf fuenf Spalten umzustellen haette alle Karten gequetscht.
+
+### Stattdessen: ein Eintrag in der Hauptnavigation
+Die Navigation hatte vier Eintraege und deckte nur Suchwege ab (Jobs, Job-Finder, Jobideen, Fuer Arbeitgeber). Ein fuenfter - **Ratgeber** - deckt die andere Absicht ab: *erst mal wissen, was ueberhaupt gilt.*
+
+Das skaliert auch: Kuenftige Ratgeberseiten kommen auf die Uebersicht, nicht in die Navigation.
+
+**Neu: `ratgeber.html`** - nach Zielgruppe getrennt (Schueler / Eltern), jede Kachel mit einem Satz, was einen dort erwartet. Ganz oben steht, was man lesen sollte, wenn man nur eine Sache liest: den Jugendarbeitsschutz. Alles andere folgt daraus.
+
+### Der Test, der den Fehler kuenftig verhindert
+`tests/ratgeber.spec.js` fuehrt eine Liste `RATGEBERSEITEN` und prueft, dass **jede davon auf der Uebersicht verlinkt** und **von der Startseite aus in zwei Klicks erreichbar** ist. Wer eine neue Ratgeberseite baut, traegt sie dort ein - und der Test meckert, bis sie auch verlinkt ist.
+
+Dazu: Kacheln muessen eine Erklaerung haben (nicht nur eine Ueberschrift), duerfen nicht wie Fliesstext-Links unterstrichen sein (dieselbe `.legal-page a`-Falle wie bei den Knoepfen), und der Ratgeber muss in der **Navigation** stehen, nicht nur im Footer.
+
+### Zwei Funde beim Testlauf
+**1. `navigation.spec.js` schlug an - zu Recht.** Der Test haelt die Soll-Menueleiste fest und meldete acht Seiten, auf denen sie sich geaendert hatte. Genau dafuer gibt es ihn: Er entstand am 25.8., nachdem beim Wachstum **fuenf verschiedene Navigationen** entstanden waren.
+
+**2. Eine Seite fiel NICHT durch - und das war der eigentliche Hinweis.** `jobideen.html` bestand weiter, weil sie den neuen Eintrag gar nicht bekommen hatte. Grund: Sie markiert ihren eigenen Menuepunkt mit `aria-current="page"`, und mein Suchmuster verlangte exakt `<a href="jobideen.html">`. Ein bestandener Test kann also der auffaelligere Befund sein als ein fehlgeschlagener.
+
+Nachgezogen: `ratgeber.html` markiert ihren eigenen Eintrag jetzt ebenfalls mit `aria-current` - so macht es jede Seite. Und der Navigationstest prueft jetzt **13 statt 9 Seiten**: `fairer-lohn`, `ferienjob`, `taschengeld` und `ratgeber` fehlten in seiner Liste, obwohl sie dieselbe Leiste tragen.
+
+**Suite: 453 -> 474 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 10) - Taschengeldtabelle
 
 Stand seit dem Wettbewerbsvergleich vom 25.8. auf der Ideenliste: *"Taschengeldtabelle (Nachschlagewerk, wird gesucht)"*. **schuelerjobs.de hat genau diese Seite.**

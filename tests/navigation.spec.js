@@ -23,10 +23,16 @@ const SEITEN = [
   '/eltern.html',
   '/fuer-firmen.html',
   '/jugendarbeitsschutz.html',
+  '/fairer-lohn.html',
+  '/ferienjob.html',
+  '/taschengeld.html',
+  '/ratgeber.html',
   '/404.html',
 ]
 
-const ERWARTET = ['Jobs', 'Job-Finder', 'Jobideen', 'Für Arbeitgeber']
+// Am 26.8. um 'Ratgeber' erweitert: Ferienjob, Taschengeld und Fairer
+// Lohn waren von der Startseite aus nur ueber den Footer erreichbar.
+const ERWARTET = ['Jobs', 'Job-Finder', 'Jobideen', 'Ratgeber', 'Für Arbeitgeber']
 
 async function menue(page) {
   return page.evaluate(() =>

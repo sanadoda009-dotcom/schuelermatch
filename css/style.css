@@ -2315,3 +2315,46 @@ main[tabindex="-1"]:focus { outline: none; }
   .alarm-knoepfe { width: 100%; }
   .alarm-knoepfe .btn { flex: 1 1 auto; }
 }
+
+/* ===================================================================
+   RATGEBER-UEBERSICHT (ratgeber.html)
+   -------------------------------------------------------------------
+   Anlass (26.8.): Ferienjob, Taschengeld und Fairer Lohn waren von der
+   Startseite aus NUR ueber den Footer erreichbar - dort sterben Links.
+   Statt die Wege-Kacheln auf der Startseite zu ueberladen (vier Karten
+   in einem Vierer-Raster; eine fuenfte haette allein in der zweiten
+   Zeile gestanden), bekommt der Ratgeber einen eigenen Eintrag in der
+   Hauptnavigation und diese Uebersicht als Ziel.
+   =================================================================== */
+.ratgeber-liste {
+  display: grid; gap: 12px; margin: 18px 0 8px;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 640px) { .ratgeber-liste { grid-template-columns: 1fr; } }
+
+.ratgeber-karte {
+  display: block; padding: 18px 20px;
+  background: var(--card);
+  border: 1px solid var(--line); border-radius: 14px;
+  /* .legal-page a unterstreicht alle Verweise - bei einer Kachel waere
+     das falsch. Dieselbe Falle wie bei den Knoepfen am 26.8. */
+  text-decoration: none !important;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.ratgeber-karte:hover {
+  border-color: var(--match-green);
+  transform: translateY(-1px);
+}
+.ratgeber-karte:focus-visible {
+  outline: 2px solid var(--indigo); outline-offset: 3px;
+}
+
+.ratgeber-karte b {
+  display: block; margin-bottom: 5px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1rem; color: var(--ink);
+}
+.ratgeber-karte span {
+  display: block;
+  font-size: 0.87rem; line-height: 1.55; color: var(--ink-soft);
+}

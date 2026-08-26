@@ -57,6 +57,7 @@ for (const [name, pfad] of [
   ['Für Arbeitgeber', '/fuer-firmen.html'],
   ['Fairer Lohn', '/fairer-lohn.html'],
   ['Taschengeld', '/taschengeld.html'],
+  ['Ratgeber', '/ratgeber.html'],
   ['Ferienjob', '/ferienjob.html'],
 ]) {
   test(`Tippziele groß genug: ${name}`, async ({ page }) => {
