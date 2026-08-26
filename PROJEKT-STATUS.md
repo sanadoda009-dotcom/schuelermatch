@@ -41,6 +41,7 @@ keine Vorschau mehr. `tests/teilen-vorschau.spec.js` prueft Masse und Groesse.
 - `login.html`, `register.html`, `forgot-password.html`, `reset-password.html`
 - `dashboard-schueler.html` – Sidebar-Navigation: Jobs / Lebenslauf / Verifizierung / Profil
 - `dashboard-firma.html` – Sidebar-Navigation: Jobs verwalten / Firmenprofil
+- `taschengeld.html` - Taschengeldtabelle nach DJI-Empfehlung, Seite fuer Eltern
 - `ferienjob.html` - Ferienjob-Ratgeber mit Ferienkalender (16 Bundeslaender, Countdown bis zu den naechsten Ferien)
 - `impressum.html`, `datenschutz.html`
 
@@ -326,6 +327,32 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
   - Weiterhin NICHT abgedeckt: Chat-Verlauf/Senden, Admin-Panel, echte Uploads (Storage nur als Erfolg gemockt) - Kandidaten fuer spaeter.
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
+
+## Session 26. August 2026 (Teil 10) - Taschengeldtabelle
+
+Stand seit dem Wettbewerbsvergleich vom 25.8. auf der Ideenliste: *"Taschengeldtabelle (Nachschlagewerk, wird gesucht)"*. **schuelerjobs.de hat genau diese Seite.**
+
+### Warum sie hierher gehoert
+Nicht wegen des Themas - SchuelerMatch vermittelt Jobs, kein Taschengeld -, sondern wegen der **Zielgruppe**: Wer "Taschengeldtabelle" sucht, ist meistens ein Elternteil. Und Eltern sind bei Minderjaehrigen ohnehin die Instanz, die zustimmen muss (Art. 8 DSGVO). Ein Elternteil, das auf einer ernsthaften, sauber belegten Seite landet und dabei erfaehrt, dass das Kind sich auch selbst etwas verdienen koennte - das ist ein natuerlicher Weg, kein aufgesetzter.
+
+### Der Fund beim Recherchieren
+**Drei Quellen, drei verschiedene Tabellen.** Die Abweichungen liegen bei 10 bis 20 Euro pro Altersstufe - auch der Wettbewerber weicht ab und nennt keine Quelle.
+
+Der Grund: **Es gibt keine amtliche Taschengeldtabelle.** Was kursiert, sind Empfehlungen. Die verbreitetste stammt vom **Deutschen Jugendinstitut** (Chabursky/Langmeyer, *Taschengeld und Gelderziehung*, September 2025, Datengrundlage DJI-Survey 2023). Zwei unabhaengige Quellen bestaetigen dieselben Zahlen.
+
+Diese Seite nennt deshalb **ausdruecklich Quelle und Stand** und hat einen eigenen Abschnitt darueber, warum andere Seiten andere Zahlen zeigen. Wer vergleicht, kann so einordnen statt zu raten. Das ist der Unterschied zum Wettbewerber, der eine Tabelle hinstellt, als waere sie gesetzt.
+
+### Inhalt
+DJI-Tabelle nach acht Altersstufen · warum der Takt bei 10 Jahren von woechentlich auf monatlich wechselt (Planungsfaehigkeit) · **Budgetgeld ab 12** als eigenes Konzept · der Vergleich mit einem Nebenjob · vier haeufige Fragen (Bedingungen knuepfen, Taschengeldparagraf § 110 BGB, Kindergeld, Minijob-Grenze).
+
+**Bewusst NICHT geschrieben:** dass Taschengeld ueberfluessig sei, wenn man arbeiten kann. Beide erfuellen verschiedene Zwecke - Taschengeld gibt es bedingungslos und lehrt Einteilen, selbstverdientes Geld lehrt, was eine Stunde Arbeit wert ist. Ein Test haelt genau diesen Satz fest, damit ihn niemand spaeter wegkuerzt.
+
+### Verlinkt
+Footer aller 13 oeffentlichen Seiten · `sitemap.xml` · og-Tags samt Teilen-Bild · aufgenommen in die Seitenlisten von `a11y`, `kontrast`, `knopf-kontrast`, `tippziele-mobil` und `teilen-vorschau`.
+
+`tests/taschengeld.spec.js` (11 Pruefungen) - darunter: nennt Quelle und Stand, sagt dass es keine Pflicht ist, erklaert die Abweichungen anderer Seiten, verwendet die korrigierte Minijob-Grenze von 603 statt 556 Euro.
+
+**Suite: 437 -> 453 Tests, alle gruen.**
 
 ## Session 26. August 2026 (Teil 9) - Google Jobs: zwei stille Fehler
 

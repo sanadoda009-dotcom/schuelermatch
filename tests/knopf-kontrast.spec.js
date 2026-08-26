@@ -73,6 +73,7 @@ for (const [name, pfad] of [
   ['Jobbörse', '/jobs.html'],
   ['Ferienjob', '/ferienjob.html'],
   ['Fairer Lohn', '/fairer-lohn.html'],
+  ['Taschengeld', '/taschengeld.html'],
   ['Jobideen', '/jobideen.html'],
   ['Jugendarbeitsschutz', '/jugendarbeitsschutz.html'],
   ['Für Eltern', '/eltern.html'],
