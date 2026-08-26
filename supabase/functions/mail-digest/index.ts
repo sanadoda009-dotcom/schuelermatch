@@ -19,6 +19,20 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 )
 
+// HTML-Escaping. Job-Titel und Firmenname schreiben Arbeitgeber selbst;
+// hier gehen sie nur an dieselbe Firma zurueck, der Schaden waere also
+// begrenzt. Trotzdem am 26.8. nachgezogen: Die Schwester-Funktion
+// mail-job-alarm schickt dieselbe Art Werte an SCHUELER, und zwei
+// verschiedene Regeln fuer dasselbe Problem laden zu Fehlern ein.
+function esc(s: unknown): string {
+  return String(s ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
 function rahmen(inhalt: string): string {
   return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#161a1f">
     <div style="height:4px;background:linear-gradient(120deg,#00c896,#2b2f8f);border-radius:4px"></div>
@@ -68,13 +82,13 @@ Deno.serve(async () => {
   for (const firma of proFirma.values()) {
     const gesamt = [...firma.jobs.values()].reduce((a, n) => a + n, 0)
     const liste = [...firma.jobs.entries()]
-      .map(([titel, n]) => `<li><b>${n}</b> für „${titel}"</li>`)
+      .map(([titel, n]) => `<li><b>${n}</b> für „${esc(titel)}"</li>`)
       .join('')
     const ok = await sendeMail(
       firma.email,
       `${gesamt} neue Bewerbung${gesamt === 1 ? '' : 'en'} bei SchülerMatch`,
       `<h2 style="font-family:sans-serif">Deine Bewerbungen heute</h2>
-       <p>Hallo ${firma.name || ''}, du hast heute <b>${gesamt}</b> neue Bewerbung${gesamt === 1 ? '' : 'en'} erhalten:</p>
+       <p>Hallo ${esc(firma.name || '')}, du hast heute <b>${gesamt}</b> neue Bewerbung${gesamt === 1 ? '' : 'en'} erhalten:</p>
        <ul>${liste}</ul>
        <p><a href="${SITE_URL}/dashboard-firma.html"
          style="display:inline-block;background:#2b2f8f;color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">

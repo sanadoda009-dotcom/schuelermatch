@@ -80,6 +80,7 @@ for (const [name, pfad] of [
   ['Job-Finder', '/job-finder.html'],
   ['Login', '/login.html'],
   ['Registrierung', '/register.html'],
+  ['Job-Alarm abbestellen', '/job-alarm-aus.html'],
 ]) {
   test(`Knöpfe sind lesbar: ${name}`, async ({ page }) => {
     await page.goto(pfad)

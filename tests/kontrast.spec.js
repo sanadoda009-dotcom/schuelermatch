@@ -36,6 +36,7 @@ test.describe('öffentliche Seiten', () => {
     ['Job-Finder', '/job-finder.html'],
     ['Login', '/login.html'],
     ['Registrierung', '/register.html'],
+    ['Job-Alarm abbestellen', '/job-alarm-aus.html'],
   ]) {
     test(`Texte sind lesbar: ${name}`, async ({ page }) => {
       await setupDashboard(page.context(), {})

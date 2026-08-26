@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job-Alarm abbestellen – SchülerMatch</title>
+<meta name="description" content="Job-Alarm von SchülerMatch abbestellen.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/monitoring.js"></script>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<!--
+  Bewusst OHNE js/gate.js: Diese Seite wird aus einer E-Mail heraus
+  aufgerufen. Wer sich abmelden will, soll das können, ohne vorher ein
+  Baustellen-Passwort einzugeben. Sonst meldet sich niemand ab und
+  markiert die Mail stattdessen als Spam.
+-->
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo"><img src="assets/logo.png" alt="SchülerMatch" class="logo-img"></a>
+</nav>
+
+<main class="legal-page wrap">
+  <h1>Job-Alarm abbestellen</h1>
+  <p class="legal-sub">Ein Klick, keine Anmeldung nötig</p>
+
+  <section class="legal-highlight" id="zustand" aria-live="polite">
+    <h2 id="zustand-titel">Einen Moment …</h2>
+    <p id="zustand-text">Wir melden dich gerade ab.</p>
+  </section>
+
+  <section>
+    <p>Dein Konto bleibt bestehen — du bekommst nur keine E-Mails mehr über neue Jobs.
+       Anmelden kannst du den Alarm jederzeit wieder in deinem Dashboard.</p>
+    <div class="fehler-knoepfe" style="justify-content:flex-start;">
+      <a class="btn btn-green" href="jobs.html">Jobs ansehen</a>
+      <a class="btn btn-outline" href="dashboard-schueler.html">Zum Dashboard</a>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="js/job-alarm-aus.js"></script>
+</body>
+</html>

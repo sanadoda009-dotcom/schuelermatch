@@ -327,6 +327,46 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 7) - Job-Alarm: der Motor
+
+Der Job-Alarm stand in OFFENE-PUNKTE.md als **staerkster Wachstums-Hebel**: Wer heute nichts Passendes findet, geht sonst und kommt nicht wieder.
+
+**Zuschnitt dieser Runde: der Motor, noch ohne Oberflaeche.** Genau anders herum waere es falsch - eine Oberflaeche, mit der man einen Alarm anlegt, der dann keine Mails schickt, verspricht etwas, das nicht eingehalten wird. So kann noch niemand einen Alarm anlegen, und es geht auch nichts kaputt.
+
+### Guenstiger Fund vorweg
+Es gibt bereits `mail-digest`: eine Edge Function, die **einmal taeglich** laeuft und Arbeitgebern eine Sammel-Mail schickt statt einer Mail pro Bewerbung. Genau diese Form braucht der Job-Alarm auch - taeglich statt sofort, eine Mail statt vieler. Bei Minderjaehrigen ein Argument fuer sich.
+
+### Gebaut
+- **`supabase/job-alarm.sql`** - Tabelle `job_alarme`, RLS, Spalten-Trigger, Abmelde-Funktion.
+  - **Ein Alarm je Schueler** (`unique` auf `schueler_id`). Mehrere Alarme heissen mehrere Mails und viel Verwaltung; wer die Kategorie leer laesst, bekommt ohnehin alles aus seiner Gegend.
+  - `zuletzt_gesendet` steht beim Anlegen auf *jetzt*, damit nicht sofort alle Altbestaende als "neu" verschickt werden.
+  - **Spalten-Trigger direkt mitgebaut** - die Lehre aus Teil 6 desselben Tages. `zuletzt_gesendet` und `abmelde_token` gehoeren eingefroren; das eine wuerde sonst erlauben, sich alte Anzeigen erneut schicken zu lassen, das andere ist der Schluessel zum Abmelden.
+- **`supabase/functions/mail-job-alarm/index.ts`** - die taegliche Funktion.
+- **`job-alarm-aus.html` + `js/job-alarm-aus.js`** - Abmelden per Ein-Klick-Link.
+
+### Drei Entscheidungen, die Erklaerung verdienen
+
+**1. Escaping.** `mail-digest` schreibt Job-Titel unescaped in die Mail. Dort geht sie an dieselbe Firma zurueck, die den Titel geschrieben hat - Selbstschaden, harmlos. Beim Job-Alarm gingen **von Arbeitgebern geschriebene Titel an Schueler**. Das ist eine ganz andere Lage; hier wird alles escaped. `mail-digest` wurde gleich mitgezogen, damit nicht zwei Regeln fuer dasselbe Problem existieren.
+
+**2. Die Abmelde-Seite hat bewusst KEIN `gate.js`.** Sie wird aus einer E-Mail heraus aufgerufen. Wer sich abmelden will und erst ein Baustellen-Passwort eintippen soll, meldet sich nicht ab - er markiert die Mail als Spam. Dazu ein `List-Unsubscribe`-Kopfzeile, damit die Abmeldung auch direkt im Mailprogramm geht.
+
+**3. Wiederholte Aufrufe sind harmlos.** Die Funktion ist wie ihre Schwestern oeffentlich erreichbar. Sie nimmt aber keine Eingaben entgegen, und nach dem Versand wird `zuletzt_gesendet` fortgeschrieben - der zweite Aufruf findet nichts mehr. Damit laesst sich niemand zuspammen. Fortgeschrieben wird **erst nach erfolgreichem Versand**: Schlaegt Resend fehl, wird es morgen erneut versucht, statt still zu verschwinden.
+
+Ausserdem: Verschickt werden nur Jobs, die auch oeffentlich sichtbar sind (aktiv **und** Firma freigegeben - der Service-Role-Schluessel umgeht RLS, die Regel steht also von Hand in der Funktion), und nur solche, fuer die der Schueler **alt genug** ist.
+
+### Offen: die Datenbank-Aenderung wurde blockiert
+`apply_migration` lief in den Sicherheitsfilter der automatischen Freigabe. Die Datei `supabase/job-alarm.sql` ist fertig und muss von Sanad im Supabase-SQL-Editor ausgefuehrt werden (sie enthaelt keine Schluessel, Einfuegen ist also unproblematisch). Danach:
+1. `supabase/functions/mail-job-alarm/index.ts` deployen
+2. Zeitplan setzen, z.B. Cron `0 16 * * *`
+3. Oberflaeche im Schueler-Dashboard bauen (naechste Runde)
+
+### Getestet
+`tests/job-alarm-abmelden.spec.js` (6 Pruefungen): gueltiger Token meldet ab und reicht ihn durch; ohne Token wird die Datenbank gar nicht erst gefragt; abgeschnittener Token wird erkannt (genau das machen Mailprogramme); Serverfehler nennt einen zweiten Weg; die Seite ist ohne Baustellen-Passwort erreichbar; `noindex` gesetzt.
+
+Die Seite steht jetzt auch in den Listen von `a11y`, `kontrast` und `knopf-kontrast`.
+
+**Suite: 412 -> 421 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 6) - Zugriffsregeln gesichert, zwei Loecher gefunden
 
 Vorhaben war schlicht: Die RLS-Policies standen nur im Supabase-Dashboard, ohne Verlauf und ohne Referenz. Beim Auslesen kamen zwei Befunde heraus, die vorher niemand gesehen hatte.
