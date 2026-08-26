@@ -328,6 +328,100 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 17) - Der Betreiber-Bereich, den ich nie angesehen hatte
+
+Angesehen wurde `admin.html` / `js/admin.js` - der einzige Bereich, den ich in
+sechs Qualitaetsrunden ausgelassen hatte. Dort prueft der Betreiber
+Ausweisdokumente Minderjaehriger.
+
+### Befund 1: Ausweisdokumente konnten verwaisen
+
+Der Speicherort einer hochgeladenen Datei kam aus der **Endung des Dateinamens**
+(`file.name.split('.').pop()`). Wer erst ein Foto und spaeter ein PDF hochlud,
+hinterliess ZWEI Dateien im Storage. In der Datenbank stand nur die neue - die
+alte war ueber **keinen** Loeschweg mehr erreichbar: weder ueber den Knopf des
+Schuelers noch ueber die Pruefung im Betreiber-Bereich, die ausdruecklich
+"Dokument geloescht" meldet.
+
+Gemessen: **bis zu 7 verschiedene Pfade fuer EIN Dokument** eines Schuelers
+(`ausweis.jpg` / `.JPG` / `.jpeg` / `.pdf` / `.PDF` / `.png` / `.ausweis`). Also
+bis zu 6 unerreichbare Ausweisdateien pro Person.
+
+In der Produktion liegen 2 Dateien, beide korrekt verzeichnet - der Fehler hatte
+noch nicht zugeschlagen, weil bisher niemand das Format gewechselt hat.
+
+Dieselbe Falle steckte in **vier weiteren Uploads**: Profilfoto (zweimal),
+Lebenslauf-Bilder (zweimal), Zeugnis zur Bewerbung. Bei den Fotos wiegt sie
+schwerer, denn `avatars` und `lebenslauf-bilder` sind **oeffentliche** Ablagen -
+eine zurueckgebliebene Datei bleibt unter ihrer alten Adresse fuer jeden
+abrufbar, auch nachdem der Schueler sein Foto getauscht hat.
+
+**Behoben in `js/dokument-pfad.js`** (eigenes Modul, damit pruefbar - dieselbe
+Bauweise wie zuvor bei der Trefferlogik des Job-Alarms und den Chat-Warnungen):
+- Die Endung kommt aus dem **MIME-Typ**, nicht aus dem Dateinamen. Ein Nutzer,
+  eine Dokumentart, ein Pfad - `upsert` ueberschreibt wirklich.
+- Beim Formatwechsel wird die Vorgaengerdatei aktiv entfernt. Bei den
+  oeffentlichen Ablagen muss der Pfad dafuer erst aus der Adresse
+  zurueckgewonnen werden (`pfadAusUrl`), weil dort keine Pfadangabe gespeichert
+  ist.
+- Groesse und Dateiart werden vorab geprueft, je Ablage mit deren eigenen
+  Grenzen - mit deutschem Hinweis statt englischer Storage-Meldung.
+- Der Betreiber-Bereich benutzt dasselbe `istPdf`. Vorher konnte eine Datei ohne
+  Endung als `ausweis.ausweis` landen und ein PDF wurde als Bild angezeigt.
+
+Eine Invariante haelt das zusammen: Was `pruefeFuerBucket` durchlaesst, MUSS
+`dokumentPfad` einen Pfad liefern - sonst liefe der Upload mit `null` ins Leere.
+Ein Test prueft das ueber alle vier Ablagen und alle erlaubten Typen.
+
+### Befund 2: Eine Meldung verschwand mit dem Melder
+
+Aus den Fremdschluesseln der Datenbank: `meldungen.melder_id` zeigt mit
+**ON DELETE CASCADE** auf `profiles`. Wird ein Konto geloescht, verschwinden
+alle Meldungen, die diese Person gestellt hat.
+
+Ein Schueler meldet einen Erwachsenen wegen Belaestigung im Chat. Danach loescht
+er aus Scham sein Konto - oder die Eltern verlangen die Loeschung. In dem Moment
+ist die Meldung weg, und der Betreiber verliert genau den Vorgang, gegen den er
+ermitteln muesste.
+
+Bei der **gemeldeten** Person steht der Fremdschluessel schon richtig auf
+`SET NULL` - der Vorgang bleibt. Die Asymmetrie war die Luecke.
+
+`supabase/meldungen-fk.sql` stellt es um (Spalte nullbar + FK auf SET NULL).
+**Nicht selbst eingespielt**: Schema-Aenderungen an der Produktionsdatenbank
+gibt Sanad einzeln frei. `select count(*) from meldungen` = 0, es ist also nichts
+verloren und die Umstellung trifft keine Zeile.
+
+Der Betreiber-Bereich ist vorbereitet: Fehlt ein Konto, steht dort jetzt
+**"Konto geloescht"** statt eines vagen "Unbekannt" - bei beiden Seiten
+einheitlich. Gegenprobe gemacht: mit der alten Anzeige faellt genau dieser eine
+Test um.
+
+### Befund 3: Es gibt gar keine Konto-Loeschung
+
+Die Datenschutzerklaerung verspricht Loeschung auf Zuruf per E-Mail (Art. 17).
+In der Anwendung existiert dafuer nichts - der Betreiber muss es von Hand tun,
+und niemand hatte je aufgeschrieben, was dazugehoert.
+
+`supabase/konto-loeschen.sql` ist jetzt diese Anleitung. Die entscheidende
+Erkenntnis darin: In der Datenbank kaskadiert fast alles vom Profil aus (eine
+Loeschzeile raeumt Bewerbungen, Nachrichten, Bewertungen, gemerkte Jobs und bei
+Firmen die Jobs samt deren Bewerbungen ab) - **der Storage nicht**. Wer nur die
+Datenbankzeile loescht, laesst das Foto des Kindes in einer oeffentlichen Ablage
+zurueck. Deshalb: erst die Dateien, dann die Datenbank, zum Schluss das
+Anmeldekonto unter Authentication > Users (sonst legt der naechste Login ueber
+`handle_new_user` ein neues Profil an).
+
+Mit Probelauf: der Loeschblock endet auf `rollback`, das man bewusst auf `commit`
+aendern muss.
+
+### Tests
+`tests/dokument-pfad.spec.js` (33 Pruefungen) und 5 neue in
+`tests/admin-meldungen.spec.js`.
+
+**Suite: 555 -> 573 Tests, alle gruen.**
+
+
 ## Session 26. August 2026 (Teil 16) - Die Warnungen im Chat
 
 Im Chat schreibt ein Minderjaehriger mit einem fremden Erwachsenen. Seit dem 22.8. gibt es dort Hinweise bei Kontaktdaten, Geldforderungen und Treffen unter vier Augen.

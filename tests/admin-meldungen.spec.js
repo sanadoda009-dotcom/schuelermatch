@@ -114,3 +114,70 @@ test.describe('als Admin', () => {
     await expect(karte.locator('.meldung-zitat')).toContainText('WhatsApp')
   })
 })
+
+// ---------------------------------------------------------------------
+// Gelöschte Konten (26.8.)
+//
+// `meldungen.melder_id` zeigte mit ON DELETE CASCADE auf `profiles`:
+// Löschte ein Schüler, der jemanden gemeldet hatte, sein Konto, war die
+// MELDUNG MIT WEG. Ein Schüler, der Belästigung meldet und danach aus
+// Scham sein Konto löscht, nähme den Vorgang mit — genau den, gegen den
+// der Betreiber ermitteln müsste.
+//
+// Bei der gemeldeten Person stand der Fremdschlüssel schon richtig auf
+// SET NULL. Die Asymmetrie war die Lücke.
+// supabase/meldungen-fk.sql stellt sie um.
+//
+// Danach kann `melder_id` NULL sein — die Karte muss das benennen statt
+// ein vages „Unbekannt" zu zeigen.
+test.describe('als Admin: Konto der beteiligten Person gelöscht', () => {
+  async function karteMit(page, meldung) {
+    await setupDashboard(page.context(), { user: ADMIN, db: adminDb([meldung]) })
+    await page.goto('/admin.html')
+    await warteAufAdmin(page)
+    await page.locator('.admin-tab[data-tab="meldungen"]').click()
+    return page.locator('.meldung-card')
+  }
+
+  test('die Meldung bleibt sichtbar, wenn der Melder gelöscht wurde', async ({ page }) => {
+    // Der Kern: Der Vorgang darf nicht verschwinden.
+    const karte = await karteMit(page, { ...MELDUNG_JOB, melder_id: null })
+    await expect(karte).toHaveCount(1)
+    await expect(karte.locator('.meldung-zitat')).toContainText('Kaution vorab')
+    await expect(karte).toContainText('Betrug')
+  })
+
+  test('statt eines Namens steht „Konto gelöscht"', async ({ page }) => {
+    const karte = await karteMit(page, { ...MELDUNG_JOB, melder_id: null })
+    await expect(karte).toContainText('Konto gelöscht')
+    await expect(karte, 'vages „Unbekannt" verschleiert den Grund')
+      .not.toContainText('Unbekannt')
+  })
+
+  test('auch wenn die gemeldete Person gelöscht wurde', async ({ page }) => {
+    const karte = await karteMit(page, { ...MELDUNG_JOB, gemeldet_user_id: null })
+    await expect(karte).toHaveCount(1)
+    await expect(karte).toContainText('Konto gelöscht')
+    await expect(karte).toContainText('Lena')   // der Melder steht noch
+  })
+
+  test('und wenn beide Konten weg sind', async ({ page }) => {
+    const karte = await karteMit(page, { ...MELDUNG_JOB, melder_id: null, gemeldet_user_id: null })
+    await expect(karte).toHaveCount(1)
+    await expect(karte.locator('.meldung-zitat')).toContainText('Kaution vorab')
+    // Zweimal, einmal je Seite.
+    expect((await karte.innerHTML()).match(/Konto gelöscht/g)).toHaveLength(2)
+  })
+
+  test('die Meldung lässt sich weiterhin auf erledigt setzen', async ({ page }) => {
+    // Ein Vorgang ohne Melder muss trotzdem abschliessbar sein — sonst
+    // bliebe er für immer im Reiter stehen.
+    const db = adminDb([{ ...MELDUNG_JOB, melder_id: null }])
+    await setupDashboard(page.context(), { user: ADMIN, db })
+    await page.goto('/admin.html')
+    await warteAufAdmin(page)
+    await page.locator('.admin-tab[data-tab="meldungen"]').click()
+    await page.locator('.meldung-card button', { hasText: /erledigt/i }).first().click()
+    await expect.poll(() => db.meldungen[0].status).toBe('erledigt')
+  })
+})

@@ -7,6 +7,7 @@ import { requireAuth } from './session.js'
 import { toast } from './toast.js'
 import { erzeugeLebenslaufPdfMitAnkern, ladeLebenslaufAlsPdf } from './pdf.js'
 import { sichereMediaUrl } from './sicher.js'
+import { dokumentPfad, pfadAusUrl, pruefeFuerBucket, verwaisterPfad } from './dokument-pfad.js'
 
 let profile
 let bloecke = []
@@ -510,15 +511,22 @@ function scrolleZuAnker(kartenId) {
 async function ladeFotoHoch(e) {
   const file = e.target.files[0]
   if (!file) return
-  if (file.size > 3 * 1024 * 1024) { toast('Das Bild ist zu groß (max. 3 MB).', 'fehler'); return }
+  // Groesse UND Dateiart pruefen. Ohne die Typpruefung kaeme
+  // dokumentPfad() mit null zurueck und der Upload liefe ins Leere.
+  const pruefung = pruefeFuerBucket(file, 'avatars')
+  if (!pruefung.ok) { toast(pruefung.fehler, 'fehler'); e.target.value = ''; return }
 
   const btn = document.getElementById('ll-foto-btn')
   btn.disabled = true; btn.textContent = 'Wird hochgeladen…'
 
-  const ext = file.name.split('.').pop()
-  const path = `${profile.id}/avatar.${ext}`
+  // Pfad aus dem MIME-Typ, nicht aus dem Dateinamen - und `avatars` ist
+  // ein OEFFENTLICHER Bucket: Eine zurueckgebliebene Datei waere unter
+  // ihrer alten Adresse fuer immer abrufbar. Siehe js/dokument-pfad.js.
+  const path = dokumentPfad(profile.id, 'avatar', file.type)
+  const alterPfad = verwaisterPfad(pfadAusUrl(profile.foto_url, 'avatars'), path)
   const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
   if (upErr) { toast('Fehler beim Hochladen: ' + upErr.message, 'fehler'); btn.disabled = false; btn.textContent = 'Foto hochladen'; return }
+  if (alterPfad) await supabase.storage.from('avatars').remove([alterPfad])
 
   const { data } = supabase.storage.from('avatars').getPublicUrl(path)
   const foto_url = data.publicUrl + '?t=' + Date.now()
@@ -535,10 +543,16 @@ async function ladeFotoHoch(e) {
 async function ladeBlockBildHoch(blockId, file) {
   if (!file) return
   const b = bloecke.find(x => x.id === blockId)
-  const ext = file.name.split('.').pop()
-  const path = `${profile.id}/${blockId}.${ext}`
+
+  const pruefung = pruefeFuerBucket(file, 'lebenslauf-bilder')
+  if (!pruefung.ok) { toast(pruefung.fehler, 'fehler'); return }
+
+  // Pfad aus dem MIME-Typ. Auch dieser Bucket ist oeffentlich.
+  const path = dokumentPfad(profile.id, blockId, file.type)
+  const alterPfad = verwaisterPfad(pfadAusUrl(b?.bild_url, 'lebenslauf-bilder'), path)
   const { error } = await supabase.storage.from('lebenslauf-bilder').upload(path, file, { upsert: true })
   if (error) { toast('Fehler beim Hochladen: ' + error.message, 'fehler'); return }
+  if (alterPfad) await supabase.storage.from('lebenslauf-bilder').remove([alterPfad])
   const { data } = supabase.storage.from('lebenslauf-bilder').getPublicUrl(path)
   b.bild_url = data.publicUrl + '?t=' + Date.now()
   geaendert(true)

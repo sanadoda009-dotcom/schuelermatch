@@ -465,9 +465,16 @@ function meldungKarte(m) {
     ? new Date(m.erstellt_am).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
     : ''
   const zielLabel = m.typ === 'job' ? '📋 Job-Anzeige' : '💬 Chat-Nachricht'
+  // Beide Seiten koennen fehlen, weil das Konto geloescht wurde. Das ist
+  // kein Datenfehler, sondern der Normalfall nach einer Loeschanfrage -
+  // und der Vorgang bleibt trotzdem bestehen (siehe
+  // supabase/meldungen-fk.sql). Deshalb steht das ausdruecklich da statt
+  // eines vagen „Unbekannt".
+  const KONTO_WEG = '<i>Konto gelöscht</i>'
   const gemeldet = m.gemeldet
-    ? `${escapeHtml(m.gemeldet.name || 'Unbekannt')} (${escapeHtml(m.gemeldet.role || '?')})`
-    : 'nicht mehr vorhanden'
+    ? `${escapeHtml(m.gemeldet.name || 'ohne Namen')} (${escapeHtml(m.gemeldet.role || '?')})`
+    : KONTO_WEG
+  const melder = m.melder ? escapeHtml(m.melder.name || 'ohne Namen') : KONTO_WEG
 
   return `
     <div class="meldung-card">
@@ -479,7 +486,7 @@ function meldungKarte(m) {
       </div>
 
       <div class="meldung-meta" style="margin-bottom:6px;">
-        Gemeldet von <b>${escapeHtml(m.melder?.name || 'Unbekannt')}</b> ·
+        Gemeldet von <b>${melder}</b> ·
         Betrifft <b>${gemeldet}</b>
       </div>
 

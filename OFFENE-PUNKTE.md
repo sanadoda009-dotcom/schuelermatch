@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **535 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **573 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -15,6 +15,45 @@
 > Fehler- und Leerzustände (dabei ein echter Bug gefunden: Weiterleitungsschleife bei Server-Störung).
 > **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
 > was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
+
+## 🛑 FÜR DICH: eine Zeile SQL, die Meldungen rettet
+
+**`supabase/meldungen-fk.sql` im Supabase-SQL-Editor ausführen.** Dauert eine Minute.
+
+`meldungen.melder_id` zeigt mit **ON DELETE CASCADE** auf `profiles`. Im Klartext:
+Wird ein Konto gelöscht, **verschwinden alle Meldungen, die diese Person gestellt hat**.
+
+Ein Schüler meldet einen Erwachsenen wegen Belästigung im Chat. Danach löscht er aus
+Scham sein Konto – oder die Eltern verlangen die Löschung. In dem Moment ist die
+Meldung weg. Du verlierst genau den Vorgang, gegen den du ermitteln müsstest.
+
+Bei der *gemeldeten* Person steht der Fremdschlüssel schon richtig auf `SET NULL` –
+der Vorgang bleibt. Die Asymmetrie ist die Lücke.
+
+Stand heute: `select count(*) from meldungen` = **0**. Es ist also noch nichts
+verloren gegangen, und die Umstellung trifft keine einzige Zeile. Ich habe sie
+**nicht selbst eingespielt** – Schema-Änderungen an der Produktionsdatenbank gibst du
+einzeln frei.
+
+Der Betreiber-Bereich ist schon darauf vorbereitet: Fehlt ein Konto, steht dort
+„Konto gelöscht" statt eines leeren Feldes (5 neue Tests).
+
+## 🗑 Konto löschen (Art. 17 DSGVO) — Anleitung liegt bereit
+
+Die Datenschutzerklärung verspricht: *„Wir löschen den Account dann zeitnah."*
+In der Anwendung **gibt es keine Konto-Löschung** – das musst du von Hand tun.
+
+**`supabase/konto-loeschen.sql`** ist die Anleitung dafür: E-Mail eintragen,
+Nutzer-Id ersetzen, Schritt für Schritt. Mit Probelauf (`rollback`) vor dem Ernstfall.
+
+Die Falle, die dort dokumentiert ist: In der Datenbank kaskadiert fast alles vom
+Profil aus – **der Storage nicht**. Das Profilfoto liegt in `avatars`, einer
+**öffentlichen** Ablage. Löschst du nur die Datenbankzeile, bleibt das Foto des
+Kindes unter seiner Adresse für jeden abrufbar. Deshalb: **erst die Dateien, dann
+die Datenbank**, und zum Schluss das Anmeldekonto unter Authentication > Users
+(sonst legt der nächste Login ein neues Profil an).
+
+Langfristig gehört eine Konto-Löschung in die Anwendung selbst.
 
 ## 🚀 Vor dem Launch (Pflicht)
 1. **Rechtliche Prüfung** – der einzige echte Blocker:
@@ -93,4 +132,7 @@ unter schuelermatch.de/supabase/... öffentlich abrufbar.
 - Gate-Passwort: `schuelermatch2026`
 - Neue Firmen müssen im Admin freigegeben werden, bevor ihre Jobs sichtbar sind
 - Verifizierungs-Dokumente werden nach der Prüfung automatisch gelöscht
+  *(am 26.8. repariert: der Speicherort hing an der Dateiendung, dadurch konnten
+  bis zu 6 unerreichbare Ausweisdateien pro Schüler zurückbleiben – siehe
+  `js/dokument-pfad.js`)*
 - Details zu allem: PROJEKT-STATUS.md

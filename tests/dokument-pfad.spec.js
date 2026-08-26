@@ -183,3 +183,138 @@ test('der Upload benutzt das Modul und löscht die alte Datei', async ({ page })
   expect(bereich, 'Datei muss vorab geprüft werden').toMatch(/pruefeDatei\(/)
   expect(bereich, 'die alte Datei muss entfernt werden').toMatch(/verwaisterPfad\(/)
 })
+
+// ---------------------------------------------------------------------
+// Dieselbe Falle steckte in vier weiteren Uploads: Profilfoto (zweimal),
+// Lebenslauf-Bilder (zweimal) und Zeugnis zur Bewerbung. Bei den Fotos
+// wiegt sie schwerer, denn `avatars` und `lebenslauf-bilder` sind
+// ÖFFENTLICHE Ablagen — eine zurückgebliebene Datei bleibt unter ihrer
+// alten Adresse für jeden abrufbar, auch nachdem der Schüler sein Foto
+// ausgetauscht hat.
+
+test.describe('jede Ablage hat ihre eigenen Grenzen', () => {
+  test('die Tabelle stimmt mit storage.buckets überein', async ({ page }) => {
+    // Weicht sie ab, meldet die Seite „passt" und der Storage lehnt
+    // danach trotzdem ab — mit englischer Meldung.
+    const b = await modul(page, m => m.BUCKETS)
+    expect(b['verifizierung'].maxBytes).toBe(6291456)
+    expect(b['zeugnisse'].maxBytes).toBe(6291456)
+    expect(b['avatars'].maxBytes).toBe(3145728)
+    expect(b['lebenslauf-bilder'].maxBytes).toBe(3145728)
+    expect(b['avatars'].oeffentlich).toBe(true)
+    expect(b['lebenslauf-bilder'].oeffentlich).toBe(true)
+    expect(b['verifizierung'].oeffentlich).toBe(false)
+    expect(b['zeugnisse'].oeffentlich).toBe(false)
+  })
+
+  test('in ein Profilfoto darf kein PDF', async ({ page }) => {
+    const r = await modul(page, m => m.pruefeFuerBucket({ type: 'application/pdf', size: 1000 }, 'avatars'))
+    expect(r.ok).toBe(false)
+    expect(r.fehler, 'Meldung darf hier nicht von PDF sprechen').not.toMatch(/PDF/)
+  })
+
+  test('in ein Zeugnis schon', async ({ page }) => {
+    const r = await modul(page, m => m.pruefeFuerBucket({ type: 'application/pdf', size: 1000 }, 'zeugnisse'))
+    expect(r.ok).toBe(true)
+  })
+
+  test('4 MB sind fürs Foto zu viel, fürs Zeugnis nicht', async ({ page }) => {
+    const [foto, zeugnis] = await modul(page, m => {
+      const d = { type: 'image/jpeg', size: 4 * 1024 * 1024 }
+      return [m.pruefeFuerBucket(d, 'avatars').ok, m.pruefeFuerBucket(d, 'zeugnisse').ok]
+    })
+    expect(foto).toBe(false)
+    expect(zeugnis).toBe(true)
+  })
+
+  test('eine unbekannte Ablage wird abgelehnt statt durchgewinkt', async ({ page }) => {
+    const r = await modul(page, m => m.pruefeFuerBucket({ type: 'image/jpeg', size: 10 }, 'gibtsnicht'))
+    expect(r.ok).toBe(false)
+  })
+
+  test('was eine Ablage erlaubt, hat auch eine Endung', async ({ page }) => {
+    // Die Invariante, die alles zusammenhält: Kommt eine Datei durch
+    // pruefeFuerBucket, MUSS dokumentPfad einen Pfad liefern. Sonst
+    // liefe der Upload mit `null` als Pfad ins Leere.
+    const ohneEndung = await modul(page, m => {
+      const fehlt = []
+      for (const [name, regel] of Object.entries(m.BUCKETS))
+        for (const typ of regel.typen)
+          if (!m.dokumentPfad('u1', 'x', typ)) fehlt.push(name + ': ' + typ)
+      return fehlt
+    })
+    expect(ohneEndung).toEqual([])
+  })
+})
+
+test.describe('Pfad aus einer öffentlichen Adresse zurückgewinnen', () => {
+  // Bei den öffentlichen Ablagen steht in der Datenbank die fertige
+  // Adresse, nicht der Pfad. Ohne diesen Schritt liesse sich die
+  // Vorgängerdatei gar nicht löschen.
+  const BASIS = 'https://blufrvuskqiloslyxjkx.supabase.co/storage/v1/object/public'
+
+  test('mit dem angehängten Zwischenspeicher-Zusatz', async ({ page }) => {
+    const pfad = await modul(page, (m, url) => m.pfadAusUrl(url, 'avatars'),
+      `${BASIS}/avatars/u1/avatar.jpg?t=1756200000000`)
+    expect(pfad).toBe('u1/avatar.jpg')
+  })
+
+  test('ohne Zusatz', async ({ page }) => {
+    const pfad = await modul(page, (m, url) => m.pfadAusUrl(url, 'lebenslauf-bilder'),
+      `${BASIS}/lebenslauf-bilder/u1/block-7.png`)
+    expect(pfad).toBe('u1/block-7.png')
+  })
+
+  test('die falsche Ablage ergibt nichts', async ({ page }) => {
+    // Wichtig: Sonst würde beim Foto-Tausch versucht, eine Datei in der
+    // falschen Ablage zu löschen.
+    const pfad = await modul(page, (m, url) => m.pfadAusUrl(url, 'avatars'),
+      `${BASIS}/lebenslauf-bilder/u1/block-7.png`)
+    expect(pfad).toBeNull()
+  })
+
+  test('leer, kaputt oder gar nichts ergibt nichts', async ({ page }) => {
+    const r = await modul(page, m =>
+      ['', null, 'kein-link', 'https://example.com/foo.jpg'].map(u => m.pfadAusUrl(u, 'avatars')))
+    expect(r).toEqual([null, null, null, null])
+  })
+
+  test('hin und zurück ergibt wieder denselben Pfad', async ({ page }) => {
+    const gleich = await modul(page, (m, basis) => {
+      const pfad = m.dokumentPfad('u1', 'avatar', 'image/png')
+      return m.pfadAusUrl(`${basis}/avatars/${pfad}?t=1`, 'avatars') === pfad
+    }, BASIS)
+    expect(gleich).toBe(true)
+  })
+})
+
+test('alle fünf Uploads benutzen das Modul', async ({ page }) => {
+  // Verankert die Einbindung an allen Stellen auf einmal. Taucht
+  // irgendwo wieder der Dateiname auf, ist der Befund zurück.
+  for (const datei of ['/js/dashboard-schueler.js', '/js/lebenslauf.js']) {
+    const quelle = await page.evaluate(async d => (await fetch(d)).text(), datei)
+    expect(quelle, `${datei}: Pfad darf nicht aus dem Dateinamen kommen`)
+      .not.toMatch(/\.name\.split\('\.'\)/)
+    expect(quelle, `${datei}: eigene Größengrenze statt der Tabelle`)
+      .not.toMatch(/file\.size >/)
+  }
+
+  const dash = await page.evaluate(async () => (await fetch('/js/dashboard-schueler.js')).text())
+  // Vier Uploads im Dashboard: Verifizierung, Blockbild, Foto, Zeugnis.
+  expect((dash.match(/dokumentPfad\(/g) || []).length).toBeGreaterThanOrEqual(4)
+
+  const ll = await page.evaluate(async () => (await fetch('/js/lebenslauf.js')).text())
+  expect((ll.match(/dokumentPfad\(/g) || []).length).toBeGreaterThanOrEqual(2)
+})
+
+test('bei den öffentlichen Ablagen wird die alte Datei entfernt', async ({ page }) => {
+  // Der eigentliche Schutz: `avatars` und `lebenslauf-bilder` sind
+  // öffentlich. Bleibt eine Datei liegen, ist sie weiter abrufbar.
+  for (const datei of ['/js/dashboard-schueler.js', '/js/lebenslauf.js']) {
+    const quelle = await page.evaluate(async d => (await fetch(d)).text(), datei)
+    expect(quelle, `${datei}: altes Foto muss gelöscht werden`)
+      .toMatch(/from\('avatars'\)\.remove\(\[alterPfad\]\)/)
+    expect(quelle, `${datei}: altes Lebenslauf-Bild muss gelöscht werden`)
+      .toMatch(/from\('lebenslauf-bilder'\)\.remove\(\[alterPfad\]\)/)
+  }
+})

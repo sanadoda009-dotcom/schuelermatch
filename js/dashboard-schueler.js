@@ -1,7 +1,7 @@
 import { supabase } from './supabase.js'
 import { hole, zeigeLadefehler, verstaendlich } from './zustand.js'
 import { requireAuth, logout } from './session.js'
-import { pruefeDatei, dokumentPfad, verwaisterPfad } from './dokument-pfad.js'
+import { dokumentPfad, pfadAusUrl, pruefeDatei, pruefeFuerBucket, verwaisterPfad } from './dokument-pfad.js'
 import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf, erzeugeLebenslaufPdf, lebenslaufAlsBlob } from './pdf.js'
 import { initSidebar } from './sidebar.js'
@@ -700,14 +700,23 @@ async function ladeBlockBildHoch(blockId, file) {
   if (!file) return
   const block = bloecke.find(b => b.id === blockId)
 
-  const ext = file.name.split('.').pop()
-  const path = `${profile.id}/${blockId}.${ext}`
+  const pruefung = pruefeFuerBucket(file, 'lebenslauf-bilder')
+  if (!pruefung.ok) { toast(pruefung.fehler, 'fehler'); return }
+
+  // Pfad aus dem MIME-Typ, nicht aus dem Dateinamen - sonst bleibt beim
+  // Wechsel von .jpg auf .png die alte Datei liegen. Und dieser Bucket
+  // ist OEFFENTLICH: Sie waere unter ihrer alten Adresse weiter fuer
+  // jeden abrufbar. Siehe js/dokument-pfad.js.
+  const path = dokumentPfad(profile.id, blockId, file.type)
+  const alterPfad = verwaisterPfad(pfadAusUrl(block?.bild_url, 'lebenslauf-bilder'), path)
 
   const { error: uploadError } = await supabase.storage.from('lebenslauf-bilder').upload(path, file, { upsert: true })
   if (uploadError) {
     toast('Fehler beim Hochladen: ' + uploadError.message, 'fehler')
     return
   }
+
+  if (alterPfad) await supabase.storage.from('lebenslauf-bilder').remove([alterPfad])
 
   const { data } = supabase.storage.from('lebenslauf-bilder').getPublicUrl(path)
   block.bild_url = data.publicUrl + '?t=' + Date.now()
@@ -992,8 +1001,10 @@ async function ladeFotoHoch(e) {
   const file = e.target.files[0]
   if (!file) return
 
-  if (file.size > 3 * 1024 * 1024) {
-    toast('Das Bild ist zu groß (max. 3 MB).', 'fehler')
+  const pruefung = pruefeFuerBucket(file, 'avatars')
+  if (!pruefung.ok) {
+    toast(pruefung.fehler, 'fehler')
+    e.target.value = ''
     return
   }
 
@@ -1001,8 +1012,12 @@ async function ladeFotoHoch(e) {
   btn.disabled = true
   btn.textContent = 'Wird hochgeladen...'
 
-  const ext = file.name.split('.').pop()
-  const path = `${profile.id}/avatar.${ext}`
+  // Pfad aus dem MIME-Typ. Vorher entstand bei jedem Formatwechsel eine
+  // zweite Datei, die niemand mehr loeschen konnte - und `avatars` ist
+  // ein OEFFENTLICHER Bucket: Das alte Foto des Schuelers waere unter
+  // seiner alten Adresse fuer immer abrufbar geblieben.
+  const path = dokumentPfad(profile.id, 'avatar', file.type)
+  const alterPfad = verwaisterPfad(pfadAusUrl(profile.foto_url, 'avatars'), path)
 
   const { error: uploadError } = await supabase.storage
     .from('avatars')
@@ -1014,6 +1029,8 @@ async function ladeFotoHoch(e) {
     btn.textContent = 'Foto hochladen'
     return
   }
+
+  if (alterPfad) await supabase.storage.from('avatars').remove([alterPfad])
 
   const { data } = supabase.storage.from('avatars').getPublicUrl(path)
   const foto_url = data.publicUrl + '?t=' + Date.now()
@@ -1630,8 +1647,17 @@ async function sendeBewerbung(e) {
   let zeugnis_url = null
 
   if (zeugnisDatei) {
-    const ext = zeugnisDatei.name.split('.').pop()
-    const path = `${profile.id}/${jobId}/zeugnis.${ext}`
+    const pruefung = pruefeFuerBucket(zeugnisDatei, 'zeugnisse')
+    if (!pruefung.ok) {
+      toast(pruefung.fehler, 'fehler')
+      btn.disabled = false
+      btn.textContent = 'Bewerbung absenden'
+      return
+    }
+    // Pfad aus dem MIME-Typ, nicht aus dem Dateinamen - sonst bleibt bei
+    // einer zweiten Bewerbung mit anderem Dateiformat das alte Zeugnis
+    // unerreichbar liegen. Siehe js/dokument-pfad.js.
+    const path = dokumentPfad(profile.id, `${jobId}/zeugnis`, zeugnisDatei.type)
     const { error: uploadError } = await supabase.storage.from('zeugnisse').upload(path, zeugnisDatei, { upsert: true })
     if (uploadError) {
       toast(verstaendlich(uploadError, 'Das Hochladen des Zeugnisses'), 'fehler')
