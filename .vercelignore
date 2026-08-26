@@ -9,5 +9,6 @@ package-lock.json
 graphify-out/
 test-pdf.html
 design-vorschau.html
+assets/og-vorlage.html
 *.md
 .claude/

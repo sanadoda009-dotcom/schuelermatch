@@ -13,6 +13,28 @@ Kostenlose Matching-Plattform für Minijobs: Schüler (5.–13. Klasse, ~10–20
 - **Zugangssperre AKTIV**: `js/gate.js` blendet auf ALLEN Seiten ein Passwort-Overlay ein (Passwort `schuelermatch2026`, in gate.js Zeile 7 änderbar). Zum Live-Schalten für alle: in `js/gate.js` `GATE_AKTIV = false` setzen. Kein echter Schutz (Code öffentlich), nur "Zutritt verboten"-Schild während der Bauphase.
 - Lokaler Vorschau-Server konfiguriert: `.claude/launch.json` (Python `http.server` Port 5500). Preview-Screenshots hängen bei diesem Setup – stattdessen `preview_eval` zum Prüfen nutzen. Browser cached lokal stark → Strg+Shift+R nötig.
 
+## Teilen-Vorschaubild neu erzeugen
+Quelle: `assets/og-vorlage.html` (nicht mitdeployed, steht in .vercelignore).
+Ziel: `assets/og-bild.jpg`, 1200x630.
+
+Eine Wegwerf-Spec unter `tests/_og.spec.js` anlegen:
+
+```js
+const { test } = require('@playwright/test')
+test('Bild', async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 630 })
+  await page.goto('/assets/og-vorlage.html')
+  await page.evaluate(() => document.fonts.ready)   // sonst Ersatzschrift
+  await page.waitForTimeout(1200)
+  await page.screenshot({ path: 'assets/og-bild.jpg', type: 'jpeg', quality: 92,
+    clip: { x: 0, y: 0, width: 1200, height: 630 } })
+})
+```
+
+Dann `npx playwright test _og --project=chromium`, danach die Spec loeschen.
+JPEG, nicht PNG: Als PNG wiegt die Karte 374 KB, WhatsApp zeigt darueber
+keine Vorschau mehr. `tests/teilen-vorschau.spec.js` prueft Masse und Groesse.
+
 ## Seitenstruktur
 - `index.html` – Landingpage (Hero, Beispiel-Jobs, So funktioniert's, FAQ, Schüler/Firmen-Kacheln, Abschluss-CTA)
 - `jobs.html` – öffentliche Jobbörse mit Filter (Suche, Ort, Alter, Gehalt)
@@ -304,6 +326,42 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
   - Weiterhin NICHT abgedeckt: Chat-Verlauf/Senden, Admin-Panel, echte Uploads (Storage nur als Erfolg gemockt) - Kandidaten fuer spaeter.
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
+
+## Session 26. August 2026 (Teil 5) - Das Bild, das beim Teilen erscheint
+
+**Befund:** Es gab **kein einziges** `og:image`. Wer einen SchuelerMatch-Link in eine WhatsApp-Gruppe warf, sah einen nackten Textkasten ohne Bild. Fuer eine Seite, deren Wachstum davon lebt, dass Schueler Jobs untereinander weitergeben, ist genau das der sichtbarste Moment ueberhaupt - und er war leer.
+
+Schlimmer noch: `register.html` und `login.html` hatten **gar keine** og-Tags. Ein in eine Klassengruppe geteilter Anmelde-Link zeigte nur die blanke Adresse.
+
+### Das Bild
+`assets/og-bild.jpg`, 1200x630, 73 KB. Erzeugt aus `assets/og-vorlage.html` per Playwright-Aufnahme.
+
+**Warum aus HTML statt als Grafikdatei:** So kommen Schrift und Farben aus derselben Quelle wie die Seite selbst. Ein separat nachgebautes Bild driftet beim naechsten Design-Wechsel auseinander. Die Vorlage liegt im Repo und ist von `.vercelignore` ausgenommen - sie soll nicht als Seite im Netz stehen.
+
+### Zwei Dinge, die ohne Messung durchgerutscht waeren
+**1. Der Verlauf.** Die Karte benutzt bewusst `#00795c -> #2b2f8f`, nicht den hellen Marken-Verlauf. Weisse Schrift auf `#00c896` kommt nur auf 2,2:1 - dieselbe Lehre wie bei den Knoepfen aus Teil 2.
+
+**2. Der Akzent im Titel.** "Ohne Umwege." stand zuerst in der Markenfarbe `#00c896` und kam damit auf **2,87:1** - sogar unter den 3:1, die fuer grosse Schrift gelten. Jetzt `#6bf0cb`: 4,4:1. Gleiche Farbfamilie, nur heller, dieselbe Logik wie bei `logo-light.png`.
+
+Gemessen wurde **pixelgenau**: die Karte zweimal aufgenommen, einmal mit und einmal ohne Text. Damit ist fuer jeden Schriftpixel die Farbe DARUNTER bekannt. Bei einem Verlauf im Hintergrund waere jeder Schaetzwert falsch gewesen - ein erster Versuch mit geschaetztem Grund lieferte Unsinn (1,17:1 fuer weisse Schrift), weil er die weichgezeichneten Buchstabenraender als Hintergrund las.
+
+Endstand: Titel weiss 5,99 · Titel mint 4,42 · Unterzeile 5,30 · Fusszeile 7,27 · Etiketten 5,87.
+
+### JPEG statt PNG
+Als PNG wog die Karte **374 KB** - die Datei ist im Wesentlichen ein Farbverlauf, den PNG verlustfrei speichern muss. WhatsApp zeigt oberhalb von rund 300 KB gar keine Vorschau mehr. Als JPEG mit Guete 92: **73 KB**, ohne sichtbaren Verlust.
+
+### Neu: `tests/teilen-vorschau.spec.js` (15 Pruefungen)
+Prueft genau das, was man selbst nie sieht, weil es in einer fremden App gerendert wird:
+- jede der 12 Seiten hat `og:image`, `og:title`, `og:description`, `twitter:card`
+- die Adresse ist **absolut** (relative Pfade loesen WhatsApp und Facebook nicht auf) und zeigt auf die eigene Domain
+- die Datei existiert, laesst sich laden, ist unter 300 KB
+- die angegebenen Masse stimmen mit der Datei ueberein, Seitenverhaeltnis 1,91:1
+- alle Seiten zeigen auf dasselbe Bild (sonst wird beim Aendern eine vergessen)
+- die Vorlage liegt im Repo, damit das Bild reproduzierbar bleibt
+
+**Gegenprobe gemacht:** `og:image` aus `index.html` entfernt -> der Test faellt um.
+
+**Suite: 395 -> 410 Tests, alle gruen.**
 
 ## Session 26. August 2026 (Teil 4) - Sagt die Datenschutzerklaerung die Wahrheit?
 
