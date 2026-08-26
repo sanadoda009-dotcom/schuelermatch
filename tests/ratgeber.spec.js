@@ -47,9 +47,13 @@ test('jede Kachel sagt, was einen dort erwartet', async ({ page }) => {
   expect(await karten.count()).toBeGreaterThanOrEqual(RATGEBERSEITEN.length)
 
   // Eine Überschrift allein hilft niemandem bei der Auswahl.
+  //
+  // `> span` statt `span`: Seit dem Vermerk „Konto nötig" gibt es ein
+  // zweites span INNERHALB des <b>. Ohne den direkten Kindselektor
+  // trifft die Auswahl beide und Playwright bricht ab.
   for (const k of await karten.all()) {
     await expect(k.locator('b')).not.toBeEmpty()
-    const text = await k.locator('span').innerText()
+    const text = await k.locator('> span').innerText()
     expect(text.length, 'Kachel ohne Erklärung: ' + await k.locator('b').innerText())
       .toBeGreaterThan(40)
   }

@@ -328,6 +328,39 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 12) - Wenn etwas nicht mehr da ist
+
+Ein offener Faden aus der Google-Jobs-Runde: Was passiert eigentlich, wenn eine Anzeige verschwunden ist?
+
+### Befund 1: Tote Anzeigen blieben im Index
+`job.html` ist eine **statische Datei** und liefert immer HTTP 200 - der Job kommt erst per Abfrage dazu. Google sieht also nie eine 404 und behaelt die Adresse. Bei Stellenanzeigen ist genau das unerwuenscht: Wer aus der Google-Jobsuche kommt, landet auf einer Anzeige, die es nicht mehr gibt.
+
+Dazu blieb der Titel auf *"Minijob fuer Schueler - SchuelerMatch"* stehen, obwohl die Seite "Job nicht verfuegbar" anzeigte.
+
+**Behoben** durch ein nachtraeglich gesetztes `noindex` - Google wertet die robots-Angabe nach dem Ausfuehren des JavaScripts aus. Der Titel wird gleich mitgesetzt.
+
+**Die wichtige Unterscheidung:** Bei einer **Stoerung** wird ausdruecklich KEIN `noindex` gesetzt. Die Anzeige gibt es dann vermutlich noch, nur die Verbindung klemmt. Sie deswegen aus dem Index zu werfen waere schlimmer als das Problem. Ein eigener Test haelt das fest.
+
+### Befund 2: Meine eigene Ratgeber-Kachel log
+Die Kachel *"Lebenslauf erstellen - kostenlos, in wenigen Minuten"* fuehrte direkt in eine Anmelde-Sperre: `lebenslauf.html` ruft `requireAuth('schueler')` auf. Beim Bauen der Uebersicht in der Runde davor hatte ich das nicht geprueft.
+
+Jetzt steht **"Konto noetig"** als Vermerk in der Ueberschrift der Kachel - bewusst dort und nicht nur im Fliesstext, weil Kacheln ueberflogen werden.
+
+### Nebenbei geprueft, alles in Ordnung
+`robots.txt` existiert und sperrt die Dashboards sowie die Passwort-Seiten aus. `admin.html`, `lebenslauf.html`, `404.html` und `job-alarm-aus.html` tragen alle `noindex`.
+
+### `tests/verschwundene-anzeige.spec.js` (6 Pruefungen)
+Pausierte Anzeige -> noindex und ehrlicher Titel · fehlende Kennung ebenso · **Stoerung -> KEIN noindex** · vorhandene Anzeige bleibt indexierbar · der Ratgeber nennt die Anmeldepflicht · und eine Liste `MIT_ANMELDUNG`, die dafuer sorgt, dass jede kuenftige Kachel mit Anmeldepflicht denselben Vermerk bekommt - und jede ohne ihn nicht traegt.
+
+**Gegenprobe gemacht:** gegen den alten Stand fallen genau die beiden noindex-Pruefungen um.
+
+### Und ein selbstgemachter Nachschlag
+Der neue Vermerk ist ein zweites `<span>` INNERHALB des `<b>` der Kachel. Mein Ratgeber-Test aus der Runde davor griff mit `k.locator('span')` alle spans - und brach ab, weil die Auswahl nicht mehr eindeutig war. Behoben mit dem direkten Kindselektor `> span`.
+
+Ein Test, den man beim naechsten Ausbau der Kacheln mit anfassen muss. Das steht jetzt als Kommentar daneben.
+
+**Suite: 474 -> 480 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 11) - Der Fehler, den ich selbst gebaut hatte
 
 Diese Runde begann mit einer Zaehlung: Wohin verlinkt die Startseite eigentlich?

@@ -69,11 +69,36 @@ function alterDerAnzeige(erstelltAm) {
   return `<span class="job-datum${alt}">${text}</span>`
 }
 
+// Eine Anzeige, die es nicht mehr gibt, darf nicht im Google-Index
+// stehen bleiben.
+//
+// Das Problem: Diese Seite liefert IMMER HTTP 200 - sie ist eine
+// statische Datei, der Job kommt erst per Abfrage dazu. Google sieht
+// also keine 404 und behaelt die Adresse. Bei Stellenanzeigen ist das
+// ausdruecklich unerwuenscht: Wer aus der Google-Jobsuche kommt, landet
+// auf einer Anzeige, die es nicht mehr gibt.
+//
+// Abhilfe ist ein nachtraeglich gesetztes `noindex`. Google wertet die
+// robots-Angabe nach dem Ausfuehren des JavaScripts aus, das wirkt also.
+// Der Titel wird gleich mitgesetzt, sonst steht in Suchergebnis und
+// Browsertab weiter "Minijob fuer Schueler".
+function nichtIndexieren(titel) {
+  let meta = document.querySelector('meta[name="robots"]')
+  if (!meta) {
+    meta = document.createElement('meta')
+    meta.name = 'robots'
+    document.head.appendChild(meta)
+  }
+  meta.setAttribute('content', 'noindex')
+  document.title = `${titel} – SchülerMatch`
+}
+
 async function ladeJob() {
   const el = document.getElementById('job-detail')
   const id = new URLSearchParams(location.search).get('id')
 
   if (!id) {
+    nichtIndexieren('Anzeige nicht gefunden')
     el.innerHTML = '<h1>Job nicht gefunden</h1><p><a href="jobs.html" style="color:var(--match-green-dark);text-decoration:underline;">Zurück zu allen Jobs</a></p>'
     return
   }
@@ -82,12 +107,16 @@ async function ladeJob() {
     supabase.from('jobs').select('*').eq('id', id).eq('aktiv', true).single())
 
   // Ohne Netz blieb hier frueher fuer immer "Lade Job..." stehen.
+  // Hier bewusst KEIN noindex: Die Anzeige gibt es vermutlich noch, nur
+  // die Verbindung klemmt gerade. Sie deswegen aus dem Index zu werfen
+  // waere schlimmer als das Problem.
   if (gestoert) {
     zeigeLadefehler(el, ladeJob, 'Diese Anzeige konnte gerade nicht geladen werden.')
     return
   }
 
   if (!job) {
+    nichtIndexieren('Anzeige nicht mehr verfügbar')
     el.innerHTML = '<h1>Job nicht verfügbar</h1><p>Diese Anzeige gibt es nicht mehr oder sie wurde pausiert.</p><p><a href="jobs.html" style="color:var(--match-green-dark);text-decoration:underline;">Alle aktuellen Jobs ansehen →</a></p>'
     return
   }

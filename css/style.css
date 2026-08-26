@@ -2358,3 +2358,14 @@ main[tabindex="-1"]:focus { outline: none; }
   display: block;
   font-size: 0.87rem; line-height: 1.55; color: var(--ink-soft);
 }
+
+/* Kleiner Vermerk in der Ueberschrift einer Kachel, z.B. "Konto noetig".
+   Steht bewusst NICHT nur im Fliesstext: Wer Kacheln ueberfliegt, liest
+   die Ueberschrift und sonst nichts. */
+.ratgeber-karte .ratgeber-hinweis {
+  display: inline-block; margin-left: 8px; vertical-align: middle;
+  background: var(--paper); border: 1px solid var(--line);
+  border-radius: 100px; padding: 2px 9px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem; font-weight: 400; color: var(--ink-soft);
+}
