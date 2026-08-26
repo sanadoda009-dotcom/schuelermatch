@@ -327,6 +327,45 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 6) - Zugriffsregeln gesichert, zwei Loecher gefunden
+
+Vorhaben war schlicht: Die RLS-Policies standen nur im Supabase-Dashboard, ohne Verlauf und ohne Referenz. Beim Auslesen kamen zwei Befunde heraus, die vorher niemand gesehen hatte.
+
+### Befund 1 (behoben): `jobs` konnte verschenkt werden
+
+Fuer fuenf Tabellen friert je ein BEFORE-UPDATE-Trigger die Spalten ein, die niemand aendern darf. **Fuer `jobs` gab es keinen** - die Tabelle war beim Security-Audit vom 26.7. uebersehen worden. Drei Dinge trafen dort zusammen:
+
+1. Die Policy *"Firma bearbeitet eigene Jobs"* hat kein `WITH CHECK` - sie prueft nur, WELCHE Zeile angefasst werden darf, nicht wie die Zeile hinterher aussieht.
+2. `authenticated` hat UPDATE-Recht auf **alle** Spalten von `jobs`, `firma_id` eingeschlossen.
+3. Kein Trigger fing es ab.
+
+Eine freigegebene Firma konnte damit an ihrem eigenen Job `firma_id` auf ein fremdes Konto setzen. Der Job wanderte dorthin - und mit ihm der Zugriff auf alles, was daran haengt: die Bewerbungen, die **Bewerberprofile** (Name, Alter, Schule, Ort, E-Mail, Foto von Minderjaehrigen), die **Zeugnisse** und die Chatverlaeufe.
+
+Fremde Jobs uebernehmen ging nicht - das `USING` der Policy verhindert es. Nur eigene weggeben. Eine weitere Grenze fand sich beim Nachstellen: `jobs_firma_id_fkey` verlangt ein existierendes Konto als Ziel. Beliebige Fantasiewerte gehen also nicht; jedes echte Schueler- oder Firmenkonto aber schon.
+
+**Nebenbei mitbehoben:** `erstellt_am` war ebenfalls frei aenderbar. Davon haengen das "NEU"-Abzeichen und die Altersangabe der Anzeige ab - eine Firma haette ihre Anzeige beliebig oft wieder auf "neu" stellen koennen.
+
+**Behoben** durch `trg_schuetze_job` nach dem Muster der fuenf vorhandenen (Migration `schutz_trigger_jobs`, Sicherung in `supabase/schutz-trigger-jobs.sql`). Eingefroren werden `id`, `firma_id`, `erstellt_am`. **Bewusst nicht** `aufrufe`: Den Zaehler setzt `job_aufruf_zaehlen()` auch fuer eingeloggte Besucher hoch, ein eingefrorener Wert haette deren Aufrufe verschluckt.
+
+**Nachgestellt und geprueft** in einer Transaktion mit Wegwerf-Zeile: Angriff wird abgewehrt (`firma_id` bleibt stehen), `erstellt_am` bleibt stehen, der Titel laesst sich weiter aendern. Die Zeile wurde im selben Zug wieder geloescht.
+
+Beim Anwenden noch ein Detail gelernt: `revoke execute ... from anon, authenticated` laeuft ins Leere, weil das Recht von `PUBLIC` kommt. Erst `revoke ... from public` zog - jetzt sind alle sechs Schutz-Funktionen gleich abgesichert.
+
+**Der Supabase-Advisor findet diesen Befund nicht.** Fehlendes `WITH CHECK` erkennt kein Linter; das faellt nur beim Lesen auf.
+
+### Befund 2 (behoben): SQL-Dateien lagen oeffentlich im Netz
+
+`schuelermatch.de/supabase/schutz-trigger.sql` lieferte **HTTP 200**. Wer die Adresse erriet, bekam das komplette Sicherheitsmodell der Datenbank als Textdatei. Ein Geheimnis stand nicht drin - der enthaltene Schluessel ist der oeffentliche anon-Key, der ohnehin im Frontend liegt - aber lesen koennen muss es auch niemand. Die neue Datei mit der vollstaendigen Zugriffskarte waere nach dem Push genauso oeffentlich gewesen.
+
+`supabase/` steht jetzt in `.vercelignore`.
+
+### Neu im Repo
+- **`supabase/rls-stand.sql`** - alle 42 Policies, Zeilenschutz, Hilfsfunktionen und Eimer-Einstellungen, wiederholbar ausfuehrbar. Zusammen mit `schutz-trigger.sql` laesst sich die Zugriffskonfiguration komplett neu aufbauen. Am Ende stehen die Abfragen zum Vergleichen.
+- **`supabase/schutz-trigger-jobs.sql`** - der neue Trigger samt Begruendung.
+- **Zwei neue Pruefungen** in `tests/speicher.spec.js`: dass die internen Ordner in `.vercelignore` stehen, und dass im Repo kein Schluessel ausser dem anon-Key liegt (JWTs werden dekodiert und die Rolle geprueft).
+
+**Suite: 410 -> 412 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 5) - Das Bild, das beim Teilen erscheint
 
 **Befund:** Es gab **kein einziges** `og:image`. Wer einen SchuelerMatch-Link in eine WhatsApp-Gruppe warf, sah einen nackten Textkasten ohne Bild. Fuer eine Seite, deren Wachstum davon lebt, dass Schueler Jobs untereinander weitergeben, ist genau das der sichtbarste Moment ueberhaupt - und er war leer.

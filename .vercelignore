@@ -1,5 +1,11 @@
 # Nicht mit deployen: Tests, Tooling, lokale Werkzeuge
 tests/
+# Am 26.8. gefunden: Die SQL-Dateien lagen oeffentlich unter
+# schuelermatch.de/supabase/... - jeder konnte das komplette
+# Sicherheitsmodell herunterladen. Kein Geheimnis darin (der
+# enthaltene Schluessel ist der oeffentliche anon-Key), aber es
+# muss auch niemand lesen koennen.
+supabase/
 node_modules/
 test-results/
 playwright-report/

@@ -223,3 +223,70 @@ test('sobald Sentry aktiviert wird, muss es in der Datenschutzerklärung stehen'
   expect(text, 'Sentry ist aktiv (DSN gesetzt) und muss als Auftragsverarbeiter genannt werden')
     .toMatch(/Sentry/)
 })
+
+// -----------------------------------------------------------------------
+// Dritter Fall derselben Sorte: Was landet ueberhaupt auf dem Server?
+//
+// Gefunden am 26.8.: Die SQL-Dateien unter `supabase/` wurden mitdeployt
+// und waren oeffentlich abrufbar - wer die Adresse erriet, bekam das
+// komplette Sicherheitsmodell der Datenbank als Textdatei. Ein Geheimnis
+// stand nicht drin (der enthaltene Schluessel ist der oeffentliche
+// anon-Key), aber lesen koennen muss es auch niemand.
+//
+// Der Test kann nicht pruefen, was Vercel wirklich ausliefert. Er kann
+// aber sicherstellen, dass die internen Ordner ueberhaupt in der
+// Ausschlussliste stehen - genau das war vergessen worden.
+// -----------------------------------------------------------------------
+test('interne Dateien stehen in der Ausschlussliste fuer das Deployment', () => {
+  const liste = fs.readFileSync(path.join(WURZEL, '.vercelignore'), 'utf8')
+    .split(/\r?\n/)
+    .map(z => z.trim())
+    .filter(z => z && !z.startsWith('#'))
+
+  // Alles, was nur zur Entwicklung gehoert und niemanden im Netz angeht.
+  const MUSS_RAUS = [
+    'tests/',                    // Testdateien samt Fixtures
+    'supabase/',                 // Zugriffsregeln, Trigger, Mail-Vorlagen
+    'node_modules/',
+    'playwright.config.js',
+    '*.md',                      // PROJEKT-STATUS, OFFENE-PUNKTE
+    '.claude/',
+    'test-pdf.html',             // interne Probeseiten
+    'design-vorschau.html',
+    'assets/og-vorlage.html',
+  ]
+
+  const fehlend = MUSS_RAUS.filter(e => !liste.includes(e))
+  expect(fehlend,
+    'Diese Pfade fehlen in .vercelignore und wuerden oeffentlich ausgeliefert: ' +
+    fehlend.join(', ')
+  ).toEqual([])
+})
+
+test('im Repo liegt kein Schluessel ausser dem oeffentlichen anon-Key', () => {
+  // Der anon-Key steht ohnehin im Frontend und ist dafuer gedacht. Alles
+  // andere - service_role, ein sb_secret_..., ein Resend-Schluessel -
+  // waere ein echtes Leck.
+  const ordner = ['js', 'supabase', '.']
+  const treffer = []
+  for (const o of ordner) {
+    const pfad = path.join(WURZEL, o)
+    for (const datei of fs.readdirSync(pfad)) {
+      if (!/\.(js|sql|html|json)$/.test(datei)) continue
+      const voll = path.join(pfad, datei)
+      if (!fs.statSync(voll).isFile()) continue
+      const inhalt = fs.readFileSync(voll, 'utf8')
+      if (/sb_secret_|service_role|re_[A-Za-z0-9]{20,}/.test(inhalt)) {
+        treffer.push(path.join(o, datei))
+      }
+      // JWTs mit einer anderen Rolle als anon
+      for (const jwt of inhalt.match(/eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+/g) || []) {
+        try {
+          const nutz = JSON.parse(Buffer.from(jwt.split('.')[1], 'base64url').toString())
+          if (nutz.role && nutz.role !== 'anon') treffer.push(path.join(o, datei) + ' (role=' + nutz.role + ')')
+        } catch { /* kein lesbares JWT */ }
+      }
+    }
+  }
+  expect([...new Set(treffer)], 'Verdaechtige Schluessel gefunden').toEqual([])
+})

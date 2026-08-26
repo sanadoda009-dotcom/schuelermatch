@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **410 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **412 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -57,6 +57,22 @@ vorbei sind, zeigt die Seite fuer jedes Land "Keine Termine hinterlegt" -
 dann die naechsten Zeitraeume aus dem KMK-Ferienkalender ergaenzen
 (https://www.kmk.org/service/ferien.html). Der Test `tests/ferienjob.spec.js`
 prueft die Plausibilitaet der Tabelle mit.
+
+## 🔒 Zugriffsregeln der Datenbank
+Seit 26.8. im Repo gesichert:
+- `supabase/rls-stand.sql` – alle 42 Policies, Zeilenschutz, Hilfsfunktionen,
+  Eimer-Einstellungen. Wiederholbar ausführbar; am Ende stehen die Abfragen zum
+  Vergleichen mit dem Live-Stand.
+- `supabase/schutz-trigger.sql` – die Spalten-Trigger für profiles,
+  bewerbungen, nachrichten, bewertungen, meldungen.
+- `supabase/schutz-trigger-jobs.sql` – der am 26.8. nachgezogene Trigger für
+  `jobs` (war beim Audit vom 26.7. übersehen worden). **Angewendet und geprüft.**
+
+Die drei gehören zusammen. Wer `rls-stand.sql` ohne die Trigger einspielt,
+reißt die Lücke wieder auf, die der Trigger schließt.
+
+**`supabase/` steht jetzt in `.vercelignore`** – die Dateien waren vorher
+unter schuelermatch.de/supabase/... öffentlich abrufbar.
 
 ## 📌 Gut zu wissen
 - Admin-Bereich: `schuelermatch.de/admin.html` (Konten: s.weisioda@ + halawaisi3@)
