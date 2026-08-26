@@ -122,3 +122,75 @@ test.describe('Job posten', () => {
     await expect(page.locator('.toast', { hasText: 'veröffentlicht' })).toBeVisible()
   })
 })
+
+// ---------------------------------------------------------------------
+// Jugendarbeitsschutz im Anzeigenformular (26.8.)
+//
+// Das Formular bot als Mindestalter 10, 11 und 12 an, und geprüft wurde
+// der Wert nirgends — eine Anzeige „ab 10 Jahren" ging sofort live.
+// Nach § 5 JArbSchG ist Arbeiten unter 13 nicht erlaubt. Die Regeln
+// stehen jetzt in js/jugendschutz.js, verbindlich wird die Grenze mit
+// supabase/mindestalter-grenze.sql in der Datenbank.
+test.describe('Mindestalter im Anzeigenformular', () => {
+  // Die Alterswahl steht auf Schritt 4 des Assistenten. Die Vorlage
+  // springt auf Schritt 3, von dort ein Klick weiter.
+  async function zurAlterswahl(page, db) {
+    await setupDashboard(page.context(), { user: FIRMA, db: db || defaultDb({ profiles: [profilZeile(FIRMA)], jobs: [] }) })
+    await page.goto('/dashboard-firma.html')
+    await page.locator('[data-jobvorlage="eisverkauf"]').click()
+    await page.locator('#job-ort').fill('München')
+    await page.locator('#job-lohn').fill('12')
+    await page.locator('#wizard-weiter').click()          // 3 -> 4
+    await expect(page.locator('#job-mindestalter')).toBeVisible()
+  }
+
+  test('unter 13 steht gar nicht zur Wahl', async ({ page }) => {
+    await setupDashboard(page.context(), { user: FIRMA, db: defaultDb({ profiles: [profilZeile(FIRMA)], jobs: [] }) })
+    await page.goto('/dashboard-firma.html')
+
+    const werte = await page.locator('#job-mindestalter option').evaluateAll(
+      opts => opts.map(o => Number(o.value)))
+    expect(Math.min(...werte), 'niedrigste Wahlmöglichkeit').toBe(13)
+    expect(werte).not.toContain(12)
+  })
+
+  test('bei 13 erscheint der Hinweis auf die engen Grenzen', async ({ page }) => {
+    // Die wenigsten Arbeitgeber wissen, was für 13-Jährige gilt — und im
+    // ganzen Ablauf stand es bisher nirgends.
+    await zurAlterswahl(page)
+    await page.locator('#job-mindestalter').selectOption('13')
+    const hinweis = page.locator('#alter-hinweis')
+    await expect(hinweis).toBeVisible()
+    await expect(hinweis).toContainText('2 Stunden')
+    await expect(hinweis).toContainText('Eltern')
+  })
+
+  test('bei 18 verschwindet der Hinweis wieder', async ({ page }) => {
+    await zurAlterswahl(page)
+    await page.locator('#job-mindestalter').selectOption('13')
+    await expect(page.locator('#alter-hinweis')).toBeVisible()
+    await page.locator('#job-mindestalter').selectOption('18')
+    await expect(page.locator('#alter-hinweis')).toBeHidden()
+  })
+
+  test('ein von aussen gesetztes Alter unter 13 wird beim Absenden abgefangen', async ({ page }) => {
+    // Die Auswahlliste ist kein Schutz: Wer die Seite manipuliert oder
+    // die API direkt anspricht, umgeht sie. Deshalb die zweite Prüfung
+    // im Absendeweg — und verbindlich die Regel in der Datenbank.
+    const db = defaultDb({ profiles: [profilZeile(FIRMA)], jobs: [] })
+    await zurAlterswahl(page, db)
+
+    // Wert einschmuggeln, wie es die Auswahlliste nicht zuliesse.
+    await page.locator('#job-mindestalter').evaluate(el => {
+      el.insertAdjacentHTML('beforeend', '<option value="10">10</option>')
+      el.value = '10'
+    })
+
+    await page.locator('#wizard-weiter').click()   // 4 -> 5
+    await page.locator('#wizard-weiter').click()   // 5 -> 6
+    await page.locator('#wizard-posten').click()
+
+    await expect(page.locator('.toast', { hasText: /13/ })).toBeVisible()
+    expect(db.jobs.length, 'die Anzeige darf nicht angelegt werden').toBe(0)
+  })
+})

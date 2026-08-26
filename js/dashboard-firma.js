@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { pruefeMindestalter, hinweisFuer } from './jugendschutz.js'
 import { hole, zeigeLadefehler, verstaendlich } from './zustand.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
@@ -34,6 +35,7 @@ function wendeJobVorlageAn(name) {
   document.getElementById('job-kategorie').value = v.kategorie
   document.getElementById('job-arbeitszeit').value = v.arbeitszeit
   document.getElementById('job-mindestalter').value = v.mindestalter
+  zeigeAltersHinweis()
   document.getElementById('job-verfuegbarkeit').value = v.verfuegbarkeit
   zeigeWizardSchritt(3, 'vor') // direkt zum Ort – der Rest ist vorausgefüllt
   toast('Vorlage eingefügt – nur noch Ort & Lohn ergänzen!')
@@ -107,6 +109,13 @@ async function init() {
   document.getElementById('user-name').textContent = profile.name || 'Firma'
   document.getElementById('logout-btn').addEventListener('click', logout)
   document.getElementById('job-form').addEventListener('submit', speichereJob)
+
+  // Hinweis zum gewaehlten Mindestalter. Die wenigsten Arbeitgeber
+  // wissen, was fuer 13-Jaehrige gilt - und im ganzen Ablauf stand es
+  // bisher nirgends.
+  const alterFeld = document.getElementById('job-mindestalter')
+  alterFeld.addEventListener('change', zeigeAltersHinweis)
+  zeigeAltersHinweis()
   document.getElementById('cancel-edit-btn').addEventListener('click', beendeBearbeitung)
 
   document.getElementById('profile-name').value = profile.name || ''
@@ -216,6 +225,15 @@ async function speichereProfil(e) {
   toast('Firmenprofil gespeichert!')
 }
 
+// Zeigt den Hinweis zum aktuell gewaehlten Mindestalter an.
+function zeigeAltersHinweis() {
+  const box = document.getElementById('alter-hinweis')
+  if (!box) return
+  const text = hinweisFuer(document.getElementById('job-mindestalter').value)
+  box.textContent = text || ''
+  box.hidden = !text
+}
+
 function sammleFormular() {
   return {
     titel: document.getElementById('job-titel').value,
@@ -223,7 +241,7 @@ function sammleFormular() {
     kategorie: document.getElementById('job-kategorie').value || null,
     ort: document.getElementById('job-ort').value,
     stundenlohn: parseFloat(document.getElementById('job-lohn').value) || null,
-    mindestalter: parseInt(document.getElementById('job-mindestalter').value) || 13,
+    mindestalter: parseInt(document.getElementById('job-mindestalter').value) || 15,
     verfuegbarkeit: document.getElementById('job-verfuegbarkeit').value,
     arbeitszeit: document.getElementById('job-arbeitszeit').value || null
   }
@@ -240,6 +258,12 @@ function pruefeJobFormular(daten) {
   if (!daten.ort || !daten.ort.trim()) {
     return 'Bitte gib einen Ort an – Schüler suchen nach Jobs in ihrer Nähe.'
   }
+  // Unter 13 ist Arbeiten nicht erlaubt. Die Auswahlliste bietet es gar
+  // nicht mehr an - hier trotzdem geprüft, weil eine Auswahlliste im
+  // Browser kein Schutz ist. Verbindlich wird es erst mit der Regel in
+  // der Datenbank, siehe supabase/mindestalter-grenze.sql.
+  const alter = pruefeMindestalter(daten.mindestalter)
+  if (!alter.ok) return alter.fehler
   return null
 }
 
@@ -315,6 +339,7 @@ function starteBearbeitung(job) {
   document.getElementById('job-ort').value = job.ort || ''
   document.getElementById('job-lohn').value = job.stundenlohn || ''
   document.getElementById('job-mindestalter').value = job.mindestalter || 15
+  zeigeAltersHinweis()
   document.getElementById('job-verfuegbarkeit').value = job.verfuegbarkeit || ''
   document.getElementById('job-arbeitszeit').value = job.arbeitszeit || ''
 

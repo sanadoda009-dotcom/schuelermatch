@@ -328,6 +328,81 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 26. August 2026 (Teil 18) - Das Formular kannte das Gesetz nicht
+
+Diese Runde folgt Sanads Richtung vom 25.8.: weiterentwickeln statt nur Fehler
+suchen. Angesetzt am Vertrauen - dem, was eine Plattform fuer Minderjaehrige
+zusammenhaelt.
+
+### Die Idee, die sich beim Nachsehen umdrehte
+
+Geplant war ein Abzeichen "geprueftes Unternehmen" an den Anzeigen. Beim Blick
+auf die Zugriffsregel stellte sich heraus: `Jobs oeffentlich lesen` verlangt
+`firma_freigegeben(firma_id)`. **Jede sichtbare Anzeige stammt also bereits von
+einem geprueften Arbeitgeber.** Ein Abzeichen saesse auf 100% der Anzeigen -
+das sagt nichts aus und legt sogar den falschen Umkehrschluss nahe, die anderen
+seien ungeprueft. Idee verworfen.
+
+### Befund 1: Das Anzeigenformular bot "ab 10 Jahren" an
+
+Die Auswahlliste fuer das Mindestalter begann bei **10**. Geprueft wurde der
+Wert an **keiner** Stelle - nicht im Browser, nicht in der Datenbank. Und
+einzelne Anzeigen werden nirgends geprueft: Der Betreiber gibt Firmen frei,
+nicht Anzeigen. Die Freischalt-Mail sagt es selbst: "Neue Jobs, die du postest,
+gehen kuenftig direkt online."
+
+Eine Firma konnte also eine Anzeige "ab 10 Jahren" schalten, und sie ging sofort
+live. Nach § 5 Abs. 1 JArbSchG ist die Beschaeftigung von Kindern verboten; ab
+13 sind leichte Taetigkeiten mit Einwilligung der Eltern erlaubt.
+
+**Die Seite widersprach sich dabei selbst.** `jugendarbeitsschutz.html` sagt
+woertlich: "Unter 13 Jahren: Arbeiten ist grundsaetzlich nicht erlaubt." Die
+Startseite wirbt mit "ab 13". Nur das Formular wusste nichts davon.
+
+Behoben in `js/jugendschutz.js` (eigenes Modul, damit die Regeln pruefbar sind
+und nicht ein zweites Mal auseinanderlaufen):
+- Auswahlliste beginnt bei 13.
+- `pruefeMindestalter()` prueft zusaetzlich vor dem Absenden - eine
+  Auswahlliste im Browser ist kein Schutz, wer die API direkt anspricht,
+  umgeht sie. Ein Test schmuggelt genau so einen Wert ein und prueft, dass
+  nichts angelegt wird.
+- **Verbindlich** wird es erst mit `supabase/mindestalter-grenze.sql` (CHECK
+  auf der Tabelle). Nicht selbst eingespielt - Schema-Aenderungen gibt Sanad
+  einzeln frei. Niedrigstes Mindestalter in der Datenbank: 15, es ist also
+  nichts Rechtswidriges live.
+
+Dazu ein **Hinweis beim Waehlen**: Wer 13 oder 14 einstellt, liest jetzt, was
+gilt - leichte Taetigkeiten, hoechstens 2 Stunden, Einwilligung der Eltern. Die
+wenigsten Arbeitgeber wissen das, und im ganzen Ablauf stand es bisher nirgends.
+Ein Test prueft, dass dieser Hinweis nicht von `jugendarbeitsschutz.html`
+abweicht - genau an solchem Auseinanderlaufen ist das Formular gescheitert.
+Kontrast gemessen: 5,78:1 (AA verlangt 4,5:1).
+
+### Befund 2: "100% jugendschutzgeprueft"
+
+Die Startseite warb mit dieser Kennzahl, `jobs.html` mit "Alle Jobs sind
+jugendschutzgeprueft", dazu drei Beschreibungstexte, die Google anzeigt.
+
+**Keine einzelne Anzeige wird geprueft.** Die Behauptung war nicht belegbar -
+auf einer Seite, deren wichtigste Leser Eltern sind, und die ohnehin auf eine
+rechtliche Pruefung wartet.
+
+Ersetzt durch das, was tatsaechlich stimmt und staerker ist: **jeder
+Arbeitgeber wird von Hand geprueft, bevor seine Anzeigen erscheinen** - das
+erzwingt die Zugriffsregel der Datenbank.
+
+Nebenbei geschlossen: Diese Zusage stand nur auf der Startseite und auf
+`eltern.html`. Auf der **Jobboerse**, wo ein Schueler entscheidet, ob er einer
+Anzeige traut, stand nichts davon - wer ueber Google oder einen geteilten Link
+kommt, sieht die Startseite nie. Jetzt steht es dort, mit Verweis auf die
+Rechte-Seite.
+
+### Tests
+`tests/jugendschutz.spec.js` (16 Pruefungen) und 4 neue in
+`tests/dashboard-firma.spec.js`.
+
+**Suite: 577 -> 597 Tests, alle gruen.**
+
 ## Session 26. August 2026 (Teil 17) - Der Betreiber-Bereich, den ich nie angesehen hatte
 
 Angesehen wurde `admin.html` / `js/admin.js` - der einzige Bereich, den ich in

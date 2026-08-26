@@ -142,10 +142,10 @@
           <p class="wizard-hint">Achte auf das Jugendschutz-Mindestalter zur Tätigkeit.</p>
           <div class="form-group">
             <label for="job-mindestalter">Mindestalter</label>
+            <!-- Unter 13 ist Arbeiten nicht erlaubt (§ 5 JArbSchG). Die
+                 Werte 10, 11 und 12 standen hier bis zum 26.8. zur Wahl -
+                 siehe js/jugendschutz.js. -->
             <select id="job-mindestalter">
-              <option value="10">10</option>
-              <option value="11">11</option>
-              <option value="12">12</option>
               <option value="13">13</option>
               <option value="14">14</option>
               <option value="15" selected>15</option>
@@ -155,6 +155,7 @@
               <option value="19">19</option>
               <option value="20">20</option>
             </select>
+            <p class="jugendschutz-hinweis" id="alter-hinweis" role="status"></p>
           </div>
           <div class="form-group">
             <label for="job-verfuegbarkeit">Verfügbarkeit (Details)</label>

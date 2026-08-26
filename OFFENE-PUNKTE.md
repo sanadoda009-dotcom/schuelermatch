@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **577 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **597 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -15,6 +15,27 @@
 > Fehler- und Leerzustände (dabei ein echter Bug gefunden: Weiterleitungsschleife bei Server-Störung).
 > **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
 > was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
+
+## 🛑 FÜR DICH: zweite SQL-Datei — keine Anzeige unter 13
+
+**`supabase/mindestalter-grenze.sql` im Supabase-SQL-Editor ausführen.**
+
+Das Anzeigenformular bot als Mindestalter **10, 11 und 12** an, und geprüft wurde
+der Wert an keiner Stelle. Eine freigegebene Firma konnte eine Anzeige „ab 10
+Jahren" schalten – und sie ging **sofort live**, denn einzelne Anzeigen werden
+nirgends geprüft (du gibst Firmen frei, nicht Anzeigen).
+
+Nach § 5 Abs. 1 JArbSchG ist die Beschäftigung von Kindern verboten. Deine eigene
+Seite `jugendarbeitsschutz.html` sagt es auch: *„Unter 13 Jahren: Arbeiten ist
+grundsätzlich nicht erlaubt."* Nur das Formular wusste nichts davon.
+
+Auswahlliste und Prüfung im Browser sind repariert. Verbindlich wird die Grenze
+aber erst mit dieser Regel in der Datenbank – wer die Schnittstelle direkt
+anspricht, umgeht alles andere. Niedrigstes Mindestalter aktuell: **15**, es ist
+also nichts Rechtswidriges live und die Regel trifft keine bestehende Zeile.
+
+*(Zusammen mit `supabase/meldungen-fk.sql` sind das zwei SQL-Dateien, die auf dich
+warten. Beide sind wiederholt ausführbar und treffen keine bestehenden Daten.)*
 
 ## 🛑 FÜR DICH: eine Zeile SQL, die Meldungen rettet
 
