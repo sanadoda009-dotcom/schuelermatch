@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **723 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **734 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -124,6 +124,24 @@ fehlgeschlagen und hätte in einer öffentlichen Ablage das alte Foto liegen
 lassen.
 
 `tests/sql-konsistenz.spec.js` prüft das jetzt je Ablage mit.
+
+## ⏰ Job-Alarm: nur noch der Zeitplan fehlt
+
+Tabelle und Edge Function sind **eingespielt und geprüft** (27.8.). Ein Schüler
+kann sich unter **Einstellungen** einen Job-Alarm einrichten – Ort, Umkreis,
+Bereich, Wann, Mindestlohn.
+
+Was fehlt: der **tägliche Zeitplan**, der die Funktion aufruft. Ohne ihn wird
+nie eine Mail verschickt. Ich habe ihn nicht gesetzt – das ist der Schalter,
+der automatisch E-Mails an Minderjährige auslöst, und den gibst du frei.
+
+Empfehlung: `0 16 * * *` (18 Uhr deutscher Sommerzeit, nach Schulschluss).
+Solange es keine Alarme gibt, passiert ohnehin nichts.
+
+**Nebenbei aufgefallen:** Firmen können einstellen, wie oft sie E-Mails
+bekommen (`benachrichtigung`) – Schüler nicht. Die Edge Functions werten das
+Feld nur für Firmen aus. Ausgerechnet die Minderjährigen haben keine Kontrolle
+über ihr Postfach. Wäre ein guter nächster Punkt für den Einstellungen-Bereich.
 
 ## 🖼 Zu überdenken: Fotos liegen in öffentlichen Ablagen
 

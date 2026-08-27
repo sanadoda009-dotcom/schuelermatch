@@ -69,6 +69,11 @@
     <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke-linecap="round"/></svg>
     Profil
   </button>
+  <button class="sidebar-item" data-view="einstellungen">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1A1.7 1.7 0 008.9 19a1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1A1.7 1.7 0 004.6 8.9a1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Einstellungen
+  </button>
+
   <a href="admin.html" class="sidebar-item" id="admin-link" style="display:none; text-decoration:none;">
     <svg viewBox="0 0 24 24"><path d="M12 3l8 3.5V12c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6.5L12 3z"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Verifizierungen<span class="sidebar-badge" id="badge-admin"></span>
@@ -352,8 +357,12 @@
         </div>
         <div class="form-group">
           <label for="profile-alter">Alter</label>
+          <!-- Beginnt bei 13: Unter 13 ist Arbeiten nicht erlaubt
+               (§ 5 JArbSchG). register.html wurde am 26.8. umgestellt,
+               hier war es uebersehen worden - und seit der Regel
+               chk_alter_jahre in der Datenbank haette ein Speichern mit
+               10 eine unverstaendliche Meldung ergeben. -->
           <select id="profile-alter">
-            <option value="10">10</option><option value="11">11</option><option value="12">12</option>
             <option value="13">13</option><option value="14">14</option><option value="15">15</option>
             <option value="16">16</option><option value="17">17</option><option value="18">18</option>
             <option value="19">19</option><option value="20">20</option>
@@ -364,6 +373,91 @@
           <input type="text" id="profile-ort">
         </div>
         <button type="submit" class="btn btn-green">Speichern</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- EINSTELLUNGEN
+       Bis zum 27.8. liess sich der Job-Alarm nur unter der Jobliste
+       einrichten - und nur, indem er die dort gesetzten Filter uebernahm.
+       Wer ihn spaeter anpassen wollte, musste erst die Filter wieder so
+       stellen. Hier stellt der Schueler ihn direkt ein.
+       Die Karte unter der Jobliste bleibt: Wer dort ankommt, hat gerade
+       nichts Passendes gefunden, und der Schnellweg ist genau dann
+       richtig. Beide schreiben dieselbe Zeile. -->
+  <div class="dashboard-view" id="view-einstellungen">
+    <div class="jobs-header">
+      <h2>Einstellungen</h2>
+      <p style="color:var(--ink-soft);">Was dich erreicht und wonach wir für dich suchen.</p>
+    </div>
+
+    <div class="post-job-box">
+      <div class="einst-kopf">
+        <h3>Job-Alarm</h3>
+        <span class="einst-status" id="alarm-status">wird geladen…</span>
+      </div>
+      <p class="einst-erklaerung">
+        Wir schreiben dir, sobald ein Job dazukommt, der zu deiner Suche passt.
+        <b>Höchstens eine E-Mail pro Tag</b> – und abbestellen kannst du sie mit einem Klick.
+      </p>
+
+      <form id="alarm-form">
+        <div class="form-zeile">
+          <div class="form-group">
+            <label for="alarm-ort">Ort oder PLZ</label>
+            <input type="text" id="alarm-ort" placeholder="z.B. München oder 80331">
+          </div>
+          <div class="form-group">
+            <label for="alarm-umkreis">Umkreis</label>
+            <select id="alarm-umkreis">
+              <option value="5">5 km</option>
+              <option value="10">10 km</option>
+              <option value="25" selected>25 km</option>
+              <option value="50">50 km</option>
+              <option value="100">100 km</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-zeile">
+          <div class="form-group">
+            <label for="alarm-kategorie">Bereich</label>
+            <select id="alarm-kategorie">
+              <option value="">Alle Bereiche</option>
+              <option>Verkauf</option>
+              <option>Nachhilfe</option>
+              <option>Gastronomie</option>
+              <option>Lieferung &amp; Kurier</option>
+              <option>Babysitten</option>
+              <option>Haushalt &amp; Garten</option>
+              <option>Büro &amp; Organisation</option>
+              <option>Tierbetreuung</option>
+              <option>Technik &amp; Computer</option>
+              <option>Sonstiges</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="alarm-arbeitszeit">Wann</label>
+            <select id="alarm-arbeitszeit">
+              <option value="">Egal</option>
+              <option>Nachmittags</option>
+              <option>Wochenende</option>
+              <option>Ferien</option>
+              <option>Flexibel</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="alarm-lohn">Mindestlohn <span style="font-weight:400; color:var(--ink-soft);">(freiwillig)</span></label>
+          <input type="number" id="alarm-lohn" min="0" max="100" step="0.5" placeholder="z.B. 12">
+        </div>
+
+        <div class="einst-knoepfe">
+          <button type="submit" class="btn btn-green" id="alarm-speichern">Job-Alarm speichern</button>
+          <button type="button" class="btn btn-outline" id="alarm-von-filtern">Aus meiner aktuellen Suche übernehmen</button>
+          <button type="button" class="btn btn-outline" id="alarm-schalter" hidden></button>
+        </div>
       </form>
     </div>
   </div>

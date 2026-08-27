@@ -221,6 +221,20 @@ test.describe('Konto erst ab 13', () => {
     expect(bis).toContain('<option>13<')
   })
 
+  test('auch das Profil im Dashboard bietet unter 13 nicht mehr an', async ({ page }) => {
+    // Nachzuegler vom 26.8.: Damals war nur register.html umgestellt
+    // worden. Im Dashboard liess sich das Alter weiter auf 10 setzen —
+    // und seit der Regel `chk_alter_jahre` in der Datenbank haette das
+    // Speichern mit einer unverstaendlichen Meldung abgelehnt.
+    const html = await page.evaluate(async () => (await fetch('/dashboard-schueler.html')).text())
+    const liste = html.slice(html.indexOf('id="profile-alter"'))
+    const bis = liste.slice(0, liste.indexOf('</select>'))
+    for (const verboten of ['value="10"', 'value="11"', 'value="12"']) {
+      expect(bis, `${verboten} darf nicht wählbar sein`).not.toContain(verboten)
+    }
+    expect(bis).toContain('value="13"')
+  })
+
   test('das Alter wird auch im Ablauf geprüft, nicht nur in der Liste', async ({ page }) => {
     const quelle = await page.evaluate(async () => (await fetch('/js/auth.js')).text())
     expect(quelle).toMatch(/pruefeAlter\(/)

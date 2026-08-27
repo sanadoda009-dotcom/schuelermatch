@@ -41,7 +41,11 @@ test('ohne Alarm bietet die Karte einen an', async ({ page }) => {
   await oeffneDashboard(page)
   await expect(karte(page)).toBeVisible()
   await expect(karte(page)).toContainText('Nichts Passendes dabei?')
-  await expect(page.locator('#alarm-an')).toHaveText('Job-Alarm einrichten')
+  // Hiess bis zum 27.8. „Job-Alarm einrichten". Seit daneben „oder
+  // selbst einstellen" steht, muss die Beschriftung sagen, WAS dieser
+  // Knopf tut: die gerade eingestellten Filter übernehmen.
+  await expect(page.locator('#alarm-an')).toHaveText('Mit dieser Suche einrichten')
+  await expect(page.locator('#alarm-zu-einstellungen')).toBeVisible()
 })
 
 test('ohne Ort wird nichts gespeichert, sondern erklärt', async ({ page }) => {
@@ -228,4 +232,154 @@ test('ohne Filter-Ort nimmt der Alarm den Wohnort aus dem Profil', async ({ page
 
   await expect(karte(page)).toContainText('Job-Alarm läuft')
   expect(zeile.ort, 'Rückfall auf den Wohnort').toBeTruthy()
+})
+
+// ---------------------------------------------------------------------
+// Bereich „Einstellungen" (27.8.)
+//
+// Bis dahin liess sich der Alarm NUR unter der Jobliste einrichten — und
+// nur, indem er die dort gesetzten Filter übernahm. Wer ihn später
+// anpassen wollte (anderer Ort, engerer Umkreis), musste erst die Filter
+// wieder so stellen. Ein Bereich zum selbst Einstellen fehlte.
+//
+// Die Karte unter der Liste bleibt: Wer dort ankommt, hat gerade nichts
+// gefunden, und der Schnellweg ist genau dann richtig. Beide schreiben
+// dieselbe Zeile — es gibt einen Alarm je Schüler.
+async function zuEinstellungen(page) {
+  await page.locator('#sidebar-toggle').click()
+  await page.locator('.sidebar-item[data-view="einstellungen"]').click()
+  await expect(page.locator('#view-einstellungen')).toBeVisible()
+}
+
+test.describe('Job-Alarm selbst einstellen', () => {
+  test('die Seitenleiste hat einen Einstellungen-Bereich', async ({ page }) => {
+    await oeffneDashboard(page)
+    await zuEinstellungen(page)
+    await expect(page.locator('#alarm-form')).toBeVisible()
+  })
+
+  test('ohne Alarm steht „noch nicht eingerichtet" da', async ({ page }) => {
+    await oeffneDashboard(page)
+    await zuEinstellungen(page)
+    await expect(page.locator('#alarm-status')).toHaveText(/noch nicht/)
+  })
+
+  test('das Ortsfeld ist mit dem Wohnort vorbelegt', async ({ page }) => {
+    // Sonst sitzt ein 14-Jähriger vor einem leeren Feld und weiss nicht,
+    // was da rein soll.
+    await oeffneDashboard(page)
+    await zuEinstellungen(page)
+    await expect(page.locator('#alarm-ort')).not.toHaveValue('')
+  })
+
+  test('eigene Angaben werden gespeichert', async ({ page }) => {
+    const db = defaultDb()
+    await setupDashboard(page.context(), { user: SCHUELER, db })
+    await geoMocken(page)
+    await page.goto('/dashboard-schueler.html')
+    await warteAufDashboard(page)
+    await zuEinstellungen(page)
+
+    await page.locator('#alarm-ort').fill('Köln')
+    await page.locator('#alarm-umkreis').selectOption('10')
+    await page.locator('#alarm-kategorie').selectOption('Nachhilfe')
+    await page.locator('#alarm-lohn').fill('14')
+    await page.locator('#alarm-speichern').click()
+
+    await expect.poll(() => db.job_alarme?.length).toBe(1)
+    expect(db.job_alarme[0]).toMatchObject({
+      ort: 'Köln', umkreis_km: 10, kategorie: 'Nachhilfe', min_lohn: 14, aktiv: true,
+    })
+  })
+
+  test('nach dem Speichern steht der Status auf „läuft"', async ({ page }) => {
+    await oeffneDashboard(page)
+    await zuEinstellungen(page)
+    await page.locator('#alarm-ort').fill('Köln')
+    await page.locator('#alarm-speichern').click()
+    await expect(page.locator('#alarm-status')).toHaveText(/läuft/)
+  })
+
+  test('ohne Ort wird nicht gespeichert, sondern erklärt', async ({ page }) => {
+    const db = ohneWohnort()
+    await setupDashboard(page.context(), { user: SCHUELER, db })
+    await geoMocken(page)
+    await page.goto('/dashboard-schueler.html')
+    await warteAufDashboard(page)
+    await zuEinstellungen(page)
+
+    await page.locator('#alarm-ort').fill('')
+    await page.locator('#alarm-speichern').click()
+    await expect(page.locator('.toast')).toContainText(/Ort/)
+    expect(db.job_alarme?.length ?? 0).toBe(0)
+  })
+
+  test('ein bestehender Alarm steht im Formular', async ({ page }) => {
+    // Ohne das müsste man beim Ändern alles neu eintippen.
+    const db = defaultDb()
+    db.job_alarme = [{
+      id: 'a1', schueler_id: SCHUELER.id, ort: 'Hamburg', umkreis_km: 50,
+      kategorie: 'Verkauf', arbeitszeit: 'Wochenende', min_lohn: 13,
+      aktiv: true, abmelde_token: 't', zuletzt_gesendet: '2026-08-01T00:00:00Z',
+    }]
+    await setupDashboard(page.context(), { user: SCHUELER, db })
+    await geoMocken(page)
+    await page.goto('/dashboard-schueler.html')
+    await warteAufDashboard(page)
+    await zuEinstellungen(page)
+
+    await expect(page.locator('#alarm-ort')).toHaveValue('Hamburg')
+    await expect(page.locator('#alarm-umkreis')).toHaveValue('50')
+    await expect(page.locator('#alarm-kategorie')).toHaveValue('Verkauf')
+    await expect(page.locator('#alarm-arbeitszeit')).toHaveValue('Wochenende')
+    await expect(page.locator('#alarm-lohn')).toHaveValue('13')
+    await expect(page.locator('#alarm-status')).toHaveText(/läuft/)
+  })
+
+  test('der Schalter schaltet aus und wieder ein', async ({ page }) => {
+    const db = defaultDb()
+    db.job_alarme = [{
+      id: 'a1', schueler_id: SCHUELER.id, ort: 'Hamburg', umkreis_km: 25,
+      aktiv: true, abmelde_token: 't', zuletzt_gesendet: '2026-08-01T00:00:00Z',
+    }]
+    await setupDashboard(page.context(), { user: SCHUELER, db })
+    await geoMocken(page)
+    await page.goto('/dashboard-schueler.html')
+    await warteAufDashboard(page)
+    await zuEinstellungen(page)
+
+    await page.locator('#alarm-schalter').click()
+    await expect(page.locator('#alarm-status')).toHaveText(/ausgeschaltet/)
+    await expect.poll(() => db.job_alarme[0].aktiv).toBe(false)
+
+    await page.locator('#alarm-schalter').click()
+    await expect(page.locator('#alarm-status')).toHaveText(/läuft/)
+  })
+
+  test('die Karte unter der Jobliste verweist in die Einstellungen', async ({ page }) => {
+    // Der Weg dorthin muss auch von der Stelle aus zu finden sein, an
+    // der man merkt, dass nichts Passendes dabei ist.
+    await oeffneDashboard(page)
+    await page.locator('#alarm-zu-einstellungen').click()
+    await expect(page.locator('#view-einstellungen')).toBeVisible()
+  })
+
+  test('der Schnellweg übernimmt die Filter ins Formular, speichert aber nicht sofort', async ({ page }) => {
+    // Übernehmen und Speichern getrennt: Sonst wäre eine unbedachte
+    // Filterstellung sofort der neue Alarm.
+    const db = defaultDb()
+    await setupDashboard(page.context(), { user: SCHUELER, db })
+    await geoMocken(page)
+    await page.goto('/dashboard-schueler.html')
+    await warteAufDashboard(page)
+
+    await page.locator('#filter-ort').fill('Bremen')
+    await page.locator('#filter-kategorie').selectOption('Gastronomie')
+    await zuEinstellungen(page)
+    await page.locator('#alarm-von-filtern').click()
+
+    await expect(page.locator('#alarm-ort')).toHaveValue('Bremen')
+    await expect(page.locator('#alarm-kategorie')).toHaveValue('Gastronomie')
+    expect(db.job_alarme?.length ?? 0, 'noch nichts gespeichert').toBe(0)
+  })
 })

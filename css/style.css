@@ -2502,3 +2502,39 @@ main[tabindex="-1"]:focus { outline: none; }
 .coach-punkt--gut::before     { content: '✓'; }
 .coach-punkt--achtung { background: rgba(165, 68, 44, 0.08); color: var(--coral); }
 .coach-punkt--achtung::before { content: '!'; }
+
+/* ---------- Bereich „Einstellungen" (27.8.) ----------
+   Der Job-Alarm liess sich vorher nur unter der Jobliste einrichten, und
+   nur indem er die dort gesetzten Filter übernahm. Hier stellt der
+   Schüler ihn direkt ein. */
+.einst-kopf {
+  display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap; margin-bottom: 6px;
+}
+.einst-kopf h3 { margin: 0; font-size: 1.05rem; }
+.einst-status {
+  font-size: 0.78rem; font-weight: 600;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05); color: var(--ink-soft);
+}
+.einst-status--an { background: rgba(0, 200, 150, 0.12); color: var(--match-green-dark); }
+
+.einst-erklaerung {
+  font-size: 0.86rem; line-height: 1.6;
+  color: var(--ink-soft); margin: 0 0 18px;
+}
+
+/* Zwei Felder nebeneinander, auf dem Handy untereinander. */
+.form-zeile { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 560px) { .form-zeile { grid-template-columns: 1fr; } }
+
+.einst-knoepfe { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+
+/* Textlink-Knopf in der Alarm-Karte. */
+.alarm-link {
+  background: none; border: none; cursor: pointer;
+  font-family: inherit; font-size: 0.82rem;
+  color: var(--match-green-dark); text-decoration: underline;
+  padding: 11px 8px; min-height: 44px;
+}
+.alarm-link:hover { color: var(--ink); }

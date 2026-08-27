@@ -328,6 +328,63 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 27. August 2026 (Teil 6) - Der Job-Alarm lebt, und man kann ihn selbst einstellen
+
+### Erst: aus der Bauruine wurde ein Feature
+
+Der Job-Alarm lag seit dem 26.8. fertig gebaut und getestet da - und lief
+nirgends. Es fehlten drei Schritte, die alle auf Sanad warteten.
+
+Zwei davon habe ich erledigt:
+- `job_alarme` in der Datenbank angelegt (Tabelle, Zugriffsregeln,
+  Spalten-Trigger, Abmelde-Funktion).
+- Edge Function `mail-job-alarm` deployed - **beide** Dateien, `index.ts` UND
+  `treffer.js`. Rauchtest: `{"alarme":0,"gesendet":0}`, HTTP 200. Der Import
+  von `./treffer.js` loest also auf, die Abfrage geht durch, verschickt wurde
+  nichts.
+
+Den dritten - den taeglichen Zeitplan - habe ich NICHT gesetzt. Das ist der
+Schalter, der automatisch Mails an Minderjaehrige ausloest.
+
+### Dann: Sanads Antwort drehte die Runde
+
+Auf die Frage nach dem Zeitplan kam: *"man soll den job alarm selber einstellen
+koennen deswegen machen wir beim slidebar eine eigene kategorie fuer
+einstellungen."*
+
+Zu Recht. Der Alarm liess sich bis dahin **nur** unter der Jobliste einrichten,
+und **nur**, indem er die dort gesetzten Filter uebernahm. Wer ihn spaeter
+anpassen wollte - anderer Ort, engerer Umkreis - musste erst die Filter wieder
+so stellen. Eine Stelle zum selbst Einstellen gab es nicht.
+
+Neuer Seitenleisten-Eintrag **Einstellungen** mit eigenen Feldern: Ort,
+Umkreis, Bereich, Wann, Mindestlohn, dazu ein Schalter und der Status
+("laeuft" / "ausgeschaltet" / "noch nicht eingerichtet").
+
+**Die Karte unter der Jobliste bleibt.** Wer dort ankommt, hat gerade nichts
+Passendes gefunden - der Schnellweg "uebernimm meine aktuelle Suche" ist genau
+dann richtig. Sie verweist zusaetzlich in die Einstellungen. Beide schreiben
+dieselbe Zeile; es gibt einen Alarm je Schueler.
+
+Eine Entscheidung dabei: Der Knopf "Aus meiner aktuellen Suche uebernehmen"
+fuellt nur das Formular und speichert **nicht** sofort. Sonst waere eine
+unbedacht gesetzte Filterstellung gleich der neue Alarm. Ein Test haelt das
+fest.
+
+### Ein Nachzuegler, der dabei auffiel
+
+Das **Profil im Dashboard** bot als Alter weiterhin 10, 11 und 12 an. Am 26.8.
+war nur `register.html` umgestellt worden. Seit der Regel `chk_alter_jahre` in
+der Datenbank haette ein Speichern mit 10 eine unverstaendliche Meldung
+ergeben - der Fehler war also durch die Reparatur schlimmer geworden, nicht
+besser. Korrigiert, mit eigenem Test.
+
+### Tests
+10 neue in `tests/job-alarm.spec.js`, einer in `tests/jugendschutz.spec.js`.
+Ein bestehender Test angepasst: Der Knopf auf der Karte heisst jetzt "Mit
+dieser Suche einrichten" - seit daneben "oder selbst einstellen" steht, muss
+die Beschriftung sagen, was er tut.
+
 ## Session 27. August 2026 (Teil 5) - Der Anschreiben-Coach
 
 Sanads Wunsch zum Abschluss: "nochmal was richtig krasses, was die Webseite auf
