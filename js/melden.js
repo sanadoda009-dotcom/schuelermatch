@@ -115,3 +115,67 @@ export function meldeButtonHtml(attrs = '') {
       <path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>Melden</button>`
 }
+
+// ---------------------------------------------------------------------
+// Melden von den ÖFFENTLICHEN Seiten aus (27.8.).
+//
+// Bis dahin gab es den Melden-Knopf nur im Chat und im Dashboard — also
+// nirgends dort, wo eine Betrugsanzeige am ehesten gesehen wird. Wer auf
+// der Jobbörse oder auf einer geteilten Anzeigenseite über etwas
+// stolpert, konnte gar nichts tun.
+//
+// Diese Seiten kennen die Anmeldung nicht (sie laden `session.js` nicht,
+// weil sie öffentlich sind). Deshalb wird sie hier nachgeschlagen —
+// ohne Umleitung, denn `requireAuth` würde einen Besucher, der nur
+// stöbert, auf die Anmeldeseite werfen.
+
+export async function meldeMitAnmeldung({ typ, jobId = null, nachrichtId = null, titel = '' }) {
+  let session = null
+  try {
+    ({ data: { session } } = await supabase.auth.getSession())
+  } catch {
+    // Kein Netz: ehrlich sein statt so tun, als sei man abgemeldet.
+    toast('Keine Verbindung. Versuch es gleich nochmal.', 'fehler')
+    return
+  }
+
+  if (!session) { zeigeAnmeldeHinweis(); return }
+
+  oeffneMeldeDialog({ typ, jobId, nachrichtId, titel, meineId: session.user.id })
+}
+
+// Der Knopf bleibt für alle sichtbar — auch für Nicht-Angemeldete.
+// Wer etwas Bedenkliches sieht, soll den Weg dorthin immer finden; ihn
+// zu verstecken hiesse, die Meldung von der Anmeldung abhängig zu
+// machen, ohne das je zu erklären.
+//
+// Bewusst KEINE automatische Umleitung: Sie würde jemanden aus der
+// Anzeige werfen, die er gerade melden will.
+function zeigeAnmeldeHinweis() {
+  document.getElementById('melde-overlay')?.remove()
+
+  const overlay = document.createElement('div')
+  overlay.className = 'modal-overlay open'
+  overlay.id = 'melde-overlay'
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:440px;">
+      <div class="modal-header">
+        <h3>Melden</h3>
+        <button type="button" class="modal-close" id="melde-close" aria-label="Schließen">✕</button>
+      </div>
+      <p class="melde-intro">Zum Melden brauchst du ein Konto — sonst könnten
+      wir nicht nachfragen, wenn wir etwas wissen müssen. Die gemeldete Person
+      erfährt <b>nicht</b>, von wem die Meldung kommt.</p>
+      <div class="melde-notfall">
+        <b>Wichtig:</b> Wenn dir jemand droht oder du dich unsicher fühlst, sprich mit deinen
+        Eltern oder einer erwachsenen Person, der du vertraust. In Gefahr: Polizei 110.
+      </div>
+      <a href="login.html" class="btn btn-green btn-full" style="margin-top:16px; text-decoration:none;">Anmelden</a>
+      <a href="register.html?rolle=schueler" class="btn btn-outline btn-full" style="margin-top:8px; text-decoration:none;">Konto anlegen</a>
+    </div>`
+
+  document.body.appendChild(overlay)
+  const schliessen = () => overlay.remove()
+  overlay.querySelector('#melde-close').addEventListener('click', schliessen)
+  overlay.addEventListener('click', e => { if (e.target === overlay) schliessen() })
+}

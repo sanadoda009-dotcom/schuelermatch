@@ -328,6 +328,192 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 27. August 2026 (Teil 5) - Der Anschreiben-Coach
+
+Sanads Wunsch zum Abschluss: "nochmal was richtig krasses, was die Webseite auf
+ein neues Level bringt."
+
+### Der Anlass stand in den eigenen Versprechen
+
+`fuer-firmen.html` sagt den Arbeitgebern zu:
+
+> "Bewerbungen mit Substanz. Zu jeder Bewerbung gehoeren ein Lebenslauf und ein
+> kurzes Motivationsschreiben - auch von Fuenfzehnjaehrigen, die so etwas zum
+> ersten Mal schreiben. **Die Plattform hilft ihnen dabei.**"
+
+Geholfen hat sie mit einem Knopf namens "Starthilfe: Beispieltext einfuegen".
+Der warf einen von **drei** fertigen Texten ins Feld, im Wechsel.
+
+Bewerben sich fuenf Schueler, bekommt der Arbeitgeber fuenfmal denselben Text.
+Ein Anschreiben, das nichts ueber den Absender verraet, ist wertlos - die
+"Hilfe" machte die Bewerbung also schlechter, nicht besser. Und sie war genau
+das Gegenteil dessen, was die Seite verspricht.
+
+### Der Ansatz ist umgekehrt
+
+**Das Geruest kommt von uns, der Inhalt vom Schueler.**
+
+Drei kurze Fragen, die mittlere je nach Job-Art eine andere:
+- Nachhilfe -> "In welchen Faechern bist du gut?"
+- Babysitten -> "Hast du schon auf juengere Kinder aufgepasst?"
+- Lieferung -> "Wie bist du unterwegs, und kennst du dich in der Gegend aus?"
+- Technik -> "Womit kennst du dich technisch aus?"
+
+Jede mit einem Beispiel darunter - ohne Beispiel starren die meisten auf ein
+leeres Feld. Und bei Babysitten steht ausdruecklich dabei, dass "noch nicht,
+aber..." eine gute Antwort ist; sonst traut sich niemand ohne Erfahrung.
+
+Die Zeitfrage nimmt die **Verfuegbarkeit aus der Anzeige** auf: "In der Anzeige
+steht: 'Sa & So, 10-16 Uhr'. Passt das bei dir?"
+
+Aus den Antworten entsteht ein Anschreiben. **Wer nichts beantwortet, bekommt
+auch keinen Text** - ein leeres Geruest waere wieder nur eine Schablone. Ein
+Test haelt genau das fest.
+
+### Dazu eine Rueckmeldung, die sagt, was fehlt
+
+Live unter dem Feld, waehrend getippt wird: zu kurz · kein Bezug zu genau
+diesem Job · kein Schlusssatz · zu lang. Und bei gutem Text eine Bestaetigung,
+damit man weiss, wann es reicht.
+
+**Nie blockierend.** Es ist seine Bewerbung; absenden darf er immer. Ein Test
+prueft ausdruecklich, dass der Absende-Weg nichts davon abfragt.
+
+### Der Teil, der die Seite zusammenbindet
+
+Die Rueckmeldung erkennt **Kontaktdaten im Anschreiben** - und benutzt dafuer
+`warnungFuer()` aus `js/chat-warnung.js`, dieselbe Erkennung wie im Chat. Eine
+Quelle, ein Verhalten.
+
+Hier wiegt es sogar schwerer als im Chat: Die Handynummer eines Minderjaehrigen
+stuende dauerhaft in einer Bewerbung, die der Arbeitgeber behaelt. Und weil es
+dieselbe Erkennung ist, gilt auch derselbe Fehlalarm-Schutz aus Teil 16: "ab
+12 03 2026" ist kein Kontaktdatum. Beides ist geprueft.
+
+### Zurueckhaltung an drei Stellen
+- Der Coach ist **zugeklappt**. Wer einfach lostippen will, soll das koennen.
+- Ein **selbst geschriebener Text** wird nie ohne Nachfrage ueberschrieben -
+  erst ein Hinweis, dann beim zweiten Klick.
+- Beim Wechsel zu einem anderen Job werden die Antworten **zurueckgesetzt**,
+  sonst baute der Coach ein Anschreiben fuer die falsche Stelle.
+
+### Tests
+`tests/anschreiben.spec.js`: 34 Pruefungen, davon 8 am echten Dialog.
+Darunter: jede Kategorie der Jobboerse hat eine eigene Frage (laeuft eine ins
+Leere, bekommt der Schueler wieder die vage Standardfrage) und **zwei Schueler
+bekommen nicht denselben Text**.
+
+## Session 27. August 2026 (Teil 4) - Der Foto-Upload hat NIE funktioniert
+
+Sanad hat es gemeldet: "die foto hochladen option funktioniert nicht, da steht
+keine berechtigung."
+
+**Meine erste Vermutung war falsch.** Ich hielt es fuer eine Regression aus
+Teil 17, weil ich den Upload dort umgebaut hatte. Der Blick in die Daten hat
+das widerlegt: Kein einziges Profil hatte je ein `foto_url`, und
+`storage.objects` war fuer `avatars` leer. Der Upload hat also nie
+funktioniert.
+
+### Der Beweis stand im Storage-Protokoll
+
+    POST /object/avatars/a7f82c3c-.../avatar.png  ->  400
+
+Pfad korrekt, Nutzer-Id korrekt. Also lag es an den Zugriffsregeln.
+
+### Die Ursache: eine fehlende SELECT-Regel
+
+| Ablage | Regeln | Dateien |
+|---|---|---|
+| `verifizierung` | INSERT, UPDATE, **SELECT**, DELETE | 2 |
+| `zeugnisse` | INSERT, UPDATE, **SELECT** | laeuft |
+| `avatars` | INSERT, UPDATE | **0 - nie** |
+| `lebenslauf-bilder` | INSERT, UPDATE | **0 - nie** |
+
+Genau die beiden Ablagen ohne SELECT-Regel haben nie eine Datei angenommen.
+Supabase Storage braucht beim Hochladen Lesezugriff auf den Eintrag; ohne
+SELECT lehnt es mit einer RLS-Meldung ab - im Browser als "Dafuer fehlt dir die
+Berechtigung" (seit Teil 21 uebersetzt, vorher waere der englische Rohtext
+erschienen).
+
+Vier Regeln angelegt (SELECT und DELETE fuer beide Ablagen), nachgeprueft,
+Sanad hat den Upload bestaetigt.
+
+**DELETE fehlte ebenfalls - und das waere meine Schuld gewesen.** Seit Teil 17
+raeumt der Upload die Vorgaengerdatei weg. Ohne DELETE-Regel waere das still
+fehlgeschlagen, und in einer OEFFENTLICHEN Ablage waere das alte Foto eines
+Schuelers unter seiner alten Adresse liegen geblieben. Der Fehler von Sanad hat
+also nebenbei einen zweiten aufgedeckt, der noch niemandem aufgefallen waere.
+
+### Neuer Test: fehlt einer Ablage eine Regel?
+`tests/sql-konsistenz.spec.js` prueft jetzt je Ablage, ob alle Befehle geregelt
+sind, die der Code braucht - und ausdruecklich, dass jede Ablage, aus der der
+Code loescht, auch eine DELETE-Regel hat. Kein Test haette den urspruenglichen
+Fehler gefunden (die Tests faelschen den Storage), aber dieser haelt wenigstens
+fest, dass die Regeln vollstaendig BESCHRIEBEN sind.
+
+**Gegenprobe gemacht:** Nehme ich die SELECT-Regel wieder heraus, faellt der
+Test um.
+
+### Zwei eigene Fehler dabei
+
+1. **Mein erster Versuch dieses Tests prueft gar nichts.** Beim Schreiben ueber
+   ein Here-Dokument ging eine Backslash-Ebene verloren: aus `\s` wurde `\s`,
+   und im Template-Literal ist das nur `s`. Die Regex wurde zu `fors+inserts+...`
+   und waere still durchgelaufen. Neu geschrieben ohne zusammengebaute Regex.
+2. **Der Melden-Knopf war auf dem Handy nur 24px hoch.** Aufgefallen erst, als
+   ich ihn in Teil 3 auf die Anzeigenseite gesetzt habe und der Tippziel-Test
+   ihn zu sehen bekam. Im Chat und im Dashboard war er genauso klein, nur nie
+   geprueft - ausgerechnet der Knopf, mit dem man Belaestigung meldet. Jetzt
+   44px unter `pointer: coarse`.
+
+## Session 27. August 2026 (Teil 3) - Melden ging nur dort, wo man schon drin war
+
+Dieselbe Frage wie in Teil 2: Welche Datei kommt in keinem Test vor?
+Naechster Treffer: **`js/melden.js`**, 117 Zeilen - der Weg, auf dem ein
+Schueler eine Betrugsanzeige oder eine uebergriffige Nachricht meldet. Geprueft
+war nur die Betreiber-Seite, also das ANSEHEN der Meldungen. Der Weg dorthin
+nicht. Darauf ruht die ganze Sicherheitszusage der Plattform.
+
+### Der Dialog selbst: kein Befund
+
+16 Pruefungen geschrieben, alle **auf Anhieb gruen**. Der Dialog ist sauber
+gebaut: alle fuenf Gruende stimmen mit der CHECK-Regel der Datenbank ueberein,
+der Freitext ist auf dieselben 1000 Zeichen begrenzt, ein doppeltes Melden wird
+ueber den Fehlercode `23505` freundlich abgefangen (der eindeutige Index
+`meldungen_einmal_pro_job` existiert wirklich - nachgesehen), und bei einem
+echten Fehler bleibt der Dialog offen samt eingetippter Beschreibung.
+
+Auch die Zusage "die gemeldete Person erfaehrt nicht, dass die Meldung von dir
+kommt" haelt: Die Regel "Eigene Meldungen lesen" erlaubt nur dem Melder und dem
+Betreiber den Blick darauf.
+
+Es fehlte also nichts ausser der Absicherung. Das ist ein Ergebnis, kein
+Fehlschlag.
+
+### Der Befund lag woanders: an der Platzierung
+
+Den Melden-Knopf gab es **nur im Chat und im Dashboard**. Also nirgends dort,
+wo eine Betrugsanzeige am ehesten gesehen wird: nicht auf der Jobboerse, nicht
+auf der einzelnen Anzeigenseite. Wer ueber Google oder einen geteilten Link auf
+einer Anzeige landet, sieht das Dashboard nie - und konnte gar nichts tun.
+
+Ergaenzt an beiden Stellen. Diese Seiten kennen die Anmeldung nicht, deshalb
+schlaegt `meldeMitAnmeldung()` sie selbst nach.
+
+**Zwei Entscheidungen dabei:**
+- Der Knopf bleibt fuer alle sichtbar, auch fuer Nicht-Angemeldete. Ihn zu
+  verstecken hiesse, die Meldung von der Anmeldung abhaengig zu machen, ohne
+  das je zu erklaeren.
+- **Keine automatische Umleitung.** Sie waere bequemer zu bauen und schlechter
+  fuer den, der gerade etwas Bedenkliches gefunden hat - sie wuerde ihn aus der
+  Anzeige werfen, die er melden will. Stattdessen ein Hinweis mit Anmelde- und
+  Registrier-Link. Der Notfall-Hinweis mit der 110 steht auch dort, denn wer
+  bedroht wird, braucht die Nummer sofort und nicht erst nach einer
+  Registrierung.
+
+### Tests
+`tests/melden.spec.js`: 23 Pruefungen.
+
 ## Session 27. August 2026 (Teil 2) - Der Schutz, der nicht schuetzte
 
 Nach dem Fund in `rls-stand.sql` die Frage: **Was ist sonst noch nie geprueft

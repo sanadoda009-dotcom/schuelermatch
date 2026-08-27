@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
 import { passtZurSuche } from './suche.js'
 import { hole, zeigeLadefehler } from './zustand.js'
+import { meldeMitAnmeldung, meldeButtonHtml } from './melden.js'
 
 let alleJobs = []
 let aktiveKategorie = ''
@@ -275,8 +276,15 @@ function oeffneDetail(jobId) {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Link kopieren
       </button>
+      ${meldeButtonHtml('id="detail-melden"')}
     </div>
   `
+  // Melden von der Jobboerse aus. Bis zum 27.8. gab es den Knopf nur im
+  // Chat und im Dashboard - also nirgends dort, wo eine Betrugsanzeige
+  // am ehesten gesehen wird.
+  document.getElementById('detail-melden').addEventListener('click', () =>
+    meldeMitAnmeldung({ typ: 'job', jobId: job.id, titel: job.titel }))
+
   document.getElementById('detail-share').addEventListener('click', async (e) => {
     const link = `${location.origin}/job.html?id=${job.id}`
     try {

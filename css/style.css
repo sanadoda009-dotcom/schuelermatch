@@ -1392,7 +1392,16 @@ footer .logo { color: white; }
 .chat-msg--anderer .melde-btn { opacity: 0; transition: opacity 0.15s; }
 .chat-msg--anderer:hover .melde-btn,
 .chat-msg--anderer .melde-btn:focus-visible { opacity: 1; }
-@media (pointer: coarse) { .chat-msg--anderer .melde-btn { opacity: 1; } }
+@media (pointer: coarse) {
+  .chat-msg--anderer .melde-btn { opacity: 1; }
+
+  /* Am Finger war der Melden-Knopf nur 24px hoch - zu wenig zum sicheren
+     Treffen. Aufgefallen erst am 27.8., als er auch auf der
+     Anzeigenseite auftauchte und der Tippziel-Test ihn zu sehen bekam;
+     im Chat und im Dashboard war er genauso klein, nur nie geprueft.
+     Ausgerechnet der Knopf, mit dem man Belaestigung meldet. */
+  .melde-btn { min-height: 44px; padding: 11px 12px; }
+}
 
 /* Admin: Meldungs-Karten */
 .meldung-card {
@@ -2427,3 +2436,69 @@ main[tabindex="-1"]:focus { outline: none; }
 .pruef-hinweis--hinweis::before { content: '·'; color: var(--ink-soft); font-weight: 700; }
 .pruef-hinweis--achtung::before { content: '!'; color: var(--coral); font-weight: 700; }
 .pruef-hinweis--achtung { background: rgba(165, 68, 44, 0.07); color: var(--coral); }
+
+/* ---------- Anschreiben-Coach ----------
+   Ersetzt seit dem 27.8. den Knopf, der einen fertigen Beispieltext ins
+   Feld warf. Drei kurze Fragen, der Text entsteht aus den eigenen
+   Antworten. Zugeklappt, damit niemand sich bevormundet fühlt — wer
+   einfach lostippen will, soll das können. */
+.coach {
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  background: var(--paper);
+}
+.coach-auf {
+  display: block; width: 100%; text-align: left;
+  background: none; border: none; cursor: pointer;
+  padding: 12px 14px; font-family: inherit;
+  min-height: 44px;
+}
+.coach-auf:hover { background: rgba(0, 200, 150, 0.06); }
+.coach-auf-titel { display: block; font-weight: 600; font-size: 0.9rem; color: var(--ink); }
+.coach-auf-mehr { display: block; font-size: 0.78rem; color: var(--ink-soft); margin-top: 2px; }
+
+.coach-inhalt { padding: 4px 14px 14px; }
+.coach-inhalt[hidden] { display: none; }
+
+.coach-frage { margin-bottom: 14px; }
+.coach-frage label {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 0.86rem; font-weight: 600; color: var(--ink);
+  margin-bottom: 6px;
+}
+.coach-nr {
+  flex-shrink: 0;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--match-green-dark); color: #fff;
+  font-size: 0.72rem; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.coach-frage textarea {
+  width: 100%; resize: vertical;
+  font-family: inherit; font-size: 0.9rem;
+}
+.coach-hinweis {
+  font-size: 0.76rem; line-height: 1.5;
+  color: var(--ink-soft); margin: 5px 0 0;
+}
+.coach-fuss {
+  font-size: 0.76rem; color: var(--ink-soft);
+  margin: 8px 0 0; text-align: center;
+}
+
+/* Rückmeldung unter dem Textfeld. Nie blockierend — es ist seine
+   Bewerbung, absenden darf er immer. */
+.coach-rueckmeldung { margin-top: 8px; display: grid; gap: 5px; }
+.coach-punkt {
+  margin: 0; font-size: 0.8rem; line-height: 1.5;
+  padding: 7px 10px 7px 26px; border-radius: 8px; position: relative;
+}
+.coach-punkt::before { position: absolute; left: 9px; top: 7px; font-weight: 700; }
+.coach-punkt--fehlt   { background: rgba(0, 0, 0, 0.035); color: var(--ink-soft); }
+.coach-punkt--fehlt::before   { content: '·'; }
+.coach-punkt--gut     { background: rgba(0, 200, 150, 0.08); color: var(--match-green-dark); }
+.coach-punkt--gut::before     { content: '✓'; }
+.coach-punkt--achtung { background: rgba(165, 68, 44, 0.08); color: var(--coral); }
+.coach-punkt--achtung::before { content: '!'; }

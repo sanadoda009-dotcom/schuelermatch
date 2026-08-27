@@ -140,7 +140,12 @@ test.describe('Bewerbungs-Flow', () => {
     })
   })
 
-  test('Motivations-Starthilfe füllt einen Beispieltext ein', async ({ page }) => {
+  // Hiess bis zum 27.8. „Motivations-Starthilfe füllt einen Beispieltext
+  // ein". Der Knopf warf einen von drei fertigen Texten ins Feld — bei
+  // fünf Bewerbern bekam der Arbeitgeber fünfmal denselben. Ersetzt
+  // durch den Anschreiben-Coach: drei Fragen, und der Text entsteht aus
+  // den eigenen Antworten. Ausführlich in tests/anschreiben.spec.js.
+  test('der Anschreiben-Coach schreibt aus den eigenen Antworten', async ({ page }) => {
     const db = defaultDb({ profiles: [bewerbungsfaehig()] })
     await setupDashboard(page.context(), { user: SCHUELER, db })
     await page.goto('/dashboard-schueler.html')
@@ -149,8 +154,12 @@ test.describe('Bewerbungs-Flow', () => {
     await page.locator('#view-jobs .job-card').first().getByRole('button', { name: 'Jetzt bewerben' }).click()
     await expect(page.locator('#bewerbung-overlay')).toHaveClass(/open/)
     await expect(page.locator('#bewerbung-motivation')).toHaveValue('')
-    await page.locator('#motivation-tipp').click()
-    await expect(page.locator('#bewerbung-motivation')).not.toHaveValue('')
+
+    await page.locator('#coach-auf').click()
+    await page.locator('#coach-warum').fill('Ich will mein erstes eigenes Geld verdienen')
+    await page.locator('#coach-uebernehmen').click()
+
+    await expect(page.locator('#bewerbung-motivation')).toHaveValue(/erstes eigenes Geld/)
   })
 
   test('Logout meldet ab und leitet zum Login', async ({ page }) => {

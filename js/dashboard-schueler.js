@@ -11,6 +11,7 @@ import { initGlocke } from './notifications.js'
 import { geocode, distanzKm, uebernehmeKoordinaten } from './geo.js'
 import { passtZurSuche } from './suche.js'
 import { oeffneMeldeDialog, meldeButtonHtml } from './melden.js'
+import { fragenFuer, baueAnschreiben, pruefeAnschreiben } from './anschreiben.js'
 import { sichereMediaUrl } from './sicher.js'
 import { initJobAlarm } from './job-alarm.js'
 
@@ -91,7 +92,15 @@ async function init() {
     if (e.target.id === 'bewerbung-overlay') schliesseModal()
   })
   document.getElementById('bewerbung-form').addEventListener('submit', sendeBewerbung)
-  document.getElementById('motivation-tipp').addEventListener('click', motivationsStarthilfe)
+  document.getElementById('coach-auf').addEventListener('click', () => {
+    const inhalt = document.getElementById('coach-inhalt')
+    const auf = inhalt.hidden
+    inhalt.hidden = !auf
+    document.getElementById('coach-auf').setAttribute('aria-expanded', String(auf))
+    if (auf) document.querySelector('#coach-fragen textarea')?.focus()
+  })
+  document.getElementById('coach-uebernehmen').addEventListener('click', coachUebernehmen)
+  document.getElementById('bewerbung-motivation').addEventListener('input', zeigeCoachRueckmeldung)
   initCvWahl()
   document.getElementById('bewerbung-zeugnis-btn').addEventListener('click', () => document.getElementById('bewerbung-zeugnis').click())
   document.getElementById('bewerbung-zeugnis').addEventListener('change', (e) => {
@@ -300,30 +309,78 @@ async function oeffneChat(bewerbungId, titel) {
   setTimeout(aktualisiereNachrichtenBadge, 500)
 }
 
-/* ---------- MOTIVATIONS-STARTHILFE ---------- */
+/* ---------- ANSCHREIBEN-COACH ----------
+   Vorher warf ein Knopf einen von drei fertigen Beispieltexten ins Feld.
+   Bei fuenf Bewerbern bekam der Arbeitgeber fuenfmal denselben Text -
+   ein Anschreiben, das nichts ueber den Absender verraet, ist wertlos.
+   Und `fuer-firmen.html` verspricht "Bewerbungen mit Substanz".
+   Jetzt: drei kurze Fragen, der Text entsteht aus den eigenen Antworten.
+   Das Geruest ist von uns, der Inhalt von ihm.
+   Fragen und Zusammenbau stehen in js/anschreiben.js. */
 
-const MOTIVATIONS_STARTER = [
-  (titel) => `Hallo! Ich habe eure Anzeige "${titel}" gesehen und hätte richtig Lust auf den Job. Ich bin zuverlässig, pünktlich und lerne schnell – neue Aufgaben muss man mir nur einmal zeigen. Über eine Antwort würde ich mich sehr freuen!`,
-  (titel) => `Guten Tag! Die Stelle "${titel}" passt super zu mir, weil ich gerne mit anpacke und Verantwortung übernehme. Ich bin freundlich im Umgang mit Menschen und halte, was ich zusage. Gerne stelle ich mich persönlich vor!`,
-  (titel) => `Hallo! Ich suche gerade meinen ersten Nebenjob und "${titel}" klingt genau richtig für mich. Auch ohne Berufserfahrung bringe ich viel Motivation mit – zu Hause helfe ich regelmäßig mit und man kann sich auf mich verlassen.`
-]
-let motivationsIndex = 0
-let letzterStarter = ''
+// Merkt sich den zuletzt erzeugten Text, damit ein selbst geschriebener
+// nie ohne Nachfrage ueberschrieben wird.
+let letzterCoachText = ''
+let coachUeberschreiben = false
 
-function motivationsStarthilfe() {
+function baueCoachFragen(job) {
+  const box = document.getElementById('coach-fragen')
+  if (!box) return
+  box.innerHTML = fragenFuer(job).map((f, i) => `
+    <div class="coach-frage">
+      <label for="coach-${f.id}"><span class="coach-nr">${i + 1}</span>${escapeHtml(f.frage)}</label>
+      <textarea id="coach-${f.id}" data-coach="${f.id}" rows="2" placeholder="Deine Antwort"></textarea>
+      <p class="coach-hinweis">${escapeHtml(f.hinweis)}</p>
+    </div>`).join('')
+}
+
+function coachAntworten() {
+  const antworten = {}
+  document.querySelectorAll('#coach-fragen [data-coach]').forEach(el => {
+    antworten[el.dataset.coach] = el.value
+  })
+  return antworten
+}
+
+function coachUebernehmen() {
   const feld = document.getElementById('bewerbung-motivation')
-  const titel = document.getElementById('bewerbung-job-titel').textContent || 'euren Job'
-  const aktuell = feld.value.trim()
-  // Eigenen Text nie überschreiben – nur leeres Feld oder unseren letzten Vorschlag ersetzen
-  if (aktuell && aktuell !== letzterStarter.trim()) {
-    toast('Dein eigener Text bleibt – lösche ihn, um Vorschläge zu sehen', 'info')
+  const text = baueAnschreiben({
+    antworten: coachAntworten(),
+    job: aktuelleBewerbung.job || {},
+    name: profile.name || ''
+  })
+
+  if (!text) {
+    toast('Beantworte erst mindestens eine Frage - daraus entsteht der Text.', 'info')
     return
   }
-  letzterStarter = MOTIVATIONS_STARTER[motivationsIndex % MOTIVATIONS_STARTER.length](titel)
-  motivationsIndex++
-  feld.value = letzterStarter
+
+  // Einen selbst geschriebenen Text nie ohne Nachfrage ueberschreiben.
+  if (feld.value.trim() && feld.value.trim() !== letzterCoachText.trim() && !coachUeberschreiben) {
+    coachUeberschreiben = true
+    toast('Du hast schon etwas geschrieben. Nochmal klicken, um es zu ersetzen.', 'info')
+    return
+  }
+  coachUeberschreiben = false
+
+  letzterCoachText = text
+  feld.value = text
+  zeigeCoachRueckmeldung()
   feld.focus()
+  feld.setSelectionRange(feld.value.length, feld.value.length)
 }
+
+function zeigeCoachRueckmeldung() {
+  const box = document.getElementById('coach-rueckmeldung')
+  if (!box) return
+  const punkte = pruefeAnschreiben(
+    document.getElementById('bewerbung-motivation').value,
+    aktuelleBewerbung.job || {}
+  )
+  box.innerHTML = punkte.map(p =>
+    `<p class="coach-punkt coach-punkt--${p.art}">${escapeHtml(p.text)}</p>`).join('')
+}
+
 
 /* ---------- PDF-DESIGN-AUSWAHL ---------- */
 
@@ -1544,10 +1601,25 @@ async function oeffneBewerbungsModal(jobId, jobTitel, btn) {
     return
   }
 
-  aktuelleBewerbung = { jobId, btn, zeugnisDatei: null }
+  // Das ganze Job-Objekt mitnehmen: Der Anschreiben-Coach stellt je nach
+  // Kategorie eine andere Frage und nennt die Verfuegbarkeit aus der
+  // Anzeige. Mit nur der Id waere das nicht moeglich.
+  const job = alleJobs.find(j => j.id === jobId) || { id: jobId, titel: jobTitel }
+  aktuelleBewerbung = { jobId, job, btn, zeugnisDatei: null }
+
   document.getElementById('bewerbung-job-titel').textContent = jobTitel
   document.getElementById('bewerbung-motivation').value = ''
   document.getElementById('bewerbung-zeugnis-status').textContent = 'Kein Zeugnis ausgewählt'
+
+  // Coach zuruecksetzen - sonst stuenden die Antworten zum vorigen Job
+  // noch da und bauten ein Anschreiben fuer die falsche Stelle.
+  letzterCoachText = ''
+  coachUeberschreiben = false
+  baueCoachFragen(job)
+  document.getElementById('coach-inhalt').hidden = true
+  document.getElementById('coach-auf').setAttribute('aria-expanded', 'false')
+  document.getElementById('coach-rueckmeldung').innerHTML = ''
+
   setzeCvWahlZurueck()
   document.getElementById('bewerbung-overlay').classList.add('open')
 }

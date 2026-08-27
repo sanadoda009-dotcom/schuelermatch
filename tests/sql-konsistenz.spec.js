@@ -140,3 +140,70 @@ test('jede SQL-Datei sagt, was sie tut und was der Stand war', async () => {
     expect(sql, `${datei}: keine Prüfabfrage`).toMatch(/select/i)
   }
 })
+
+test.describe('jede Ablage hat alle Regeln, die der Code braucht', () => {
+  // WARUM (27.8.): Der Foto-Upload hat NIE funktioniert.
+  // `POST /object/avatars/<uid>/avatar.png` kam mit 400 zurück, im
+  // Browser als „Dafür fehlt dir die Berechtigung".
+  //
+  // Ursache: `avatars` und `lebenslauf-bilder` hatten nur INSERT- und
+  // UPDATE-Regeln. Die Ablagen, die funktionierten (`verifizierung`,
+  // `zeugnisse`), hatten zusätzlich SELECT — Supabase Storage braucht
+  // beim Hochladen Lesezugriff auf den Eintrag.
+  //
+  // Aufgefallen ist es nur, weil jemand es ausprobiert hat. Kein Test
+  // hätte es je gefunden, denn die Tests fälschen den Storage. Dieser
+  // hier prüft wenigstens, dass die Regeln vollständig BESCHRIEBEN sind.
+  const sql = () => lies('rls-stand.sql')
+
+  // Was der Code mit jeder Ablage tut — abgelesen an js/dokument-pfad.js
+  // und den Aufrufstellen.
+  const GEBRAUCHT = {
+    'avatars':           ['insert', 'update', 'select', 'delete'],
+    'lebenslauf-bilder': ['insert', 'update', 'select', 'delete'],
+    'verifizierung':     ['insert', 'update', 'select', 'delete'],
+    // zeugnisse ohne DELETE: Der Code loescht dort nie - ein Zeugnis
+    // gehoert zur Bewerbung und verschwindet mit ihr.
+    'zeugnisse':         ['insert', 'update', 'select'],
+  }
+
+  // Zerlegt die Datei in die einzelnen `create policy`-Bloecke und
+  // liest je Block ab, welchen Befehl er regelt und welche Ablage er
+  // nennt. Bewusst ohne zusammengebaute Regex: Die war beim ersten
+  // Versuch an einer verschluckten Backslash-Ebene gescheitert und hat
+  // dann still gar nichts geprüft.
+  function geregelt(text) {
+    const paare = new Set()
+    for (const block of text.split('create policy ').slice(1)) {
+      const kopf = block.slice(0, block.indexOf(';') + 1).toLowerCase()
+      const befehl = ['insert', 'select', 'update', 'delete'].find(b => kopf.includes('for ' + b))
+      if (!befehl) continue
+      for (const m of kopf.matchAll(/bucket_id\s*=\s*'([\w-]+)'/g)) {
+        paare.add(m[1] + ':' + befehl)
+      }
+    }
+    return paare
+  }
+
+  for (const [ablage, befehle] of Object.entries(GEBRAUCHT)) {
+    test(`${ablage}: ${befehle.join(', ')}`, async () => {
+      const vorhanden = geregelt(sql())
+      const fehlend = befehle.filter(b => !vorhanden.has(ablage + ':' + b))
+      expect(fehlend, `${ablage}: keine Regel für`).toEqual([])
+    })
+  }
+
+  test('der Upload löscht die Vorgängerdatei — also braucht er DELETE', async () => {
+    // Die Verbindung zwischen Code und Regel, damit sie nicht getrennt
+    // voneinander verändert werden.
+    const js = fs.readFileSync(path.join(__dirname, '..', 'js', 'dashboard-schueler.js'), 'utf8')
+    const loescht = [...js.matchAll(/from\('([\w-]+)'\)\.remove\(/g)].map(m => m[1])
+    const vorhanden = geregelt(sql())
+
+    expect(loescht.length, 'der Upload sollte aufräumen').toBeGreaterThan(0)
+    for (const ablage of new Set(loescht)) {
+      expect(vorhanden.has(ablage + ':delete'),
+        `${ablage}: Code löscht, aber keine DELETE-Regel`).toBe(true)
+    }
+  })
+})

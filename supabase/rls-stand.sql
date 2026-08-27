@@ -378,6 +378,25 @@ drop policy if exists "Avatar Update eigene Datei" on storage.objects;
 create policy "Avatar Update eigene Datei" on storage.objects
   for update using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
 
+-- SELECT und DELETE fehlten hier bis zum 27.8. - und ohne sie hat der
+-- Foto-Upload NIE funktioniert: `POST /object/avatars/<uid>/avatar.png`
+-- kam mit 400 zurueck, im Browser als "Dafuer fehlt dir die
+-- Berechtigung". Supabase Storage braucht beim Hochladen Lesezugriff auf
+-- den Eintrag. Aufgefallen ist es nur, weil die Ablage LEER war und kein
+-- Profil je ein foto_url hatte, waehrend `verifizierung` (mit
+-- SELECT-Regel) zwei Dateien enthielt.
+--
+-- DELETE braucht der Upload seit dem 26.8., um die Vorgaengerdatei
+-- wegzuraeumen. Ohne die Regel bliebe in einer OEFFENTLICHEN Ablage das
+-- alte Foto eines Schuelers unter seiner alten Adresse liegen.
+drop policy if exists "Avatar eigenes lesen" on storage.objects;
+create policy "Avatar eigenes lesen" on storage.objects
+  for select using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+
+drop policy if exists "Avatar eigenes loeschen" on storage.objects;
+create policy "Avatar eigenes loeschen" on storage.objects
+  for delete using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+
 -- Bilder im Lebenslauf
 drop policy if exists "Lebenslauf Bild Upload eigene Datei" on storage.objects;
 create policy "Lebenslauf Bild Upload eigene Datei" on storage.objects
@@ -386,6 +405,15 @@ create policy "Lebenslauf Bild Upload eigene Datei" on storage.objects
 drop policy if exists "Lebenslauf Bild Update eigene Datei" on storage.objects;
 create policy "Lebenslauf Bild Update eigene Datei" on storage.objects
   for update using (bucket_id = 'lebenslauf-bilder' and auth.uid()::text = (storage.foldername(name))[1]);
+
+-- Dieselbe Luecke wie bei den Profilbildern, siehe oben.
+drop policy if exists "Lebenslauf Bild eigenes lesen" on storage.objects;
+create policy "Lebenslauf Bild eigenes lesen" on storage.objects
+  for select using (bucket_id = 'lebenslauf-bilder' and auth.uid()::text = (storage.foldername(name))[1]);
+
+drop policy if exists "Lebenslauf Bild eigenes loeschen" on storage.objects;
+create policy "Lebenslauf Bild eigenes loeschen" on storage.objects
+  for delete using (bucket_id = 'lebenslauf-bilder' and auth.uid()::text = (storage.foldername(name))[1]);
 
 -- Schülerausweis / Verifizierung: privat. Nur der Schüler selbst und
 -- der Betreiber. Wird nach der Prüfung gelöscht.

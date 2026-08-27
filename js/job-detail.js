@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
 import { hole, zeigeLadefehler } from './zustand.js'
+import { meldeMitAnmeldung, meldeButtonHtml } from './melden.js'
 
 function escapeHtml(str) {
   const div = document.createElement('div'); div.textContent = str ?? ''; return div.innerHTML
@@ -224,7 +225,14 @@ async function ladeJob() {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Link kopieren
     </button>
+    ${meldeButtonHtml('id="melden-btn" style="margin-top:20px; margin-left:8px;"')}
   `
+
+  // Melden direkt von der Anzeigenseite. Wer ueber einen geteilten Link
+  // oder ueber Google hier landet, sieht das Dashboard nie - bis zum
+  // 27.8. konnte er gar nichts melden.
+  document.getElementById('melden-btn').addEventListener('click', () =>
+    meldeMitAnmeldung({ typ: 'job', jobId: job.id, titel: job.titel }))
 
   document.getElementById('share-btn').addEventListener('click', async (e) => {
     try {

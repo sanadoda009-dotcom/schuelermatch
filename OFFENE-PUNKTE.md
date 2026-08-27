@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **660 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **723 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -110,6 +110,20 @@ Die Abfrage zum Einsehen steht am Ende von `supabase/alter-grenze.sql`.
 Für Konten, die vor dem 26.8. angelegt wurden, gibt es keinen Nachweis. Das sind
 derzeit vier Testkonten, also unkritisch – erwähne es aber bei der rechtlichen
 Prüfung.
+
+## ✅ Am 27.8. repariert: der Foto-Upload ging nie
+
+Von dir gemeldet („keine Berechtigung"). Ursache: `avatars` und
+`lebenslauf-bilder` hatten nur INSERT- und UPDATE-Regeln, aber **keine
+SELECT-Regel** – und die braucht Supabase Storage beim Hochladen. Deshalb war
+kein einziges Foto je gespeichert worden.
+
+Vier Regeln angelegt (SELECT + DELETE für beide Ablagen). DELETE fehlte auch:
+Seit dem 26.8. räumt der Upload die Vorgängerdatei weg, das wäre still
+fehlgeschlagen und hätte in einer öffentlichen Ablage das alte Foto liegen
+lassen.
+
+`tests/sql-konsistenz.spec.js` prüft das jetzt je Ablage mit.
 
 ## 🖼 Zu überdenken: Fotos liegen in öffentlichen Ablagen
 

@@ -391,8 +391,26 @@
     <form id="bewerbung-form">
       <div class="form-group">
         <label for="bewerbung-motivation">Motivationsschreiben</label>
+
+        <!-- Der Anschreiben-Coach (27.8.). Vorher warf ein Knopf einen von
+             drei fertigen Beispieltexten ins Feld - bei fuenf Bewerbern
+             bekam der Arbeitgeber fuenfmal denselben. Jetzt: drei kurze
+             Fragen, und der Text entsteht aus den eigenen Antworten.
+             Siehe js/anschreiben.js. -->
+        <div class="coach" id="coach">
+          <button type="button" class="coach-auf" id="coach-auf" aria-expanded="false" aria-controls="coach-inhalt">
+            <span class="coach-auf-titel">✍️ Beim Schreiben helfen lassen</span>
+            <span class="coach-auf-mehr">Drei kurze Fragen – daraus wird dein Anschreiben</span>
+          </button>
+          <div class="coach-inhalt" id="coach-inhalt" hidden>
+            <div id="coach-fragen"></div>
+            <button type="button" class="btn btn-green btn-full" id="coach-uebernehmen">Text daraus schreiben</button>
+            <p class="coach-fuss">Der Text gehört dir – du kannst ihn danach frei ändern.</p>
+          </div>
+        </div>
+
         <textarea id="bewerbung-motivation" placeholder="Warum passt du gut zu diesem Job?" style="min-height:140px;" required></textarea>
-        <button type="button" class="tipp-btn" id="motivation-tipp">💡 Starthilfe: Beispieltext einfügen</button>
+        <div class="coach-rueckmeldung" id="coach-rueckmeldung" role="status"></div>
       </div>
       <div class="form-group">
         <label>Lebenslauf</label>
