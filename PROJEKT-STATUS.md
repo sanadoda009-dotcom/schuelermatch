@@ -328,6 +328,81 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 27. August 2026 (Teil 9) - Bei der Konkurrenz nachgesehen
+
+Sanad wollte, dass ich mir **schuelerjobs.de** ansehe.
+
+### Was dort steht
+
+Alle sichtbaren Anzeigen auf der Startseite verlangen **mindestens 18 Jahre** -
+auf einer Seite, die schuelerjobs.de heisst. Und es sind faktisch dieselben
+zwei Anzeigen mehrfach wiederholt, von zwei Werbekunden (talk2move,
+hsp-derjob).
+
+Die Ueberschriften: "Verdiene 2000EUR/2 Wochen", "OE 3.300 EUR in 4 Wochen",
+"bis zu 25EUR/h". Im Text: "ACHTUNG: Deine Handynummer UND E-Mail-Adresse
+brauchen wir". Beworben wird ueber externe Links mit Kampagnen-Parametern.
+
+Das sind exakt die drei Muster, vor denen die **eigene Melde-Funktion** von
+SchuelerMatch warnt: unrealistisches Angebot, Kontakt ausserhalb, und
+Verdienstversprechen, die zu gut klingen.
+
+Ihre Jobsuche kann **Stadt und Land** - mehr nicht; der Rest der
+Formularfelder gehoert zum Cookie-Banner. Kein Alter, keine Kategorie, kein
+Lohn, keine Arbeitszeit.
+
+Und was der Anzeigenblock mitbringt, sieht man an ihrem Einwilligungs-Dialog:
+"Erstellung von Profilen fuer personalisierte Werbung", "Verwendung genauer
+Standortdaten", "Verknuepfung verschiedener Endgeraete", dazu eine Liste von
+Anbietern (VDX.tv, Index Exchange, Quantcast, Sovrn, RTB House, The Trade
+Desk...). Auf einer Seite fuer Minderjaehrige.
+
+### Was ich uebernommen habe: die Silbentrennung
+
+Ihre Ueberschriften enthalten **weiche Trennstriche von Hand**:
+"Einverstaendnis&shy;erklaerung", "Jugend&shy;arbeits&shy;schutz&shy;gesetz".
+Deutsche Komposita sind dafuer berüchtigt - auf 320px passt
+"Einverstaendniserklaerung" in keine Spalte.
+
+Ihre Loesung funktioniert, muss aber bei jedem Wort einzeln gemacht werden.
+
+**Gemessen an der eigenen Seite bei 320px:** `hyphens: auto` galt nur fuer
+h1-h3. Im Fliesstext stand `hyphens: manual`, also gar keine Trennung -
+gegriffen hat nur `overflow-wrap: break-word`, und das bricht **hart mitten im
+Wort, ohne Strich**. Betroffen waren unter anderem
+"Einverstaendniserklaerung", "Datenschutzerklaerung" und
+"Jugendarbeitsschutz".
+
+Erweitert auf Fliesstext, Listen, Links, Beschriftungen und Knoepfe. Der
+Browser trennt mit `lang="de"` an echten Silbengrenzen und setzt einen
+sichtbaren Strich - ohne dass jemand ein Wort von Hand auszeichnen muss.
+
+**Ausgenommen**, wo ein Trennstrich schadet: Eingabefelder, Code, Chips und
+Abzeichen. Ein Strich mitten in einer eingetippten E-Mail-Adresse waere
+schlimmer als der Ueberlauf.
+
+**Gegenprobe:** Mit der alten Regel fallen 10 von 12 Pruefungen um.
+
+### Ihr Ratgeber: drei Themen, die hier fehlen
+
+Sie haben neun Ratgeber-Artikel. Vorhanden sind bei uns Jugendarbeitsschutz,
+Taschengeld, Lohn, Ferienjob und die Einverstaendniserklaerung.
+
+Es fehlen:
+- **Gesundheitszeugnis** (Hygienebelehrung nach § 43 IfSG). Wer mit offenen
+  Lebensmitteln arbeitet, braucht sie - und die Kategorien "Gastronomie" und
+  "Verkauf" gibt es hier. Das trifft echte Bewerber.
+- **Arbeitsvertrag**: was drinstehen muss, warum schriftlich.
+- **Bewerbungsfoto**: darf nicht verlangt werden, hilft aber.
+
+Notiert in OFFENE-PUNKTE, nicht in dieser Runde gebaut.
+
+### `tests/silbentrennung.spec.js` (12 Pruefungen)
+Je Seite: kein langes Wort ohne Silbentrennung · alle Seiten als deutsch
+ausgezeichnet (ohne `lang="de"` nuetzt `hyphens: auto` nichts) · keine
+Trennstriche in Eingabefeldern und Chips · und die Probe aufs Exempel: nichts
+laeuft bei 320px aus seinem Kasten.
+
 ## Session 27. August 2026 (Teil 8) - Was im Lebenslauf-PDF wirklich steht
 
 Weiter mit der Frage, die heute dreimal etwas gefunden hat: Was ist noch nie

@@ -1632,7 +1632,30 @@ footer .logo { color: white; }
 h1, h2, h3, h4, p, li, a, span, b, label, summary, td, th {
   overflow-wrap: break-word;
 }
-h1, h2, h3 { hyphens: auto; }
+/* Silbentrennung auch im FLIESSTEXT, nicht nur in Ueberschriften
+   (27.8., abgeschaut bei schuelerjobs.de).
+   Dort stehen weiche Trennstriche von Hand in den Woertern:
+   „Einverstaendnis&shy;erklaerung", „Jugend&shy;arbeits&shy;schutz&shy;gesetz".
+   Das loest dasselbe Problem, muss aber bei jedem Wort einzeln gemacht
+   werden - und wer es vergisst, hat es wieder.
+
+   `hyphens: auto` mit `lang="de"` macht es der Browser selbst, an
+   richtigen Silbengrenzen und MIT sichtbarem Trennstrich. Ohne das
+   griff nur `overflow-wrap: break-word` - das bricht hart mitten im
+   Wort, ohne Strich, und liest sich wie ein Fehler.
+   Gemessen bei 320px: „Einverstaendniserklaerung",
+   „Datenschutzerklaerung", „Jugendarbeitsschutz" standen im Fliesstext
+   auf `hyphens: manual`. */
+h1, h2, h3, h4, p, li, a, span, b, label, summary, td, th, button {
+  hyphens: auto;
+}
+
+/* Wo Trennstriche stoeren: Zahlen, Adressen und alles, was man abtippt
+   oder vorliest. Ein Trennstrich mitten in einer E-Mail-Adresse waere
+   schlimmer als der Ueberlauf. */
+input, textarea, select, code, .mono, [class*="chip"], .job-badge {
+  hyphens: none;
+}
 
 /* 2) Kategorie-Kacheln: Grid-Kinder dürfen schrumpfen, sonst sprengen
       lange Wörter wie "Organisation" das Raster. */

@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **765 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **777 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -146,6 +146,45 @@ hieße, dass jemand nie erfährt, dass er den Job hat. Firmen brauchen die
 Einstellung, weil sie **pro Bewerbung** eine Mail bekommen können. Und der
 Job-Alarm – das einzig Wiederkehrende – hat seinen eigenen Schalter und einen
 Abmelde-Link in jeder Mail.
+
+## 📚 Drei Ratgeber-Themen, die noch fehlen
+
+Beim Blick auf schuelerjobs.de (27.8.) aufgefallen. Sie haben neun Artikel,
+uns fehlen drei davon – und alle drei treffen echte Bewerber:
+
+- **Gesundheitszeugnis** (Hygienebelehrung nach § 43 IfSG). Wer mit offenen
+  Lebensmitteln arbeitet, braucht sie. Die Kategorien „Gastronomie" und
+  „Verkauf" gibt es hier – das trifft also wirklich jemanden.
+- **Arbeitsvertrag**: was drinstehen muss, warum schriftlich, was man
+  unterschreiben sollte und was nicht.
+- **Bewerbungsfoto**: darf nicht verlangt werden, hilft aber – und ein
+  schlechtes schadet mehr als keins.
+
+## 💡 Anzeigen-Assistent für Arbeitgeber (Idee)
+
+Beim Anzeigen-Schalten bekommt ein Arbeitgeber heute **ein leeres Textfeld**.
+schuelerjobs.de gliedert die Anzeigen in „Was dich erwartet" und „Was du
+mitbringen solltest" – dadurch sind sie vergleichbar.
+
+Das Gegenstück zum Anschreiben-Coach: drei feste Fragen statt eines leeren
+Kastens (*Was macht der Schüler bei dir? Was sollte er mitbringen? Was bietest
+du?*), daraus entsteht die Beschreibung.
+
+## 📢 Werbeplatz (besprochen am 27.8., später)
+
+Sanad möchte einen Werbeplatz an der Seite, wie ihn schuelerjobs.de hat.
+Technisch einfach – `jobs.html` hat schon eine Seitenspalte.
+
+Zu bedenken: Ein Anzeigennetz bringt einen **Einwilligungs-Banner** mit (die
+Seite setzt aktuell keine Tracking-Cookies und braucht keinen). Die Nutzer sind
+**minderjährig**, das heisst nicht-personalisierte Anzeigen und entsprechend
+wenig Ertrag. Und ohne Besucher gibt es nichts zu verdienen.
+
+**Vorschlag:** Denselben Platz zuerst für die **eigenen Seiten** nutzen –
+Lebenslauf-Editor, Ferienjob-Countdown, Job-Finder, Ratgeber. Die meisten
+Schüler finden die nie. Kostet nichts, braucht keine Einwilligung, und der
+Platz kann später etwas anderes tragen. Fürs Geldverdienen ist die
+**Arbeitgeberseite** der Hebel, nicht die Schülerseite.
 
 ## 🖼 Zu überdenken: Fotos liegen in öffentlichen Ablagen
 
