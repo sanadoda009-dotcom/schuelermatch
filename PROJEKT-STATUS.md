@@ -328,6 +328,162 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 27. August 2026 (Teil 8) - Was im Lebenslauf-PDF wirklich steht
+
+Weiter mit der Frage, die heute dreimal etwas gefunden hat: Was ist noch nie
+geprueft worden? `js/pdf.js` ist mit 516 Zeilen die groesste Datei nach den
+Dashboards.
+
+Es stellte sich heraus: besser abgedeckt als gedacht. `pdf-zeichen.spec.js`
+prueft die Zeichenbehandlung, `pdf-nachladen.spec.js` das verzoegerte Laden von
+jsPDF. **Nicht geprueft war der INHALT** - und genau der ist der Gegenstand:
+Dieses PDF ist das, was ein Arbeitgeber von einem Schueler zu sehen bekommt.
+Faellt hier ein Abschnitt still weg, merkt es niemand. Der Schueler sieht sein
+PDF selten, und die Firma weiss nicht, was fehlen sollte.
+
+### Der Inhalt laesst sich auslesen
+
+jsPDF haelt die Seiten als Textstroeme; gezeichneter Text steht darin als
+`(...) Tj`. Damit laesst sich pruefen, was tatsaechlich auf dem Blatt landet -
+nicht nur, dass ueberhaupt ein PDF entsteht.
+
+### Drei Verdachtsmomente, alle entkraeftet
+
+Beim Lesen fielen mir drei Dinge auf, die ich fuer Fehler hielt:
+- Unter "KONTAKT" stand nur der Ort - meine Testdaten hatten schlicht keine
+  E-Mail. Die Aufrufer uebergeben `{...profile}`, die Adresse ist also dabei.
+- Das Motivationsschreiben, das die Firma mitgeliefert bekommt, wird sehr wohl
+  gerendert (Zeile 313).
+- Die Fusszeile steht nur auf der letzten Seite. Auch das ist eine
+  Entscheidung, im Code so kommentiert: "dezent". Ein Absender-Vermerk auf
+  jeder Seite wirkt wie ein Wasserzeichen. **Mein Test hatte die falsche Regel
+  behauptet** und wurde nachgezogen: Was zaehlt, ist GENAU EINMAL - keine
+  hiesse kein Hinweis auf die Herkunft, mehrere waeren Wiederholung.
+
+`js/pdf.js` haelt also stand. Das ist ein Ergebnis, kein Fehlschlag.
+
+### `tests/pdf-inhalt.spec.js` (13 Pruefungen)
+
+Name, Schule, Klasse, Alter, Ort und E-Mail stehen drin · jeder Abschnittstyp
+landet im PDF (Text, Sprachen, Schlagworte, Balken) · "Ueber mich" ohne eigene
+Ueberschrift, weil es der Einstieg ist und keine Rubrik · das
+Motivationsschreiben auf dem Firmen-Weg.
+
+Und die Gegenseite:
+- **Nie "undefined", "null", "[object Object]" oder "NaN"** - ausdruecklich mit
+  LUECKENHAFTEN Daten geprueft. Der klassische stille Fehler: Ein Feld fehlt,
+  und statt nichts steht das Wort "undefined" im Lebenslauf, den ein
+  Arbeitgeber liest.
+- **Leere Abschnitte erzeugen keine Ueberschrift.** Eine Rubrik "SPRACHEN" ohne
+  Inhalt sieht aus, als waere etwas kaputt.
+- **Viel Text geht auf Seite 2, statt verloren zu gehen.** Der gefaehrlichere
+  Fehler waere stilles Abschneiden: Der Schueler sieht seinen Text in der
+  Vorschau und die Firma bekommt ihn nicht. Geprueft wird ausdruecklich der
+  LETZTE Abschnitt.
+
+## Session 27. August 2026 (Teil 7) - Ein Konto, das einem gehoert
+
+Der Einstellungen-Bereich hatte genau eine Einstellung. Die naechstliegende
+Ergaenzung war zugleich die groesste Luecke: **Ein Schueler konnte sein Konto
+nicht selbst loeschen.** Es gab nur `supabase/konto-loeschen.sql` - eine
+Anleitung fuer den Betreiber, von Hand, Schritt fuer Schritt.
+
+Ein Konto, das man nur per E-Mail-Bitte wieder loswird, ist kein Konto, das
+einem gehoert.
+
+### Eine verworfene Idee vorweg
+
+Zuerst wollte ich Schuelern einstellen lassen, wie oft sie E-Mails bekommen -
+Firmen koennen das, Schueler nicht. Beim Nachsehen war die Notiz falsch:
+Schueler bekommen nur Mails ueber IHRE EIGENEN Vorgaenge (Verifizierung durch,
+Zusage, Absage). Die abzuschalten hiesse, dass jemand nie erfaehrt, dass er den
+Job hat. Firmen brauchen die Einstellung, weil sie PRO BEWERBUNG eine Mail
+bekommen koennen. Und der Job-Alarm - das einzig Wiederkehrende - hat seinen
+eigenen Schalter und einen Abmelde-Link in jeder Mail.
+
+Notiz in OFFENE-PUNKTE korrigiert statt etwas zu bauen, das geschadet haette.
+
+### Edge Function `konto-loeschen`
+
+Drei der vier Schritte kann der Browser nicht: `auth.users` loeschen braucht
+Admin-Rechte, die Meldungen muessen anonymisiert werden, und die Dateien liegen
+in vier Ablagen.
+
+Ohne den Auth-Schritt waere die Loeschung halb zurueckgenommen: Die Person
+koennte sich weiter anmelden, und `handle_new_user` legte beim naechsten Login
+ein neues, leeres Profil an.
+
+**Der sicherheitskritische Teil:** Die Nutzer-Id kommt AUSSCHLIESSLICH aus dem
+Anmelde-Token. Es gibt bewusst keinen Parameter dafuer - sonst koennte jeder
+das Konto eines anderen loeschen.
+
+Dabei eine Falle, die leicht zu uebersehen ist: **`verify_jwt` der Plattform
+reicht nicht.** Der oeffentliche anon-Schluessel ist selbst ein gueltiges JWT
+fuer dieses Projekt. Deshalb ruft die Funktion ausdruecklich
+`auth.getUser(token)` auf - das liefert nur bei einem echten Nutzer-Token ein
+Ergebnis.
+
+Gegen die echte, deployte Funktion geprueft:
+
+| Aufruf | Ergebnis |
+|---|---|
+| mit anon-Schluessel | **401** |
+| ohne Token | 401 |
+| GET statt POST | 405 |
+
+Meldungen werden **anonymisiert, nicht geloescht** - dieselbe Ueberlegung wie
+bei `meldungen-fk.sql`: Wer Belaestigung gemeldet hat, soll den Vorgang nicht
+mitnehmen, wenn er geht.
+
+### Zwei Klicks reichen hier nicht
+
+Ueberall sonst auf der Seite genuegt eine Zwei-Klick-Bestaetigung. Das ist
+richtig fuer Dinge, die man wiederholen kann. Hier nicht. Deshalb muss das Wort
+**LOESCHEN** getippt werden - Gross-/Kleinschreibung und Leerzeichen egal, denn
+wer es ernst meint, soll nicht an Zwischenraeumen scheitern.
+
+Der Kasten sagt vorher, was verschwindet, und bietet den **sanfteren Weg** an:
+Wer nur keine E-Mails mehr will, soll den Job-Alarm ausschalten statt sein
+Konto aufzugeben. Ein Test haelt beides fest.
+
+Bewusst kein knallroter Kasten: Der macht Angst und wird trotzdem geklickt. Die
+Huerde liegt im getippten Wort, nicht in der Farbe.
+
+### Danach eine Bestaetigung, die stehen bleibt
+
+Nach dem Loeschen landet man auf der Startseite. Ohne ein Wort dazu wuesste
+niemand, ob es geklappt hat - und wuerde sich womoeglich wieder anzumelden
+versuchen, um nachzusehen. Bewusst **kein Toast**: Der waere weg, bevor man ihn
+gelesen hat. Der Parameter wird aus der Adresse genommen, damit ein Neuladen
+die Meldung nicht wiederholt.
+
+### Tests
+`tests/konto-loeschen.spec.js`: 17 Pruefungen. Darunter: ohne das getippte Wort
+wird die Funktion GAR NICHT ERST gerufen, und im Aufruf steht **keine
+Nutzer-Id**.
+
+### Drei eigene Stolperer
+
+1. **Die Startseiten-Tests** fielen zuerst um: `helpers/supabase-fake` umgeht
+   das Zugangs-Gate erst in `setupDashboard`, das diese Tests nicht brauchen.
+   `helpers/basis` umgeht es fuer jeden Test - fuer diesen Teil also die
+   andere Basis.
+
+2. **`mail-knoepfe.spec.js` fiel dreimal um.** Der Test lief ueber JEDEN
+   Ordner in `supabase/functions/` und erwartete ueberall Mail-Knoepfe,
+   Escaping und einen Abmelde-Weg. `konto-loeschen` verschickt aber gar keine
+   Mail. Der Filter fragt jetzt nach dem Verhalten statt nach dem Namen: Wer
+   `api.resend.com` aufruft, verschickt Mails. Dazu eine neue Pruefung, dass
+   der Filter nicht ins Leere laeuft - sonst liefen alle Pruefungen darunter
+   gruen durch, ohne irgendetwas anzusehen.
+
+3. **Ein Schriftschnitt, den es nicht gibt.** Im Loesch-Kasten stand
+   `<b>LOESCHEN</b>` **innerhalb eines `<label>`**. `<b>` bedeutet in CSS
+   "eine Stufe fetter" - in einem ohnehin fetten Label wird daraus 900. Diesen
+   Schnitt laedt die Seite nicht, der Browser rechnet ihn kuenstlich hoch und
+   es sieht schlechter aus. `tests/schriften.spec.js` hat es gefangen; ein
+   Test, der genau dafuer am 25.8. geschrieben wurde.
+
 ## Session 27. August 2026 (Teil 6) - Der Job-Alarm lebt, und man kann ihn selbst einstellen
 
 ### Erst: aus der Bauruine wurde ein Feature

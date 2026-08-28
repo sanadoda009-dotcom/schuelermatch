@@ -42,11 +42,31 @@ function kontrast(vorne, hinten) {
   return +(((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05))).toFixed(2)
 }
 
+// Nur die Funktionen, die tatsaechlich Mails verschicken. Seit dem 27.8.
+// gibt es mit `konto-loeschen` eine, die das nicht tut - sie an den
+// Mail-Regeln zu messen ergibt keinen Sinn.
+//
+// Der Filter fragt nicht nach dem Namen, sondern nach dem Verhalten:
+// Wer Resend aufruft, verschickt Mails. Sonst muesste diese Liste bei
+// jeder neuen Funktion von Hand nachgezogen werden - und wer das
+// vergisst, prueft still gar nichts mehr.
 function dateien() {
   return fs.readdirSync(FUNKTIONEN)
     .map(d => [d, path.join(FUNKTIONEN, d, 'index.ts')])
     .filter(([, p]) => fs.existsSync(p))
+    .filter(([, p]) => fs.readFileSync(p, 'utf8').includes('api.resend.com'))
 }
+
+test('es werden ueberhaupt Mail-Funktionen geprueft', () => {
+  // Der Filter oben koennte durch eine Umstellung ins Leere laufen -
+  // dann liefen alle Pruefungen darunter gruen durch, ohne irgendetwas
+  // anzusehen. Das faellt hier auf.
+  const namen = dateien().map(([n]) => n)
+  expect(namen.length, 'kein einziger Mail-Versand gefunden').toBeGreaterThanOrEqual(3)
+  for (const erwartet of ['mail-ereignis', 'mail-digest', 'mail-job-alarm']) {
+    expect(namen, `${erwartet} fehlt in der Pruefung`).toContain(erwartet)
+  }
+})
 
 test('kein Knopf verlässt sich allein auf einen Farbverlauf', () => {
   // Der Kern: `background:` mit einem Verlauf als einzigem Wert.

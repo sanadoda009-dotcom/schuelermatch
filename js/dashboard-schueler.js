@@ -14,6 +14,7 @@ import { oeffneMeldeDialog, meldeButtonHtml } from './melden.js'
 import { fragenFuer, baueAnschreiben, pruefeAnschreiben } from './anschreiben.js'
 import { sichereMediaUrl } from './sicher.js'
 import { initJobAlarm } from './job-alarm.js'
+import { initKontoLoeschen } from './konto-loeschen.js'
 
 let profile
 let bloecke = []
@@ -172,6 +173,7 @@ async function init() {
   // nicht auf den ersten Blick da sein. Laeuft die Abfrage schief -
   // etwa weil die Tabelle noch fehlt -, bleibt die Karte verborgen.
   initJobAlarm(profile, aktuelleFilter)
+  initKontoLoeschen()
 }
 
 /* ---------- CV-VORLAGEN & FORMULIERUNGSHILFE ---------- */

@@ -2538,3 +2538,45 @@ main[tabindex="-1"]:focus { outline: none; }
   padding: 11px 8px; min-height: 44px;
 }
 .alarm-link:hover { color: var(--ink); }
+
+/* ---------- „Konto löschen" (27.8.) ----------
+   Bewusst abgesetzt vom Rest der Einstellungen und ruhig gestaltet: Ein
+   knallroter Kasten macht Angst und wird trotzdem geklickt. Die Hürde
+   liegt nicht in der Farbe, sondern im getippten Wort. */
+.gefahr-box { border: 1.5px solid rgba(165, 68, 44, 0.3); margin-top: 20px; }
+.gefahr-box .einst-kopf h3 { color: var(--coral); }
+
+.gefahr-knopf { color: var(--coral); border-color: rgba(165, 68, 44, 0.4); }
+.gefahr-knopf:hover { background: rgba(165, 68, 44, 0.06); }
+
+.gefahr-knopf-voll {
+  background: var(--coral); color: #fff; border: 1.5px solid var(--coral);
+}
+.gefahr-knopf-voll:hover { background: #8d3924; border-color: #8d3924; }
+.gefahr-knopf-voll:disabled { opacity: 0.6; cursor: default; }
+
+/* Bestätigung nach dem Löschen des Kontos (27.8.).
+   Bleibt stehen, bis man sie wegklickt — ein Toast wäre weg, bevor man
+   ihn gelesen hat, und diese Nachricht will man lesen. */
+.konto-weg {
+  display: flex; align-items: flex-start; gap: 12px;
+  max-width: 620px; margin: 12px auto; padding: 14px 16px;
+  background: rgba(0, 200, 150, 0.09);
+  border: 1px solid rgba(0, 121, 92, 0.25);
+  border-radius: 12px;
+  font-size: 0.88rem; line-height: 1.6; color: var(--ink);
+}
+.konto-weg p { margin: 4px 0 0; color: var(--ink-soft); }
+.konto-weg-zu {
+  margin-left: auto; background: none; border: none; cursor: pointer;
+  color: var(--ink-soft); font-size: 1rem;
+  min-width: 44px; min-height: 44px;
+}
+.konto-weg-zu:hover { color: var(--ink); }
+
+/* `<b>` bedeutet in CSS „eine Stufe fetter" - in einem ohnehin fetten
+   <label> wird daraus 900. Diesen Schnitt laedt die Seite gar nicht, der
+   Browser rechnet ihn dann kuenstlich hoch und es sieht schlechter aus.
+   tests/schriften.spec.js hat es gefangen. */
+.gefahr-box label b,
+.coach-frage label b { font-weight: 700; }

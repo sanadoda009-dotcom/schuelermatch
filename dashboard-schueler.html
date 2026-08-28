@@ -460,6 +460,46 @@
         </div>
       </form>
     </div>
+
+    <!-- KONTO LÖSCHEN
+         Bis zum 27.8. gab es dafür nur eine Anleitung für den Betreiber,
+         von Hand. Ein Konto, das man nur per E-Mail-Bitte wieder loswird,
+         ist kein Konto, das einem gehört.
+         Bewusst abgesetzt und mit GETIPPTER Bestätigung: Zwei Klicks
+         reichen hier nicht, das ist nicht rückgängig zu machen. -->
+    <div class="post-job-box gefahr-box">
+      <div class="einst-kopf">
+        <h3>Konto löschen</h3>
+      </div>
+      <p class="einst-erklaerung">
+        Dabei verschwindet alles: dein Profil, dein Lebenslauf, deine Bewerbungen,
+        die Chats dazu und alle hochgeladenen Dateien. <b>Das lässt sich nicht
+        rückgängig machen</b> – auch wir können es danach nicht wiederherstellen.
+      </p>
+      <p class="einst-erklaerung">
+        Wenn du nur keine E-Mails mehr willst: Schalte oben einfach den
+        Job-Alarm aus. Dafür musst du dein Konto nicht aufgeben.
+      </p>
+
+      <button type="button" class="btn btn-outline gefahr-knopf" id="konto-loeschen-start">
+        Ich möchte mein Konto löschen
+      </button>
+
+      <div id="konto-loeschen-bestaetigen" hidden>
+        <div class="form-group">
+          <label for="konto-loeschen-wort">
+            Tipp <b>LÖSCHEN</b> ins Feld, damit es nicht aus Versehen passiert.
+          </label>
+          <input type="text" id="konto-loeschen-wort" autocomplete="off" placeholder="LÖSCHEN">
+        </div>
+        <div class="einst-knoepfe">
+          <button type="button" class="btn gefahr-knopf-voll" id="konto-loeschen-jetzt">
+            Konto endgültig löschen
+          </button>
+          <button type="button" class="btn btn-outline" id="konto-loeschen-abbruch">Abbrechen</button>
+        </div>
+      </div>
+    </div>
   </div>
 
 </main>

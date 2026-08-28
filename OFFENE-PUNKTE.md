@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **734 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **765 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -138,10 +138,14 @@ der automatisch E-Mails an Minderjährige auslöst, und den gibst du frei.
 Empfehlung: `0 16 * * *` (18 Uhr deutscher Sommerzeit, nach Schulschluss).
 Solange es keine Alarme gibt, passiert ohnehin nichts.
 
-**Nebenbei aufgefallen:** Firmen können einstellen, wie oft sie E-Mails
-bekommen (`benachrichtigung`) – Schüler nicht. Die Edge Functions werten das
-Feld nur für Firmen aus. Ausgerechnet die Minderjährigen haben keine Kontrolle
-über ihr Postfach. Wäre ein guter nächster Punkt für den Einstellungen-Bereich.
+**Eine Notiz von mir, die sich beim Nachsehen als falsch erwies:** Ich hatte
+angemerkt, dass Firmen einstellen können wie oft sie E-Mails bekommen und
+Schüler nicht. Stimmt – ist aber richtig so. Schüler bekommen nur Mails über
+*ihre eigenen* Vorgänge (Verifizierung durch, Zusage, Absage). Die abzuschalten
+hieße, dass jemand nie erfährt, dass er den Job hat. Firmen brauchen die
+Einstellung, weil sie **pro Bewerbung** eine Mail bekommen können. Und der
+Job-Alarm – das einzig Wiederkehrende – hat seinen eigenen Schalter und einen
+Abmelde-Link in jeder Mail.
 
 ## 🖼 Zu überdenken: Fotos liegen in öffentlichen Ablagen
 
@@ -157,7 +161,17 @@ so wie es bei `verifizierung` und `zeugnisse` schon läuft. Das ist ein größer
 Umbau (jede Stelle, die ein Bild anzeigt, muss die Adresse anfordern), deshalb
 hier notiert statt nebenbei gemacht.
 
-## 🗑 Konto löschen (Art. 17 DSGVO) — Anleitung liegt bereit
+## ✅ Konto löschen: geht jetzt in der Anwendung selbst
+
+Seit dem 27.8. kann ein Schüler sein Konto unter **Einstellungen** selbst
+löschen. Die Edge Function `konto-loeschen` räumt alles ab: Dateien aus allen
+vier Ablagen, das Profil (der Rest kaskadiert) und das Anmeldekonto.
+
+`supabase/konto-loeschen.sql` bleibt trotzdem — für den Fall, dass du es von
+Hand machen musst (z.B. wenn Eltern anrufen und das Kind sich nicht mehr
+anmelden kann).
+
+## 🗑 Konto löschen von Hand (die alte Anleitung)
 
 Die Datenschutzerklärung verspricht: *„Wir löschen den Account dann zeitnah."*
 In der Anwendung **gibt es keine Konto-Löschung** – das musst du von Hand tun.
