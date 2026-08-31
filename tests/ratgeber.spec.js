@@ -29,6 +29,8 @@ const RATGEBERSEITEN = [
   'eltern.html',
   'taschengeld.html',
   'gesundheitszeugnis.html',
+  'arbeitsvertrag.html',
+  'bewerbungsfoto.html',
 ]
 
 test('die Übersicht verlinkt jede Ratgeberseite', async ({ page }) => {
@@ -140,6 +142,8 @@ test.describe('der Weg durch den Ratgeber', () => {
       'fairer-lohn.html',           // was ist das wert
       'gesundheitszeugnis.html',    // brauche ich was dafür
       'lebenslauf.html',            // wie bewerbe ich mich
+      'bewerbungsfoto.html',        // gehört ein Bild dazu
+      'arbeitsvertrag.html',        // was unterschreibe ich da
       'ferienjob.html',             // und in den Ferien
     ])
   })
@@ -161,13 +165,13 @@ test.describe('der Weg durch den Ratgeber', () => {
     //
     // Wichtiger ist ohnehin, dass die Reihenfolge nicht bloss gemalt
     // ist: Es muss eine echte <ol> sein. Dann liest ein Screenreader
-    // „Liste mit 6 Einträgen, Eintrag 1 von 6" — und die Nummerierung
+    // „Liste mit 8 Einträgen, Eintrag 1 von 8" — und die Nummerierung
     // trägt für alle dieselbe Information, nicht nur für Sehende.
     await page.goto('/ratgeber.html')
 
     const liste = page.locator('.weg')
     expect(await liste.evaluate(el => el.tagName)).toBe('OL')
-    await expect(liste.locator('> li.weg-station')).toHaveCount(6)
+    await expect(liste.locator('> li.weg-station')).toHaveCount(8)
 
     const zaehler = await page.evaluate(() =>
       [...document.querySelectorAll('.weg-station')].map(el => ({
@@ -202,7 +206,7 @@ test.describe('der Weg durch den Ratgeber', () => {
     // Es sitzt deshalb in der Station, nicht in der Karte.
     await page.goto('/ratgeber.html')
     await expect(page.locator('.ratgeber-karte .weg-marke')).toHaveCount(0)
-    await expect(page.locator('.weg-station > .weg-marke')).toHaveCount(6)
+    await expect(page.locator('.weg-station > .weg-marke')).toHaveCount(8)
 
     const versteckt = await page.locator('.weg-marke')
       .evaluateAll(els => els.every(e => e.getAttribute('aria-hidden') === 'true'))

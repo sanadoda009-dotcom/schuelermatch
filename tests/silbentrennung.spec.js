@@ -19,7 +19,7 @@
 const { test, expect } = require('./helpers/basis')
 
 const SEITEN = ['/index.html', '/jobs.html', '/ratgeber.html', '/jugendarbeitsschutz.html',
-  '/taschengeld.html', '/gesundheitszeugnis.html', '/eltern.html', '/fuer-firmen.html', '/ferienjob.html']
+  '/taschengeld.html', '/gesundheitszeugnis.html', '/arbeitsvertrag.html', '/bewerbungsfoto.html', '/eltern.html', '/fuer-firmen.html', '/ferienjob.html']
 
 test.use({ viewport: { width: 320, height: 800 } })
 

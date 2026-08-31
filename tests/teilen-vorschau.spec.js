@@ -23,7 +23,7 @@ const DOMAIN = 'https://schuelermatch.de'
 const MAX_KB = 300
 
 const SEITEN = [
-  'index.html', 'jobs.html', 'job.html', 'ferienjob.html', 'fairer-lohn.html', 'taschengeld.html', 'gesundheitszeugnis.html', 'ratgeber.html',
+  'index.html', 'jobs.html', 'job.html', 'ferienjob.html', 'fairer-lohn.html', 'taschengeld.html', 'gesundheitszeugnis.html', 'arbeitsvertrag.html', 'bewerbungsfoto.html', 'ratgeber.html',
   'jobideen.html', 'jugendarbeitsschutz.html', 'eltern.html', 'fuer-firmen.html',
   'job-finder.html', 'register.html', 'login.html',
 ]
