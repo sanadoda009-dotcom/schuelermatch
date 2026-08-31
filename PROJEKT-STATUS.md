@@ -328,6 +328,50 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 1. September 2026 (Teil 2) - Nichts springt mehr beim Laden
+
+Gesucht: Layoutspruenge. Gemessen mit einem PerformanceObserver auf
+'layout-shift' und kuenstlich verzoegerten Antworten - also so, wie es
+jemand mit schlechter Verbindung erlebt.
+
+**Gefunden und behoben:**
+- **Kein einziges `<img>` hatte width/height.** Solange das Bild nicht da
+  ist, rechnet der Browser mit Breite 0. Das Logo in der Kopfzeile sprang
+  auf allen 27 Seiten von 0px auf 158px. Masse (480x91) eingetragen.
+- **`#jobs-count` war leer** und bekam die Trefferzahl erst mit den Daten:
+  0px -> 18,7px, und alles darunter rutschte. Zeile per min-height
+  reserviert.
+- **Die Platzhalterkarte war 210px hoch, eine echte Jobkarte 286px** - und
+  drei Platzhalter deckten nur eine Zeile ab. Das Gitter wuchs beim
+  Austausch um 386px und schob die Fusszeile aus dem Bild. Hoehe
+  angeglichen, und solange Platzhalter stehen, haelt
+  `.jobs-grid:has(.skeleton-card)` den Bereich auf 70vh.
+
+**Ergebnis:** /jobs.html von CLS 0,0381 auf 0,0000; alle 14 oeffentlichen
+Seiten jetzt bei 0,0000.
+
+**Was die Gegenprobe widerlegt hat:** Fuer /job-finder.html hatte ich
+zuerst CLS 0,0752 gemessen. Gegen den alten Code lief der neue Test aber
+gruen - der Wert kam aus einer Messschleife, die dieselbe Seite mehrfach
+angesteuert hat. Bei einem frischen Aufruf gibt es dort keinen Sprung.
+Die reservierte Hoehe fuer `#finder-inhalt` bleibt als Vorsorge drin, ist
+aber im Kommentar ausdruecklich als nicht belegt gekennzeichnet.
+
+**Neuer Test:** `tests/layoutsprung.spec.js` (7). Prueft statisch, dass
+jedes `<img>` Masse hat und dass diese zum Seitenverhaeltnis der Datei
+passen (falsche Masse sind schlimmer als keine), und gemessen, dass
+index/jobs/job-finder unter CLS 0,01 bleiben. Gegenprobe: 3 der 7 werden
+gegen den alten Code rot.
+
+## Session 1. September 2026 - Arbeitsvertrag und Bewerbungsfoto verdrahtet
+
+Beide Artikel waren am Vortag versehentlich mitcommittet worden - `git
+stash push` fasst **unversionierte** Dateien ohne `-u` nicht an. Sie
+standen damit einen Tag lang im Netz, ohne dass eine Uebersicht auf sie
+zeigte. Jetzt als Stationen 6 und 7 im Ratgeber (nach dem Lebenslauf, vor
+dem Ferienjob), in allen Fussleisten, in der sitemap.xml und in allen acht
+Reihenpruefungen. Der Ratgeber-Weg hat damit **8** Stationen.
+
 ## Session 27. August 2026 (Teil 10) - Der Ratgeber als Weg
 
 Sanads Auftrag: den Ratgeber so bauen wie schuelerjobs.de, die eigenen Themen

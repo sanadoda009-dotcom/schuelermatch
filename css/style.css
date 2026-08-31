@@ -451,6 +451,10 @@ section { padding: 130px 24px; }
 .job-status--angenommen { background: rgba(0,200,150,0.08); color: var(--match-green-dark); border-color: rgba(0,200,150,0.3); }
 .job-status--abgelehnt { background: var(--paper); color: var(--ink-soft); border-color: var(--line); }
 .jobs-count { font-size: 0.78rem; color: var(--ink-soft); margin: 0 0 16px; }
+/* Die Trefferzahl steht erst da, wenn die Daten kommen. Ohne reservierte
+   Zeile ist der Absatz vorher 0px hoch und schiebt beim Füllen die ganze
+   Liste nach unten. Gemessen: 18,7px Sprung auf jeder Jobseite. */
+.jobs-count { min-height: 1.4em; }
 .job-badge--pausiert { background: rgba(255,193,7,0.12); color: #a67c00; }
 
 /* SIDEBAR NAVIGATION */
@@ -670,12 +674,16 @@ section { padding: 130px 24px; }
 
 /* SKELETON LOADER */
 .skeleton-card {
-  height: 210px; border-radius: var(--radius); border: 1px solid var(--line);
+  height: 286px; border-radius: var(--radius); border: 1px solid var(--line);
   background: linear-gradient(90deg, var(--card) 25%, var(--paper) 50%, var(--card) 75%);
   background-size: 200% 100%; animation: skeleton-pulse 1.4s ease-in-out infinite;
 }
 @keyframes skeleton-pulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .skeleton-card { animation: none; } }
+/* Solange Platzhalter im Gitter stehen, wird der Bereich hoch genug
+   gehalten. Sonst steht die Fußzeile beim Laden mitten im Bild und
+   rutscht weg, sobald die Treffer da sind (gemessen: CLS 0,037). */
+.jobs-grid:has(.skeleton-card) { min-height: 70vh; }
 
 /* EMPTY STATES */
 .empty-state {
@@ -2015,6 +2023,15 @@ main[tabindex="-1"]:focus { outline: none; }
   color: var(--ink-soft); display: block; margin-bottom: 8px;
 }
 .finder-balken { height: 4px; background: var(--paper); border-radius: 99px; overflow: hidden; }
+/* Der Fragebereich ist im HTML leer und wird erst per JS gefüllt.
+   Ohne reservierte Höhe wächst er beim Start von 0 auf 266px und
+   schiebt alles darunter weg. Vorsorge: Bei einem frischen Aufruf misst
+   der Browser dafür keinen Sprung, der Bereich ist aber wirklich leer,
+   und die Reservierung kostet nichts. Alle fünf Fragen sind gleich
+   hoch, deshalb hält die reservierte Höhe die Karte auch beim
+   Weiterklicken ruhig. Auf schmalen Rändern brechen zwei Fragen um. */
+#finder-inhalt { min-height: 266px; }
+@media (max-width: 560px) { #finder-inhalt { min-height: 300px; } }
 .finder-fortschritt {
   height: 100%; width: 0; border-radius: 99px;
   background: var(--verlauf-tief); transition: width 0.3s ease;
