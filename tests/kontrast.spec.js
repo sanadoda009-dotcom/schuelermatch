@@ -30,6 +30,7 @@ test.describe('öffentliche Seiten', () => {
     ['Ferienjob', '/ferienjob.html'],
     ['Fairer Lohn', '/fairer-lohn.html'],
     ['Taschengeld', '/taschengeld.html'],
+    ['Gesundheitszeugnis', '/gesundheitszeugnis.html'],
     ['Ratgeber', '/ratgeber.html'],
     ['Jobideen', '/jobideen.html'],
     ['Jugendarbeitsschutz', '/jugendarbeitsschutz.html'],

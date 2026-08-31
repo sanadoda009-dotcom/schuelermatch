@@ -41,50 +41,108 @@
 <script src="js/nav.js"></script>
 
 <main class="legal-page wrap">
-  <h1>Ratgeber</h1>
-  <p class="legal-sub">Was du vor dem ersten Job wissen solltest</p>
+  <p class="weg-eyebrow">Ratgeber</p>
+  <h1>Was du vor dem ersten Job wissen willst</h1>
+  <p class="legal-sub">Sechs Fragen, in der Reihenfolge, in der sie kommen.</p>
 
   <section class="legal-highlight">
     <h2>Wenn du nur eine Sache liest</h2>
     <p>Dann diese: <a href="jugendarbeitsschutz.html">Was du in deinem Alter arbeiten darfst</a>. Alles andere folgt daraus – wie viele Stunden, zu welchen Zeiten, und welche Jobs für dich überhaupt in Frage kommen.</p>
   </section>
 
-  <section>
-    <h2>Für Schüler</h2>
+  <section aria-labelledby="fuer-schueler">
+    <h2 id="fuer-schueler">Für Schüler</h2>
 
-    <div class="ratgeber-liste">
-      <a class="ratgeber-karte" href="jugendarbeitsschutz.html">
-        <b>Was darf ich arbeiten?</b>
-        <span>Die Regeln nach Alter: ab 13 mit Einwilligung der Eltern, ab 15 deutlich mehr, ab 18 fast alles. Wie viele Stunden, wann, und was verboten bleibt.</span>
-      </a>
+    <!-- Die Artikel sind KEINE Kategorien, sondern ein Weg: von „darf
+         ich das ueberhaupt" bis „ich hab den Job". Deshalb Stationen mit
+         Nummern - die Reihenfolge traegt hier wirklich Information - und
+         Fragen als Titel statt Themenwoerter. So kommt ein
+         Fuenfzehnjaehriger an: mit einer Frage, nicht mit einem Stichwort. -->
+    <ol class="weg">
 
-      <a class="ratgeber-karte" href="fairer-lohn.html">
-        <b>Was ist ein fairer Stundenlohn?</b>
-        <span>Übliche Löhne nach Tätigkeit – und die Regel, die kaum jemand kennt: Der gesetzliche Mindestlohn gilt für unter 18-Jährige nicht.</span>
-      </a>
+      <li class="weg-station">
+        <span class="weg-marke" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            <circle cx="16" cy="16" r="11"/><path d="M16 9v7l5 3"/>
+          </svg>
+        </span>
+        <a class="ratgeber-karte" href="jugendarbeitsschutz.html">
+          <b>Darf ich das überhaupt?</b>
+          <span>Die Regeln nach Alter: ab 13 mit Einwilligung der Eltern, ab 15 deutlich mehr, ab 18 fast alles. Wie viele Stunden, wann – und was verboten bleibt.</span>
+        </a>
+      </li>
 
-      <a class="ratgeber-karte" href="ferienjob.html">
-        <b>Ferienjob</b>
-        <span>Die 4-Wochen-Regel, acht Stunden am Tag statt zwei – und ein Kalender, der dir sagt, wann in deinem Bundesland die nächsten Ferien anfangen.</span>
-      </a>
+      <li class="weg-station">
+        <span class="weg-marke" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 5a8 8 0 0 0-5 14.2V22h10v-2.8A8 8 0 0 0 16 5z"/><path d="M13 26h6M14 22v4M18 22v4"/>
+          </svg>
+        </span>
+        <a class="ratgeber-karte" href="jobideen.html">
+          <b>Was gibt es für mich?</b>
+          <span>21 Ideen, sortiert nach Einstiegsalter, mit ehrlichen Angaben zum Verdienst – von Zeitungen austragen bis Nachhilfe geben.</span>
+        </a>
+      </li>
 
-      <a class="ratgeber-karte" href="jobideen.html">
-        <b>21 Jobideen</b>
-        <span>Was es überhaupt gibt, sortiert nach Einstiegsalter, mit ehrlichen Angaben zum Verdienst.</span>
-      </a>
+      <li class="weg-station">
+        <span class="weg-marke" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            <ellipse cx="16" cy="10" rx="9" ry="3.5"/><path d="M7 10v6c0 1.9 4 3.5 9 3.5s9-1.6 9-3.5v-6"/><path d="M7 16v6c0 1.9 4 3.5 9 3.5s9-1.6 9-3.5v-6"/>
+          </svg>
+        </span>
+        <a class="ratgeber-karte" href="fairer-lohn.html">
+          <b>Was ist das wert?</b>
+          <span>Übliche Stundenlöhne nach Tätigkeit – und die Regel, die kaum jemand kennt: Der gesetzliche Mindestlohn gilt für unter 18-Jährige nicht.</span>
+        </a>
+      </li>
 
-      <!-- Diese Seite verlangt eine Anmeldung (requireAuth). Das gehört
-           dazugesagt, sonst landet man mit einem Klick unangekündigt im
+      <li class="weg-station">
+        <span class="weg-marke" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5h8l1 4H11l1-4z"/><path d="M11 9l-2 14a2 2 0 0 0 2 2.4h10A2 2 0 0 0 23 23L21 9"/><path d="M13 17h6M16 14v6"/>
+          </svg>
+        </span>
+        <a class="ratgeber-karte" href="gesundheitszeugnis.html">
+          <b>Brauche ich ein Gesundheitszeugnis?</b>
+          <span>Wer mit offenen Lebensmitteln arbeitet – kellnern, Eis verkaufen, Bäckerei – braucht vorher eine Belehrung. Es ist keine ärztliche Untersuchung, auch wenn der Name das nahelegt.</span>
+        </a>
+      </li>
+
+      <!-- Diese Seite verlangt eine Anmeldung (requireAuth). Das gehoert
+           dazugesagt, sonst landet man mit einem Klick unangekuendigt im
            Login-Formular. -->
-      <a class="ratgeber-karte" href="lebenslauf.html">
-        <b>Lebenslauf erstellen <span class="ratgeber-hinweis">Konto nötig</span></b>
-        <span>Kostenlos, in wenigen Minuten, als PDF zum Herunterladen. Auch dann, wenn du noch keine Erfahrung vorzuweisen hast. Dafür brauchst du ein kostenloses Schüler-Konto.</span>
-      </a>
-    </div>
+      <li class="weg-station">
+        <span class="weg-marke" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 4h9l5 5v19H9z"/><path d="M18 4v5h5"/><path d="M12 16h8M12 20h6"/>
+          </svg>
+        </span>
+        <a class="ratgeber-karte" href="lebenslauf.html">
+          <b>Wie bewerbe ich mich? <span class="ratgeber-hinweis">Konto nötig</span></b>
+          <span>Lebenslauf in wenigen Minuten, kostenlos, als PDF zum Herunterladen. Auch dann, wenn du noch nichts vorzuweisen hast – dafür ist er gemacht.</span>
+        </a>
+      </li>
+
+      <li class="weg-station">
+        <span class="weg-marke" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            <circle cx="16" cy="16" r="5.5"/><path d="M16 5v3M16 24v3M5 16h3M24 16h3M8.2 8.2l2.1 2.1M21.7 21.7l2.1 2.1M23.8 8.2l-2.1 2.1M10.3 21.7l-2.1 2.1"/>
+          </svg>
+        </span>
+        <a class="ratgeber-karte" href="ferienjob.html">
+          <b>Und in den Ferien?</b>
+          <span>Die 4-Wochen-Regel, acht Stunden am Tag statt zwei – und ein Kalender, der dir sagt, wann in deinem Bundesland die nächsten Ferien anfangen.</span>
+        </a>
+      </li>
+
+    </ol>
   </section>
 
-  <section>
-    <h2>Für Eltern</h2>
+  <!-- Eltern stehen bewusst NEBEN dem Weg, nicht darauf: andere Leser,
+       andere Fragen. Deshalb ohne Nummern und ohne die Linie. -->
+  <section aria-labelledby="fuer-eltern" class="eltern-block">
+    <h2 id="fuer-eltern">Für Eltern</h2>
+    <p class="eltern-vorspann">Zwei Seiten, die nicht für Schüler geschrieben sind.</p>
 
     <div class="ratgeber-liste">
       <a class="ratgeber-karte" href="eltern.html">
@@ -99,14 +157,6 @@
     </div>
   </section>
 
-  <section class="legal-highlight">
-    <h2>Genug gelesen?</h2>
-    <p>Wenn du weißt, was du suchst, geht es direkt in die Jobbörse. Wenn nicht, beantwortet der Job-Finder fünf Fragen mit vier Vorschlägen.</p>
-    <div class="fehler-knoepfe" style="justify-content:flex-start;">
-      <a class="btn btn-green" href="jobs.html">Jobs ansehen</a>
-      <a class="btn btn-outline" href="job-finder.html">Job-Finder starten</a>
-    </div>
-  </section>
 </main>
 
 <footer>
@@ -117,6 +167,7 @@
       <a href="ferienjob.html">Ferienjob</a>
       <a href="fairer-lohn.html">Fairer Lohn</a>
       <a href="taschengeld.html">Taschengeld</a>
+      <a href="gesundheitszeugnis.html">Gesundheitszeugnis</a>
       <a href="fuer-firmen.html">Für Arbeitgeber</a>
       <a href="eltern.html">Für Eltern</a>
       <a href="job-finder.html">Job-Finder</a>

@@ -1,7 +1,7 @@
 # SchülerMatch – Offene Punkte
 
 > **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **777 E2E-Tests grün**, Live-Stand deployed.
+> Alles ist committet und gepusht, **795 E2E-Tests grün**, Live-Stand deployed.
 > Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
@@ -152,9 +152,7 @@ Abmelde-Link in jeder Mail.
 Beim Blick auf schuelerjobs.de (27.8.) aufgefallen. Sie haben neun Artikel,
 uns fehlen drei davon – und alle drei treffen echte Bewerber:
 
-- **Gesundheitszeugnis** (Hygienebelehrung nach § 43 IfSG). Wer mit offenen
-  Lebensmitteln arbeitet, braucht sie. Die Kategorien „Gastronomie" und
-  „Verkauf" gibt es hier – das trifft also wirklich jemanden.
+- ~~**Gesundheitszeugnis**~~ ✅ **erledigt am 27.8.** — `gesundheitszeugnis.html`
 - **Arbeitsvertrag**: was drinstehen muss, warum schriftlich, was man
   unterschreiben sollte und was nicht.
 - **Bewerbungsfoto**: darf nicht verlangt werden, hilft aber – und ein

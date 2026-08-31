@@ -328,6 +328,80 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 27. August 2026 (Teil 10) - Der Ratgeber als Weg
+
+Sanads Auftrag: den Ratgeber so bauen wie schuelerjobs.de, die eigenen Themen
+behalten, neue dazunehmen, mit Bildern und ansehnlich.
+
+### Was ich NICHT uebernommen habe
+
+Ihr Ratgeber ist eine Artikelliste - neun Kacheln nebeneinander, jede mit Bild
+und Anreisser. Das eins zu eins nachzubauen waere ein Rueckschritt gewesen: Es
+ist ein Blogroll, und der Leser muss selbst herausfinden, wo er anfaengt.
+
+### Der Gedanke stattdessen
+
+Die Artikel hier sind **keine Kategorien, sondern eine Reihenfolge**:
+
+    darf ich das ueberhaupt? -> was gibt es? -> was ist das wert?
+    -> brauche ich was dafuer? -> wie bewerbe ich mich? -> und in den Ferien?
+
+Weil die Reihenfolge wirklich Information traegt, sind es **nummerierte
+Stationen** mit einer Linie dazwischen - keine gestreuten Kacheln. Eine echte
+`<ol>`, damit ein Screenreader „Eintrag 3 von 6" vorliest und die Nummerierung
+fuer alle dieselbe Information traegt, nicht nur fuer Sehende.
+
+**Und die Titel sind Fragen.** Aus „Fairer Lohn" wurde „Was ist das wert?", aus
+„Ferienjob" wurde „Und in den Ferien?". So kommt ein Fuenfzehnjaehriger an: mit
+einer Frage, nicht mit einem Stichwort.
+
+**Eltern stehen bewusst NEBEN dem Weg** - ohne Nummern, ohne Linie, durch eine
+Trennlinie abgesetzt. Sie sind andere Leser mit anderen Fragen. Der Bruch im
+Muster ist die Aussage.
+
+### Zu den Bildern
+
+Keine Stockfotos, sondern **eigene SVG-Zeichnungen** je Station: Uhr,
+Gluehbirne, Muenzstapel, Seifenspender, Blatt Papier, Sonne. Gruende: keine
+Lizenzfragen, keine zusaetzlichen Ladezeiten, in den Markenfarben, scharf auf
+jedem Bildschirm - und sie passen zum Inhalt statt daneben zu stehen.
+
+Sie sitzen in der Station, **nicht im Link**, und sind `aria-hidden`. Ein
+Bildzeichen gehoert nicht in den vorgelesenen Namen eines Links.
+
+### Neue Seite: gesundheitszeugnis.html
+
+Der erste der drei Ratgeber-Punkte, die bei schuelerjobs.de stehen und hier
+fehlten - und der mit Abstand wichtigste, denn die Kategorien „Gastronomie" und
+„Verkauf" gibt es hier wirklich.
+
+Der Kern ist ein Irrtum, den der Name selbst erzeugt: **Es ist keine aerztliche
+Untersuchung.** Kein Arztbesuch, keine Blutabnahme - das wurde 2001
+abgeschafft. Es ist eine Belehrung nach § 43 IfSG.
+
+Die Seite sagt in zwei Listen, wer eine braucht und wer nicht (Nachhilfe,
+Babysitten, Gassi gehen: nicht), nennt die drei Monate Gueltigkeit beim
+Arbeitsbeginn und die zwei Jahre bis zur Wiederholung durch den Arbeitgeber,
+und sagt, dass viele Arbeitgeber die Kosten uebernehmen - danach fragt sonst
+niemand.
+
+Eingetragen in Ratgeber, Fussleisten aller Seiten, Sitemap und **alle sieben
+Reihenpruefungen** (Barrierefreiheit, Kontrast, Knopf-Kontrast, Navigation,
+Tippziele, Teilen-Vorschau, Silbentrennung). Sonst waere sie die einzige Seite
+ohne diese Absicherung gewesen.
+
+### Ein eigener Stolperer
+Die Bild-Marke war zuerst ein zweites direktes `<span>` INNERHALB der Karte -
+und `ratgeber.spec.js` liest die Beschreibung ueber `> span`. Genau die Falle,
+vor der der Kommentar in dem Test warnt (dieselbe gab es schon beim Vermerk
+„Konto noetig"). Die Marke aus dem Link herausgezogen; semantisch ohnehin
+richtiger.
+
+### Gemessen statt vermutet
+6 Stationen, 18px zwischen Marke und Karte, Nummer weiss auf #00795c = 5,40:1
+(AA), kein seitliches Scrollen. Am Handy: 38px-Marke, 16px Abstand, Linie an
+der letzten Station korrekt gekappt.
+
 ## Session 27. August 2026 (Teil 9) - Bei der Konkurrenz nachgesehen
 
 Sanad wollte, dass ich mir **schuelerjobs.de** ansehe.

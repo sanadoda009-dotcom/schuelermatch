@@ -2603,3 +2603,81 @@ main[tabindex="-1"]:focus { outline: none; }
    tests/schriften.spec.js hat es gefangen. */
 .gefahr-box label b,
 .coach-frage label b { font-weight: 700; }
+
+/* ============================================================
+   RATGEBER ALS WEG (27.8.)
+   ------------------------------------------------------------
+   Die Artikel sind keine Kategorien, sondern eine Reihenfolge:
+   „darf ich das überhaupt" → „was gibt es" → „was ist das wert" →
+   „brauche ich was dafür" → „wie bewerbe ich mich" → „und in den
+   Ferien". Weil die Reihenfolge hier wirklich Information trägt,
+   sind es nummerierte Stationen mit einer Linie dazwischen — und
+   keine beliebig gestreuten Kacheln.
+
+   Die Titel sind Fragen. So kommt ein Fünfzehnjähriger an: mit einer
+   Frage, nicht mit einem Stichwort.
+
+   Eltern stehen bewusst NEBEN dem Weg (ohne Nummern, ohne Linie) —
+   sie sind andere Leser mit anderen Fragen.
+   ============================================================ */
+
+.weg-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--match-green-dark);
+  margin: 0 0 6px;
+}
+
+.weg { list-style: none; margin: 22px 0 8px; padding: 0; position: relative; }
+
+/* Die Linie, die die Stationen verbindet. Läuft hinter den Marken
+   durch und endet an der letzten — deshalb am :last-child gekappt. */
+.weg-station { position: relative; padding-left: 62px; padding-bottom: 14px; counter-increment: weg; }
+.weg-station::before {
+  content: '';
+  position: absolute; left: 21px; top: 44px; bottom: 0;
+  width: 2px; background: var(--line);
+}
+.weg-station:last-child { padding-bottom: 0; }
+.weg-station:last-child::before { display: none; }
+
+/* Die Marke: Nummer und Bild teilen sich denselben Kreis. Die Nummer
+   steht als Mono-Ziffer darüber links — sie ist ein Index, kein Text. */
+.weg-marke {
+  position: absolute; left: 0; top: 4px;
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  color: var(--match-green-dark);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.weg-marke svg { width: 24px; height: 24px; }
+.weg-station::after {
+  content: counter(weg);
+  position: absolute; left: 0; top: -2px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--match-green-dark); color: #fff;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.weg .ratgeber-karte { padding: 14px 18px; }
+.weg .ratgeber-karte b { font-size: 1.08rem; }
+
+.weg-station:hover .weg-marke,
+.weg-station:focus-within .weg-marke {
+  border-color: var(--match-green);
+  background: rgba(0, 200, 150, 0.08);
+}
+
+/* Eltern: ruhiger, ohne Weg-Motiv. */
+.eltern-block { margin-top: 34px; padding-top: 26px; border-top: 1px solid var(--line); }
+.eltern-vorspann { color: var(--ink-soft); font-size: 0.9rem; margin: -4px 0 0; }
+
+@media (max-width: 560px) {
+  .weg-station { padding-left: 54px; }
+  .weg-marke { width: 38px; height: 38px; }
+  .weg-marke svg { width: 21px; height: 21px; }
+  .weg-station::before { left: 18px; top: 40px; }
+}

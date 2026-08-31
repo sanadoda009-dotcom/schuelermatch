@@ -26,6 +26,7 @@ const SEITEN = [
   '/fairer-lohn.html',
   '/ferienjob.html',
   '/taschengeld.html',
+  '/gesundheitszeugnis.html',
   '/ratgeber.html',
   '/404.html',
 ]
