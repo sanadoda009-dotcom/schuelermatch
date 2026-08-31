@@ -328,6 +328,47 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 1. September 2026 (Teil 3) - Die Glocke zeigte der Firma nichts an
+
+Gesucht mit der Frage: **welche Datei kommt in keinem Test vor?**
+`js/notifications.js` - 119 Zeilen, null Tests.
+
+**Der Fehler:** Fuer Firmen wurden nur *frische* Bewerbungen in die Liste
+gelegt (`if (frisch) items.push(...)`). Das Oeffnen der Glocke markiert
+aber alles als gesehen und zeichnet danach neu. Gemessen: Abzeichen "2",
+Klick, Menue "Keine neuen Benachrichtigungen". Die Firma erfuhr nie,
+welche Bewerbungen eingegangen waren.
+
+**Behoben:** Der Firmenzweig haelt es jetzt wie der Schuelerzweig - immer
+anzeigen, `frisch` steuert nur die Zahl. Beim Oeffnen wird nicht mehr neu
+gezeichnet, nur das Abzeichen zurueckgesetzt. Dazu eine Grenze von 8
+Eintraegen (vorher unbegrenzt) und Sortierung nach `erstellt_am`.
+
+**Zwei Dinge nebenbei:**
+- `markiereGesehen()` rief `sammle()` auf und warf das Ergebnis weg, dann
+  fragte es dieselbe Tabelle noch einmal ab. Jetzt gar keine Abfrage
+  mehr: gemerkt wird genau das, was auch im Menue stand.
+- `initGlocke` gab ohne Glocken-Markup eine **Funktion** zurueck, sonst
+  ein **Objekt**. Jetzt beides ein Objekt; badge und dropdown werden
+  mitgeprueft.
+
+**Fehler in der Testumgebung gefunden:** `supabase-fake` fuehrte
+`limit`/`offset` in RESERVIERT (wurden also nicht als Filter
+missverstanden), wendete sie aber **nie an**. Ein Test auf `.limit(n)`
+waere stillschweigend gruen geworden. Eingebaut - beim ersten Versuch
+prompt in die eigene Falle getreten: `Number(null)` ist 0, ein fehlender
+limit-Parameter kuerzte damit jede Abfrage auf null Zeilen, und alle acht
+Tests fielen um.
+
+**Neuer Test:** `tests/glocke.spec.js` (8), darunter einer, der prueft,
+dass ein Jobtitel aus fremder Hand nicht als HTML ins Menue kommt.
+Gegenprobe: vier werden gegen den alten Code rot. Suite bei **826**.
+
+Und eine Lehre zur Gegenprobe: Ein Test lief zunaechst auch gegen den
+alten Code gruen, weil das Leeren asynchron passierte und Playwright die
+Eintraege im Moment davor fand. Erst mit einem Warten wurde er belastbar.
+**Ein Test, der die Gegenprobe besteht, prueft nichts.**
+
 ## Session 1. September 2026 (Teil 2) - Nichts springt mehr beim Laden
 
 Gesucht: Layoutspruenge. Gemessen mit einem PerformanceObserver auf

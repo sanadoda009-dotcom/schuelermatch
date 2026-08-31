@@ -11,6 +11,11 @@ function speichereGesehen(rolle, id, set) {
   try { localStorage.setItem(gesehenKey(rolle, id), JSON.stringify([...set])) } catch {}
 }
 
+// Wie viele Eintraege das Menue hoechstens zeigt. Ohne Grenze waechst die
+// Liste mit jeder Bewerbung – bei einer Firma mit vielen Anzeigen wird das
+// Menue laenger als der Bildschirm.
+const GRENZE = 8
+
 // Sammelt Benachrichtigungen je nach Rolle.
 async function sammle(rolle, profileId) {
   const items = []
@@ -31,7 +36,10 @@ async function sammle(rolle, profileId) {
   if (rolle === 'schueler') {
     const gesehen = ladeGesehen('schueler', profileId)
     const { data: bew } = await supabase.from('bewerbungen')
-      .select('id, status, job:job_id(titel)').eq('schueler_id', profileId).in('status', ['angenommen', 'abgelehnt'])
+      .select('id, status, erstellt_am, job:job_id(titel)').eq('schueler_id', profileId)
+      .in('status', ['angenommen', 'abgelehnt'])
+      .order('erstellt_am', { ascending: false })
+      .limit(GRENZE)
     ;(bew || []).forEach(b => {
       const key = `${b.id}:${b.status}`
       const frisch = !gesehen.has(key)
@@ -40,16 +48,28 @@ async function sammle(rolle, profileId) {
         text: b.status === 'angenommen'
           ? `<b>Angenommen!</b> ${escapeHtml(b.job?.titel || 'Job')}`
           : `Bewerbung für ${escapeHtml(b.job?.titel || 'Job')}: <b>nicht geklappt</b>`,
-        ziel: 'jobs', frisch
+        ziel: 'jobs', frisch, schluessel: key,
       })
     })
   } else {
+    // Frueher stand hier `if (frisch) items.push(...)`. Das Oeffnen der
+    // Glocke markiert aber alles als gesehen und zeichnet danach neu –
+    // die Liste war also in dem Moment leer, in dem die Firma sie
+    // ansehen wollte. Das Abzeichen sagte "2", das Menue "Keine neuen
+    // Benachrichtigungen". Jetzt wie beim Schueler: immer anzeigen,
+    // `frisch` steuert nur noch die Zahl am Abzeichen.
     const gesehen = ladeGesehen('firma', profileId)
     const { data: bew } = await supabase.from('bewerbungen')
-      .select('id, job:job_id(titel)')
+      .select('id, erstellt_am, job:job_id(titel)')
+      .order('erstellt_am', { ascending: false })
+      .limit(GRENZE)
     ;(bew || []).forEach(b => {
       const frisch = !gesehen.has(b.id)
-      if (frisch) items.push({ icon: '🧑‍🎓', text: `<b>Neue Bewerbung</b> · ${escapeHtml(b.job?.titel || 'Job')}`, ziel: 'jobs', frisch })
+      items.push({
+        icon: '🧑‍🎓',
+        text: `<b>${frisch ? 'Neue Bewerbung' : 'Bewerbung'}</b> · ${escapeHtml(b.job?.titel || 'Job')}`,
+        ziel: 'jobs', frisch, schluessel: b.id,
+      })
     })
   }
 
@@ -60,7 +80,11 @@ export function initGlocke({ rolle, profileId, onNavigate, onUngelesen }) {
   const btn = document.getElementById('glocke-btn')
   const badge = document.getElementById('glocke-badge')
   const dd = document.getElementById('glocke-dropdown')
-  if (!btn) return () => {}
+  if (!btn || !badge || !dd) return { aktualisiere: () => {}, stop: () => {} }
+
+  // Die Schluessel der zuletzt angezeigten Eintraege – nur die werden
+  // beim Oeffnen als gesehen vermerkt.
+  let letzteSchluessel = []
 
   async function render() {
     const { items, ungelesen } = await sammle(rolle, profileId)
@@ -68,6 +92,7 @@ export function initGlocke({ rolle, profileId, onNavigate, onUngelesen }) {
     // lassen - das war eine komplett doppelte Abfrage auf dieselbe Tabelle
     // mit derselben Bedingung.
     onUngelesen?.(ungelesen)
+    letzteSchluessel = items.filter(i => i.schluessel).map(i => i.schluessel)
     const frischN = items.filter(i => i.frisch).length
     badge.textContent = frischN
     badge.classList.toggle('aktiv', frischN > 0)
@@ -85,22 +110,21 @@ export function initGlocke({ rolle, profileId, onNavigate, onUngelesen }) {
     })
   }
 
+  // Gemerkt wird genau das, was auch im Menue stand. Frueher fragte diese
+  // Funktion die Bewerbungen noch einmal ab und markierte ALLE als gesehen –
+  // auch die, die wegen der Grenze gar nicht angezeigt wurden. Die waeren
+  // damit stillschweigend verschwunden. Und die Abfrage davor war ein
+  // `sammle(...)`, dessen Ergebnis weggeworfen wurde.
   function markiereGesehen() {
-    // Entscheidungen/Bewerbungen als gesehen merken, damit sie nicht erneut als "frisch" zählen
-    sammle(rolle, profileId).then(async () => {
-      if (rolle === 'schueler') {
-        const g = ladeGesehen('schueler', profileId)
-        const { data: bew } = await supabase.from('bewerbungen').select('id, status').eq('schueler_id', profileId).in('status', ['angenommen', 'abgelehnt'])
-        ;(bew || []).forEach(b => g.add(`${b.id}:${b.status}`))
-        speichereGesehen('schueler', profileId, g)
-      } else {
-        const g = ladeGesehen('firma', profileId)
-        const { data: bew } = await supabase.from('bewerbungen').select('id')
-        ;(bew || []).forEach(b => g.add(b.id))
-        speichereGesehen('firma', profileId, g)
-      }
-      render()
-    })
+    if (!letzteSchluessel.length) return
+    const g = ladeGesehen(rolle, profileId)
+    letzteSchluessel.forEach(k => g.add(k))
+    speichereGesehen(rolle, profileId, g)
+    // Bewusst kein render(): Das wuerde die Liste unter den Augen des
+    // Lesers neu zeichnen. Nur das Abzeichen zuruecksetzen; die Liste
+    // stimmt beim naechsten Durchlauf von selbst.
+    badge.textContent = '0'
+    badge.classList.remove('aktiv')
   }
 
   btn.addEventListener('click', (e) => {

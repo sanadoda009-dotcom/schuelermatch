@@ -168,6 +168,19 @@ function behandleRest(db, method, tabelle, url, headers, body) {
   if (method === 'GET') {
     const { embeds } = parseSelect(params.get('select'))
     let ergebnis = sortiere(gefiltert(), params.get('order'))
+    // limit/offset standen zwar in RESERVIERT (wurden also nicht als
+    // Filter missverstanden), wurden aber nie angewendet – ein Test auf
+    // `.limit(n)` waere hier stillschweigend gruen geworden, egal was der
+    // Code macht. Gefunden am 1.9.2026 beim Test der Glocke.
+    // Achtung: `Number(null)` ist 0. Erst auf "gar nicht da" pruefen,
+    // sonst kuerzt ein fehlender limit-Parameter auf null Zeilen – und
+    // genau das ist mir hier passiert (jedes Dashboard blieb leer).
+    const rohOffset = params.get('offset')
+    if (rohOffset !== null && Number(rohOffset) > 0) ergebnis = ergebnis.slice(Number(rohOffset))
+    const rohLimit = params.get('limit')
+    if (rohLimit !== null && Number.isFinite(Number(rohLimit))) {
+      ergebnis = ergebnis.slice(0, Number(rohLimit))
+    }
     ergebnis = ergebnis.map(r => loeseEmbeds(r, embeds, db))
     const einzeln = (headers['accept'] || '').includes('vnd.pgrst.object')
     if (einzeln) {
