@@ -328,6 +328,70 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 1. September 2026 (Teil 5) - Der Lebenslauf-Editor, neu gebaut
+
+Sanads Auftrag: "mir gefaellt die Vorschau, aber wie man die Sachen
+eintippt, es bearbeitet, reinschreibt, Pfeil nach oben schiebt ist einfach
+haesslich und man checkt es nicht ganz schnell" - mit der Ansage, mich
+vorher bei fuenf guten Seiten umzusehen.
+
+**Angesehen:** Resumonk, Kickresume, Rezi, Enhancv, lebenslauf.de, dazu
+die deutschen Ratgeber zum Schueler-Lebenslauf. Drei Dinge sind dort
+ueberall gleich und fehlten hier: ein **Griff zum Ziehen** statt
+Textpfeilchen; **Werkzeuge nicht in der Kopfzeile**, wo sie die
+Ueberschrift zerdruecken; ein neuer Abschnitt aus einer **benannten
+Auswahl** statt aus acht gleich aussehenden Knoepfen. Aus den deutschen
+Ratgebern dazu: ein Lebenslauf wird **antichronologisch** gelesen, das
+Neueste zuerst - das steht jetzt unter dem Textfeld.
+
+| vorher | jetzt |
+|---|---|
+| `↑ ↓ ✕` als winzige Zeichen in der Kopfzeile | Griff zum Ziehen + drei benannte Knoepfe im Kartenfuss, an den Enden abgeschaltet statt wirkungslos |
+| `SKILLBAR`, `SPRACHEN` als Etikett | "Faehigkeiten mit Balken", "Sprache & Niveau" |
+| acht Knoepfe nebeneinander | ein Knopf, dahinter zwei Gruppen mit je einem Satz Erklaerung |
+| Schieberegler ohne Angabe | "Wie gut: Sehr gut", wandert beim Ziehen mit |
+| Zeilen ohne sichtbare Beschriftung, Kreuz zum Entfernen | eigene Karte je Zeile, Beschriftungen, Knopf "Entfernen" |
+| Textfeld immer vier Zeilen | waechst mit dem Text |
+
+**Datenmodell unveraendert** - Vorschau und PDF sehen aus wie vorher.
+
+**Zwei eigene Fehler:** Der erste Ziehen-Ansatz schob die Karte schon
+waehrend der Bewegung im Dokument herum. Dabei wird sie kurz aus dem
+Dokument genommen und wieder eingesetzt, und **genau das beendet die
+Zeiger-Erfassung** - nach dem ersten Sprung kam kein Ereignis mehr an.
+Jetzt wird die Karte nur optisch angehoben und erst beim Loslassen
+verschoben. Und `preventDefault()` auf pointerdown allein reicht nicht:
+`<summary>` klappt auch beim anschliessenden click um.
+
+**Und ein Testfehler von mir:** Der Ziehen-Test schlug fehl, weil die
+Karte unter dem sichtbaren Rand lag - `page.mouse` arbeitet in
+Bildschirmkoordinaten, `boundingBox()` zeigte auf einen Punkt ausserhalb,
+es kam kein einziges Ereignis an. Erst herscrollen, dann messen.
+
+**Neue Tests:** `lebenslauf-editor.spec.js` (14). `lebenslauf-mobil.spec.js`
+prueft die neuen Bedienelemente. Suite bei **850**. Commit `090ed60`.
+
+## Session 1. September 2026 (Teil 4) - Aus dem Ratgeber ins Anzeigen-Formular
+
+Von Sanad gemeldet. Klick im Ratgeber auf "Wie bewerbe ich mich?", kurz
+blitzt der Lebenslauf-Editor auf, dann steht man ohne Erklaerung im
+Firmen-Dashboard beim Formular zum Anzeigen-Aufgeben.
+
+Zwei Ursachen: `requireAuth('schueler')` schob jede andere Rolle stumm auf
+ihr Dashboard - fuer die Dashboards richtig, auf einer Funktionsseite eine
+Sackgasse. Und der Editor steht statisch im HTML, war also schon da, bevor
+die Pruefung antworten konnte.
+
+Jetzt bleibt man auf der Seite und liest, warum sie nichts fuer einen ist,
+mit einem Weg zurueck. Neu: `zeigeHinweisSeite` in zustand.js - bewusst
+nicht `zeigeSeitenfehler`, das bietet "Nochmal versuchen" an und raet, die
+Internetverbindung zu pruefen. Beides waere hier eine falsche Faehrte.
+Gegen das Aufblitzen wird der Inhalt zurueckgehalten, mit einer Notbremse
+nach 5 Sekunden - eine dauerhaft leere Seite waere schlimmer.
+
+`tests/lebenslauf-rolle.spec.js` (5), drei davon werden gegen den alten
+Code rot.
+
 ## Session 1. September 2026 (Teil 3) - Die Glocke zeigte der Firma nichts an
 
 Gesucht mit der Frage: **welche Datei kommt in keinem Test vor?**
