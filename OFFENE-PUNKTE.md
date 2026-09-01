@@ -16,6 +16,28 @@
 > **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
 > was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
 
+## ⏳ Wartet auf dich: eine Regel in der Datenbank
+
+**`supabase/mindestalter-pflicht.sql` im Supabase-SQL-Editor ausführen.**
+
+`jobs.mindestalter` darf zurzeit leer sein. Die bestehende Regel
+`mindestalter >= 13` fängt das nicht ab: In SQL ist `NULL >= 13` weder wahr
+noch falsch, und eine CHECK-Regel gilt als erfüllt, solange sie nicht falsch
+ist. Über die Schnittstelle lässt sich also eine Anzeige ganz ohne
+Altersangabe anlegen.
+
+Was das anrichtete, ist **im Code bereits behoben** (die Seiten schrieben
+„ab null J.", und `null > alter` ist in JavaScript falsch — die Anzeige
+rutschte durch jeden Altersfilter). Die SQL-Datei schließt die Lücke da, wo
+sie herkommt.
+
+Vorher prüfen — muss `0` sein:
+```sql
+select count(*) from public.jobs where mindestalter is null;
+```
+Stand 1.9.2026: 0 von 4 Zeilen. Ich habe die Änderung bewusst nicht selbst
+eingespielt; Schemaänderungen an der Live-Datenbank machst du.
+
 ## ✅ Am 27.8. eingespielt: vier Regeln in der Datenbank
 
 Alle vier sind **angewendet und nachgeprüft**. Was vorher nur im Browser galt,

@@ -443,7 +443,7 @@ async function ladeEigeneJobs() {
     <div class="job-card" style="${job.aktiv && !inPruefung ? '' : 'opacity:0.65;'}">
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
-        <span class="job-badge ${inPruefung ? 'job-badge--pruefung' : (job.aktiv ? '' : 'job-badge--pausiert')}">${inPruefung ? '⏳ In Prüfung' : (job.aktiv ? `${ICONS.age} ab ${job.mindestalter} J.` : '⏸ Pausiert')}</span>
+        <span class="job-badge ${inPruefung ? 'job-badge--pruefung' : (job.aktiv ? '' : 'job-badge--pausiert')}">${inPruefung ? '⏳ In Prüfung' : (job.aktiv ? `${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} J.`}` : '⏸ Pausiert')}</span>
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
       <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>

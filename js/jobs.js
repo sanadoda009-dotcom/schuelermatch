@@ -137,7 +137,11 @@ function wendeFilterAn() {
   const gefiltert = alleJobs.filter(job => {
     if (!passtZurSuche(job, suche)) return false
     if (ort && !(job.ort || '').toLowerCase().includes(ort)) return false
-    if (alter && job.mindestalter > alter) return false
+    // Ohne Altersangabe laesst sich nicht sagen, ob die Anzeige fuer
+    // dieses Alter erlaubt ist – also nicht zeigen, solange gefiltert wird.
+    // `null > alter` ist falsch, so eine Anzeige rutschte vorher durch
+    // jeden Altersfilter.
+    if (alter && (job.mindestalter == null || job.mindestalter > alter)) return false
     if (gehalt && !(job.stundenlohn >= gehalt)) return false
     if (aktiveKategorie && job.kategorie !== aktiveKategorie) return false
     if (arbeitszeit && job.arbeitszeit !== arbeitszeit) return false
@@ -231,7 +235,7 @@ function renderJobs(jobs) {
       ${istNeu(job) ? '<span class="neu-badge">NEU</span>' : ''}
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml(((job.firma_name || job.titel || '?')[0]).toUpperCase())}</div>
-        <span class="job-badge">${ICONS.age} ab ${job.mindestalter} J.</span>
+        <span class="job-badge">${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} J.`}</span>
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
       ${job.firma_name ? `<p class="job-firma">bei ${escapeHtml(job.firma_name)}</p>` : ''}
@@ -265,7 +269,7 @@ function oeffneDetail(jobId) {
   document.getElementById('detail-body').innerHTML = `
     <p class="company-name" style="margin-top:4px;">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
     <div class="job-meta" style="margin:14px 0;">
-      <span>${ICONS.age} ab ${job.mindestalter} Jahren</span>
+      <span>${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} Jahren`}</span>
       ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
       ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
     </div>

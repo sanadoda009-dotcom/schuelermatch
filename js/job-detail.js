@@ -179,7 +179,7 @@ async function ladeJob() {
     ? teile.join(' · ') + '. Kostenlos bewerben auf SchülerMatch.'
     : 'Jugendschutzgeprüfter Minijob, kostenlos für Schüler.')
   document.querySelector('meta[name="description"]')?.setAttribute('content',
-    `${job.titel}${job.ort ? ' in ' + job.ort : ''} – ab ${job.mindestalter} Jahren${job.stundenlohn ? ', ' + job.stundenlohn + ' €/Std' : ''}. Kostenlos bewerben auf SchülerMatch.`)
+    `${job.titel}${job.ort ? ' in ' + job.ort : ''}${job.mindestalter ? ' – ab ' + job.mindestalter + ' Jahren' : ''}${job.stundenlohn ? ', ' + job.stundenlohn + ' €/Std' : ''}. Kostenlos bewerben auf SchülerMatch.`)
 
   el.innerHTML = `
     <a href="jobs.html" class="mono" style="color:var(--ink-soft); font-size:0.82rem;">← Alle Jobs</a>
@@ -198,7 +198,7 @@ async function ladeJob() {
     </p>
 
     <div class="job-meta" style="margin:20px 0; font-size:0.95rem;">
-      <span>${ICONS.age} ab ${job.mindestalter} Jahren</span>
+      <span>${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} Jahren`}</span>
       ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
       ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
       <span>👁 ${job.aufrufe || 0} Aufrufe</span>

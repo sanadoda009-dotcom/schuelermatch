@@ -1,0 +1,37 @@
+-- Mindestalter darf nicht fehlen (1.9.2026)
+--
+-- WARUM
+-- `jobs.mindestalter` ist NULLABLE. Die CHECK-Regel `mindestalter >= 13`
+-- faengt das nicht ab: In SQL ist `NULL >= 13` weder wahr noch falsch, und
+-- eine CHECK-Regel gilt als erfuellt, solange sie nicht falsch ist. Eine
+-- Anzeige ohne Altersangabe ist also erlaubt.
+--
+-- Das Formular im Firmen-Dashboard setzt `parseInt(...) || 15` – aber das
+-- ist wieder eine Zusage, die nur im Browser gilt. Ueber die API laesst
+-- sich eine Anzeige ohne Altersangabe anlegen.
+--
+-- Folge im Browser (vor dem Fix gemessen): "ab null J." auf Startseite,
+-- Jobboerse und Detailseite – und, schwerer wiegend, `null > alter` ist in
+-- JavaScript falsch, die Anzeige rutschte durch jeden Altersfilter.
+-- Der Anzeigefehler ist im Code behoben; diese Datei schliesst die Luecke
+-- da, wo sie herkommt.
+--
+-- VORHER PRUEFEN: Gibt es Zeilen ohne Altersangabe?
+--   select count(*) from public.jobs where mindestalter is null;
+-- Muss 0 sein. Stand 1.9.2026: 0 von 4 Zeilen.
+-- Falls nicht 0, erst nachtragen – NICHT blind auf einen Wert setzen,
+-- sondern die betroffenen Anzeigen ansehen:
+--   select id, titel, firma_name from public.jobs where mindestalter is null;
+
+alter table public.jobs
+  alter column mindestalter set not null;
+
+-- NACHHER PRUEFEN – muss GENAU EINE Zeile mit is_nullable = 'NO' liefern:
+--
+--   select column_name, is_nullable
+--   from information_schema.columns
+--   where table_schema = 'public' and table_name = 'jobs'
+--     and column_name = 'mindestalter';
+--
+-- Rueckgaengig, falls noetig:
+--   alter table public.jobs alter column mindestalter drop not null;

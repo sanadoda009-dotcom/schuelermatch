@@ -1411,7 +1411,7 @@ function renderJobs(jobs) {
       <button class="merken-btn ${gemerkteIds.has(job.id) ? 'gemerkt' : ''}" data-merken="${job.id}" aria-label="Job merken" title="Job merken">${herzSvg}</button>
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml(((job.firma_name || job.titel || '?')[0]).toUpperCase())}</div>
-        <span class="job-badge" style="margin-right:44px;">${ICONS.age} ab ${job.mindestalter} J.</span>
+        <span class="job-badge" style="margin-right:44px;">${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} J.`}</span>
       </div>
       <h3><button type="button" class="job-titel-btn" data-detail-btn="${job.id}">${escapeHtml(job.titel)}</button></h3>
       ${job.firma_name ? `<p class="job-firma">bei ${escapeHtml(job.firma_name)}</p>` : ''}
@@ -1457,7 +1457,7 @@ function oeffneDetail(jobId) {
   document.getElementById('detail-body').innerHTML = `
     <p class="company-name" style="margin-top:4px;">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
     <div class="job-meta" style="margin:14px 0;">
-      <span>${ICONS.age} ab ${job.mindestalter} Jahren</span>
+      <span>${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} Jahren`}</span>
       ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
       ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
     </div>

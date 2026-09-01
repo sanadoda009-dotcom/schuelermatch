@@ -27,7 +27,7 @@ async function ladeVorschauJobs() {
     <div class="job-card">
       <div class="job-card-top">
         <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
-        <span class="job-badge">${ICONS.age} ab ${job.mindestalter} J.</span>
+        <span class="job-badge">${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} J.`}</span>
       </div>
       <h3>${escapeHtml(job.titel)}</h3>
       <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
