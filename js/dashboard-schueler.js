@@ -10,6 +10,7 @@ import { ladeChat, zaehleUngelesen } from './chat.js'
 import { initGlocke } from './notifications.js'
 import { geocode, distanzKm, uebernehmeKoordinaten } from './geo.js'
 import { passtZurSuche } from './suche.js'
+import { MIN_ALTER } from './jugendschutz.js'
 import { oeffneMeldeDialog, meldeButtonHtml } from './melden.js'
 import { fragenFuer, baueAnschreiben, pruefeAnschreiben } from './anschreiben.js'
 import { sichereMediaUrl } from './sicher.js'
@@ -1156,8 +1157,26 @@ async function ladeJobs() {
   const grid = document.getElementById('jobs-grid')
 
   let query = supabase.from('jobs').select('*').eq('aktiv', true)
-  if (profile.alter_jahre) {
-    query = query.lte('mindestalter', profile.alter_jahre)
+
+  // Ohne Altersangabe wurde der Filter frueher einfach weggelassen – ein
+  // Schueler ohne Alter bekam dadurch JEDE Anzeige zu sehen, auch eine
+  // "ab 18". Gemessen am 1.9.2026 an einem echten Konto: 1 von 4
+  // Schuelerprofilen hat kein Alter.
+  //
+  // Ohne Angabe laesst sich nicht sagen, was erlaubt ist. Also gilt die
+  // Untergrenze der Plattform: nur, was jeder ab 13 machen darf. Und der
+  // Schueler erfaehrt, warum die Liste kurz ist.
+  const alterFehlt = !profile.alter_jahre
+  query = query.lte('mindestalter', profile.alter_jahre || MIN_ALTER)
+
+  const hinweis = document.getElementById('alter-fehlt-hinweis')
+  if (hinweis) {
+    hinweis.hidden = !alterFehlt
+    if (alterFehlt) {
+      hinweis.textContent = `In deinem Profil fehlt dein Alter. Solange es fehlt, `
+        + `zeigen wir dir nur Jobs ab ${MIN_ALTER} Jahren – was darüber hinaus `
+        + `erlaubt ist, können wir ohne dein Alter nicht sagen.`
+    }
   }
 
   const { data: jobs, gestoert } = await hole(query.order('erstellt_am', { ascending: false }))

@@ -7,8 +7,12 @@
 -- Anzeige ohne Altersangabe ist also erlaubt.
 --
 -- Das Formular im Firmen-Dashboard setzt `parseInt(...) || 15` – aber das
--- ist wieder eine Zusage, die nur im Browser gilt. Ueber die API laesst
--- sich eine Anzeige ohne Altersangabe anlegen.
+-- ist wieder eine Zusage, die nur im Browser gilt.
+--
+-- GENAUER: Die Spalte hat einen Vorgabewert von 13. Wer das Feld beim
+-- Anlegen weglaesst, bekommt also 13 und keine Luecke. Offen bleibt der
+-- Fall, dass jemand ueber die API ausdruecklich `null` schickt - dann
+-- greift weder der Vorgabewert noch die CHECK-Regel.
 --
 -- Folge im Browser (vor dem Fix gemessen): "ab null J." auf Startseite,
 -- Jobboerse und Detailseite – und, schwerer wiegend, `null > alter` ist in
