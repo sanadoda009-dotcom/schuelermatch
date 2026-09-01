@@ -232,7 +232,7 @@ async function ladeJob() {
   // oder ueber Google hier landet, sieht das Dashboard nie - bis zum
   // 27.8. konnte er gar nichts melden.
   document.getElementById('melden-btn').addEventListener('click', () =>
-    meldeMitAnmeldung({ typ: 'job', jobId: job.id, titel: job.titel }))
+    meldeMitAnmeldung({ typ: 'job', jobId: job.id, titel: job.titel, zitat: [job.titel, job.firma_name].filter(Boolean).join(' · ') }))
 
   document.getElementById('share-btn').addEventListener('click', async (e) => {
     try {

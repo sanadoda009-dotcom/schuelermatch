@@ -1485,7 +1485,7 @@ function oeffneDetail(jobId) {
   `
 
   document.querySelector('#detail-body [data-melde-job]')?.addEventListener('click', () => {
-    oeffneMeldeDialog({ typ: 'job', jobId: job.id, titel: job.titel, meineId: profile.id })
+    oeffneMeldeDialog({ typ: 'job', jobId: job.id, titel: job.titel, zitat: [job.titel, job.firma_name].filter(Boolean).join(' · '), meineId: profile.id })
   })
 
   const btn = document.getElementById('detail-bewerben-btn')

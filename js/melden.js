@@ -23,7 +23,16 @@ function escapeHtml(str) {
   return div.innerHTML
 }
 
-export function oeffneMeldeDialog({ typ, jobId = null, nachrichtId = null, titel = '', meineId }) {
+// `zitat` ist das, worum es ging – der Anzeigentitel oder der Wortlaut der
+// Nachricht. Es wird beim Melden MITGESPEICHERT, nicht nachtraeglich
+// nachgeschlagen. Zwei Gruende:
+//   1. Der Betreiber-Bereich behauptete im Kommentar, der gemeldete Inhalt
+//      stecke als `zitat` in der Meldung – geschrieben hat ihn aber keine
+//      einzige Stelle. Bei jeder Meldung stand deshalb "Inhalt nicht mehr
+//      verfuegbar", auch wenn es die Anzeige noch gab.
+//   2. Wer gemeldet wird, kann den Inhalt loeschen. Ohne Kopie steht der
+//      Betreiber dann vor einer Meldung ohne Gegenstand.
+export function oeffneMeldeDialog({ typ, jobId = null, nachrichtId = null, titel = '', zitat = '', meineId }) {
   document.getElementById('melde-overlay')?.remove()
 
   const overlay = document.createElement('div')
@@ -85,7 +94,10 @@ export function oeffneMeldeDialog({ typ, jobId = null, nachrichtId = null, titel
       job_id: typ === 'job' ? jobId : null,
       nachricht_id: typ === 'nachricht' ? nachrichtId : null,
       grund,
-      beschreibung
+      beschreibung,
+      // Kopie des gemeldeten Inhalts, gekuerzt. Sie ueberlebt, auch wenn
+      // die Anzeige oder das Konto danach geloescht wird.
+      zitat: zitat ? zitat.trim().slice(0, 500) : null
     })
 
     if (error) {
@@ -129,7 +141,7 @@ export function meldeButtonHtml(attrs = '') {
 // ohne Umleitung, denn `requireAuth` würde einen Besucher, der nur
 // stöbert, auf die Anmeldeseite werfen.
 
-export async function meldeMitAnmeldung({ typ, jobId = null, nachrichtId = null, titel = '' }) {
+export async function meldeMitAnmeldung({ typ, jobId = null, nachrichtId = null, titel = '', zitat = '' }) {
   let session = null
   try {
     ({ data: { session } } = await supabase.auth.getSession())

@@ -100,6 +100,10 @@ export async function ladeChat(container, bewerbungId, meineId) {
         typ: 'nachricht',
         nachrichtId: b.dataset.meldeNachricht,
         titel: 'Nachricht im Chat melden',
+        // Der Wortlaut wird mitgeschickt und gespeichert. Sonst steht im
+        // Betreiber-Bereich eine Meldung ohne Gegenstand - und wer sie
+        // ausgeloest hat, koennte sein Konto loeschen und alles waere weg.
+        zitat: b.closest('.chat-msg')?.querySelector('p')?.textContent || '',
         meineId
       }))
     })

@@ -287,7 +287,7 @@ function oeffneDetail(jobId) {
   // Chat und im Dashboard - also nirgends dort, wo eine Betrugsanzeige
   // am ehesten gesehen wird.
   document.getElementById('detail-melden').addEventListener('click', () =>
-    meldeMitAnmeldung({ typ: 'job', jobId: job.id, titel: job.titel }))
+    meldeMitAnmeldung({ typ: 'job', jobId: job.id, titel: job.titel, zitat: [job.titel, job.firma_name].filter(Boolean).join(' · ') }))
 
   document.getElementById('detail-share').addEventListener('click', async (e) => {
     const link = `${location.origin}/job.html?id=${job.id}`
