@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { zeigeSeitenfehler } from './zustand.js'
+import { zeigeSeitenfehler, zeigeHinweisSeite } from './zustand.js'
 
 // Prüft ob jemand eingeloggt ist und die richtige Rolle hat.
 // Leitet sonst automatisch weiter.
@@ -12,7 +12,13 @@ import { zeigeSeitenfehler } from './zustand.js'
 // dabei zusätzlich im Schüler-Dashboard.
 // Deshalb wird jetzt zwischen "konnte nicht laden" und "andere Rolle"
 // unterschieden. Nur der zweite Fall leitet weiter.
-export async function requireAuth(expectedRole) {
+// `optionen.hinweis` ist fuer Funktionsseiten gedacht (nicht fuer die
+// Dashboards): Wer dort mit der falschen Rolle landet, wird nicht stumm
+// weitergeschoben, sondern bekommt gesagt, warum die Seite nichts fuer ihn
+// ist. Anlass (1.9.2026): Sanad klickte im Ratgeber auf "Wie bewerbe ich
+// mich?", war als Firma angemeldet – und stand ohne Erklaerung im
+// Formular zum Anzeigen-Aufgeben.
+export async function requireAuth(expectedRole, optionen = {}) {
   let session = null
   try {
     ({ data: { session } } = await supabase.auth.getSession())
@@ -50,6 +56,12 @@ export async function requireAuth(expectedRole) {
 
   if (expectedRole && profile?.role !== expectedRole) {
     const ziel = profile?.role === 'firma' ? 'dashboard-firma.html' : 'dashboard-schueler.html'
+
+    const hinweis = optionen.hinweis?.[profile?.role]
+    if (hinweis) {
+      zeigeHinweisSeite(hinweis)
+      return null
+    }
     // Niemals auf die Seite weiterleiten, auf der wir schon stehen –
     // das war der zweite Teil der Schleife.
     if (location.pathname.endsWith(ziel)) {

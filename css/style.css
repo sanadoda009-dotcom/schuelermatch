@@ -2698,3 +2698,180 @@ main[tabindex="-1"]:focus { outline: none; }
   .weg-marke svg { width: 21px; height: 21px; }
   .weg-station::before { left: 18px; top: 40px; }
 }
+
+/* Seiten mit Rollenpruefung: Inhalt zurueckhalten, bis feststeht, ob er
+   ueberhaupt fuer diesen Besucher ist. `visibility` statt `display`,
+   damit das Layout nicht springt. Der Wecker in der Seite nimmt die
+   Klasse zur Not selbst wieder weg – eine dauerhaft leere Seite waere
+   schlimmer als ein kurzes Aufblitzen. */
+.pruefe-zugang { visibility: hidden; }
+
+/* ============================================================
+   LEBENSLAUF-EDITOR, UMGEBAUT (1.9.2026)
+
+   Sanad: das Eintippen, Bearbeiten und Verschieben sei "einfach
+   hässlich" und man verstehe es nicht auf Anhieb. Angesehen habe ich
+   mir dafür Resumonk, Kickresume, Rezi, Enhancv und lebenslauf.de.
+   Drei Dinge sind dort überall gleich:
+
+     1. Verschoben wird an einem Griff, nicht mit Textpfeilchen.
+     2. Werkzeuge stehen nicht in der Kopfzeile, wo sie die
+        Überschrift zerdrücken.
+     3. Ein neuer Abschnitt kommt aus einer benannten Auswahl, nicht
+        aus acht gleich aussehenden Knöpfen nebeneinander.
+   ============================================================ */
+
+/* --- Kopfzeile der Karte: Griff, Haken, Name, Art --- */
+.ll-karte summary { gap: 4px; }
+
+.ll-griff {
+  flex-shrink: 0;
+  width: 44px; height: 44px;
+  margin-left: -10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--ink-soft);
+  font-size: 1.05rem; line-height: 1;
+  cursor: grab;
+  border-radius: 8px;
+  /* Ohne das scrollt das Handy die Seite, statt die Karte zu ziehen. */
+  touch-action: none;
+}
+.ll-griff:hover { background: var(--paper); color: var(--ink); }
+.ll-karte .ll-griff:active { cursor: grabbing; }
+
+/* Die Art des Abschnitts in Worten statt in Grossbuchstaben-Fachsprache. */
+.ll-karte-typ {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* --- Werkzeuge im Fuss der Karte statt in der Kopfzeile --- */
+.ll-karte-fuss {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.ll-werkzeug {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 0.82rem; font-weight: 500;
+  cursor: pointer;
+}
+.ll-werkzeug:hover:not(:disabled) { background: var(--paper); }
+.ll-werkzeug:disabled { opacity: 0.4; cursor: default; }
+.ll-werkzeug-weg { margin-left: auto; color: var(--coral); border-color: rgba(165,68,44,0.28); }
+.ll-werkzeug-weg:hover { background: rgba(165,68,44,0.07); }
+.ll-werkzeug-weg.weg-confirm { background: var(--coral); color: #fff; border-color: var(--coral); }
+
+/* --- Hilfstext unter einem Feld --- */
+.ll-feldhilfe {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  margin: 6px 0 0;
+}
+
+/* --- Knopf fuer Hilfen und "+ Sprache" / "+ Faehigkeit" --- */
+.ll-hilfe-knopf {
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 10px 16px;
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 0.82rem; font-weight: 500;
+  cursor: pointer;
+}
+.ll-hilfe-knopf:hover { background: var(--paper); border-style: solid; }
+
+/* --- Zeilen fuer Sprachen und Faehigkeiten ---
+   Vorher: Eingabefeld, Regler und ein winziges Kreuz in einer engen
+   Reihe, ohne Beschriftung. Jetzt hat jedes Feld seinen Namen, und der
+   Entfernen-Knopf ist gross genug zum Treffen. */
+.ll-zeilen { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.ll-zeile {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+}
+.ll-zeile .form-group { margin: 0; }
+.ll-zeile input[type="range"] { width: 100%; accent-color: var(--match-green); height: 28px; }
+.ll-stufe { color: var(--match-green-dark); font-weight: 600; }
+.ll-zeile-weg {
+  min-height: 44px; padding: 10px 14px;
+  border: 1.5px solid rgba(165,68,44,0.28);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--coral);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 0.8rem; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+}
+.ll-zeile-weg:hover { background: rgba(165,68,44,0.07); }
+
+/* --- Bild-Zeile --- */
+.ll-bild-zeile { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.ll-bild-zeile .btn, .ll-foto-knopf { min-height: 44px; padding: 10px 16px; font-size: 0.82rem; }
+.ll-bild-weg { color: var(--coral); }
+
+/* --- Auswahl fuer einen neuen Abschnitt --- */
+.ll-abschnitt-box { margin-top: 22px; }
+.ll-abschnitt-btn { width: 100%; min-height: 48px; }
+.ll-abschnitt-wahl { display: none; margin-top: 12px; }
+.ll-abschnitt-wahl.offen { display: block; }
+.ll-wahl-gruppe + .ll-wahl-gruppe { margin-top: 18px; }
+.ll-wahl-titel {
+  font-size: 0.74rem; font-weight: 600;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+}
+.ll-wahl {
+  display: block; width: 100%; text-align: left;
+  margin-bottom: 8px; padding: 14px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  cursor: pointer;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+.ll-wahl:hover { border-color: var(--match-green); background: var(--paper); }
+.ll-wahl b { display: block; font-size: 0.92rem; color: var(--ink); margin-bottom: 3px; }
+.ll-wahl span { display: block; font-size: 0.8rem; line-height: 1.45; color: var(--ink-soft); }
+
+/* --- Waehrend des Ziehens --- */
+.ll-zieht-gerade { cursor: grabbing; }
+.ll-zieht-gerade .ll-karte { transition: transform 0.12s ease; }
+.ll-karte.zieht {
+  border-color: var(--match-green);
+  box-shadow: 0 12px 28px rgba(22,26,31,0.16);
+  opacity: 0.95;
+}
+
+/* --- Schmale Raender --- */
+@media (max-width: 560px) {
+  .ll-zeile { grid-template-columns: 1fr; align-items: stretch; }
+  .ll-zeile-weg { width: 100%; }
+  .ll-werkzeug { flex: 1 1 100%; }
+  .ll-werkzeug-weg { margin-left: 0; }
+  .ll-karte-typ { display: none; }   /* Platz gehoert hier dem Namen */
+}

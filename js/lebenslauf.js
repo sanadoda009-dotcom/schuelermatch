@@ -62,11 +62,112 @@ const FORMULIERUNGS_BEISPIELE = [
 
 const CEFR_NIVEAUS = ['Muttersprache', 'C2', 'C1', 'B2', 'B1', 'A2', 'A1']
 
+// ---------------------------------------------------------------------------
+// UMBAU DES EDITORS (1.9.2026)
+//
+// Sanad: "wie man die sachen eintippt, es bearbeitet, reinschreibt, pfeil
+// nach oben schiebt ist einfach haesslich und man checkt es nicht ganz
+// schnell". Angesehen habe ich mir dafuer Resumonk, Kickresume, Rezi,
+// Enhancv und lebenslauf.de. Was dort ueberall gleich ist:
+//
+//   1. Verschoben wird mit einem Griff zum Ziehen, nicht mit Pfeilchen.
+//      Die Pfeile bleiben trotzdem - ohne sie waere es fuer Tastatur und
+//      Vorlesehilfen nicht bedienbar (WCAG 2.2, 2.5.7 "Dragging
+//      Movements" verlangt einen Weg ohne Ziehen).
+//   2. Ein Abschnitt wird ueber eine benannte Auswahl hinzugefuegt, nicht
+//      ueber acht gleichrangige Knoepfe nebeneinander.
+//   3. Die Werkzeuge stehen nicht in der Kopfzeile, wo sie die
+//      Ueberschrift zerdruecken.
+//
+// Und aus den deutschen Ratgebern: Ein Schueler-Lebenslauf ist
+// tabellarisch und **antichronologisch** - das Neueste oben. Das steht
+// jetzt in den Platzhaltern, damit niemand raten muss.
+
+// Der Typ eines Abschnitts in Worten. An der Karte stand vorher
+// "SKILLBAR" - das versteht niemand.
+const TYP_NAME = {
+  text: 'Text',
+  skills: 'Stichworte',
+  sprachen: 'Sprache & Niveau',
+  skillbar: 'Fähigkeiten mit Balken',
+  bild: 'Bild',
+}
+
+// Der Schieberegler sagt jetzt ein Wort statt einer Prozentzahl.
+const STUFEN = ['Anfänger', 'Grundlagen', 'Geübt', 'Gut', 'Sehr gut', 'Stark']
+function stufenWort(wert) {
+  return STUFEN[Math.min(STUFEN.length - 1, Math.max(0, Math.round((Number(wert) || 0) / 20)))]
+}
+
+// Die Auswahl hinter "+ Abschnitt hinzufuegen". Jeder Eintrag sagt, wofuer
+// er da ist - vorher musste man aus dem Knopfnamen raten.
+const ABSCHNITTE = [
+  {
+    gruppe: 'Das gehört fast immer rein',
+    eintraege: [
+      { typ: 'text', titel: 'Schulbildung',
+        was: 'Welche Schule, welche Klasse, welcher Abschluss.',
+        platzhalter: `seit 2023 · Gymnasium Musterstadt, 9. Klasse
+2019–2023 · Grundschule Nord` },
+      { typ: 'text', titel: 'Erfahrung',
+        was: 'Praktika, Ehrenamt, Babysitten, Nachbarschaftshilfe – alles zählt.',
+        platzhalter: `März 2026 · Schülerpraktikum Bäckerei Kern
+seit 2025 · Babysitten in der Nachbarschaft` },
+      { typ: 'skillbar', titel: 'Fähigkeiten',
+        was: 'Was du kannst, mit einem Balken dahinter.' },
+    ],
+  },
+  {
+    gruppe: 'Wenn es passt',
+    eintraege: [
+      { typ: 'sprachen', titel: 'Sprachen',
+        was: 'Sprache und Niveau, von A1 bis Muttersprache.' },
+      { typ: 'skills', titel: 'Interessen',
+        was: 'Ein paar Stichworte, mit Komma getrennt.' },
+      { typ: 'text', titel: 'Wann ich Zeit habe',
+        was: 'Damit die Firma gleich sieht, ob es zu deinem Stundenplan passt.',
+        platzhalter: 'Mo–Fr ab 15 Uhr · Wochenende flexibel · Ferien ganztags' },
+      { typ: 'text', titel: '', name: 'Eigener Abschnitt',
+        was: 'Einer, den du selbst benennst.' },
+      { typ: 'bild', titel: '', name: 'Bild',
+        was: 'Ein Zeugnis, eine Urkunde oder ein Foto von deiner Arbeit.' },
+    ],
+  },
+]
+
 /* ---------- Start ---------- */
 
+// Der Editor steht statisch im HTML und war deshalb schon da, bevor
+// requireAuth antworten konnte – man sah ihn kurz aufblitzen und wurde
+// dann weggeschoben. Er wird jetzt bis zur Antwort zurueckgehalten.
+// `visibility` statt `display`, damit sich das Layout nicht verschiebt.
+function zeigeEditor() {
+  document.querySelector('main')?.classList.remove('pruefe-zugang')
+}
+
 async function init() {
-  profile = await requireAuth('schueler')
+  // Der Lebenslauf-Editor ist eine Schuelerseite. Wer als Firma hier
+  // landet (etwa ueber den Ratgeber), bekommt das gesagt – frueher wurde
+  // er wortlos ins Formular zum Anzeigen-Aufgeben geschoben.
+  profile = await requireAuth('schueler', {
+    hinweis: {
+      firma: {
+        titel: 'Der Lebenslauf-Editor ist für Schüler',
+        text: 'Du bist als Arbeitgeber angemeldet. Diese Seite hilft Schülern dabei, ' +
+              'ihren Lebenslauf zu schreiben – für dich gibt es sie deshalb nicht. ' +
+              'Was Schüler hier zusammenstellen, siehst du bei jeder Bewerbung auf deine Anzeigen.',
+        knoepfe: [
+          { text: 'Zu deinen Anzeigen', href: 'dashboard-firma.html' },
+          { text: 'Zurück zum Ratgeber', href: 'ratgeber.html' },
+        ],
+      },
+    },
+  })
+  // Erst freigeben, wenn feststeht, dass die Seite bleibt. Bei einer
+  // Weiterleitung (nicht angemeldet) bliebe sie sonst kurz sichtbar,
+  // genau der Effekt, der hier weg soll.
   if (!profile) return
+  zeigeEditor()
 
   bloecke = Array.isArray(profile.lebenslauf_bloecke) && profile.lebenslauf_bloecke.length
     ? profile.lebenslauf_bloecke : []
@@ -131,85 +232,245 @@ function renderKarten() {
 
   const persoenlichVoll = Boolean((profile.name || '').trim() && (profile.schule || '').trim())
   const karten = [`
-    <details class="ll-karte" data-karte="persoenlich" ${offeneKarten.has('persoenlich') ? 'open' : ''}>
-      <summary><span class="ll-check ${persoenlichVoll ? 'ok' : ''}">${persoenlichVoll ? '✓' : ''}</span> Persönliches <span class="ll-karte-typ mono">PROFIL</span></summary>
+    <details class="ll-karte ll-karte-fest" data-karte="persoenlich" ${offeneKarten.has('persoenlich') ? 'open' : ''}>
+      <summary>
+        <span class="ll-check ${persoenlichVoll ? 'ok' : ''}" aria-hidden="true">${persoenlichVoll ? '✓' : ''}</span>
+        <span class="ll-karte-name">Persönliches</span>
+        <span class="ll-karte-typ">Kopf des Lebenslaufs</span>
+      </summary>
       <div class="ll-karte-body">
         <div class="ll-foto-zeile">
           <div class="cv-photo-preview" id="ll-foto-preview" style="${sichereMediaUrl(profile.foto_url) ? `background-image:url('${sichereMediaUrl(profile.foto_url)}')` : ''}">${sichereMediaUrl(profile.foto_url) ? '' : '📷'}</div>
           <div>
             <input type="file" id="ll-foto" accept="image/*" aria-label="Profilbild auswählen" style="display:none;">
-            <button type="button" class="btn btn-outline" id="ll-foto-btn" style="padding:8px 14px; font-size:0.82rem;">${profile.foto_url ? 'Foto ändern' : 'Foto hochladen'}</button>
-            <p class="mono" style="font-size:0.68rem; color:var(--ink-soft); margin-top:6px;">Optional, aber empfohlen (max. 3 MB)</p>
+            <button type="button" class="btn btn-outline ll-foto-knopf" id="ll-foto-btn">${profile.foto_url ? 'Foto ändern' : 'Foto hochladen'}</button>
+            <p class="ll-feldhilfe">Freiwillig – niemand darf eins verlangen. Höchstens 3 MB.</p>
           </div>
         </div>
-        <div class="form-group"><label for="ll-name">Name</label><input type="text" id="ll-name" value="${escapeHtml(profile.name || '')}"></div>
+        <div class="form-group"><label for="ll-name">Name</label><input type="text" id="ll-name" value="${escapeHtml(profile.name || '')}" placeholder="Vor- und Nachname"></div>
         <div class="ll-zwei">
           <div class="form-group"><label for="ll-schule">Schule</label><input type="text" id="ll-schule" value="${escapeHtml(profile.schule || '')}" placeholder="z.B. Gymnasium Musterstadt"></div>
           <div class="form-group"><label for="ll-klasse">Klasse</label><input type="text" id="ll-klasse" value="${escapeHtml(profile.klasse || '')}" placeholder="z.B. 9. Klasse"></div>
         </div>
         <div class="ll-zwei">
           <div class="form-group"><label for="ll-ort">Ort</label><input type="text" id="ll-ort" value="${escapeHtml(profile.ort || '')}" placeholder="z.B. München"></div>
-          <div class="form-group"><label for="ll-email">E-Mail (aus deinem Konto)</label><input type="text" id="ll-email" value="${escapeHtml(profile.email || '')}" disabled></div>
+          <div class="form-group"><label for="ll-email">E-Mail</label><input type="text" id="ll-email" value="${escapeHtml(profile.email || '')}" disabled>
+            <p class="ll-feldhilfe">Kommt aus deinem Konto und lässt sich hier nicht ändern.</p></div>
         </div>
       </div>
     </details>`]
 
-  for (const b of bloecke) {
+  bloecke.forEach((b, i) => {
+    const erste = i === 0
+    const letzte = i === bloecke.length - 1
     karten.push(`
-    <details class="ll-karte" data-karte="${b.id}" ${offeneKarten.has(b.id) ? 'open' : ''}>
+    <details class="ll-karte" data-karte="${b.id}" data-pos="${i}" ${offeneKarten.has(b.id) ? 'open' : ''}>
       <summary>
-        <span class="ll-check ${blockGefuellt(b) ? 'ok' : ''}">${blockGefuellt(b) ? '✓' : ''}</span>
+        <span class="ll-griff" aria-hidden="true" title="Ziehen zum Verschieben">⠿</span>
+        <span class="ll-check ${blockGefuellt(b) ? 'ok' : ''}" aria-hidden="true">${blockGefuellt(b) ? '✓' : ''}</span>
         <span class="ll-karte-name">${escapeHtml(kartenTitel(b))}</span>
-        <span class="ll-karte-typ mono">${b.typ.toUpperCase()}</span>
-        <span class="ll-karte-tools">
-          <button type="button" data-hoch="${b.id}" title="Nach oben">↑</button>
-          <button type="button" data-runter="${b.id}" title="Nach unten">↓</button>
-          <button type="button" data-weg="${b.id}" title="Löschen">✕</button>
-        </span>
+        <span class="ll-karte-typ">${TYP_NAME[b.typ] || b.typ}</span>
       </summary>
       <div class="ll-karte-body">
-        <div class="form-group"><label>Titel des Abschnitts</label>
-          <input type="text" class="ll-titel" aria-label="Überschrift des Abschnitts" data-id="${b.id}" value="${escapeHtml(b.titel || '')}" placeholder="z.B. Erfahrung"></div>
+        <div class="form-group">
+          <label for="titel-${b.id}">Überschrift</label>
+          <input type="text" id="titel-${b.id}" class="ll-titel" data-id="${b.id}" value="${escapeHtml(b.titel || '')}" placeholder="z.B. Erfahrung">
+        </div>
         ${editorFuer(b)}
+        <div class="ll-karte-fuss">
+          <button type="button" class="ll-werkzeug" data-hoch="${b.id}" ${erste ? 'disabled' : ''}>↑ Nach oben</button>
+          <button type="button" class="ll-werkzeug" data-runter="${b.id}" ${letzte ? 'disabled' : ''}>↓ Nach unten</button>
+          <button type="button" class="ll-werkzeug ll-werkzeug-weg" data-weg="${b.id}">Abschnitt löschen</button>
+        </div>
       </div>
     </details>`)
-  }
+  })
 
   wrap.innerHTML = karten.join('')
   bindeKarten(wrap)
+  bindeZiehen(wrap)
+  wachseMit(wrap)
   aktualisiereFortschritt()
 }
 
 function editorFuer(b) {
   if (b.typ === 'text') return `
-    <textarea class="ll-inhalt" aria-label="Text des Abschnitts" data-id="${b.id}" placeholder="${escapeHtml(b.platzhalter || 'Dein Text…')}" rows="4">${escapeHtml(b.inhalt || '')}</textarea>
-    <button type="button" class="tipp-btn ll-tipp" data-id="${b.id}">💡 Formulierungshilfe</button>`
-  if (b.typ === 'skills') return `
-    <input type="text" class="ll-tags" data-id="${b.id}" value="${escapeHtml(b.tags || '')}" placeholder="Komma-getrennt, z.B. Fußball, Zeichnen, Technik">`
-  if (b.typ === 'sprachen') return (b.sprachen || []).map((s, i) => `
-    <div class="zeilen-editor">
-      <input type="text" class="ll-sprache-name" aria-label="Sprache" data-id="${b.id}" data-i="${i}" placeholder="z.B. Deutsch" value="${escapeHtml(s.name || '')}">
-      <select class="ll-sprache-niveau" aria-label="Sprachniveau" data-id="${b.id}" data-i="${i}">
-        ${CEFR_NIVEAUS.map(n => `<option ${s.niveau === n ? 'selected' : ''}>${n}</option>`).join('')}
-      </select>
-      <button type="button" class="zeile-weg" data-zeile-weg="${b.id}" data-i="${i}">✕</button>
-    </div>`).join('') + `
-    <button type="button" class="tipp-btn" data-sprache-add="${b.id}">+ Sprache</button>`
-  if (b.typ === 'skillbar') return (b.skills || []).map((s, i) => `
-    <div class="zeilen-editor">
-      <input type="text" class="ll-skill-name" aria-label="Fähigkeit" data-id="${b.id}" data-i="${i}" placeholder="z.B. Teamfähigkeit" value="${escapeHtml(s.name || '')}">
-      <input type="range" class="ll-skill-wert" aria-label="Ausprägung in Prozent" data-id="${b.id}" data-i="${i}" min="0" max="100" step="10" value="${s.wert ?? 60}">
-      <button type="button" class="zeile-weg" data-zeile-weg="${b.id}" data-i="${i}">✕</button>
-    </div>`).join('') + `
-    <button type="button" class="tipp-btn" data-skill-add="${b.id}">+ Fähigkeit</button>`
-  if (b.typ === 'bild') return `
-    <input type="file" class="ll-bild-datei" data-id="${b.id}" accept="image/*" style="display:none;">
-    <div style="display:flex; gap:8px;">
-      <button type="button" class="btn btn-outline ll-bild-btn" data-id="${b.id}" style="padding:8px 14px; font-size:0.82rem;">${b.bild_url ? 'Bild ändern' : 'Bild auswählen'}</button>
-      ${b.bild_url ? `<button type="button" class="btn btn-outline ll-bild-weg" data-id="${b.id}" style="padding:8px 14px; font-size:0.82rem; color:var(--coral);">Entfernen</button>` : ''}
+    <div class="form-group">
+      <label for="inhalt-${b.id}">Was drinstehen soll</label>
+      <textarea id="inhalt-${b.id}" class="ll-inhalt" data-id="${b.id}" placeholder="${escapeHtml(b.platzhalter || 'Dein Text…')}" rows="4">${escapeHtml(b.inhalt || '')}</textarea>
+      <p class="ll-feldhilfe">Eine Zeile pro Eintrag – das Neueste zuerst.</p>
     </div>
-    ${sichereMediaUrl(b.bild_url) ? `<img src="${sichereMediaUrl(b.bild_url)}" class="block-image-preview">` : ''}`
+    <button type="button" class="ll-hilfe-knopf ll-tipp" data-id="${b.id}">💡 Beispielsatz einfügen</button>`
+
+  if (b.typ === 'skills') return `
+    <div class="form-group">
+      <label for="tags-${b.id}">Stichworte</label>
+      <input type="text" id="tags-${b.id}" class="ll-tags" data-id="${b.id}" value="${escapeHtml(b.tags || '')}" placeholder="Fußball, Zeichnen, Technik">
+      <p class="ll-feldhilfe">Mit Komma getrennt. Vier bis sechs reichen.</p>
+    </div>`
+
+  if (b.typ === 'sprachen') return `
+    <div class="ll-zeilen">
+      ${(b.sprachen || []).map((sp, i) => `
+        <div class="ll-zeile">
+          <div class="form-group ll-zeile-haupt">
+            <label for="spr-${b.id}-${i}">Sprache</label>
+            <input type="text" id="spr-${b.id}-${i}" class="ll-sprache-name" data-id="${b.id}" data-i="${i}" placeholder="z.B. Deutsch" value="${escapeHtml(sp.name || '')}">
+          </div>
+          <div class="form-group ll-zeile-neben">
+            <label for="niv-${b.id}-${i}">Niveau</label>
+            <select id="niv-${b.id}-${i}" class="ll-sprache-niveau" data-id="${b.id}" data-i="${i}">
+              ${CEFR_NIVEAUS.map(n => `<option ${sp.niveau === n ? 'selected' : ''}>${n}</option>`).join('')}
+            </select>
+          </div>
+          <button type="button" class="ll-zeile-weg" data-zeile-weg="${b.id}" data-i="${i}">Entfernen</button>
+        </div>`).join('')}
+    </div>
+    <button type="button" class="ll-hilfe-knopf" data-sprache-add="${b.id}">+ Sprache</button>`
+
+  if (b.typ === 'skillbar') return `
+    <div class="ll-zeilen">
+      ${(b.skills || []).map((sk, i) => `
+        <div class="ll-zeile">
+          <div class="form-group ll-zeile-haupt">
+            <label for="skn-${b.id}-${i}">Fähigkeit</label>
+            <input type="text" id="skn-${b.id}-${i}" class="ll-skill-name" data-id="${b.id}" data-i="${i}" placeholder="z.B. Teamfähigkeit" value="${escapeHtml(sk.name || '')}">
+          </div>
+          <div class="form-group ll-zeile-neben">
+            <label for="skw-${b.id}-${i}">Wie gut: <span class="ll-stufe" data-stufe="${b.id}-${i}">${stufenWort(sk.wert ?? 60)}</span></label>
+            <input type="range" id="skw-${b.id}-${i}" class="ll-skill-wert" data-id="${b.id}" data-i="${i}" min="0" max="100" step="20" value="${sk.wert ?? 60}">
+          </div>
+          <button type="button" class="ll-zeile-weg" data-zeile-weg="${b.id}" data-i="${i}">Entfernen</button>
+        </div>`).join('')}
+    </div>
+    <button type="button" class="ll-hilfe-knopf" data-skill-add="${b.id}">+ Fähigkeit</button>`
+
+  if (b.typ === 'bild') return `
+    <input type="file" class="ll-bild-datei" data-id="${b.id}" accept="image/*" aria-label="Bild auswählen" style="display:none;">
+    <div class="ll-bild-zeile">
+      <button type="button" class="btn btn-outline ll-bild-btn" data-id="${b.id}">${b.bild_url ? 'Bild ändern' : 'Bild auswählen'}</button>
+      ${b.bild_url ? `<button type="button" class="btn btn-outline ll-bild-weg" data-id="${b.id}">Entfernen</button>` : ''}
+    </div>
+    ${sichereMediaUrl(b.bild_url) ? `<img src="${sichereMediaUrl(b.bild_url)}" class="block-image-preview" alt="Vorschau des hochgeladenen Bildes">` : ''}`
+
   return ''
+}
+
+// Textfelder wachsen mit dem Inhalt. Vorher blieb jedes bei vier Zeilen
+// stehen und man tippte in ein Guckloch.
+function wachseMit(wrap) {
+  wrap.querySelectorAll('textarea.ll-inhalt').forEach(ta => {
+    const passe = () => {
+      ta.style.height = 'auto'
+      ta.style.height = Math.max(96, ta.scrollHeight) + 'px'
+    }
+    ta.addEventListener('input', passe)
+    passe()
+  })
+}
+
+// Verschieben durch Ziehen am Griff. Finger und Maus laufen über dieselben
+// Pointer-Ereignisse, deshalb funktioniert es auch am Handy.
+//
+// Während des Ziehens wird die Karte NUR optisch angehoben; verschoben wird
+// erst beim Loslassen. Der erste Versuch schob die Karte schon während der
+// Bewegung im Dokument herum – dabei wird sie kurz aus dem Dokument genommen
+// und wieder eingesetzt, und genau das beendet die Pointer-Erfassung. Nach
+// dem ersten Sprung kam kein Ereignis mehr an.
+//
+// Die beiden Knöpfe im Kartenfuß bleiben als Weg ohne Ziehen bestehen –
+// ohne sie wäre die Reihenfolge mit der Tastatur nicht änderbar
+// (WCAG 2.2, 2.5.7 "Dragging Movements").
+function bindeZiehen(wrap) {
+  const beweglich = () => [...wrap.querySelectorAll('details.ll-karte:not(.ll-karte-fest)')]
+
+  wrap.querySelectorAll('.ll-griff').forEach(griff => {
+    let karte = null
+    let startY = 0
+    let andere = []
+
+    // `preventDefault()` auf pointerdown allein reicht nicht: <summary>
+    // klappt auch beim anschliessenden click um. Den fangen wir hier ab.
+    griff.addEventListener('click', e => { e.preventDefault(); e.stopPropagation() })
+
+    griff.addEventListener('pointerdown', e => {
+      e.preventDefault()            // sonst beginnt eine Textauswahl
+      karte = griff.closest('details.ll-karte')
+      startY = e.clientY
+      // Die Lage der übrigen Karten einmal merken. Sie bewegen sich
+      // während des Ziehens nicht, also stimmt das bis zum Loslassen.
+      andere = beweglich().filter(k => k !== karte)
+        .map(k => {
+          const r = k.getBoundingClientRect()
+          return { id: k.dataset.karte, mitte: r.top + r.height / 2 }
+        })
+      karte.classList.add('zieht')
+      wrap.classList.add('ll-zieht-gerade')
+      griff.setPointerCapture(e.pointerId)
+    })
+
+    griff.addEventListener('pointermove', e => {
+      if (!karte) return
+      karte.style.transform = `translateY(${e.clientY - startY}px)`
+    })
+
+    const loslassen = e => {
+      if (!karte) return
+      const y = e.clientY
+      const id = karte.dataset.karte
+      karte.style.transform = ''
+      karte.classList.remove('zieht')
+      wrap.classList.remove('ll-zieht-gerade')
+      karte = null
+
+      // An welche Stelle gehört sie jetzt? So viele Karten, wie oberhalb
+      // des Zeigers enden, liegen künftig davor.
+      const ziel = andere.filter(k => k.mitte < y).length
+      const von = bloecke.findIndex(b => b.id === id)
+      if (von < 0 || ziel === von) return
+      const [b] = bloecke.splice(von, 1)
+      bloecke.splice(ziel, 0, b)
+      geaendert(true)
+    }
+    griff.addEventListener('pointerup', loslassen)
+    griff.addEventListener('pointercancel', loslassen)
+  })
+}
+
+// Die Auswahl hinter "+ Abschnitt hinzufügen". Vorher standen hier acht
+// gleichrangige Knöpfe nebeneinander; jetzt sagt jeder Eintrag, wofür er da ist.
+function renderAbschnittWahl() {
+  const wrap = document.getElementById('ll-abschnitt-wahl')
+  if (!wrap) return
+  wrap.innerHTML = ABSCHNITTE.map((g, gi) => `
+    <div class="ll-wahl-gruppe">
+      <p class="ll-wahl-titel">${escapeHtml(g.gruppe)}</p>
+      ${g.eintraege.map((e, i) => `
+        <button type="button" class="ll-wahl" data-g="${gi}" data-nr="${i}">
+          <b>${escapeHtml(e.name || e.titel)}</b>
+          <span>${escapeHtml(e.was)}</span>
+        </button>`).join('')}
+    </div>`).join('')
+
+  wrap.querySelectorAll('.ll-wahl').forEach(btn => btn.addEventListener('click', () => {
+    const vorlage = ABSCHNITTE[Number(btn.dataset.g)].eintraege[Number(btn.dataset.nr)]
+    const basis = { id: neueId(), typ: vorlage.typ, titel: vorlage.titel || '' }
+    if (vorlage.platzhalter) basis.platzhalter = vorlage.platzhalter
+    if (vorlage.typ === 'sprachen') basis.sprachen = [{ name: '', niveau: 'B1' }]
+    if (vorlage.typ === 'skillbar') basis.skills = [{ name: '', wert: 60 }]
+    bloecke.push(basis)
+    offeneKarten.add(basis.id)          // gleich offen - man will ja tippen
+    schliesseAbschnittWahl()
+    geaendert(true)
+    setTimeout(() => {
+      document.querySelector(`details[data-karte="${basis.id}"] input, details[data-karte="${basis.id}"] textarea`)?.focus()
+    }, 60)
+  }))
+}
+
+function schliesseAbschnittWahl() {
+  document.getElementById('ll-abschnitt-wahl')?.classList.remove('offen')
+  document.getElementById('ll-abschnitt-btn')?.setAttribute('aria-expanded', 'false')
 }
 
 function bindeKarten(wrap) {
@@ -246,7 +507,14 @@ function bindeKarten(wrap) {
   wrap.querySelectorAll('.ll-sprache-name').forEach(el => el.addEventListener('input', () => { block(el.dataset.id).sprachen[el.dataset.i].name = el.value; geaendert(false) }))
   wrap.querySelectorAll('.ll-sprache-niveau').forEach(el => el.addEventListener('change', () => { block(el.dataset.id).sprachen[el.dataset.i].niveau = el.value; geaendert(false) }))
   wrap.querySelectorAll('.ll-skill-name').forEach(el => el.addEventListener('input', () => { block(el.dataset.id).skills[el.dataset.i].name = el.value; geaendert(false) }))
-  wrap.querySelectorAll('.ll-skill-wert').forEach(el => el.addEventListener('input', () => { block(el.dataset.id).skills[el.dataset.i].wert = parseInt(el.value); geaendert(false) }))
+  wrap.querySelectorAll('.ll-skill-wert').forEach(el => el.addEventListener('input', () => {
+    block(el.dataset.id).skills[el.dataset.i].wert = parseInt(el.value)
+    // Das Wort neben der Beschriftung mitziehen - eine Prozentzahl sagt
+    // niemandem etwas, "Gut" schon.
+    const stufe = wrap.querySelector(`.ll-stufe[data-stufe="${el.dataset.id}-${el.dataset.i}"]`)
+    if (stufe) stufe.textContent = stufenWort(el.value)
+    geaendert(false)
+  }))
 
   // Strukturänderungen (bauen die Karten neu)
   wrap.querySelectorAll('[data-sprache-add]').forEach(el => el.addEventListener('click', () => {
@@ -310,20 +578,16 @@ function verschiebe(id, richtung) {
 /* ---------- Statische Bedienelemente ---------- */
 
 function bindeStatisches() {
-  // Abschnitt hinzufügen
-  document.querySelectorAll('.block-add-btn').forEach(btn => btn.addEventListener('click', () => {
-    const typ = btn.dataset.add
-    const basis = { id: neueId(), typ, titel: btn.dataset.titel || '' }
-    if (btn.dataset.platzhalter) basis.platzhalter = btn.dataset.platzhalter
-    if (typ === 'text') basis.inhalt = ''
-    if (typ === 'skills') basis.tags = ''
-    if (typ === 'bild') basis.bild_url = ''
-    if (typ === 'sprachen') basis.sprachen = [{ name: '', niveau: 'B1' }]
-    if (typ === 'skillbar') basis.skills = [{ name: '', wert: 60 }]
-    bloecke.push(basis)
-    offeneKarten.add(basis.id)
-    geaendert(true)
-  }))
+  // Abschnitt hinzufügen: ein Knopf, der eine benannte Auswahl aufklappt.
+  renderAbschnittWahl()
+  const wahlBtn = document.getElementById('ll-abschnitt-btn')
+  const wahl = document.getElementById('ll-abschnitt-wahl')
+  wahlBtn?.addEventListener('click', () => {
+    const offen = wahl.classList.toggle('offen')
+    wahlBtn.setAttribute('aria-expanded', String(offen))
+    if (offen) wahl.querySelector('.ll-wahl')?.focus()
+  })
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') schliesseAbschnittWahl() })
 
   // Vorlagen
   document.querySelectorAll('#ll-vorlagen [data-vorlage]').forEach(btn => btn.addEventListener('click', () => {

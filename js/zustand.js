@@ -34,6 +34,7 @@ export function zeigeLadefehler(container, erneut, text) {
 // ohne die Daten gar keinen Sinn ergibt (z.B. das eigene Profil).
 export function zeigeSeitenfehler({ titel, text, erneut } = {}) {
   const ziel = document.querySelector('main') || document.body
+  ziel.classList.remove('pruefe-zugang')
   ziel.innerHTML = `
     <div class="seiten-fehler">
       <div class="empty-state fehler-state">
@@ -51,6 +52,26 @@ export function zeigeSeitenfehler({ titel, text, erneut } = {}) {
     if (typeof erneut === 'function') erneut()
     else location.reload()
   })
+}
+
+// Kein Fehler, sondern eine Auskunft: "Diese Seite ist nichts fuer dich,
+// und hier geht es weiter." Bewusst NICHT zeigeSeitenfehler – das bietet
+// "Nochmal versuchen" an und rät, die Internetverbindung zu prüfen. Beides
+// ist hier falsch: Es liegt keine Störung vor, und ein zweiter Versuch
+// ändert nichts.
+export function zeigeHinweisSeite({ titel, text, knoepfe = [] }) {
+  const ziel = document.querySelector('main') || document.body
+  ziel.classList.remove('pruefe-zugang')
+  ziel.innerHTML = `
+    <div class="seiten-fehler">
+      <div class="empty-state">
+        <h1>${titel}</h1>
+        <p>${text}</p>
+        <div class="fehler-knoepfe">
+          ${knoepfe.map((k, i) => `<a class="btn ${i === 0 ? 'btn-green' : 'btn-outline'}" href="${k.href}">${k.text}</a>`).join('')}
+        </div>
+      </div>
+    </div>`
 }
 
 // Klammert einen Supabase-Aufruf so ein, dass ein Netzausfall (der eine

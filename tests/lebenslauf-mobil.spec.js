@@ -65,9 +65,13 @@ test('kein Eingabefeld ist unbrauchbar schmal', async ({ page }) => {
 
 test('Bedienknöpfe sind groß genug für Finger', async ({ page }) => {
   await oeffneEditor(page)
+  // Die Auswahl fuer neue Abschnitte steckt hinter einem Knopf - erst
+  // aufklappen, sonst misst der Test unsichtbare Knoepfe (also nichts).
+  await page.locator('#ll-abschnitt-btn').click()
   const zuKlein = await page.evaluate((min) => {
     const raus = []
-    const pruefen = ['.ll-karte-tools button', '.zeile-weg', '.ll-mobil-toggle button', '.tipp-btn', '.block-add-btn']
+    const pruefen = ['.ll-griff', '.ll-werkzeug', '.ll-zeile-weg', '.ll-mobil-toggle button',
+                     '.ll-hilfe-knopf', '.ll-abschnitt-btn', '.ll-wahl']
     pruefen.forEach(sel => document.querySelectorAll(sel).forEach(el => {
       const cs = getComputedStyle(el)
       if (cs.display === 'none' || cs.visibility === 'hidden') return
@@ -108,7 +112,14 @@ test('neuen Abschnitt hinzufügen funktioniert per Fingertipp', async ({ page })
   await oeffneEditor(page)
   const vorher = await page.locator('.ll-karte').count()
 
-  await page.locator('.block-add-btn[data-titel="Wann ich Zeit habe"]').click()
+  // Neu: ein Knopf klappt eine benannte Auswahl auf. Vorher standen acht
+  // gleich aussehende Knoepfe nebeneinander.
+  await page.locator('#ll-abschnitt-btn').click()
+  await expect(page.locator('#ll-abschnitt-wahl')).toBeVisible()
+  await page.locator('.ll-wahl', { hasText: 'Wann ich Zeit habe' }).click()
+
   await expect(page.locator('.ll-karte')).toHaveCount(vorher + 1)
   await expect(page.locator('.ll-karte').last()).toContainText('Wann ich Zeit habe')
+  // Die Auswahl schliesst sich, sonst verdeckt sie die neue Karte.
+  await expect(page.locator('#ll-abschnitt-wahl')).not.toBeVisible()
 })

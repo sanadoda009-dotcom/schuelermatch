@@ -29,7 +29,12 @@
   <button type="button" data-ansicht="vorschau">Vorschau</button>
 </div>
 
-<main class="ll-wrap">
+<main class="ll-wrap pruefe-zugang">
+<script>
+  // Notbremse: Sollte das Modul gar nicht laden, darf die Seite nicht
+  // dauerhaft leer bleiben.
+  setTimeout(function () { document.querySelector('main')?.classList.remove('pruefe-zugang') }, 5000)
+</script>
   <h1 class="sr-only">Lebenslauf bearbeiten</h1>
 
   <!-- LINKS: Eingabe-Karten -->
@@ -42,7 +47,7 @@
       <div class="ll-progress-balken"><div id="ll-progress-fill"></div></div>
     </div>
 
-    <p class="mono ll-hinweis">VORLAGEN (füllen die Abschnitte vor)</p>
+    <p class="ll-hinweis">Schnellstart – setzt fertige Abschnitte ein, die du danach änderst:</p>
     <div class="cv-templates" id="ll-vorlagen">
       <button type="button" class="cv-template-chip" data-vorlage="erster-job">Mein erster Job</button>
       <button type="button" class="cv-template-chip" data-vorlage="nachhilfe">Nachhilfe-Profi</button>
@@ -52,16 +57,10 @@
 
     <div id="ll-karten"><!-- Karten werden per JS gerendert --></div>
 
-    <p class="mono ll-hinweis">ABSCHNITT HINZUFÜGEN</p>
-    <div class="block-add-row">
-      <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="">+ Text</button>
-      <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Ausbildung" data-platzhalter="z.B. Realschule Musterstadt, 8. Klasse · Schülerpraktikum bei Bäckerei Kern (März 2026)">+ Ausbildung</button>
-      <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Erfahrung" data-platzhalter="Praktika, Ehrenamt, Babysitten, Nachbarschaftshilfe – alles zählt!">+ Erfahrung</button>
-      <button type="button" class="btn btn-outline block-add-btn" data-add="skillbar" data-titel="Fähigkeiten">+ Fähigkeiten</button>
-      <button type="button" class="btn btn-outline block-add-btn" data-add="sprachen" data-titel="Sprachen">+ Sprachen</button>
-      <button type="button" class="btn btn-outline block-add-btn" data-add="skills" data-titel="Interessen">+ Interessen</button>
-      <button type="button" class="btn btn-outline block-add-btn" data-add="text" data-titel="Wann ich Zeit habe" data-platzhalter="z.B. Mo–Fr ab 15 Uhr, Wochenende flexibel, Ferien ganztags">+ Wann ich Zeit habe</button>
-      <button type="button" class="btn btn-outline block-add-btn" data-add="bild" data-titel="">+ Bild</button>
+    <div class="ll-abschnitt-box">
+      <button type="button" class="btn btn-outline ll-abschnitt-btn" id="ll-abschnitt-btn"
+              aria-expanded="false" aria-controls="ll-abschnitt-wahl">+ Abschnitt hinzufügen</button>
+      <div class="ll-abschnitt-wahl" id="ll-abschnitt-wahl"><!-- per JS --></div>
     </div>
   </section>
 
