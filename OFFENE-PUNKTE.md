@@ -16,6 +16,30 @@
 > **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
 > was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
 
+## ⏳ Wartet auf dich: vier SQL-Dateien
+
+Alle vier im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
+und unten, **wie du nachprüfst, dass es gewirkt hat**.
+
+| Datei | Was sie schließt |
+|---|---|
+| `supabase/meldungen-bleiben.sql` | Wer gemeldet wird, kann die Meldung selbst beseitigen (Anzeige oder Konto löschen) |
+| `supabase/mindestalter-pflicht.sql` | Anzeige ganz ohne Altersangabe möglich |
+| `supabase/alter-pflicht.sql` | Schülerkonto ohne Alter — **vorher** die eine betroffene Zeile versorgen, ohne einen Wert zu raten |
+| `supabase/bewerbung-stand.sql` | Bewerbung ohne Stand: kein „angesehen", kein Datum, kein Absagegrund |
+
+Der Code läuft in allen vier Fällen **auch ohne** die Änderung — er fällt
+dann auf das alte Verhalten zurück, statt kaputt zu gehen.
+
+## 🔍 Neu gefunden (2.9.), noch nicht behoben
+
+**Eine Firma kann den Text einer Bewerbung ändern.** Die UPDATE-Regel auf
+`bewerbungen` („Firma aendert Status eigener Bewerbungen") schränkt keine
+Spalten ein — sie erlaubt das Ändern der ganzen Zeile, also auch
+`motivationsschreiben`. Gefunden beim Einbau des Bewerbungsstands, bewusst
+nicht in dieselbe Runde gezogen. Lösung wäre ein Trigger, der nur die
+Entscheidungsspalten schreiben lässt.
+
 ## ⏳ Wartet auf dich: eine Regel in der Datenbank
 
 **`supabase/mindestalter-pflicht.sql` im Supabase-SQL-Editor ausführen.**
