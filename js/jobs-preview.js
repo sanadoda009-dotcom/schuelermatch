@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
 import { hole, zeigeLadefehler } from './zustand.js'
+import { jobKarteHtml } from './job-karte.js'
 
 async function ladeVorschauJobs() {
   const grid = document.getElementById('preview-jobs-grid')
@@ -23,20 +24,7 @@ async function ladeVorschauJobs() {
     return
   }
 
-  grid.innerHTML = jobs.map(job => `
-    <div class="job-card">
-      <div class="job-card-top">
-        <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
-        <span class="job-badge">${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} J.`}</span>
-      </div>
-      <h3>${escapeHtml(job.titel)}</h3>
-      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
-      <div class="job-meta">
-        ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
-        ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
-      </div>
-    </div>
-  `).join('')
+  grid.innerHTML = jobs.map(job => jobKarteHtml(job)).join('')
 }
 
 function escapeHtml(str) {

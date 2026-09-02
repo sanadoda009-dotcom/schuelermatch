@@ -59,7 +59,9 @@ export function zeigeSeitenfehler({ titel, text, erneut } = {}) {
 // "Nochmal versuchen" an und rät, die Internetverbindung zu prüfen. Beides
 // ist hier falsch: Es liegt keine Störung vor, und ein zweiter Versuch
 // ändert nichts.
-export function zeigeHinweisSeite({ titel, text, knoepfe = [] }) {
+// Ein Knopf kann ein Ziel haben (`href`) ODER etwas tun (`aktion`) - fuer
+// "Abmelden" gibt es keine Adresse, die das erledigt.
+export function zeigeHinweisSeite({ titel, text, zusatz = '', knoepfe = [] }) {
   const ziel = document.querySelector('main') || document.body
   ziel.classList.remove('pruefe-zugang')
   ziel.innerHTML = `
@@ -67,11 +69,20 @@ export function zeigeHinweisSeite({ titel, text, knoepfe = [] }) {
       <div class="empty-state">
         <h1>${titel}</h1>
         <p>${text}</p>
+        ${zusatz ? `<p class="hinweis-konto">${zusatz}</p>` : ''}
         <div class="fehler-knoepfe">
-          ${knoepfe.map((k, i) => `<a class="btn ${i === 0 ? 'btn-green' : 'btn-outline'}" href="${k.href}">${k.text}</a>`).join('')}
+          ${knoepfe.map((k, i) => k.href
+            ? `<a class="btn ${i === 0 ? 'btn-green' : 'btn-outline'}" href="${k.href}">${k.text}</a>`
+            : `<button type="button" class="btn ${i === 0 ? 'btn-green' : 'btn-outline'}" data-hinweis-aktion="${i}">${k.text}</button>`
+          ).join('')}
         </div>
       </div>
     </div>`
+  knoepfe.forEach((k, i) => {
+    if (typeof k.aktion === 'function') {
+      ziel.querySelector(`[data-hinweis-aktion="${i}"]`)?.addEventListener('click', k.aktion)
+    }
+  })
 }
 
 // Klammert einen Supabase-Aufruf so ein, dass ein Netzausfall (der eine

@@ -11,6 +11,8 @@ import { initGlocke } from './notifications.js'
 import { geocode, distanzKm, uebernehmeKoordinaten } from './geo.js'
 import { passtZurSuche } from './suche.js'
 import { MIN_ALTER } from './jugendschutz.js'
+import { jobKarteHtml } from './job-karte.js'
+import { absageTextFuerSchueler, kurzesDatum } from './absage.js'
 import { oeffneMeldeDialog, meldeButtonHtml } from './melden.js'
 import { fragenFuer, baueAnschreiben, pruefeAnschreiben } from './anschreiben.js'
 import { sichereMediaUrl } from './sicher.js'
@@ -473,7 +475,11 @@ async function renderMeineBewerbungen() {
   container.innerHTML = '<div class="skeleton-card" style="height:90px;"></div>'
 
   const { data } = await supabase.from('bewerbungen')
-    .select('id, status, erstellt_am, job:job_id(id, titel, ort, stundenlohn, kategorie, firma_name, aktiv)')
+    // `*` statt einer Spaltenliste: Solange supabase/bewerbung-stand.sql
+    // nicht eingespielt ist, gibt es angesehen_am/entschieden_am/
+    // absage_grund nicht. Eine ausdrueckliche Liste wuerde die Abfrage
+    // dann mit einem Fehler beantworten - mit `*` kommt einfach weniger.
+    .select('*, job:job_id(id, titel, ort, stundenlohn, kategorie, firma_name, aktiv)')
     .eq('schueler_id', profile.id)
     .order('erstellt_am', { ascending: false })
 
@@ -519,16 +525,41 @@ async function renderMeineBewerbungen() {
 
 function bewerbungKarte(b) {
   const status = b.status || 'ausstehend'
-  const datum = b.erstellt_am ? new Date(b.erstellt_am).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
   const job = b.job || {}
   const inaktiv = job.aktiv === false
+  const datum = b.erstellt_am ? new Date(b.erstellt_am).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
 
-  // 3-Schritte-Timeline: Eingereicht -> In Pruefung -> Antwort
+  // Die Zeitleiste hatte drei Schritte, aber nur zwei Zustaende: "In
+  // Pruefung" wurde abgehakt, sobald der Status nicht mehr `ausstehend`
+  // war - also erst, wenn die Entscheidung schon gefallen war. Der
+  // mittlere Schritt sagte damit nichts.
+  //
+  // Jetzt haengt er an `angesehen_am`: Sobald die Firma die Bewerbungen zu
+  // ihrer Anzeige oeffnet, wird er gesetzt. Der Schueler sieht dann, dass
+  // sein Text ueberhaupt angekommen ist - das ist der Punkt, an dem man
+  // sonst anfaengt, an sich zu zweifeln.
+  //
+  // Solange supabase/bewerbung-stand.sql nicht eingespielt ist, gibt es
+  // die Spalte nicht. Dann faellt der Schritt auf das alte Verhalten
+  // zurueck, statt kaputt auszusehen.
+  const entschieden = status === 'angenommen' || status === 'abgelehnt'
+  const spalteDa = b.angesehen_am !== undefined
+  const gesehen = spalteDa ? Boolean(b.angesehen_am) : entschieden
+
+  const schritt2 = gesehen
+    ? `<div class="bew-schritt done"><span class="punkt">✓</span>Angesehen${
+        b.angesehen_am ? `<em>${kurzesDatum(b.angesehen_am)}</em>` : ''}</div>`
+    : '<div class="bew-schritt aktiv"><span class="punkt">◐</span>Wartet auf die Firma</div>'
+
   const schritt3 = status === 'angenommen'
-    ? '<div class="bew-schritt done gruen"><span class="punkt">🎉</span>Zusage!</div>'
+    ? `<div class="bew-schritt done gruen"><span class="punkt">🎉</span>Zusage!${
+        b.entschieden_am ? `<em>${kurzesDatum(b.entschieden_am)}</em>` : ''}</div>`
     : status === 'abgelehnt'
-      ? '<div class="bew-schritt done"><span class="punkt">•</span>Diesmal nicht geklappt</div>'
+      ? `<div class="bew-schritt done"><span class="punkt">•</span>Diesmal nicht geklappt${
+          b.entschieden_am ? `<em>${kurzesDatum(b.entschieden_am)}</em>` : ''}</div>`
       : '<div class="bew-schritt"><span class="punkt">○</span>Antwort steht aus</div>'
+
+  const absage = status === 'abgelehnt' ? absageTextFuerSchueler(b.absage_grund) : null
 
   return `
     <div class="bew-card ${status === 'angenommen' ? 'bew-card--zusage' : ''}">
@@ -541,13 +572,17 @@ function bewerbungKarte(b) {
       </div>
       <div class="bew-timeline">
         <div class="bew-schritt done"><span class="punkt">✓</span>Eingereicht</div>
-        <div class="bew-linie ${status !== 'ausstehend' ? 'done' : ''}"></div>
-        <div class="bew-schritt ${status !== 'ausstehend' ? 'done' : 'aktiv'}"><span class="punkt">${status !== 'ausstehend' ? '✓' : '◐'}</span>In Prüfung</div>
-        <div class="bew-linie ${status !== 'ausstehend' ? 'done' : ''}"></div>
+        <div class="bew-linie ${gesehen ? 'done' : ''}"></div>
+        ${schritt2}
+        <div class="bew-linie ${entschieden ? 'done' : ''}"></div>
         ${schritt3}
       </div>
       ${status === 'angenommen' ? `<button type="button" class="btn btn-green" style="margin-top:12px;" data-chat-bewerbung="${b.id}" data-chat-titel="${escapeHtml(job.titel || 'Job')}">💬 Zum Chat mit der Firma</button>` : ''}
-      ${status === 'abgelehnt' ? '<p class="bew-trost">Kopf hoch – das gehört dazu. Firmen suchen oft sehr spezifisch. Deine nächste Chance wartet schon!</p>' : ''}
+      ${absage ? `
+        <div class="bew-absage">
+          <p class="bew-absage-grund">${escapeHtml(absage.satz)}</p>
+          <p class="bew-trost">${escapeHtml(absage.trost)}</p>
+        </div>` : ''}
     </div>`
 }
 
@@ -1420,31 +1455,18 @@ function renderJobs(jobs) {
     return
   }
 
-  const herzSvg = '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.9-9.5-9.2C1.1 8.2 3 5 6.2 5c1.9 0 3.4 1 4.3 2.4l1.5 2.1 1.5-2.1C14.4 6 15.9 5 17.8 5 21 5 22.9 8.2 21.5 11.3c-2 4.3-9.5 9.2-9.5 9.2z"/></svg>'
-
   grid.innerHTML = jobs.map(job => {
     const dist = (profile.lat != null && job.lat != null) ? distanzKm(profile.lat, profile.lon, job.lat, job.lon) : null
-    return `
-    <div class="job-card job-card--clickable" data-detail="${job.id}">
-      ${job.erstellt_am && (Date.now() - new Date(job.erstellt_am).getTime()) < 72 * 3600 * 1000 ? '<span class="neu-badge">NEU</span>' : ''}
-      <button class="merken-btn ${gemerkteIds.has(job.id) ? 'gemerkt' : ''}" data-merken="${job.id}" aria-label="Job merken" title="Job merken">${herzSvg}</button>
-      <div class="job-card-top">
-        <div class="company-logo">${escapeHtml(((job.firma_name || job.titel || '?')[0]).toUpperCase())}</div>
-        <span class="job-badge" style="margin-right:44px;">${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} J.`}</span>
-      </div>
-      <h3><button type="button" class="job-titel-btn" data-detail-btn="${job.id}">${escapeHtml(job.titel)}</button></h3>
-      ${job.firma_name ? `<p class="job-firma">bei ${escapeHtml(job.firma_name)}</p>` : ''}
-      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${dist != null ? ` <span class="distanz-chip">${dist} km</span>` : ''}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
-      ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
-      <div class="job-meta">
-        ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
-        ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
-      </div>
-      ${beworbenIds.has(job.id)
+    return jobKarteHtml(job, {
+      titelAlsKnopf: true,
+      merkbar: true,
+      gemerkt: gemerkteIds.has(job.id),
+      distanz: dist,
+      fussHtml: beworbenIds.has(job.id)
         ? `<div class="job-status job-status--${bewerbungsStatus[job.id] || 'ausstehend'}">${schuelerStatusLabel(bewerbungsStatus[job.id])}</div>`
-        : `<button class="btn btn-green btn-full" style="margin-top:14px;" data-job-id="${job.id}" data-job-titel="${escapeHtml(job.titel)}">Jetzt bewerben</button>`}
-    </div>
-  `}).join('')
+        : `<button class="btn btn-green btn-full" style="margin-top:14px;" data-job-id="${job.id}" data-job-titel="${escapeHtml(job.titel)}">Jetzt bewerben</button>`,
+    })
+  }).join('')
 
   grid.querySelectorAll('button[data-job-id]').forEach(btn => {
     btn.addEventListener('click', () => oeffneBewerbungsModal(btn.dataset.jobId, btn.dataset.jobTitel, btn))
@@ -1798,7 +1820,9 @@ async function sendeBewerbung(e) {
   const { error } = await supabase.from('bewerbungen').insert({
     job_id: jobId,
     schueler_id: profile.id,
-    motivationsschreiben: document.getElementById('bewerbung-motivation').value,
+    // Leer heisst leer - nicht eine leere Zeichenkette, die im
+    // Firmen-Dashboard als "Anschreiben vorhanden" durchgeht.
+    motivationsschreiben: document.getElementById('bewerbung-motivation').value.trim() || null,
     zeugnis_url
   })
 

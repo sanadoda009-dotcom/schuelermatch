@@ -39,28 +39,41 @@
 
   <!-- LINKS: Eingabe-Karten -->
   <section class="ll-editor" id="ll-editor">
-    <div class="ll-progress">
-      <div class="ll-progress-kopf">
-        <b>Dein Lebenslauf</b>
-        <span class="mono" id="ll-progress-label">0 % fertig</span>
-      </div>
+    <div class="ll-schritt-leiste">
+      <p class="ll-schritt-zahl">Schritt <b id="ll-schritt-nr">1</b> von <b>5</b></p>
+      <h2 class="ll-schritt-name" id="ll-schritt-name">Über dich</h2>
       <div class="ll-progress-balken"><div id="ll-progress-fill"></div></div>
+      <p class="ll-progress-label" id="ll-progress-label">0 % fertig</p>
     </div>
 
-    <p class="ll-hinweis">Schnellstart – setzt fertige Abschnitte ein, die du danach änderst:</p>
-    <div class="cv-templates" id="ll-vorlagen">
-      <button type="button" class="cv-template-chip" data-vorlage="erster-job">Mein erster Job</button>
-      <button type="button" class="cv-template-chip" data-vorlage="nachhilfe">Nachhilfe-Profi</button>
-      <button type="button" class="cv-template-chip" data-vorlage="praktisch">Praktisch &amp; Zuverlässig</button>
-      <button type="button" class="cv-template-chip" data-vorlage="komplett">Der Komplette</button>
+    <div class="ll-schritt-text">
+      <h3 id="ll-schritt-frage"></h3>
+      <p id="ll-schritt-hinweis"></p>
+    </div>
+
+    <div id="ll-vorlagen-box">
+      <p class="ll-hinweis">Schnellstart – setzt fertige Abschnitte ein, die du danach änderst:</p>
+      <div class="cv-templates" id="ll-vorlagen">
+        <button type="button" class="cv-template-chip" data-vorlage="erster-job">Mein erster Job</button>
+        <button type="button" class="cv-template-chip" data-vorlage="nachhilfe">Nachhilfe-Profi</button>
+        <button type="button" class="cv-template-chip" data-vorlage="praktisch">Praktisch &amp; Zuverlässig</button>
+        <button type="button" class="cv-template-chip" data-vorlage="komplett">Der Komplette</button>
+      </div>
     </div>
 
     <div id="ll-karten"><!-- Karten werden per JS gerendert --></div>
 
-    <div class="ll-abschnitt-box">
+    <p class="ll-schritt-leer" id="ll-schritt-leer" hidden></p>
+
+    <div class="ll-abschnitt-box" id="ll-abschnitt-box">
       <button type="button" class="btn btn-outline ll-abschnitt-btn" id="ll-abschnitt-btn"
               aria-expanded="false" aria-controls="ll-abschnitt-wahl">+ Abschnitt hinzufügen</button>
       <div class="ll-abschnitt-wahl" id="ll-abschnitt-wahl"><!-- per JS --></div>
+    </div>
+
+    <div class="ll-schritt-fuss">
+      <button type="button" class="btn btn-outline" id="ll-zurueck">Zurück</button>
+      <button type="button" class="btn btn-green" id="ll-weiter">Weiter</button>
     </div>
   </section>
 

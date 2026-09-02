@@ -14,6 +14,7 @@ let profile
 let bloecke = []
 let cvDesign = { layout: 'klassisch', farbe: 'gruen' }
 let offeneKarten = new Set(['persoenlich'])
+let aktuellerSchritt = 1
 let letzteAnker = []
 let speicherTimer = null
 let vorschauTimer = null
@@ -83,6 +84,84 @@ const CEFR_NIVEAUS = ['Muttersprache', 'C2', 'C1', 'B2', 'B1', 'A2', 'A1']
 // tabellarisch und **antichronologisch** - das Neueste oben. Das steht
 // jetzt in den Platzhaltern, damit niemand raten muss.
 
+// ---------------------------------------------------------------------------
+// DER EDITOR ALS ASSISTENT (2.9.2026)
+//
+// Sanads Auftrag mit Bildern von app.onlinelebenslauf.com: fünf Schritte,
+// oben ein Fortschrittsbalken, unten "Zurück" und "Weiter", pro Schritt
+// eine Überschrift, die anspricht ("Super! Lass uns als nächstes deine
+// Arbeitserfahrung ausfüllen"), rechts durchgehend die Vorschau.
+//
+// Übernommen wird die FORM, nicht der Wortlaut: Dort steht
+// "Berufserfahrung", "Berufsbezeichnung", "Abschluss" – geschrieben für
+// Berufstätige. Hier sind es Vierzehnjährige, die ihren ersten Nebenjob
+// suchen. "Was hast du schon gemacht?" trifft es, "Berufserfahrung" nicht.
+//
+// Nicht übernommen: der Knopf "Mit KI generieren". Dahinter steckt hier
+// nichts, was ihn einlösen könnte, und ein Knopf, der etwas verspricht und
+// nichts tut, ist schlimmer als keiner. An seiner Stelle steht die
+// Formulierungshilfe, die es schon gibt.
+const SCHRITTE = [
+  {
+    nr: 1,
+    name: 'Über dich',
+    frage: 'Fangen wir mit dir an.',
+    hinweis: 'Dein Name, deine Schule und wie eine Firma dich erreicht. ' +
+             'Mehr braucht es am Anfang nicht.',
+    vorlagen: true,
+  },
+  {
+    nr: 2,
+    name: 'Erfahrung',
+    frage: 'Was hast du schon gemacht?',
+    hinweis: 'Praktikum, Ehrenamt, Babysitten, Nachbarschaftshilfe, Zeitungen ' +
+             'austragen – das alles zählt. Fang mit dem Neuesten an und arbeite ' +
+             'dich zurück. Noch nichts dabei? Dann lass den Schritt aus.',
+    leer: 'Hier steht noch nichts. Das ist völlig in Ordnung – fast jeder ' +
+          'fängt ohne Erfahrung an. Du kannst den Schritt überspringen.',
+  },
+  {
+    nr: 3,
+    name: 'Schule',
+    frage: 'Auf welche Schule gehst du?',
+    hinweis: 'Schule, Klasse und welchen Abschluss du machen willst. Auch hier ' +
+             'gilt: das Neueste zuerst.',
+    leer: 'Noch kein Eintrag zur Schule. Der gehört eigentlich in jeden ' +
+          'Lebenslauf – füg ihn hier hinzu.',
+  },
+  {
+    nr: 4,
+    name: 'Was du kannst',
+    frage: 'Was kannst du, was magst du?',
+    hinweis: 'Fähigkeiten, Sprachen, Interessen. Vier bis sechs Stichworte ' +
+             'reichen völlig – eine lange Liste liest niemand.',
+    leer: 'Noch nichts eingetragen. Gerade wenn die Erfahrung fehlt, ist das ' +
+          'hier der Abschnitt, der zählt.',
+  },
+  {
+    nr: 5,
+    name: 'Zum Schluss',
+    frage: 'Zwei Sätze über dich.',
+    hinweis: 'Sie stehen oben im Lebenslauf. Wer ihn liest, entscheidet danach, ' +
+             'ob er weiterliest. Schreib, wer du bist und was du suchst.',
+    leer: 'Noch keine Kurzvorstellung. Sie ist freiwillig – aber sie ist das ' +
+          'Erste, was jemand von dir liest.',
+  },
+]
+
+// Zu welchem Schritt eine Karte gehört. Neue Karten bringen ihre Nummer
+// selbst mit; für alles, was vor dem Umbau angelegt wurde, wird sie aus Art
+// und Überschrift erschlossen. So muss niemandes Lebenslauf umgezogen werden.
+function schrittFuer(b) {
+  if (b.schritt) return b.schritt
+  const t = (b.titel || '').toLowerCase()
+  if (b.typ === 'sprachen' || b.typ === 'skillbar' || b.typ === 'skills') return 4
+  if (/schul|ausbild|bildung|klasse|abschluss/.test(t)) return 3
+  if (/über mich|ueber mich|profil|kurzvorstellung|zielsetzung|steckbrief/.test(t)) return 5
+  if (b.typ === 'bild') return 5
+  return 2
+}
+
 // Der Typ eines Abschnitts in Worten. An der Karte stand vorher
 // "SKILLBAR" - das versteht niemand.
 const TYP_NAME = {
@@ -102,37 +181,34 @@ function stufenWort(wert) {
 // Die Auswahl hinter "+ Abschnitt hinzufuegen". Jeder Eintrag sagt, wofuer
 // er da ist - vorher musste man aus dem Knopfnamen raten.
 const ABSCHNITTE = [
-  {
-    gruppe: 'Das gehört fast immer rein',
-    eintraege: [
-      { typ: 'text', titel: 'Schulbildung',
-        was: 'Welche Schule, welche Klasse, welcher Abschluss.',
-        platzhalter: `seit 2023 · Gymnasium Musterstadt, 9. Klasse
-2019–2023 · Grundschule Nord` },
-      { typ: 'text', titel: 'Erfahrung',
-        was: 'Praktika, Ehrenamt, Babysitten, Nachbarschaftshilfe – alles zählt.',
-        platzhalter: `März 2026 · Schülerpraktikum Bäckerei Kern
+  { schritt: 2, typ: 'text', titel: 'Erfahrung',
+    was: 'Praktikum, Ehrenamt, Babysitten, Nachbarschaftshilfe.',
+    platzhalter: `März 2026 · Schülerpraktikum Bäckerei Kern
 seit 2025 · Babysitten in der Nachbarschaft` },
-      { typ: 'skillbar', titel: 'Fähigkeiten',
-        was: 'Was du kannst, mit einem Balken dahinter.' },
-    ],
-  },
-  {
-    gruppe: 'Wenn es passt',
-    eintraege: [
-      { typ: 'sprachen', titel: 'Sprachen',
-        was: 'Sprache und Niveau, von A1 bis Muttersprache.' },
-      { typ: 'skills', titel: 'Interessen',
-        was: 'Ein paar Stichworte, mit Komma getrennt.' },
-      { typ: 'text', titel: 'Wann ich Zeit habe',
-        was: 'Damit die Firma gleich sieht, ob es zu deinem Stundenplan passt.',
-        platzhalter: 'Mo–Fr ab 15 Uhr · Wochenende flexibel · Ferien ganztags' },
-      { typ: 'text', titel: '', name: 'Eigener Abschnitt',
-        was: 'Einer, den du selbst benennst.' },
-      { typ: 'bild', titel: '', name: 'Bild',
-        was: 'Ein Zeugnis, eine Urkunde oder ein Foto von deiner Arbeit.' },
-    ],
-  },
+  { schritt: 2, typ: 'text', titel: 'Nebenjobs',
+    was: 'Was du regelmäßig machst und schon gemacht hast.',
+    platzhalter: `seit 2025 · Zeitungen austragen, samstags
+2024 · Ferienjob im Hofladen` },
+  { schritt: 3, typ: 'text', titel: 'Schulbildung',
+    was: 'Welche Schule, welche Klasse, welcher Abschluss.',
+    platzhalter: `seit 2023 · Gymnasium Musterstadt, 9. Klasse
+2019–2023 · Grundschule Nord` },
+  { schritt: 4, typ: 'skillbar', titel: 'Fähigkeiten',
+    was: 'Was du kannst, mit einem Balken dahinter.' },
+  { schritt: 4, typ: 'sprachen', titel: 'Sprachen',
+    was: 'Sprache und Niveau, von A1 bis Muttersprache.' },
+  { schritt: 4, typ: 'skills', titel: 'Interessen',
+    was: 'Ein paar Stichworte, mit Komma getrennt.' },
+  { schritt: 4, typ: 'text', titel: 'Wann ich Zeit habe',
+    was: 'Damit die Firma gleich sieht, ob es zu deinem Stundenplan passt.',
+    platzhalter: 'Mo–Fr ab 15 Uhr · Wochenende flexibel · Ferien ganztags' },
+  { schritt: 5, typ: 'text', titel: 'Über mich',
+    was: 'Zwei Sätze: wer du bist und was du suchst.',
+    platzhalter: 'Ich bin 15, gehe aufs Gymnasium Musterstadt und suche einen Nebenjob am Wochenende. Ich bin pünktlich, zuverlässig und rede gern mit Leuten.' },
+  { schritt: 5, typ: 'bild', titel: '', name: 'Bild',
+    was: 'Ein Zeugnis, eine Urkunde oder ein Foto von deiner Arbeit.' },
+  { schritt: 5, typ: 'text', titel: '', name: 'Eigener Abschnitt',
+    was: 'Einer, den du selbst benennst.' },
 ]
 
 /* ---------- Start ---------- */
@@ -193,6 +269,7 @@ async function init() {
   bloecke.forEach(b => { if (!b.id) b.id = neueId() })
 
   setzeStatus('✓ Alle Änderungen gespeichert')
+  renderSchritt()
   renderKarten()
   bindeStatisches()
   renderVorschau()
@@ -227,11 +304,63 @@ function blockGefuellt(b) {
   return false
 }
 
+// Die Karten des gerade offenen Schritts.
+function schrittBloecke() {
+  return bloecke.filter(b => schrittFuer(b) === aktuellerSchritt)
+}
+
+function schrittDaten() {
+  return SCHRITTE.find(s => s.nr === aktuellerSchritt) || SCHRITTE[0]
+}
+
+// Kopfzeile, Text, Fußzeile und Sichtbarkeit für den aktuellen Schritt.
+function renderSchritt() {
+  const s = schrittDaten()
+  const setz = (id, wert) => { const el = document.getElementById(id); if (el) el.textContent = wert }
+  setz('ll-schritt-nr', String(s.nr))
+  setz('ll-schritt-name', s.name)
+  setz('ll-schritt-frage', s.frage)
+  setz('ll-schritt-hinweis', s.hinweis)
+
+  // Die Vorlagen füllen den ganzen Lebenslauf – die gehören an den Anfang,
+  // nicht mitten in einen Schritt.
+  const vorlagen = document.getElementById('ll-vorlagen-box')
+  if (vorlagen) vorlagen.hidden = !s.vorlagen
+
+  // Schritt 1 ist "Persönliches" und hat keine Abschnitte zum Hinzufügen.
+  const box = document.getElementById('ll-abschnitt-box')
+  if (box) box.hidden = !ABSCHNITTE.some(e => e.schritt === aktuellerSchritt)
+  schliesseAbschnittWahl()
+
+  // Ein leerer Schritt sieht sonst aus wie ein Fehler.
+  const leer = document.getElementById('ll-schritt-leer')
+  if (leer) {
+    const nichts = aktuellerSchritt !== 1 && schrittBloecke().length === 0
+    leer.hidden = !nichts
+    if (nichts) leer.textContent = s.leer || ''
+  }
+
+  const zurueck = document.getElementById('ll-zurueck')
+  const weiter = document.getElementById('ll-weiter')
+  if (zurueck) zurueck.disabled = aktuellerSchritt === 1
+  if (weiter) weiter.textContent = aktuellerSchritt === SCHRITTE.length ? 'Fertig' : 'Weiter'
+
+  renderAbschnittWahl()
+}
+
+function zeigeSchritt(nr) {
+  aktuellerSchritt = Math.min(SCHRITTE.length, Math.max(1, nr))
+  renderSchritt()
+  renderKarten()
+  // Beim Schrittwechsel nach oben – sonst steht man mitten im neuen Schritt.
+  document.getElementById('ll-editor')?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+}
+
 function renderKarten() {
   const wrap = document.getElementById('ll-karten')
 
   const persoenlichVoll = Boolean((profile.name || '').trim() && (profile.schule || '').trim())
-  const karten = [`
+  const karten = aktuellerSchritt !== 1 ? [] : [`
     <details class="ll-karte ll-karte-fest" data-karte="persoenlich" ${offeneKarten.has('persoenlich') ? 'open' : ''}>
       <summary>
         <span class="ll-check ${persoenlichVoll ? 'ok' : ''}" aria-hidden="true">${persoenlichVoll ? '✓' : ''}</span>
@@ -260,9 +389,10 @@ function renderKarten() {
       </div>
     </details>`]
 
-  bloecke.forEach((b, i) => {
+  const sichtbar = schrittBloecke()
+  sichtbar.forEach((b, i) => {
     const erste = i === 0
-    const letzte = i === bloecke.length - 1
+    const letzte = i === sichtbar.length - 1
     karten.push(`
     <details class="ll-karte" data-karte="${b.id}" data-pos="${i}" ${offeneKarten.has(b.id) ? 'open' : ''}>
       <summary>
@@ -426,10 +556,17 @@ function bindeZiehen(wrap) {
       // An welche Stelle gehört sie jetzt? So viele Karten, wie oberhalb
       // des Zeigers enden, liegen künftig davor.
       const ziel = andere.filter(k => k.mitte < y).length
-      const von = bloecke.findIndex(b => b.id === id)
+      // Nur innerhalb des Schritts umsortieren. Die Zielstelle ist eine
+      // Position in der SICHTBAREN Liste - auf den Gesamtbestand angewendet
+      // haette sie die Karten der anderen Schritte durcheinandergebracht.
+      const liste = schrittBloecke()
+      const von = liste.findIndex(b => b.id === id)
       if (von < 0 || ziel === von) return
-      const [b] = bloecke.splice(von, 1)
-      bloecke.splice(ziel, 0, b)
+      const plaetze = bloecke.map((b, i) => (schrittFuer(b) === aktuellerSchritt ? i : -1)).filter(i => i >= 0)
+      const folge = liste.slice()
+      const [b] = folge.splice(von, 1)
+      folge.splice(ziel, 0, b)
+      plaetze.forEach((pos, k) => { bloecke[pos] = folge[k] })
       geaendert(true)
     }
     griff.addEventListener('pointerup', loslassen)
@@ -442,19 +579,20 @@ function bindeZiehen(wrap) {
 function renderAbschnittWahl() {
   const wrap = document.getElementById('ll-abschnitt-wahl')
   if (!wrap) return
-  wrap.innerHTML = ABSCHNITTE.map((g, gi) => `
-    <div class="ll-wahl-gruppe">
-      <p class="ll-wahl-titel">${escapeHtml(g.gruppe)}</p>
-      ${g.eintraege.map((e, i) => `
-        <button type="button" class="ll-wahl" data-g="${gi}" data-nr="${i}">
-          <b>${escapeHtml(e.name || e.titel)}</b>
-          <span>${escapeHtml(e.was)}</span>
-        </button>`).join('')}
-    </div>`).join('')
+  wrap.innerHTML = ABSCHNITTE
+    .map((e, i) => ({ e, i }))
+    .filter(({ e }) => e.schritt === aktuellerSchritt)
+    .map(({ e, i }) => `
+      <button type="button" class="ll-wahl" data-nr="${i}">
+        <b>${escapeHtml(e.name || e.titel)}</b>
+        <span>${escapeHtml(e.was)}</span>
+      </button>`).join('')
 
   wrap.querySelectorAll('.ll-wahl').forEach(btn => btn.addEventListener('click', () => {
-    const vorlage = ABSCHNITTE[Number(btn.dataset.g)].eintraege[Number(btn.dataset.nr)]
-    const basis = { id: neueId(), typ: vorlage.typ, titel: vorlage.titel || '' }
+    const vorlage = ABSCHNITTE[Number(btn.dataset.nr)]
+    // Die Schrittnummer wird mitgespeichert. Nur so bleibt die Karte auch
+    // dann in ihrem Schritt, wenn jemand die Ueberschrift umbenennt.
+    const basis = { id: neueId(), typ: vorlage.typ, titel: vorlage.titel || '', schritt: vorlage.schritt }
     if (vorlage.platzhalter) basis.platzhalter = vorlage.platzhalter
     if (vorlage.typ === 'sprachen') basis.sprachen = [{ name: '', niveau: 'B1' }]
     if (vorlage.typ === 'skillbar') basis.skills = [{ name: '', wert: 60 }]
@@ -568,16 +706,35 @@ function bindeKarten(wrap) {
 }
 
 function verschiebe(id, richtung) {
-  const idx = bloecke.findIndex(b => b.id === id)
-  const ziel = idx + richtung
-  if (ziel < 0 || ziel >= bloecke.length) return
-  ;[bloecke[idx], bloecke[ziel]] = [bloecke[ziel], bloecke[idx]]
+  // Innerhalb des Schritts tauschen. Frueher lief das ueber den
+  // Gesamtbestand - mit den Schritten haette "Nach oben" an der ersten
+  // Karte mit einer Karte aus einem ANDEREN Schritt getauscht.
+  const liste = schrittBloecke()
+  const i = liste.findIndex(b => b.id === id)
+  const j = i + richtung
+  if (i < 0 || j < 0 || j >= liste.length) return
+  const gi = bloecke.indexOf(liste[i])
+  const gj = bloecke.indexOf(liste[j])
+  ;[bloecke[gi], bloecke[gj]] = [bloecke[gj], bloecke[gi]]
   geaendert(true)
 }
 
 /* ---------- Statische Bedienelemente ---------- */
 
 function bindeStatisches() {
+  // Vor und zurueck durch die fuenf Schritte.
+  document.getElementById('ll-zurueck')?.addEventListener('click',
+    () => zeigeSchritt(aktuellerSchritt - 1))
+  document.getElementById('ll-weiter')?.addEventListener('click', () => {
+    if (aktuellerSchritt < SCHRITTE.length) { zeigeSchritt(aktuellerSchritt + 1); return }
+    // Am Ende gibt es nichts mehr zu blaettern - der naechste Schritt ist
+    // das PDF. Auf dem Handy liegt es hinter dem Umschalter "Vorschau".
+    document.querySelector('.ll-mobil-toggle button:last-child')?.click()
+    const knopf = document.getElementById('cv-download-btn')
+    knopf?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    knopf?.focus()
+  })
+
   // Abschnitt hinzufügen: ein Knopf, der eine benannte Auswahl aufklappt.
   renderAbschnittWahl()
   const wahlBtn = document.getElementById('ll-abschnitt-btn')
@@ -650,7 +807,7 @@ function geaendert(struktur) {
       schule: profile.schule || '', klasse: profile.klasse || '', bloecke, zeit: Date.now()
     }))
   } catch {}
-  if (struktur) renderKarten()
+  if (struktur) { renderKarten(); renderSchritt() }
   else aktualisiereFortschritt()
   planeSpeichern()
   planeVorschau()
@@ -685,13 +842,23 @@ async function speichern() {
 }
 
 function aktualisiereFortschritt() {
+  // Der Balken gehoert zum Schrittzaehler darueber. Vorher zeigte er den
+  // Fuellstand des Lebenslaufs - im Bild stand dann "Schritt 2 von 5" ueber
+  // einem vollen Balken mit "100 % fertig". Zwei Angaben, die sich
+  // widersprechen, und man weiss nicht, welcher man glauben soll.
+  const balken = Math.round(aktuellerSchritt / SCHRITTE.length * 100)
+  const fuellung = document.getElementById('ll-progress-fill')
+  if (fuellung) fuellung.style.width = balken + '%'
+
+  // Der Fuellstand bleibt, aber als das, was er ist - und in Worten, die
+  // ihn nicht mit dem Schritt verwechseln lassen.
   const karten = [
     Boolean((profile.name || '').trim() && (profile.schule || '').trim()),
     ...bloecke.map(blockGefuellt)
   ]
   const prozent = karten.length ? Math.round(karten.filter(Boolean).length / karten.length * 100) : 0
-  document.getElementById('ll-progress-fill').style.width = prozent + '%'
-  document.getElementById('ll-progress-label').textContent = prozent + ' % fertig'
+  const schild = document.getElementById('ll-progress-label')
+  if (schild) schild.textContent = `Lebenslauf zu ${prozent} % ausgefüllt`
 }
 
 /* ---------- Live-Vorschau (echtes PDF auf Canvas) ---------- */

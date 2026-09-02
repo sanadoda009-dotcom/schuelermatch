@@ -46,7 +46,12 @@
 </nav>
 <script src="js/nav.js"></script>
 
-<main class="legal-page wrap" id="job-detail">
+<!-- Der Bereich bekommt eine Mindesthoehe, solange nichts drinsteht.
+     Sonst schiebt der Inhalt beim Eintreffen alles darunter weg - und
+     seit der Kopf mit den Eckdaten dazugekommen ist, ist dieser Sprung
+     ueber Googles Schwelle von 0,1 gestiegen. Gleiche Loesung wie bei
+     der Jobboerse: Platz reservieren, statt ihn wachsen zu lassen. -->
+<main class="legal-page wrap" id="job-detail" style="min-height:70vh;">
   <p style="color:var(--ink-soft);">Lade Job...</p>
 </main>
 

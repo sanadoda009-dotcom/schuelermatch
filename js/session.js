@@ -1,6 +1,13 @@
 import { supabase } from './supabase.js'
 import { zeigeSeitenfehler, zeigeHinweisSeite } from './zustand.js'
 
+// Die E-Mail kommt aus dem Profil und landet per innerHTML auf der Seite.
+function escapeHtml(str) {
+  const div = document.createElement('div')
+  div.textContent = str ?? ''
+  return div.innerHTML
+}
+
 // Prüft ob jemand eingeloggt ist und die richtige Rolle hat.
 // Leitet sonst automatisch weiter.
 //
@@ -59,7 +66,19 @@ export async function requireAuth(expectedRole, optionen = {}) {
 
     const hinweis = optionen.hinweis?.[profile?.role]
     if (hinweis) {
-      zeigeHinweisSeite(hinweis)
+      // Sanad ist hier gelandet und war sich sicher, nicht angemeldet zu
+      // sein (2.9.2026). Er WAR es - Supabase behaelt die Sitzung im
+      // Browser, auch wenn man den Tab schliesst. Die Seite wusste das und
+      // hat es ihm nicht gesagt. Deshalb steht jetzt dabei, mit welchem
+      // Konto man hier ist, und es gibt einen Weg heraus.
+      const wer = profile?.email || profile?.name
+      zeigeHinweisSeite({
+        ...hinweis,
+        zusatz: wer
+          ? `Angemeldet als ${escapeHtml(wer)}. Eine Anmeldung bleibt im Browser bestehen, bis du dich abmeldest.`
+          : 'Du bist gerade angemeldet – eine Anmeldung bleibt im Browser bestehen, bis du dich abmeldest.',
+        knoepfe: [...(hinweis.knoepfe || []), { text: 'Abmelden', aktion: logout }],
+      })
       return null
     }
     // Niemals auf die Seite weiterleiten, auf der wir schon stehen –

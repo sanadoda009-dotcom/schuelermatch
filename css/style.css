@@ -93,7 +93,9 @@ nav.scrolled {
   color: white; font-size: 14px; font-weight: 700;
 }
 .logo-img { height: 30px; width: auto; display: block; }
-@media (max-width: 880px) { .logo-img { height: 25px; } }
+/* Aus demselben Grund wie in der Fusszeile: unter 28px wird die
+   Wortmarke unleserlich. */
+@media (max-width: 880px) { .logo-img { height: 28px; } }
 .nav-links { display: flex; gap: 30px; font-weight: 500; font-size: 0.95rem; color: var(--ink-soft); }
 .nav-links a:hover { color: var(--ink); }
 
@@ -674,7 +676,9 @@ section { padding: 130px 24px; }
 
 /* SKELETON LOADER */
 .skeleton-card {
-  height: 286px; border-radius: var(--radius); border: 1px solid var(--line);
+  /* 2.9.2026: Die Jobkarte hat eine Zeile dazubekommen (wie alt die
+     Anzeige ist), echte Karten sind seitdem rund 319px hoch. */
+  height: 305px; border-radius: var(--radius); border: 1px solid var(--line);
   background: linear-gradient(90deg, var(--card) 25%, var(--paper) 50%, var(--card) 75%);
   background-size: 200% 100%; animation: skeleton-pulse 1.4s ease-in-out infinite;
 }
@@ -697,7 +701,14 @@ section { padding: 130px 24px; }
 footer { background: #232766; color: rgba(255,255,255,0.72); padding: 50px 24px 30px; }
 .footer-inner { max-width: 1120px; margin: 0 auto; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
 footer .logo { color: white; }
-.footer-logo-img { height: 26px; width: auto; display: block; }
+/* Die Wortmarke ist ein Bild (480x91). Bei 26px Hoehe blieben pro
+   Buchstabe rund 8px - die Punze im "e" und im "a" fiel dabei zu, und
+   "SchuelerMatch" las sich als Klumpen. Auf dunklem Grund faellt das
+   besonders auf, weil weisse Schrift dort zusaetzlich auslaeuft.
+   Gemessen am 2.9.2026: bei 26px zu, bei 32px grenzwertig, ab 34px offen.
+   Mehr Pixel in der Datei helfen dabei NICHT - die Datei ist bereits 3,5x
+   so gross wie die Anzeige. Die Anzeigegroesse ist die Grenze. */
+.footer-logo-img { height: 34px; width: auto; display: block; }
 .footer-links { display: flex; gap: 22px; font-size: 0.86rem; flex-wrap: wrap; }
 .footer-links a:hover { color: white; }
 .footer-bottom { max-width: 1120px; margin: 28px auto 0; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.78rem; opacity: 0.55; font-family: 'IBM Plex Mono', monospace; }
@@ -2875,3 +2886,185 @@ main[tabindex="-1"]:focus { outline: none; }
   .ll-werkzeug-weg { margin-left: 0; }
   .ll-karte-typ { display: none; }   /* Platz gehoert hier dem Namen */
 }
+
+/* ============================================================
+   DER EDITOR ALS ASSISTENT (2.9.2026)
+   Fuenf Schritte statt einer langen Liste - Form uebernommen von
+   app.onlinelebenslauf.com, das Sanad als Vorbild geschickt hat.
+   ============================================================ */
+
+.ll-schritt-leiste { margin-bottom: 18px; }
+.ll-schritt-zahl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-soft); margin: 0 0 4px;
+}
+/* 500, nicht 600: Von IBM Plex Mono laedt die Seite nur 400 und 500.
+   Bei 600 rechnet der Browser die Fettung selbst aus, und das sieht
+   anders aus als der echte Schnitt. schriften.spec.js faengt genau
+   das ab - und hat es hier auch getan. */
+.ll-schritt-zahl b { color: var(--ink); font-weight: 500; }
+.ll-schritt-name {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.5rem; line-height: 1.15; margin: 0 0 12px; color: var(--ink);
+}
+.ll-schritt-leiste .ll-progress-balken { margin-bottom: 6px; }
+.ll-progress-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem; color: var(--ink-soft); margin: 0; text-align: right;
+}
+
+.ll-schritt-text { margin-bottom: 20px; }
+.ll-schritt-text h3 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.12rem; line-height: 1.3; margin: 0 0 6px; color: var(--ink);
+}
+.ll-schritt-text p {
+  font-size: 0.9rem; line-height: 1.55; color: var(--ink-soft); margin: 0;
+}
+
+/* Ein leerer Schritt sieht sonst aus wie ein Fehler. */
+.ll-schritt-leer {
+  border: 1.5px dashed var(--line); border-radius: 12px;
+  padding: 18px; margin: 0 0 4px;
+  font-size: 0.88rem; line-height: 1.55; color: var(--ink-soft);
+  background: var(--paper);
+}
+.ll-schritt-leer[hidden] { display: none; }
+#ll-vorlagen-box[hidden], #ll-abschnitt-box[hidden] { display: none; }
+
+.ll-schritt-fuss {
+  display: flex; gap: 12px; align-items: center;
+  margin-top: 26px; padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.ll-schritt-fuss .btn { min-height: 48px; padding: 12px 26px; }
+.ll-schritt-fuss #ll-weiter { margin-left: auto; }
+.ll-schritt-fuss .btn:disabled { opacity: 0.4; cursor: default; }
+
+@media (max-width: 560px) {
+  .ll-schritt-name { font-size: 1.3rem; }
+  .ll-schritt-fuss .btn { flex: 1; padding: 12px 16px; }
+}
+
+/* Wer auf einer Hinweisseite landet, soll sehen, MIT WELCHEM Konto.
+   Sanad war sicher, nicht angemeldet zu sein - er war es.
+   Eine Supabase-Sitzung ueberlebt das Schliessen des Tabs. */
+.hinweis-konto {
+  font-size: 0.85rem; line-height: 1.5; color: var(--ink-soft);
+  background: var(--paper); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px 16px; margin: 4px 0 18px;
+  max-width: 46ch;
+}
+
+/* Wie alt eine Anzeige ist. Indeed und StepStone schreiben das an jede
+   Karte - und aus gutem Grund: Ob sie von gestern oder von vor drei
+   Monaten ist, entscheidet, ob sich das Bewerben lohnt. Ein Datum muss
+   man umrechnen, "vor 2 Tagen" nicht. */
+.job-frische {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem; color: var(--ink-soft);
+  margin: 10px 0 0;
+}
+
+/* ============================================================
+   DIE ANZEIGENSEITE ALS LANDESEITE (2.9.2026)
+   Aus dem Vergleich mit Indeed/StepStone und den Untersuchungen zu
+   Abbruchgruenden: Eine Anzeigenseite ist keine Akte, sondern eine
+   Seite, auf der jemand entscheidet. Oben stehen die vier Angaben,
+   die die Entscheidung tragen - vorher lagen sie in einer flachen
+   Reihe zwischen Aufrufzahl und Anzeigenalter.
+   ============================================================ */
+
+.job-eckdaten {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1px; margin: 22px 0 0;
+  background: var(--line); border: 1px solid var(--line);
+  border-radius: 14px; overflow: hidden;
+}
+.job-eckdaten > div { background: var(--card); padding: 14px 16px; }
+.job-eckdaten dt {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-soft); margin-bottom: 4px;
+}
+.job-eckdaten dd {
+  margin: 0; font-size: 1.02rem; font-weight: 600; color: var(--ink);
+  line-height: 1.3;
+}
+
+/* Die Handlung frueh, nicht erst nach Beschreibung und Bewertungen. */
+.job-cta-oben { margin: 18px 0 6px; }
+.job-cta-oben .btn { min-height: 50px; padding: 14px 28px; font-size: 1rem; }
+.job-cta-oben p {
+  font-size: 0.8rem; color: var(--ink-soft); margin: 8px 0 0;
+}
+
+/* Wer eine Anzeige liest, liest sie nicht - er ueberfliegt sie. */
+.job-punkte { margin: 10px 0 0; padding-left: 22px; }
+.job-punkte li { margin-bottom: 8px; line-height: 1.6; }
+
+@media (max-width: 560px) {
+  .job-eckdaten { grid-template-columns: 1fr 1fr; }
+  .job-cta-oben .btn { width: 100%; }
+}
+
+/* Ein freiwilliges Feld muss als freiwillig zu erkennen sein - sonst
+   fuellt man es aus Pflichtgefuehl aus und bricht ab, wenn einem nichts
+   einfaellt. */
+.feld-freiwillig {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.04em; text-transform: uppercase;
+  /* 500, nicht geerbt: Diese Auszeichnung steht IN einem <label>, und
+     Labels sind hier 600. Von IBM Plex Mono laedt die Seite aber nur
+     400 und 500 - der Browser wuerde die Fettung selbst ausrechnen.
+     Dieselbe Falle wie beim <b> im Label. */
+  font-weight: 500;
+  color: var(--ink-soft); background: var(--paper);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 2px 8px; margin-left: 6px; vertical-align: middle;
+}
+.feld-hilfe {
+  font-size: 0.8rem; line-height: 1.5; color: var(--ink-soft);
+  margin: 0 0 10px;
+}
+
+/* Etwas Luft zwischen Knopf, Zusatz und dem, was darunter kommt. */
+.job-cta-oben { margin-bottom: 18px; }
+.job-frische { margin-bottom: 6px; }
+
+/* ============================================================
+   DER STAND EINER BEWERBUNG (2.9.2026)
+   Die Zeitleiste hatte drei Schritte, aber nur zwei Zustaende.
+   Jetzt haengt der mittlere an `angesehen_am`, und eine Absage
+   sagt, warum.
+   ============================================================ */
+
+/* Das Datum am Schritt - klein, damit es den Schritt nicht ueberlagert. */
+.bew-schritt em {
+  display: block; font-style: normal;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.64rem; color: var(--ink-soft); margin-top: 2px;
+}
+
+.bew-absage {
+  margin-top: 12px; padding: 12px 14px;
+  background: var(--paper); border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.bew-absage-grund {
+  margin: 0 0 6px; font-size: 0.9rem; font-weight: 600; color: var(--ink);
+}
+.bew-absage .bew-trost { margin: 0; }
+
+/* Die Gruende treten an die Stelle der Knopfreihe - kein Popup. */
+.absage-gruende { flex-direction: column; align-items: stretch; }
+.absage-frage {
+  font-size: 0.82rem; line-height: 1.5; color: var(--ink-soft);
+  margin: 0 0 8px;
+}
+.absage-wahl, .absage-zurueck {
+  min-height: 44px; text-align: left; padding: 10px 14px;
+  font-size: 0.82rem; margin-bottom: 6px;
+}
+.absage-zurueck { color: var(--ink-soft); }

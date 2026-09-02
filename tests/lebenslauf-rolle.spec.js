@@ -81,3 +81,51 @@ test('ohne Modul bleibt die Seite nicht dauerhaft leer', async ({ page }) => {
 
   await expect(page.locator('main')).toBeVisible({ timeout: 20_000 })
 })
+
+test.describe('wer nicht weiß, dass er angemeldet ist', () => {
+  // Sanad am 2.9.: „steht da, als Arbeitgeber steht dir das nicht zur
+  // Verfügung – aber ich war gar nicht eingeloggt." Er WAR es: Eine
+  // Supabase-Sitzung liegt im Browser und überlebt das Schließen des Tabs.
+  // Die Seite wusste das und hat es ihm nicht gesagt. Genau das ist der
+  // Fehler – nicht die Weiche.
+  test('die Seite sagt, mit welchem Konto man hier ist', async ({ page }) => {
+    await setupDashboard(page.context(), { user: FIRMA, db: defaultDb() })
+    await page.goto('/lebenslauf.html')
+    await expect(page.locator('main')).toContainText('für Schüler', { timeout: 20_000 })
+
+    const konto = page.locator('.hinweis-konto')
+    await expect(konto).toBeVisible()
+    await expect(konto).toContainText(FIRMA.email)
+    // Und warum das so ist, ohne dass man raten muss.
+    await expect(konto).toContainText('bis du dich abmeldest')
+  })
+
+  test('man kommt aus der Sackgasse auch wieder heraus', async ({ page }) => {
+    await setupDashboard(page.context(), { user: FIRMA, db: defaultDb() })
+    await page.goto('/lebenslauf.html')
+    await expect(page.locator('main')).toContainText('für Schüler', { timeout: 20_000 })
+
+    const abmelden = page.locator('main button', { hasText: 'Abmelden' })
+    await expect(abmelden).toBeVisible()
+    await abmelden.click()
+    await expect(page).toHaveURL(/login\.html/, { timeout: 20_000 })
+  })
+
+  test('ohne Anmeldung gibt es keinen Rollen-Hinweis, sondern den Login', async ({ page }) => {
+    // Der Fall, den Sanad vermutet hatte. Er verhält sich richtig – und
+    // ab jetzt bewacht ihn ein Test.
+    await setupDashboard(page.context(), { user: null, db: defaultDb() })
+    await page.goto('/lebenslauf.html')
+    await expect(page).toHaveURL(/login\.html/, { timeout: 20_000 })
+  })
+
+  test('eine Sitzung ohne Profil endet nicht im Rollen-Hinweis', async ({ page }) => {
+    // So sieht es aus, wenn jemand sein Konto gelöscht hat und der Browser
+    // die Sitzung behält. Dann ist die Rolle unbekannt – ein Hinweis
+    // „du bist Arbeitgeber" wäre schlicht falsch.
+    await setupDashboard(page.context(), { user: FIRMA, db: defaultDb({ profiles: [] }) })
+    await page.goto('/lebenslauf.html')
+    await expect(page.locator('main')).toContainText('Konto unvollständig', { timeout: 20_000 })
+    await expect(page.locator('main')).not.toContainText('für Schüler')
+  })
+})

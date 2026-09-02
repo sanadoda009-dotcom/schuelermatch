@@ -525,7 +525,10 @@
     <p id="bewerbung-firma-name" style="color:var(--ink-soft); font-size:0.9rem; margin-bottom:20px;"></p>
     <form id="bewerbung-form">
       <div class="form-group">
-        <label for="bewerbung-motivation">Motivationsschreiben</label>
+        <label for="bewerbung-motivation">Anschreiben <span class="feld-freiwillig">freiwillig</span></label>
+        <p class="feld-hilfe">Du kannst dich auch ohne abschicken. Dein Lebenslauf hängt
+        ohnehin dran – zwei, drei Sätze helfen aber, wenn du erklären willst, warum
+        gerade dieser Job.</p>
 
         <!-- Der Anschreiben-Coach (27.8.). Vorher warf ein Knopf einen von
              drei fertigen Beispieltexten ins Feld - bei fuenf Bewerbern
@@ -544,7 +547,14 @@
           </div>
         </div>
 
-        <textarea id="bewerbung-motivation" placeholder="Warum passt du gut zu diesem Job?" style="min-height:140px;" required></textarea>
+        <!-- KEIN `required` mehr (2.9.2026).
+             StepStone bewirbt "schnelle Bewerbung" inzwischen ausdruecklich
+             als Vorteil - gemeint ist: ohne Anschreiben. Untersuchungen zu
+             Bewerbungsabbruechen nennen zu viele Pflichtfelder als groessten
+             Abbruchgrund. Hier musste ein Vierzehnjaehriger einen
+             Motivationstext schreiben, bevor der Knopf ueberhaupt ging.
+             Der Coach daneben bleibt - als Hilfe, nicht als Huerde. -->
+        <textarea id="bewerbung-motivation" placeholder="Freiwillig – z.B. warum gerade dieser Job zu dir passt." style="min-height:120px;"></textarea>
         <div class="coach-rueckmeldung" id="coach-rueckmeldung" role="status"></div>
       </div>
       <div class="form-group">

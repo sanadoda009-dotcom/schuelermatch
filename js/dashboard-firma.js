@@ -10,6 +10,7 @@ import { ladeChat } from './chat.js'
 import { initGlocke } from './notifications.js'
 import { geocode, uebernehmeKoordinaten } from './geo.js'
 import { sichereMediaUrl } from './sicher.js'
+import { ABSAGE_GRUENDE } from './absage.js'
 
 let profile
 let editingJobId = null
@@ -423,6 +424,25 @@ async function ladeEigeneJobs() {
     .in('job_id', jobs.map(j => j.id))
     .order('erstellt_am', { ascending: false })
 
+  // Wer die Bewerbungen zu seinen Anzeigen oeffnet, hat sie gesehen.
+  // Frueher hatte die Zeitleiste des Schuelers drei Schritte, aber nur
+  // zwei Zustaende: "In Pruefung" wurde erst abgehakt, wenn die
+  // Entscheidung schon gefallen war. Jetzt sieht er, dass seine
+  // Bewerbung ueberhaupt angekommen ist - das ist der Punkt, an dem
+  // man sonst anfaengt, an sich zu zweifeln.
+  //
+  // Leise: Solange supabase/bewerbung-stand.sql nicht eingespielt ist,
+  // gibt es die Spalte nicht. Das darf hier nichts kaputt machen.
+  const ungesehen = (bewerbungen || [])
+    .filter(b => b.angesehen_am === null || b.angesehen_am === undefined)
+    .map(b => b.id)
+  if (ungesehen.length) {
+    supabase.from('bewerbungen')
+      .update({ angesehen_am: new Date().toISOString() })
+      .in('id', ungesehen)
+      .then(() => {}, () => {})
+  }
+
   renderStats(jobs.length, bewerbungen?.length || 0)
   const offen = (bewerbungen || []).filter(b => (b.status || 'ausstehend') === 'ausstehend').length
   document.getElementById('badge-bewerbungen').textContent = offen > 0 ? offen : ''
@@ -565,24 +585,72 @@ async function ladeEigeneJobs() {
   list.querySelectorAll('[data-chat]').forEach(btn => {
     btn.addEventListener('click', () => oeffneFirmaChat(btn.dataset.chat, btn.dataset.chatName))
   })
-  list.querySelectorAll('[data-status-id]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      btn.disabled = true
-      const wert = btn.dataset.statusWert
-      const { error } = await supabase
-        .from('bewerbungen')
-        .update({ status: wert })
-        .eq('id', btn.dataset.statusId)
-      if (error) {
-        toast(verstaendlich(error), 'fehler')
-        btn.disabled = false
-        return
-      }
-      // Der Schüler bekommt automatisch eine E-Mail (Edge Function "mail-ereignis")
-      toast(wert === 'angenommen' ? 'Bewerber angenommen ✓ – E-Mail geht automatisch raus' : 'Bewerber abgelehnt – höfliche E-Mail geht automatisch raus')
-      await ladeEigeneJobs()
+  // Eine Entscheidung schreiben. Die drei Spalten aus
+  // supabase/bewerbung-stand.sql sind noch nicht eingespielt - PostgREST
+  // weist ein Update auf eine unbekannte Spalte KOMPLETT zurueck. Ohne
+  // diesen Rueckfall waeren Annehmen und Ablehnen ab sofort kaputt.
+  async function schreibeEntscheidung(id, wert, grund) {
+    const voll = { status: wert, entschieden_am: new Date().toISOString() }
+    if (wert === 'abgelehnt' && grund) voll.absage_grund = grund
+
+    const { error } = await supabase.from('bewerbungen').update(voll).eq('id', id)
+    if (!error) return { error: null }
+
+    // PGRST204: Spalte gibt es nicht. Dann wenigstens den Status setzen.
+    if (error.code === 'PGRST204' || /column .* does not exist/i.test(error.message || '')) {
+      return supabase.from('bewerbungen').update({ status: wert }).eq('id', id)
+    }
+    return { error }
+  }
+
+  // Verdrahtet die Entscheidungsknoepfe. Wird auch auf die Grund-Auswahl
+  // angewendet, die beim Ablehnen an ihre Stelle tritt - deshalb eine
+  // eigene Funktion und keine Schleife an Ort und Stelle.
+  function verdrahteStatus(wurzel) {
+    wurzel.querySelectorAll('[data-status-id]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const wert = btn.dataset.statusWert
+
+        // Ablehnen fragt zuerst nach dem Grund. Kein Popup - die Knopfreihe
+        // wird durch die Gruende ersetzt, wie beim Loeschen mit zwei Klicks.
+        //
+        // Feste Gruende, kein Freitext: Eine Absage geht von einem
+        // Erwachsenen an ein Kind. Ein offenes Feld waere derselbe Kanal
+        // wie der Chat und braeuchte dieselbe Pruefung auf Kontaktdaten -
+        // und es laesst den verletzenden Satz zu, den jemand im Aerger tippt.
+        if (wert === 'abgelehnt' && !btn.dataset.grund) {
+          const reihe = btn.parentElement
+          reihe.innerHTML = `
+            <p class="absage-frage">Warum sagst du ab? Der Schüler liest den Grund –
+            das hilft ihm bei der nächsten Bewerbung.</p>
+            ${ABSAGE_GRUENDE.map(g => `
+              <button type="button" class="btn btn-outline absage-wahl"
+                      data-status-id="${btn.dataset.statusId}" data-status-wert="abgelehnt"
+                      data-grund="${g.schluessel}">${escapeHtml(g.fuerFirma)}</button>`).join('')}
+            <button type="button" class="btn btn-outline absage-zurueck">Doch nicht</button>`
+          reihe.classList.add('absage-gruende')
+          reihe.querySelector('.absage-zurueck').addEventListener('click', () => ladeEigeneJobs())
+          verdrahteStatus(reihe)
+          return
+        }
+
+        btn.disabled = true
+        const { error } = await schreibeEntscheidung(
+          btn.dataset.statusId, wert, btn.dataset.grund)
+        if (error) {
+          toast(verstaendlich(error), 'fehler')
+          btn.disabled = false
+          return
+        }
+        // Der Schüler bekommt automatisch eine E-Mail (Edge Function "mail-ereignis")
+        toast(wert === 'angenommen'
+          ? 'Bewerber angenommen ✓ – E-Mail geht automatisch raus'
+          : 'Bewerber abgelehnt – höfliche E-Mail geht automatisch raus')
+        await ladeEigeneJobs()
+      })
     })
-  })
+  }
+  verdrahteStatus(list)
 }
 
 function statusLabel(status) {

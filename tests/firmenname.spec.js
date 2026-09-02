@@ -57,9 +57,15 @@ test.describe('Alter der Anzeige', () => {
     await setupDashboard(page.context(), { db })
     await page.goto('/job.html?id=' + db.jobs[0].id)
     await expect(page.locator('h1')).toBeVisible({ timeout: 15_000 })
-    return (await page.locator('.job-datum').innerText()).toLowerCase()
+    return (await page.locator('.job-frische').innerText()).toLowerCase()
   }
 
+  // Klasse umbenannt am 2.9.2026: Das Alter der Anzeige steht jetzt an
+  // JEDER Jobkarte, nicht nur auf der Detailseite, und kommt aus dem
+  // gemeinsamen Modul js/job-karte.js. Zwei Namen fuer dieselbe Sache
+  // waeren genau die Doppelung, die dieses Modul beseitigt hat.
+  // Verhalten unveraendert: gleiche Worte, gleiche Hervorhebung ab
+  // zwei Monaten.
   test('frisch eingestellt', async ({ page }) => {
     expect(await datumstext(page, 0)).toContain('heute')
   })
@@ -81,8 +87,8 @@ test.describe('Alter der Anzeige', () => {
     await setupDashboard(page.context(), { db })
     await page.goto('/job.html?id=' + db.jobs[0].id)
     await expect(page.locator('h1')).toBeVisible({ timeout: 15_000 })
-    await expect(page.locator('.job-datum')).toHaveClass(/job-alt/)
-    expect((await page.locator('.job-datum').innerText()).toLowerCase()).toContain('monaten')
+    await expect(page.locator('.job-frische')).toHaveClass(/job-alt/)
+    expect((await page.locator('.job-frische').innerText()).toLowerCase()).toContain('monaten')
   })
 
   test('junge Anzeigen werden nicht hervorgehoben', async ({ page }) => {
@@ -92,7 +98,7 @@ test.describe('Alter der Anzeige', () => {
     await setupDashboard(page.context(), { db })
     await page.goto('/job.html?id=' + db.jobs[0].id)
     await expect(page.locator('h1')).toBeVisible({ timeout: 15_000 })
-    await expect(page.locator('.job-datum')).not.toHaveClass(/job-alt/)
+    await expect(page.locator('.job-frische')).not.toHaveClass(/job-alt/)
   })
 })
 

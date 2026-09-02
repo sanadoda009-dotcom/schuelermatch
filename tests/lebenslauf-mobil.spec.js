@@ -65,13 +65,19 @@ test('kein Eingabefeld ist unbrauchbar schmal', async ({ page }) => {
 
 test('Bedienknöpfe sind groß genug für Finger', async ({ page }) => {
   await oeffneEditor(page)
-  // Die Auswahl fuer neue Abschnitte steckt hinter einem Knopf - erst
-  // aufklappen, sonst misst der Test unsichtbare Knoepfe (also nichts).
+  // Der Editor fuehrt jetzt durch fuenf Schritte. Schritt 4 hat Karten,
+  // Zeilen-Editoren UND eine Auswahl - dort steht alles beieinander, was
+  // ein Finger treffen koennen muss.
+  await page.locator('#ll-weiter').click()
+  await page.locator('#ll-weiter').click()
+  await page.locator('#ll-weiter').click()
+  await page.evaluate(() => document.querySelectorAll('.ll-karte').forEach(d => { d.open = true }))
   await page.locator('#ll-abschnitt-btn').click()
   const zuKlein = await page.evaluate((min) => {
     const raus = []
     const pruefen = ['.ll-griff', '.ll-werkzeug', '.ll-zeile-weg', '.ll-mobil-toggle button',
-                     '.ll-hilfe-knopf', '.ll-abschnitt-btn', '.ll-wahl']
+                     '.ll-hilfe-knopf', '.ll-abschnitt-btn', '.ll-wahl',
+                     '#ll-zurueck', '#ll-weiter']
     pruefen.forEach(sel => document.querySelectorAll(sel).forEach(el => {
       const cs = getComputedStyle(el)
       if (cs.display === 'none' || cs.visibility === 'hidden') return
@@ -110,10 +116,14 @@ test('Umschalter zeigt die Vorschau und wieder zurück', async ({ page }) => {
 
 test('neuen Abschnitt hinzufügen funktioniert per Fingertipp', async ({ page }) => {
   await oeffneEditor(page)
-  const vorher = await page.locator('.ll-karte').count()
 
-  // Neu: ein Knopf klappt eine benannte Auswahl auf. Vorher standen acht
-  // gleich aussehende Knoepfe nebeneinander.
+  // Neu: fuenf Schritte, und in jedem eine Auswahl mit dem, was dorthin
+  // passt. "Wann ich Zeit habe" steht in Schritt 4. Gezaehlt wird erst
+  // DORT - jeder Schritt zeigt ja nur seine eigenen Karten.
+  await page.locator('#ll-weiter').click()
+  await page.locator('#ll-weiter').click()
+  await page.locator('#ll-weiter').click()
+  const vorher = await page.locator('.ll-karte').count()
   await page.locator('#ll-abschnitt-btn').click()
   await expect(page.locator('#ll-abschnitt-wahl')).toBeVisible()
   await page.locator('.ll-wahl', { hasText: 'Wann ich Zeit habe' }).click()

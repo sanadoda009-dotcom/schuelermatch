@@ -3,6 +3,7 @@ import { ICONS } from './icons.js'
 import { passtZurSuche } from './suche.js'
 import { hole, zeigeLadefehler } from './zustand.js'
 import { meldeMitAnmeldung, meldeButtonHtml } from './melden.js'
+import { jobKarteHtml, istNeu } from './job-karte.js'
 
 let alleJobs = []
 let aktiveKategorie = ''
@@ -48,10 +49,6 @@ function filterZuruecksetzen() {
   document.getElementById('sortierung').value = 'neueste'
   setzeKategorie('')
   wendeFilterAn()
-}
-
-function istNeu(job) {
-  return job.erstellt_am && (Date.now() - new Date(job.erstellt_am).getTime()) < 72 * 3600 * 1000
 }
 
 function setzeKategorie(kat) {
@@ -230,23 +227,7 @@ function renderJobs(jobs) {
     return
   }
 
-  grid.innerHTML = jobs.map(job => `
-    <div class="job-card job-card--clickable" data-detail="${job.id}" role="button" tabindex="0" aria-label="Details zu ${escapeHtml(job.titel)}">
-      ${istNeu(job) ? '<span class="neu-badge">NEU</span>' : ''}
-      <div class="job-card-top">
-        <div class="company-logo">${escapeHtml(((job.firma_name || job.titel || '?')[0]).toUpperCase())}</div>
-        <span class="job-badge">${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} J.`}</span>
-      </div>
-      <h3>${escapeHtml(job.titel)}</h3>
-      ${job.firma_name ? `<p class="job-firma">bei ${escapeHtml(job.firma_name)}</p>` : ''}
-      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
-      ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
-      <div class="job-meta">
-        ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
-        ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
-      </div>
-    </div>
-  `).join('')
+  grid.innerHTML = jobs.map(job => jobKarteHtml(job, { klickbar: true })).join('')
 
   grid.querySelectorAll('[data-detail]').forEach(karte => {
     karte.addEventListener('click', () => oeffneDetail(karte.dataset.detail))

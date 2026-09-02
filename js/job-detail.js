@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
 import { hole, zeigeLadefehler } from './zustand.js'
 import { meldeMitAnmeldung, meldeButtonHtml } from './melden.js'
+import { alterText, istAlt } from './job-karte.js'
 
 function escapeHtml(str) {
   const div = document.createElement('div'); div.textContent = str ?? ''; return div.innerHTML
@@ -54,20 +55,50 @@ async function ladeBewertungenHtml(firmaId) {
 // Wie alt ist die Anzeige? Eine Stelle von vor einem halben Jahr ist
 // meist längst vergeben - das sollte man sehen, bevor man Zeit in eine
 // Bewerbung steckt.
-function alterDerAnzeige(erstelltAm) {
-  if (!erstelltAm) return ''
-  const tage = Math.floor((Date.now() - new Date(erstelltAm).getTime()) / 86400000)
-  if (tage < 0) return ''
-  const text = tage < 1 ? 'heute eingestellt'
-    : tage === 1 ? 'gestern eingestellt'
-    : tage < 7 ? `vor ${tage} Tagen eingestellt`
-    : tage < 14 ? 'vor einer Woche eingestellt'
-    : tage < 60 ? `vor ${Math.floor(tage / 7)} Wochen eingestellt`
-    : `vor ${Math.floor(tage / 30)} Monaten eingestellt`
-  // Ab zwei Monaten dezent hervorheben - dann lohnt eine Nachfrage,
-  // ob die Stelle ueberhaupt noch frei ist.
-  const alt = tage >= 60 ? ' job-alt' : ''
-  return `<span class="job-datum${alt}">${text}</span>`
+// Die Eckdaten ganz nach oben (2.9.2026).
+//
+// Aus dem Vergleich mit Indeed und StepStone und den Untersuchungen zu
+// Abbruchgründen: Eine Anzeigenseite ist keine Akte, sondern eine Seite,
+// auf der jemand eine Entscheidung trifft. Oben muss stehen, was die
+// Entscheidung trägt – Verdienst, ab wann, wann, wo. Vorher standen diese
+// vier Angaben in einer flachen Reihe zwischen Aufrufzahl und Anzeigenalter,
+// alle gleich gewichtet.
+function eckdatenHtml(job) {
+  const felder = [
+    ['Verdienst', job.stundenlohn ? `${job.stundenlohn} €/Std` : 'nach Absprache'],
+    ['Ab', job.mindestalter == null ? 'auf Anfrage' : `${job.mindestalter} Jahren`],
+    ['Wann', job.arbeitszeit || job.verfuegbarkeit || 'nach Absprache'],
+    ['Wo', job.ort || 'auf Anfrage'],
+  ]
+  return `
+    <dl class="job-eckdaten">
+      ${felder.map(([name, wert]) => `
+        <div>
+          <dt>${escapeHtml(name)}</dt>
+          <dd>${escapeHtml(wert)}</dd>
+        </div>`).join('')}
+    </dl>`
+}
+
+// Eine Beschreibung aus mehreren Zeilen wird eine Liste.
+//
+// Vorher stand hier ein einziger Block mit `white-space: pre-wrap`. Die
+// Untersuchungen zu Stellenanzeigen sind sich einig: Wer eine Anzeige
+// liest, liest sie nicht – er überfliegt sie. Ein Block zwingt zum Lesen,
+// Punkte lassen sich überfliegen.
+//
+// Umgebrochen wird nur, was die Firma selbst umgebrochen hat. Aus einem
+// Fließtext eine Liste zu erfinden, wäre geraten.
+function beschreibungHtml(text) {
+  if (!text || !text.trim()) {
+    return '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'
+  }
+  const zeilen = text.split('\n')
+    .map(z => z.replace(/^\s*[-–—•*]\s*/, '').trim())
+    .filter(Boolean)
+
+  if (zeilen.length < 2) return `<p>${escapeHtml(text.trim())}</p>`
+  return `<ul class="job-punkte">${zeilen.map(z => `<li>${escapeHtml(z)}</li>`).join('')}</ul>`
 }
 
 // Eine Anzeige, die es nicht mehr gibt, darf nicht im Google-Index
@@ -197,17 +228,20 @@ async function ladeJob() {
       ${job.arbeitszeit ? `<span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}
     </p>
 
-    <div class="job-meta" style="margin:20px 0; font-size:0.95rem;">
-      <span>${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} Jahren`}</span>
-      ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
-      ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
-      <span>👁 ${job.aufrufe || 0} Aufrufe</span>
-      ${alterDerAnzeige(job.erstellt_am)}
+    ${eckdatenHtml(job)}
+
+    <div class="job-cta-oben">
+      <a href="register.html?rolle=schueler" class="btn btn-green">Kostenlos registrieren &amp; bewerben</a>
+      <p>Kostenlos, und du brauchst kein Anschreiben.</p>
     </div>
+
+    <p class="job-frische${istAlt(job) ? ' job-alt' : ''}">
+      ${escapeHtml(alterText(job) || '')}${alterText(job) ? ' · ' : ''}👁 ${job.aufrufe || 0} Aufrufe
+    </p>
 
     <section>
       <h2>Beschreibung</h2>
-      ${job.beschreibung ? `<p style="white-space:pre-wrap;">${escapeHtml(job.beschreibung)}</p>` : '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'}
+      ${beschreibungHtml(job.beschreibung)}
     </section>
 
     ${bewertungenHtml}
