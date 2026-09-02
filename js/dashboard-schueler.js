@@ -1823,7 +1823,24 @@ async function sendeBewerbung(e) {
     // Leer heisst leer - nicht eine leere Zeichenkette, die im
     // Firmen-Dashboard als "Anschreiben vorhanden" durchgeht.
     motivationsschreiben: document.getElementById('bewerbung-motivation').value.trim() || null,
-    zeugnis_url
+    zeugnis_url,
+    // Gleich mit anlegen statt nachtraeglich per UPDATE (2.9.2026).
+    //
+    // Vorher stand der Pfad in einem UPDATE hinter dem INSERT - mit dem
+    // Kommentar, das schlage "leise fehl, falls die Spalte fehlt". Die
+    // Spalte gibt es aber. Was fehlschlug, war etwas anderes: Ein Schueler
+    // hat auf `bewerbungen` GAR KEINE UPDATE-Regel. Das UPDATE traf also
+    // null Zeilen, ohne Fehler.
+    //
+    // Nachgemessen in der echten Datenbank: 0 von 3 Bewerbungen hatten
+    // einen lebenslauf_url. Die Firma fiel deshalb IMMER auf die
+    // Live-Erzeugung zurueck - und sah damit den HEUTIGEN Lebenslauf,
+    // nicht den, mit dem sich jemand beworben hat. Wer seinen Lebenslauf
+    // danach aendert, aenderte rueckwirkend, was die Firma sieht.
+    //
+    // Der Pfad steht hier laengst fest (das PDF ist oben schon hochgeladen),
+    // also gehoert er in den INSERT. Dafuer gibt es eine Regel.
+    lebenslauf_url: lebenslaufPfad
   })
 
   btn.disabled = false
@@ -1832,15 +1849,6 @@ async function sendeBewerbung(e) {
   if (error) {
     toast(verstaendlich(error), 'fehler')
     return
-  }
-
-  // Pfad zum PDF an der Bewerbung speichern (Spalte lebenslauf_url).
-  // Existiert die Spalte noch nicht, schlägt nur dieses Update leise fehl –
-  // die Firma sieht dann wie bisher das live erzeugte PDF.
-  if (lebenslaufPfad) {
-    await supabase.from('bewerbungen')
-      .update({ lebenslauf_url: lebenslaufPfad })
-      .eq('job_id', jobId).eq('schueler_id', profile.id)
   }
 
   const jobBtn = aktuelleBewerbung.btn
