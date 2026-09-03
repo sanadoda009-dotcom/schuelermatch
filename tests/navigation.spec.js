@@ -17,7 +17,7 @@ const { test, expect, setupDashboard } = require('./helpers/supabase-fake')
 const SEITEN = [
   '/index.html',
   '/jobs.html',
-  '/job.html?id=aaaaaaaa-0000-4000-8000-000000000001',
+  '/job.html?id=aaaaaaaa-0000-4000-8000-000000000001', '/firma.html?id=ffffffff-0000-4000-8000-000000000001',
   '/jobideen.html',
   '/job-finder.html',
   '/eltern.html',

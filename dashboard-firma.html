@@ -46,7 +46,11 @@
   </button>
   <button class="sidebar-item" data-view="jobs">
     <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" stroke-linecap="round"/></svg>
-    Meine Jobs & Bewerber<span class="sidebar-badge" id="badge-bewerbungen"></span>
+    Meine Anzeigen
+  </button>
+  <button class="sidebar-item" data-view="bewerbungen">
+    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" stroke-linecap="round"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87" stroke-linecap="round"/></svg>
+    Bewerbungen<span class="sidebar-badge" id="badge-bewerbungen"></span>
   </button>
   <button class="sidebar-item" data-view="profil">
     <svg viewBox="0 0 24 24"><path d="M3 21V8l9-5 9 5v13M3 21h18M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -192,18 +196,34 @@
   <!-- MEINE JOBS & BEWERBER (eigener Reiter) -->
   <div class="dashboard-view" id="view-jobs">
     <div class="jobs-header">
-      <h1 style="font-size:1.6rem;">Meine Jobs & Bewerber</h1>
+      <h1 style="font-size:1.6rem;">Meine Anzeigen</h1>
       <div class="stats-row" id="stats-row"></div>
     </div>
+    <div class="jobs-grid" id="meine-jobs">
+      <div class="skeleton-card"></div><div class="skeleton-card"></div>
+    </div>
+  </div>
+
+  <!-- BEWERBUNGEN
+       Bis zum 2.9.2026 steckten die Bewerber INNERHALB der Anzeigenliste -
+       die Ansicht hiess selbst "Meine Jobs & Bewerber". Zwei verschiedene
+       Aufgaben in einer Ansicht, und mit mehreren Anzeigen wurde daraus
+       eine Wand. Beim Schueler sind Jobs und Bewerbungen laengst getrennt.
+       Jetzt hier auch. -->
+  <div class="dashboard-view" id="view-bewerbungen">
+    <div class="jobs-header">
+      <h1 style="font-size:1.6rem;">Bewerbungen</h1>
+      <p style="color:var(--ink-soft);">Wer sich bei dir beworben hat – nach Anzeige geordnet.</p>
+    </div>
     <div class="pill-row" id="bewerber-filter" style="margin-bottom:18px;">
-      <span class="mono" style="font-size:0.72rem; color:var(--ink-soft); align-self:center; margin-right:4px;">BEWERBER:</span>
+      <span class="mono" style="font-size:0.72rem; color:var(--ink-soft); align-self:center; margin-right:4px;">ZEIGEN:</span>
       <button type="button" class="pill active" data-bf="">Alle</button>
       <button type="button" class="pill" data-bf="ausstehend">🕐 Ausstehend</button>
       <button type="button" class="pill" data-bf="angenommen">✓ Angenommen</button>
       <button type="button" class="pill" data-bf="abgelehnt">Abgelehnt</button>
     </div>
-    <div class="jobs-grid" id="meine-jobs">
-      <div class="skeleton-card"></div><div class="skeleton-card"></div>
+    <div id="bewerbungen-liste">
+      <div class="skeleton-card" style="height:90px;"></div>
     </div>
   </div>
 
@@ -222,6 +242,30 @@
           <label for="profile-ort">Standort</label>
           <input type="text" id="profile-ort">
         </div>
+        <!-- Bis zum 2.9.2026 bestand das Firmenprofil aus Name, Ort und der
+             Mail-Einstellung. Ein Schueler sah auf einer Anzeige einen Namen
+             und einen Buchstaben im Kreis - weniger als bei einem
+             Kleinanzeigen-Inserat. Die beiden Felder darunter gab es in der
+             Datenbank laengst (`foto_url`, `ueber_mich`), nur genutzt hat
+             sie keine Firma. -->
+        <div class="form-group">
+          <label>Logo</label>
+          <div class="ll-foto-zeile">
+            <div class="cv-photo-preview" id="firma-logo-preview">🏢</div>
+            <div>
+              <input type="file" id="firma-logo-datei" accept="image/*" aria-label="Firmenlogo auswählen" style="display:none;">
+              <button type="button" class="btn btn-outline" id="firma-logo-btn">Logo hochladen</button>
+              <p class="ll-feldhilfe">Freiwillig. Ohne Logo steht der erste Buchstabe deines Namens da. Höchstens 3 MB.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="profile-ueber-uns">Wer ihr seid</label>
+          <textarea id="profile-ueber-uns" rows="4" maxlength="600" placeholder="Zwei, drei Sätze: Was macht ihr, wie ist es bei euch, wer meldet sich bei einer Bewerbung."></textarea>
+          <p class="ll-feldhilfe">Steht auf deiner Firmenseite und bei jeder Anzeige. Für Schüler ist das oft die einzige Möglichkeit, vorher zu erfahren, bei wem sie sich bewerben.</p>
+        </div>
+
         <div class="form-group">
           <label for="profile-benachrichtigung">E-Mail bei neuen Bewerbungen</label>
           <select id="profile-benachrichtigung">

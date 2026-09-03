@@ -48,6 +48,7 @@ for (const [name, pfad] of [
   ['Startseite', '/index.html'],
   ['Jobbörse', '/jobs.html'],
   ['Job-Detail', '/job.html?id=aaaaaaaa-0000-4000-8000-000000000001'],
+  ['Firmenseite', '/firma.html?id=ffffffff-0000-4000-8000-000000000001'],
   ['Login', '/login.html'],
   ['Registrierung', '/register.html'],
   ['Jugendarbeitsschutz', '/jugendarbeitsschutz.html'],

@@ -99,7 +99,7 @@ test('eine Entscheidung fasst den Inhalt der Bewerbung nicht an', async ({ page 
   await page.goto('/dashboard-firma.html')
   await expect(page.locator('#user-name')).not.toBeEmpty({ timeout: 30_000 })
   await page.locator('#sidebar-toggle').click()
-  await page.locator('.sidebar-item[data-view="jobs"]').click()
+  await page.locator('.sidebar-item[data-view="bewerbungen"]').click()
   await expect(page.locator('.bewerber-item').first()).toBeVisible({ timeout: 20_000 })
 
   await page.locator('button', { hasText: 'Annehmen' }).first().click()

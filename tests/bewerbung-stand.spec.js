@@ -179,9 +179,11 @@ test.describe('die Firma sagt ab', () => {
     await setupDashboard(page.context(), { user: FIRMA, db })
     await page.goto('/dashboard-firma.html')
     await expect(page.locator('#user-name')).not.toBeEmpty({ timeout: 30_000 })
-    // Die Sidebar ist ausgeblendet - erst oeffnen, dann in "Meine Jobs".
+    // Die Sidebar ist ausgeblendet - erst oeffnen. Und die Bewerber
+    // stehen seit dem 2.9.2026 in EIGENER Ansicht, nicht mehr in der
+    // Anzeigenliste.
     await page.locator('#sidebar-toggle').click()
-    await page.locator('.sidebar-item[data-view="jobs"]').click()
+    await page.locator('.sidebar-item[data-view="bewerbungen"]').click()
     await expect(page.locator('.bewerber-item').first()).toBeVisible({ timeout: 20_000 })
     return db
   }

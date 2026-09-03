@@ -219,7 +219,9 @@ async function ladeJob() {
       <div>
         <h1 style="font-size:2rem;">${escapeHtml(job.titel)}</h1>
         ${job.firma_name
-          ? `<p class="job-firma">bei ${escapeHtml(job.firma_name)}</p>`
+          ? `<p class="job-firma">bei ${job.firma_id
+              ? `<a href="firma.html?id=${encodeURIComponent(job.firma_id)}">${escapeHtml(job.firma_name)}</a>`
+              : escapeHtml(job.firma_name)}</p>`
           : ''}
       </div>
     </div>

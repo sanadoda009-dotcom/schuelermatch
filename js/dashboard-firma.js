@@ -10,6 +10,7 @@ import { ladeChat } from './chat.js'
 import { initGlocke } from './notifications.js'
 import { geocode, uebernehmeKoordinaten } from './geo.js'
 import { sichereMediaUrl } from './sicher.js'
+import { dokumentPfad, pruefeFuerBucket } from './dokument-pfad.js'
 import { ABSAGE_GRUENDE } from './absage.js'
 
 let profile
@@ -122,6 +123,11 @@ async function init() {
   document.getElementById('profile-name').value = profile.name || ''
   document.getElementById('profile-ort').value = profile.ort || ''
   document.getElementById('profile-benachrichtigung').value = profile.benachrichtigung || 'taeglich'
+  document.getElementById('profile-ueber-uns').value = profile.ueber_mich || ''
+  zeigeLogo()
+  document.getElementById('firma-logo-btn')?.addEventListener('click',
+    () => document.getElementById('firma-logo-datei').click())
+  document.getElementById('firma-logo-datei')?.addEventListener('change', ladeLogoHoch)
   document.getElementById('profile-form').addEventListener('submit', speichereProfil)
 
   initSidebar((view) => {
@@ -199,6 +205,69 @@ function bewerberAmpel(bewerber, job) {
   return { klasse: 'ampel-rot', text: 'Prüfen' }
 }
 
+function zeigeLogo() {
+  const kasten = document.getElementById('firma-logo-preview')
+  if (!kasten) return
+  const url = sichereMediaUrl(profile.foto_url)
+  kasten.style.backgroundImage = url ? `url('${url}')` : ''
+  kasten.textContent = url ? '' : '🏢'
+  const btn = document.getElementById('firma-logo-btn')
+  if (btn) btn.textContent = url ? 'Logo ändern' : 'Logo hochladen'
+}
+
+// Derselbe Weg wie beim Profilbild des Schuelers: Bucket `avatars`,
+// hoechstens 3 MB, nur Bilder. Die Pruefung liegt in dokument-pfad.js,
+// damit Browser und Regel dasselbe sagen.
+async function ladeLogoHoch(e) {
+  const datei = e.target.files[0]
+  if (!datei) return
+  const pruefung = pruefeFuerBucket(datei, 'avatars')
+  if (!pruefung.ok) {
+    toast(pruefung.fehler, 'fehler')
+    e.target.value = ''
+    return
+  }
+
+  const btn = document.getElementById('firma-logo-btn')
+  btn.disabled = true
+  btn.textContent = 'Wird hochgeladen…'
+
+  // `logo`, nicht `avatar`: Die Datei liegt zwar im selben Ablagefach,
+  // heisst bei einer Firma aber anders - und der dritte Parameter ist
+  // der MIME-Typ, nicht die Datei.
+  const pfad = dokumentPfad(profile.id, 'logo', datei.type)
+  if (!pfad) {
+    toast('Dieses Bildformat können wir nicht speichern.', 'fehler')
+    document.getElementById('firma-logo-btn').disabled = false
+    zeigeLogo()
+    e.target.value = ''
+    return
+  }
+  const { error: hochErr } = await supabase.storage.from('avatars')
+    .upload(pfad, datei, { upsert: true, contentType: datei.type })
+  if (hochErr) {
+    toast(verstaendlich(hochErr), 'fehler')
+    btn.disabled = false
+    zeigeLogo()
+    e.target.value = ''
+    return
+  }
+
+  const { data } = supabase.storage.from('avatars').getPublicUrl(pfad)
+  const url = data?.publicUrl || null
+  const { error } = await supabase.from('profiles').update({ foto_url: url }).eq('id', profile.id)
+  btn.disabled = false
+  e.target.value = ''
+  if (error) {
+    toast(verstaendlich(error), 'fehler')
+    zeigeLogo()
+    return
+  }
+  profile = { ...profile, foto_url: url }
+  zeigeLogo()
+  toast('Logo gespeichert')
+}
+
 async function speichereProfil(e) {
   e.preventDefault()
   const btn = e.target.querySelector('button[type=submit]')
@@ -208,6 +277,10 @@ async function speichereProfil(e) {
   const updates = {
     name: document.getElementById('profile-name').value,
     ort: document.getElementById('profile-ort').value,
+    // Die Spalte heisst `ueber_mich`, weil sie urspruenglich fuer Schueler
+    // angelegt wurde. Fuer eine Firma ist es "Wer ihr seid" - dieselbe
+    // Spalte, kein Umbau noetig. Sie lag bis zum 2.9.2026 ungenutzt herum.
+    ueber_mich: document.getElementById('profile-ueber-uns').value.trim() || null,
     benachrichtigung: document.getElementById('profile-benachrichtigung').value
   }
 
@@ -383,6 +456,75 @@ async function loescheJob(jobId, btn) {
   await ladeEigeneJobs()
 }
 
+// Eine einzelne Bewerbung. Steht seit dem 2.9.2026 in der eigenen
+// Ansicht "Bewerbungen" statt eingeschachtelt in der Anzeigenliste.
+function bewerberItemHtml(b, job) {
+  const foto = sichereMediaUrl(b.bewerber.foto_url)
+  const ampel = bewerberAmpel(b.bewerber, job)
+  return `
+    <div class="bewerber-item">
+      <div style="display:flex; gap:10px; align-items:center;">
+        <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${foto ? `background-image:url('${foto}')` : ''}">${foto ? '' : escapeHtml((b.bewerber.name || '?')[0].toUpperCase())}</div>
+        <div>
+          <strong>${escapeHtml(b.bewerber.name || 'Unbekannt')}</strong>, ${b.bewerber.alter_jahre || '?'} Jahre – ${escapeHtml(b.bewerber.ort || '')}
+          <span class="ampel ${ampel.klasse}"><span class="ampel-dot"></span>${ampel.text}</span>
+          <span class="status-badge status-${escapeHtml(b.status || 'ausstehend')}">${statusLabel(b.status)}</span><br>
+          <a href="mailto:${escapeHtml(b.bewerber.email || '')}" class="mono">${escapeHtml(b.bewerber.email || '')}</a>
+          ${b.erstellt_am ? `<span class="mono" style="font-size:0.68rem; color:var(--ink-soft);"> · beworben am ${new Date(b.erstellt_am).toLocaleDateString('de-DE')}</span>` : ''}
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <button class="btn btn-dark" style="flex:1; padding:8px; font-size:0.82rem;" data-pdf-id="${b.id}">Lebenslauf (PDF)</button>
+        ${b.zeugnis_url ? `<button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem;" data-zeugnis-id="${b.id}">Zeugnis</button>` : ''}
+      </div>
+      ${(b.status || 'ausstehend') === 'ausstehend' ? `
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn btn-green" style="flex:1; padding:8px; font-size:0.82rem;" data-status-id="${b.id}" data-status-wert="angenommen" data-email="${escapeHtml(b.bewerber.email || '')}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}">Annehmen</button>
+        <button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem; color:var(--coral);" data-status-id="${b.id}" data-status-wert="abgelehnt" data-email="${escapeHtml(b.bewerber.email || '')}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}">Ablehnen</button>
+      </div>` : ''}
+      ${b.status === 'angenommen' ? `
+      <button class="btn btn-green btn-full" style="margin-top:8px; padding:8px; font-size:0.82rem;" data-chat="${b.id}" data-chat-name="${escapeHtml(b.bewerber.name || 'Bewerber')}">💬 Nachricht schreiben</button>` : ''}
+    </div>`
+}
+
+// Die Bewerbungen, nach Anzeige geordnet.
+function renderBewerbungen(jobs, bewerberByJob) {
+  const ziel = document.getElementById('bewerbungen-liste')
+  if (!ziel) return
+
+  const gruppen = jobs.map(job => {
+    const alle = bewerberByJob[job.id] || []
+    const gezeigt = bewerberFilter
+      ? alle.filter(b => (b.status || 'ausstehend') === bewerberFilter)
+      : alle
+    return { job, alle, gezeigt }
+  }).filter(g => g.gezeigt.length)
+
+  if (!gruppen.length) {
+    const nichts = !Object.values(bewerberByJob).some(l => l.length)
+    ziel.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M32 42v-4a8 8 0 00-8-8H12a8 8 0 00-8 8v4" stroke-linecap="round"/><circle cx="18" cy="14" r="8"/></svg>
+        <p>${nichts ? 'Noch keine Bewerbungen.' : 'Keine Bewerbung mit diesem Stand.'}</p>
+        <p class="fehler-hinweis">${nichts
+          ? 'Sobald sich jemand bewirbt, steht er hier – und du bekommst eine E-Mail.'
+          : 'Wähl oben „Alle", um wieder alle zu sehen.'}</p>
+      </div>`
+    return
+  }
+
+  ziel.innerHTML = gruppen.map(({ job, alle, gezeigt }) => `
+    <section class="bew-gruppe">
+      <div class="bew-gruppe-kopf">
+        <h2>${escapeHtml(job.titel)}</h2>
+        <span class="mono">${bewerberFilter
+          ? `${gezeigt.length} von ${alle.length}`
+          : `${alle.length} Bewerbung${alle.length === 1 ? '' : 'en'}`}</span>
+      </div>
+      ${gezeigt.map(b => bewerberItemHtml(b, job)).join('')}
+    </section>`).join('')
+}
+
 async function ladeEigeneJobs() {
   const list = document.getElementById('meine-jobs')
 
@@ -481,36 +623,28 @@ async function ladeEigeneJobs() {
         <button class="btn btn-outline" style="flex:1 1 45%; padding:9px;" data-pause="${job.id}" data-aktiv="${job.aktiv}">${job.aktiv ? 'Pausieren' : 'Aktivieren'}</button>
         <button class="btn btn-outline" style="flex:1 1 45%; padding:9px; color:var(--coral);" data-delete="${job.id}">Löschen</button>
       </div>
-      <div class="bewerber-list">
-        <p class="bewerber-title">${bewerberFilter ? `${bewerbungenFuerJob.length} von ${alleBewFuerJob.length} Bewerbung(en)` : `${alleBewFuerJob.length} Bewerbung(en)`}</p>
-        ${bewerbungenFuerJob.map(b => `
-          <div class="bewerber-item">
-            <div style="display:flex; gap:10px; align-items:center;">
-              <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${sichereMediaUrl(b.bewerber.foto_url) ? `background-image:url('${sichereMediaUrl(b.bewerber.foto_url)}')` : ''}">${sichereMediaUrl(b.bewerber.foto_url) ? '' : escapeHtml((b.bewerber.name || '?')[0].toUpperCase())}</div>
-              <div>
-                <strong>${escapeHtml(b.bewerber.name || 'Unbekannt')}</strong>, ${b.bewerber.alter_jahre || '?'} Jahre – ${escapeHtml(b.bewerber.ort || '')}
-                <span class="ampel ${bewerberAmpel(b.bewerber, job).klasse}"><span class="ampel-dot"></span>${bewerberAmpel(b.bewerber, job).text}</span>
-                <span class="status-badge status-${escapeHtml(b.status || 'ausstehend')}">${statusLabel(b.status)}</span><br>
-                <a href="mailto:${escapeHtml(b.bewerber.email || '')}" class="mono">${escapeHtml(b.bewerber.email || '')}</a>
-                ${b.erstellt_am ? `<span class="mono" style="font-size:0.68rem; color:var(--ink-soft);"> · beworben am ${new Date(b.erstellt_am).toLocaleDateString('de-DE')}</span>` : ''}
-              </div>
-            </div>
-            <div style="display:flex; gap:8px; margin-top:10px;">
-              <button class="btn btn-dark" style="flex:1; padding:8px; font-size:0.82rem;" data-pdf-id="${b.id}">Lebenslauf (PDF)</button>
-              ${b.zeugnis_url ? `<button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem;" data-zeugnis-id="${b.id}">Zeugnis</button>` : ''}
-            </div>
-            ${(b.status || 'ausstehend') === 'ausstehend' ? `
-            <div style="display:flex; gap:8px; margin-top:8px;">
-              <button class="btn btn-green" style="flex:1; padding:8px; font-size:0.82rem;" data-status-id="${b.id}" data-status-wert="angenommen" data-email="${escapeHtml(b.bewerber.email || '')}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}">Annehmen</button>
-              <button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem; color:var(--coral);" data-status-id="${b.id}" data-status-wert="abgelehnt" data-email="${escapeHtml(b.bewerber.email || '')}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}">Ablehnen</button>
-            </div>` : ''}
-            ${b.status === 'angenommen' ? `
-            <button class="btn btn-green btn-full" style="margin-top:8px; padding:8px; font-size:0.82rem;" data-chat="${b.id}" data-chat-name="${escapeHtml(b.bewerber.name || 'Bewerber')}">💬 Nachricht schreiben</button>` : ''}
-          </div>
-        `).join('')}
-      </div>
+      <p class="job-bew-hinweis">
+        ${alleBewFuerJob.length
+          ? `<button type="button" class="job-bew-link" data-zu-bewerbungen="${job.id}">${alleBewFuerJob.length} Bewerbung${alleBewFuerJob.length === 1 ? '' : 'en'} ansehen →</button>`
+          : 'Noch keine Bewerbungen'}
+      </p>
     </div>
   `}).join('')
+
+  // Die Bewerber stehen seit dem 2.9.2026 in EIGENER Ansicht. Vorher
+  // steckten sie in der Anzeigenliste - die Ansicht hiess selbst "Meine
+  // Jobs & Bewerber". Zwei Aufgaben in einer Ansicht, und mit mehreren
+  // Anzeigen wurde daraus eine Wand.
+  renderBewerbungen(jobs, bewerberByJob)
+
+  const bewListe = document.getElementById('bewerbungen-liste')
+
+  // Von der Anzeige zu ihren Bewerbungen springen.
+  list.querySelectorAll('[data-zu-bewerbungen]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelector('.sidebar-item[data-view="bewerbungen"]')?.click()
+    })
+  })
 
   list.querySelectorAll('[data-edit]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -545,7 +679,7 @@ async function ladeEigeneJobs() {
       toast('Kopie im Formular – anpassen und posten!')
     })
   })
-  list.querySelectorAll('[data-pdf-id]').forEach(btn => {
+  bewListe.querySelectorAll('[data-pdf-id]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const b = (bewerbungen || []).find(x => x.id === btn.dataset.pdfId)
       if (!b) return
@@ -566,7 +700,7 @@ async function ladeEigeneJobs() {
       })
     })
   })
-  list.querySelectorAll('[data-zeugnis-id]').forEach(btn => {
+  bewListe.querySelectorAll('[data-zeugnis-id]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const b = (bewerbungen || []).find(x => x.id === btn.dataset.zeugnisId)
       if (!b) return
@@ -582,7 +716,7 @@ async function ladeEigeneJobs() {
       window.open(data.signedUrl, '_blank')
     })
   })
-  list.querySelectorAll('[data-chat]').forEach(btn => {
+  bewListe.querySelectorAll('[data-chat]').forEach(btn => {
     btn.addEventListener('click', () => oeffneFirmaChat(btn.dataset.chat, btn.dataset.chatName))
   })
   // Eine Entscheidung schreiben. Die drei Spalten aus
@@ -650,7 +784,7 @@ async function ladeEigeneJobs() {
       })
     })
   }
-  verdrahteStatus(list)
+  verdrahteStatus(bewListe)
 }
 
 function statusLabel(status) {

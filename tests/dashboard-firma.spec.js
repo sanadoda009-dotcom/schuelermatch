@@ -58,13 +58,21 @@ test.describe('eingeloggt (freigegebene Firma)', () => {
     await setupDashboard(page.context(), { user: FIRMA, db })
     await page.goto('/dashboard-firma.html')
 
+    // Umgebaut am 2.9.2026: Die Bewerber standen INNERHALB der
+    // Anzeigenliste, die Ansicht hiess "Meine Jobs & Bewerber". Zwei
+    // Aufgaben in einer Ansicht - mit mehreren Anzeigen eine Wand. Jetzt
+    // haben sie eine eigene Ansicht, nach Anzeige gruppiert.
     await navigate(page, 'jobs')
-    const jobKarte = page.locator('#meine-jobs .job-card', { hasText: 'Eisverkäufer' })
-    await expect(jobKarte.locator('.bewerber-item')).toHaveCount(1)
-    await expect(jobKarte.locator('.bewerber-item')).toContainText('Lena')
-    await expect(jobKarte.locator('.ampel')).toContainText('Top-Match') // verifiziert + Alter passt + CV
-    await expect(jobKarte.getByRole('button', { name: 'Annehmen' })).toBeVisible()
-    await expect(jobKarte.getByRole('button', { name: 'Ablehnen' })).toBeVisible()
+    await expect(page.locator('#meine-jobs .job-card', { hasText: 'Eisverkäufer' }))
+      .toContainText('1 Bewerbung ansehen')
+
+    await navigate(page, 'bewerbungen')
+    const gruppe = page.locator('.bew-gruppe', { hasText: 'Eisverkäufer' })
+    await expect(gruppe.locator('.bewerber-item')).toHaveCount(1)
+    await expect(gruppe.locator('.bewerber-item')).toContainText('Lena')
+    await expect(gruppe.locator('.ampel')).toContainText('Top-Match') // verifiziert + Alter passt + CV
+    await expect(gruppe.getByRole('button', { name: 'Annehmen' })).toBeVisible()
+    await expect(gruppe.getByRole('button', { name: 'Ablehnen' })).toBeVisible()
   })
 
   test('Annehmen setzt den Bewerbungsstatus in der DB auf „angenommen"', async ({ page }) => {
@@ -78,8 +86,8 @@ test.describe('eingeloggt (freigegebene Firma)', () => {
     await setupDashboard(page.context(), { user: FIRMA, db })
     await page.goto('/dashboard-firma.html')
 
-    await navigate(page, 'jobs')
-    await page.locator('#meine-jobs .job-card', { hasText: 'Eisverkäufer' })
+    await navigate(page, 'bewerbungen')
+    await page.locator('.bew-gruppe', { hasText: 'Eisverkäufer' })
       .getByRole('button', { name: 'Annehmen' }).click()
 
     await expect.poll(() => db.bewerbungen[0].status).toBe('angenommen')

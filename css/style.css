@@ -3068,3 +3068,84 @@ main[tabindex="-1"]:focus { outline: none; }
   font-size: 0.82rem; margin-bottom: 6px;
 }
 .absage-zurueck { color: var(--ink-soft); }
+
+/* ============================================================
+   FIRMENSEITE AUFGERAEUMT (2.9.2026)
+   Die Bewerber steckten in der Anzeigenliste - die Ansicht hiess
+   selbst "Meine Jobs & Bewerber". Jetzt zwei Ansichten.
+   ============================================================ */
+
+.bew-gruppe { margin-bottom: 28px; }
+.bew-gruppe-kopf {
+  display: flex; align-items: baseline; gap: 12px;
+  padding-bottom: 8px; margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.bew-gruppe-kopf h2 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.05rem; margin: 0; color: var(--ink);
+}
+.bew-gruppe-kopf span {
+  margin-left: auto; font-size: 0.72rem; color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* Der Weg von der Anzeige zu ihren Bewerbungen. */
+.job-bew-hinweis {
+  margin: 14px 0 0; padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 0.82rem; color: var(--ink-soft);
+}
+.job-bew-link {
+  background: none; border: 0; padding: 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 0.85rem; font-weight: 600;
+  color: var(--match-green-dark); cursor: pointer;
+  text-align: left;
+}
+.job-bew-link:hover { text-decoration: underline; }
+
+/* Das Firmenlogo im Profil. */
+#firma-logo-preview { font-size: 1.6rem; }
+
+/* ============================================================
+   DIE OEFFENTLICHE FIRMENSEITE (2.9.2026)
+   Ein Schueler sah von einer Firma bisher nur einen Namen auf der
+   Anzeige. Nachsehen, wer das ist, konnte er nirgends.
+   ============================================================ */
+
+.firma-kopf { display: flex; align-items: center; gap: 18px; margin: 18px 0 6px; }
+.firma-kopf h1 { font-size: 1.9rem; margin: 0 0 4px; }
+.firma-kopf .company-name { margin: 0; }
+.firma-logo {
+  width: 72px; height: 72px; flex-shrink: 0;
+  border-radius: 16px; border: 1px solid var(--line);
+  background: var(--paper) center/cover no-repeat;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.8rem; font-weight: 700; color: var(--ink-soft);
+}
+.firma-marken { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+.firma-marke {
+  font-size: 0.74rem; font-weight: 600;
+  color: var(--match-green-dark);
+  background: rgba(0,200,150,0.10);
+  border: 1px solid rgba(0,121,92,0.22);
+  border-radius: 999px; padding: 4px 12px;
+}
+.firma-marke--leise {
+  color: var(--ink-soft); background: var(--paper);
+  border-color: var(--line); font-weight: 500;
+}
+.firma-bewertung {
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 10px; background: var(--card);
+}
+.firma-bewertung b { font-size: 0.9rem; }
+.firma-bewertung p { margin: 6px 0 0; font-size: 0.92rem; line-height: 1.6; }
+
+@media (max-width: 560px) {
+  .firma-kopf { gap: 12px; }
+  .firma-logo { width: 56px; height: 56px; font-size: 1.4rem; }
+  .firma-kopf h1 { font-size: 1.45rem; }
+}

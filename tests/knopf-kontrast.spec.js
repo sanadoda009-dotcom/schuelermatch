@@ -71,6 +71,7 @@ const MESSUNG = `(() => {
 for (const [name, pfad] of [
   ['Startseite', '/index.html'],
   ['Jobbörse', '/jobs.html'],
+  ['Firmenseite', '/firma.html?id=ffffffff-0000-4000-8000-000000000001'],
   ['Ferienjob', '/ferienjob.html'],
   ['Fairer Lohn', '/fairer-lohn.html'],
   ['Taschengeld', '/taschengeld.html'],

@@ -27,6 +27,7 @@ test.describe('öffentliche Seiten', () => {
     ['Startseite', '/index.html'],
     ['Jobbörse', '/jobs.html'],
     ['Job-Detail', '/job.html?id=aaaaaaaa-0000-4000-8000-000000000001'],
+    ['Firmenseite', '/firma.html?id=ffffffff-0000-4000-8000-000000000001'],
     ['Ferienjob', '/ferienjob.html'],
     ['Fairer Lohn', '/fairer-lohn.html'],
     ['Taschengeld', '/taschengeld.html'],
