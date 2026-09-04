@@ -697,6 +697,22 @@ section { padding: 130px 24px; }
 .empty-state svg { width: 48px; height: 48px; opacity: 0.35; }
 .empty-state p { font-size: 0.95rem; margin: 0; }
 
+/* Vorschlaege im leeren Trefferfall (4.9.2026).
+   Statt "keine Jobs" plus einem Knopf, der alles wegwirft, steht hier je
+   ein Knopf pro Filter, dessen Ruecknahme wieder Treffer bringt - mit der
+   Zahl daneben, damit die Entscheidung ohne Ausprobieren faellt. */
+.filter-vorschlaege {
+  display: flex; flex-direction: column; gap: 8px;
+  width: 100%; max-width: 340px; margin-top: 4px;
+}
+.filter-vorschlaege .btn {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; text-align: left; font-size: 0.86rem; padding: 10px 14px;
+}
+.filter-vorschlaege .mono {
+  font-size: 0.72rem; color: var(--ink-soft); white-space: nowrap;
+}
+
 /* FOOTER */
 footer { background: #232766; color: rgba(255,255,255,0.72); padding: 50px 24px 30px; }
 .footer-inner { max-width: 1120px; margin: 0 auto; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; }

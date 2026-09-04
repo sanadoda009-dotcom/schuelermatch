@@ -1,10 +1,10 @@
 import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
-import { passtZurSuche } from './suche.js'
 import { hole, zeigeLadefehler } from './zustand.js'
 import { meldeMitAnmeldung, meldeButtonHtml } from './melden.js'
 import { jobKarteHtml, istNeu } from './job-karte.js'
 import { MIN_ALTER, ALTERSOPTIONEN } from './jugendschutz.js'
+import { filtere, entlastungen } from './filter-vorschlag.js'
 
 let alleJobs = []
 let aktiveKategorie = ''
@@ -154,29 +154,26 @@ function sortiereJobs(jobs, modus) {
   return kopie
 }
 
+// Der Filterzustand als einfaches Objekt – ohne DOM weiterverwendbar.
+// Genau deshalb liegt die Bedingung selbst in js/filter-vorschlag.js:
+// Nur so lässt sich ausrechnen, was OHNE einen einzelnen Filter übrig
+// bliebe, ohne die Oberfläche anzufassen.
+function filterZustand() {
+  return {
+    suche: document.getElementById('filter-suche').value.trim().toLowerCase(),
+    ort: document.getElementById('filter-ort').value.trim().toLowerCase(),
+    alter: parseInt(document.getElementById('filter-alter').value) || null,
+    gehalt: parseFloat(document.getElementById('filter-gehalt').value) || null,
+    kategorie: aktiveKategorie,
+    arbeitszeit: document.getElementById('filter-arbeitszeit').value,
+  }
+}
+
 function wendeFilterAn() {
-  const suche = document.getElementById('filter-suche').value.trim().toLowerCase()
-  const ort = document.getElementById('filter-ort').value.trim().toLowerCase()
-  const alter = parseInt(document.getElementById('filter-alter').value) || null
-  const gehalt = parseFloat(document.getElementById('filter-gehalt').value) || null
-  const arbeitszeit = document.getElementById('filter-arbeitszeit').value
+  const f = filterZustand()
   const sortierung = document.getElementById('sortierung').value
 
-  const gefiltert = alleJobs.filter(job => {
-    if (!passtZurSuche(job, suche)) return false
-    if (ort && !(job.ort || '').toLowerCase().includes(ort)) return false
-    // Ohne Altersangabe laesst sich nicht sagen, ob die Anzeige fuer
-    // dieses Alter erlaubt ist – also nicht zeigen, solange gefiltert wird.
-    // `null > alter` ist falsch, so eine Anzeige rutschte vorher durch
-    // jeden Altersfilter.
-    if (alter && (job.mindestalter == null || job.mindestalter > alter)) return false
-    if (gehalt && !(job.stundenlohn >= gehalt)) return false
-    if (aktiveKategorie && job.kategorie !== aktiveKategorie) return false
-    if (arbeitszeit && job.arbeitszeit !== arbeitszeit) return false
-    return true
-  })
-
-  renderJobs(sortiereJobs(gefiltert, sortierung))
+  renderJobs(sortiereJobs(filtere(alleJobs, f), sortierung), f)
   schreibeUrlParameter()
   zeigeAktiveFilter()
 }
@@ -242,19 +239,82 @@ function initFilterPanel() {
   document.addEventListener('keydown', e => { if (e.key === 'Escape') setzeOffen(false) })
 }
 
-function renderJobs(jobs) {
+// Wie ein einzelner Filter heißt, wenn man ihn dem Nutzer vorhält, und
+// wie man ihn wieder loswird. Beides an einer Stelle, damit der Text im
+// Vorschlag und der Text auf dem Chip nicht auseinanderlaufen.
+const FILTER_BESCHRIFTUNG = {
+  ort: () => ({
+    text: `Ort: ${document.getElementById('filter-ort').value.trim()}`,
+    loesen: () => { document.getElementById('filter-ort').value = '' },
+  }),
+  gehalt: () => ({
+    text: `ab ${document.getElementById('filter-gehalt').value} €/Std`,
+    loesen: () => { document.getElementById('filter-gehalt').value = '' },
+  }),
+  arbeitszeit: () => ({
+    text: document.getElementById('filter-arbeitszeit').value,
+    loesen: () => { document.getElementById('filter-arbeitszeit').value = '' },
+  }),
+  kategorie: () => ({
+    text: aktiveKategorie,
+    loesen: () => setzeKategorie(''),
+  }),
+  suche: () => ({
+    text: `Suche „${document.getElementById('filter-suche').value.trim()}"`,
+    loesen: () => { document.getElementById('filter-suche').value = '' },
+  }),
+  alter: () => ({
+    text: `${document.getElementById('filter-alter').value} Jahre`,
+    loesen: () => { document.getElementById('filter-alter').value = '' },
+  }),
+}
+
+// Der leere Trefferfall.
+//
+// Vorher stand hier ein Satz und ein Knopf, der ALLE Filter wegwarf.
+// Wer fünf Felder ausgefüllt hatte, verlor damit auch die vier, die
+// nicht schuld waren. Jetzt rechnet js/filter-vorschlag.js nach, welche
+// EINZELNE Rücknahme wieder Treffer bringt, und bietet genau die an.
+function leererTreffer(grid, f) {
+  const vorschlaege = entlastungen(alleJobs, f).slice(0, 3)
+
+  grid.innerHTML = `
+    <div class="empty-state">
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
+      <p>Keine Anzeige passt zu allen deinen Filtern.</p>
+      ${vorschlaege.length ? `
+        <p class="fehler-hinweis" id="filter-schuld">Ein Filter reicht schon:
+          nimm einen davon weg, dann gibt es wieder etwas zu sehen.</p>
+        <div class="filter-vorschlaege">
+          ${vorschlaege.map(v => {
+            const b = FILTER_BESCHRIFTUNG[v.schluessel]()
+            return `<button type="button" class="btn btn-outline" data-loesen="${v.schluessel}">
+              ${escapeHtml(b.text)} wegnehmen
+              <span class="mono">${v.anzahl} ${v.anzahl === 1 ? 'Anzeige' : 'Anzeigen'}</span>
+            </button>`
+          }).join('')}
+        </div>` : `
+        <p class="fehler-hinweis">Auch mit einem Filter weniger bleibt die
+          Liste leer — hier hilft nur, mehrere zu lockern.</p>`}
+      <button type="button" class="btn btn-outline" id="filter-reset" style="margin-top:14px;">Alle Filter zurücksetzen</button>
+    </div>`
+
+  grid.querySelectorAll('[data-loesen]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      FILTER_BESCHRIFTUNG[btn.dataset.loesen]().loesen()
+      wendeFilterAn()
+    })
+  })
+  document.getElementById('filter-reset')?.addEventListener('click', filterZuruecksetzen)
+}
+
+function renderJobs(jobs, f) {
   const grid = document.getElementById('jobs-grid')
   const zaehler = document.getElementById('jobs-count')
   if (zaehler) zaehler.textContent = `${jobs.length} Job${jobs.length === 1 ? '' : 's'} gefunden`
 
   if (!jobs.length) {
-    grid.innerHTML = `
-      <div class="empty-state">
-        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
-        <p>Keine Jobs passen zu diesem Filter.</p>
-        <button type="button" class="btn btn-outline" id="filter-reset" style="margin-top:14px;">Filter zurücksetzen</button>
-      </div>`
-    document.getElementById('filter-reset')?.addEventListener('click', filterZuruecksetzen)
+    leererTreffer(grid, f)
     return
   }
 

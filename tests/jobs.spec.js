@@ -82,8 +82,12 @@ test('Deep-Link ?q=&kategorie= stellt Filterzustand wieder her', async ({ page }
 })
 
 test('Kein Treffer: Empty-State mit funktionierendem „Filter zurücksetzen"', async ({ page }) => {
+  // Der Wortlaut wurde am 4.9. ersetzt: aus „Keine Jobs passen zu diesem
+  // Filter" wurde ein Satz plus ein Vorschlag, WELCHEN Filter man
+  // wegnehmen kann (tests/leerer-treffer.spec.js). Der Weg zurück auf
+  // alles bleibt daneben bestehen — genau das prüft dieser Test weiter.
   await page.locator('#filter-suche').fill('astronaut auf dem mond')
-  await expect(page.locator('.empty-state')).toContainText('Keine Jobs passen zu diesem Filter.')
+  await expect(page.locator('.empty-state')).toContainText('Keine Anzeige passt zu allen deinen Filtern.')
   await expect(page.locator('#jobs-count')).toHaveText('0 Jobs gefunden')
 
   await page.locator('#filter-reset').click()
