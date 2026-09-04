@@ -4,9 +4,40 @@ import { passtZurSuche } from './suche.js'
 import { hole, zeigeLadefehler } from './zustand.js'
 import { meldeMitAnmeldung, meldeButtonHtml } from './melden.js'
 import { jobKarteHtml, istNeu } from './job-karte.js'
+import { MIN_ALTER, ALTERSOPTIONEN } from './jugendschutz.js'
 
 let alleJobs = []
 let aktiveKategorie = ''
+
+// Der Altersfilter aus der Adresszeile.
+//
+// Die Auswahlliste beginnt seit dem 4.9. bei 13 — aber eine Auswahlliste
+// im Browser ist kein Schutz. Wer `jobs.html?alter=12` aufruft (ein alter
+// geteilter Link, oder von Hand getippt), bekam vorher eine Trefferliste
+// „fuer Zwoelfjaehrige". Genau die Seite, die auf jugendarbeitsschutz.html
+// erklaert, dass unter 13 nicht gearbeitet werden darf.
+//
+// Kommentarlos auf „Egal" zurueckspringen waere die schlechtere Antwort:
+// Dann wirkt es wie ein Fehler der Seite. Also: Filter aus, und dazu ein
+// Satz, der sagt warum.
+function setzeAlterAusUrl(wert) {
+  const hinweis = document.getElementById('alter-filter-hinweis')
+  if (hinweis) hinweis.hidden = true
+  if (!wert) return
+
+  const zahl = Number(String(wert).trim())
+  if (ALTERSOPTIONEN.includes(zahl)) {
+    document.getElementById('filter-alter').value = String(zahl)
+    return
+  }
+
+  if (Number.isInteger(zahl) && zahl > 0 && zahl < MIN_ALTER && hinweis) {
+    hinweis.textContent = `Unter ${MIN_ALTER} Jahren darf in Deutschland nicht `
+      + 'gearbeitet werden (Jugendarbeitsschutzgesetz). Deshalb gibt es hier '
+      + 'noch keine Anzeigen für dich — du siehst gerade alle.'
+    hinweis.hidden = false
+  }
+}
 
 // Deep-Links: jobs.html?q=nachhilfe&kategorie=Nachhilfe&ort=münchen&lohn=12&zeit=Wochenende&sort=lohn
 function lieseUrlParameter() {
@@ -17,7 +48,7 @@ function lieseUrlParameter() {
   if (q) document.getElementById('filter-suche').value = q
   if (kat) setzeKategorie(kat)
   if (params.get('ort')) document.getElementById('filter-ort').value = params.get('ort')
-  if (params.get('alter')) document.getElementById('filter-alter').value = params.get('alter')
+  setzeAlterAusUrl(params.get('alter'))
   if (params.get('lohn')) document.getElementById('filter-gehalt').value = params.get('lohn')
   if (params.get('zeit')) document.getElementById('filter-arbeitszeit').value = params.get('zeit')
   if (params.get('sort')) document.getElementById('sortierung').value = params.get('sort')

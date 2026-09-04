@@ -85,12 +85,16 @@
         <label for="filter-alter">Dein Alter</label>
         <select id="filter-alter">
           <option value="">Egal</option>
-          <option value="10">10 Jahre</option><option value="11">11 Jahre</option><option value="12">12 Jahre</option>
+          <!-- Beginnt bei 13: Unter 13 ist Arbeiten in Deutschland nicht
+               erlaubt (JArbSchG). 10, 11 und 12 standen hier bis zum 4.9.
+               zur Wahl - in den drei anderen Listen der Seite schon seit
+               dem 26.8. nicht mehr. Siehe js/jugendschutz.js. -->
           <option value="13">13 Jahre</option><option value="14">14 Jahre</option><option value="15">15 Jahre</option>
           <option value="16">16 Jahre</option><option value="17">17 Jahre</option><option value="18">18 Jahre</option>
           <option value="19">19 Jahre</option><option value="20">20 Jahre</option>
         </select>
         <span class="filter-hinweis">Zeigt nur Jobs, für die du alt genug bist.</span>
+        <p class="jugendschutz-hinweis" id="alter-filter-hinweis" role="status" hidden></p>
       </div>
 
       <div class="filter-gruppe">
