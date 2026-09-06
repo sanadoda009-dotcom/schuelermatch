@@ -16,9 +16,9 @@
 > **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
 > was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
 
-## ⏳ Wartet auf dich: acht SQL-Dateien
+## ⏳ Wartet auf dich: neun SQL-Dateien
 
-Alle acht im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
+Alle neun im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
 und unten, **wie du nachprüfst, dass es gewirkt hat**.
 
 | Datei | Was sie schließt |
@@ -31,8 +31,9 @@ und unten, **wie du nachprüfst, dass es gewirkt hat**.
 | `supabase/bewerbung-bleibt.sql` | **Löscht die Firma ihre Anzeige, verschwinden alle Bewerbungen darauf und die Chats dazu** — Daten der Schüler |
 | `supabase/zeugnis-nur-eigene-anzeige.sql` | **Firma A kann Zeugnis und Lebenslauf lesen, die für Firma B bestimmt waren** — und der Schüler kann sein Zeugnis gar nicht löschen |
 | `supabase/profil-email-festnageln.sql` | Jeder kann `profiles.email` auf eine fremde Adresse setzen — und genau die nimmt der Mailversand |
+| `supabase/chat-erst-nach-zusage.sql` | **Eine Firma kann per API auch ohne Zusage an einen Schüler schreiben** — die Seite sagt an drei Stellen das Gegenteil |
 
-Der Code läuft in allen acht Fällen **auch ohne** die Änderung — er fällt
+Der Code läuft in allen neun Fällen **auch ohne** die Änderung — er fällt
 dann auf das alte Verhalten zurück, statt kaputt zu gehen.
 
 ### Datenstand am 4.9.2026 nachgezählt — zwei Stolpersteine sind weg
@@ -67,11 +68,13 @@ Die Zahlen sind eine Momentaufnahme. Vor dem Ausführen einmal
 nachzählen lohnt sich — die Abfragen stehen jeweils unten in der
 SQL-Datei.
 
-**Das heißt aber nicht, dass es egal ist.** Bei dreien ist das alte
+**Das heißt aber nicht, dass es egal ist.** Bei vieren ist das alte
 Verhalten selbst das Problem: `bewerbung-bleibt.sql`,
-`zeugnis-nur-eigene-anzeige.sql` und `profil-email-festnageln.sql`
-schließen Lücken, durch die jemand an fremde Daten kommt, sie verliert
-oder Mails an Fremde auslöst. **Die drei zuerst.**
+`zeugnis-nur-eigene-anzeige.sql`, `profil-email-festnageln.sql` und
+`chat-erst-nach-zusage.sql` schließen Lücken, durch die jemand an fremde
+Daten kommt, sie verliert, Mails an Fremde auslöst — oder einem Kind
+schreiben kann, ohne dazu berechtigt zu sein. **Die vier zuerst**, und
+davon `chat-erst-nach-zusage.sql` als erste.
 
 ### Richtigstellung: `bewerbung-inhalt-schuetzen.sql` brauchst du nicht
 
