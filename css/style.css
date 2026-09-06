@@ -51,17 +51,25 @@ body {
 }
 
 /* SCROLL-REVEAL */
-.reveal {
+/* Sanftes Einblenden beim Scrollen - aber SICHTBAR als Vorgabe.
+   Gemessen am 4.9.2026: Mit `opacity: 0` als Vorgabe waren auf
+   index.html 22 von 22 `.reveal`-Abschnitten unsichtbar, sobald
+   js/reveal.js nicht lud - 3286 von 4835 Zeichen, also 68 % der
+   Startseite, weg. Fuer eine reine Dekoration ist das der falsche
+   Preis. Die Animation schaltet deshalb erst `html.js-reveal` frei
+   (gesetzt im Kopf von index.html, mit Notbremse). */
+.reveal { opacity: 1; transform: none; }
+html.js-reveal .reveal {
   opacity: 0; transform: translateY(28px);
   transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
 }
-.reveal.in-view { opacity: 1; transform: translateY(0); }
+html.js-reveal .reveal.in-view { opacity: 1; transform: translateY(0); }
 .reveal-d1 { transition-delay: 0.1s; }
 .reveal-d2 { transition-delay: 0.2s; }
 .reveal-d3 { transition-delay: 0.3s; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .reveal { opacity: 1; transform: none; transition: none; }
+  .reveal, html.js-reveal .reveal { opacity: 1; transform: none; transition: none; }
 }
 h1, h2, h3, .display { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; margin: 0; }
 /* Variante "Zwei Seiten, ein Match": Indigo strukturiert (Abschnitts-Überschriften) */

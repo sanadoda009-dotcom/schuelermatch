@@ -24,6 +24,23 @@
 <script src="js/gate.js"></script>
 <script defer src="js/tastatur.js"></script>
 <link rel="icon" type="image/png" href="assets/favicon.png">
+<script>
+  // Die Einblend-Animation nur freischalten, wenn JavaScript ueberhaupt
+  // laeuft - und sie wieder abschalten, falls js/reveal.js nicht ankommt.
+  //
+  // Ohne diese Notbremse hing 68 % des Seitentextes an einer einzigen
+  // Datei: `.reveal` startete mit `opacity: 0`, und wenn das Skript
+  // ausfiel, blieb der Inhalt fuer immer unsichtbar (gemessen 4.9.2026,
+  // 22 von 22 Abschnitten). Hier im Kopf, damit nichts erst auf- und
+  // dann zuklappt.
+  (function () {
+    var h = document.documentElement
+    h.classList.add('js-reveal')
+    setTimeout(function () {
+      if (!window.__revealBereit) h.classList.remove('js-reveal')
+    }, 2500)
+  })()
+</script>
 </head>
 <body>
 
