@@ -487,6 +487,36 @@ function bewerberItemHtml(b, job) {
     </div>`
 }
 
+// Was hier steht, muss zur eigenen Einstellung der Firma passen.
+//
+// DER BEFUND (4.9.2026): Im leeren Zustand stand fest verdrahtet „und du
+// bekommst eine E-Mail". Ob eine Mail kommt, entscheidet aber
+// `profiles.benachrichtigung`, und die Firma stellt das selbst ein:
+//
+//   sofort    -> Mail bei jeder Bewerbung (Trigger auf `bewerbungen`)
+//   taeglich  -> einmal am Tag gesammelt (Edge Function `mail-digest`)  [Standard]
+//   aus       -> gar keine Mail
+//
+// Bei „aus" war der Satz schlicht falsch: Die Firma wartete auf eine
+// Mail, die nie kommt, während sich unten die Bewerbungen stapeln. Beim
+// Standard „taeglich" war er zumindest irreführend.
+function mailEinstellung() {
+  return profile?.benachrichtigung || 'taeglich'
+}
+
+function mailVersprechen() {
+  const wie = mailEinstellung()
+  if (wie === 'sofort') {
+    return 'Sobald sich jemand bewirbt, steht er hier – und du bekommst sofort eine E-Mail.'
+  }
+  if (wie === 'aus') {
+    return 'Sobald sich jemand bewirbt, steht er hier. E-Mails hast du ausgeschaltet – '
+      + 'schau also ab und zu selbst nach.'
+  }
+  return 'Sobald sich jemand bewirbt, steht er hier. Die E-Mail dazu kommt '
+    + 'einmal am Tag gesammelt.'
+}
+
 // Die Bewerbungen, nach Anzeige geordnet.
 function renderBewerbungen(jobs, bewerberByJob) {
   const ziel = document.getElementById('bewerbungen-liste')
@@ -502,14 +532,27 @@ function renderBewerbungen(jobs, bewerberByJob) {
 
   if (!gruppen.length) {
     const nichts = !Object.values(bewerberByJob).some(l => l.length)
+    const ohneAnzeige = !jobs.length
     ziel.innerHTML = `
       <div class="empty-state">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M32 42v-4a8 8 0 00-8-8H12a8 8 0 00-8 8v4" stroke-linecap="round"/><circle cx="18" cy="14" r="8"/></svg>
         <p>${nichts ? 'Noch keine Bewerbungen.' : 'Keine Bewerbung mit diesem Stand.'}</p>
-        <p class="fehler-hinweis">${nichts
-          ? 'Sobald sich jemand bewirbt, steht er hier – und du bekommst eine E-Mail.'
-          : 'Wähl oben „Alle", um wieder alle zu sehen.'}</p>
+        <p class="fehler-hinweis">${ohneAnzeige
+          ? 'Bewerbungen kommen, sobald deine erste Anzeige online ist.'
+          : (nichts ? mailVersprechen() : 'Wähl oben „Alle", um wieder alle zu sehen.')}</p>
+        ${ohneAnzeige
+          ? '<button type="button" class="btn btn-green" id="bew-job-posten">Ersten Job posten</button>'
+          : (nichts && mailEinstellung() === 'aus'
+            ? '<button type="button" class="btn btn-outline" id="zu-mail-einstellung">E-Mails einschalten</button>'
+            : '')}
       </div>`
+    document.getElementById('bew-job-posten')?.addEventListener('click', () => {
+      document.querySelector('.sidebar-item[data-view="posten"]')?.click()
+    })
+    document.getElementById('zu-mail-einstellung')?.addEventListener('click', () => {
+      document.querySelector('.sidebar-item[data-view="profil"]')?.click()
+      document.getElementById('profile-benachrichtigung')?.focus()
+    })
     return
   }
 
@@ -556,6 +599,12 @@ async function ladeEigeneJobs() {
     document.getElementById('leer-job-posten')?.addEventListener('click', () => {
       document.querySelector('.sidebar-item[data-view="posten"]')?.click()
     })
+    // Auch ohne Anzeige muss die Bewerbungsansicht etwas sagen. Vorher
+    // sprang der Code hier heraus, ohne renderBewerbungen zu erreichen -
+    // dort blieb dann die Platzhalterkarte stehen bzw. gar nichts, und
+    // zwar dauerhaft. Eine Ansicht, die ewig lädt, sieht aus wie ein
+    // Fehler der Seite.
+    renderBewerbungen([], {})
     return
   }
 
