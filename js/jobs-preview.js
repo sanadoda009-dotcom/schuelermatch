@@ -24,13 +24,29 @@ async function ladeVorschauJobs() {
     return
   }
 
-  grid.innerHTML = jobs.map(job => jobKarteHtml(job)).join('')
+  // `klickbar` war hier nie gesetzt (4.9.2026 gemessen). Die Karte trug
+  // trotzdem `job-card--clickable` und damit `cursor: pointer` - sie SAH
+  // also klickbar aus, hatte aber weder role noch tabindex, und es
+  // lauschte niemand. Drei tote Karten, direkt unter der Kopfzeile der
+  // Startseite: Ein Schueler klickt, nichts passiert, und er lernt
+  // daraus, dass die Seite nicht funktioniert.
+  grid.innerHTML = jobs.map(job => jobKarteHtml(job, { klickbar: true })).join('')
+  verdrahteKarten(grid)
 }
 
-function escapeHtml(str) {
-  const div = document.createElement('div')
-  div.textContent = str
-  return div.innerHTML
+// Von der Karte in die Anzeige. Auf der Startseite gibt es kein
+// Detail-Fenster wie in der Boerse - also die eigene Seite oeffnen.
+// Dieselbe Verdrahtung wie in js/firma.js.
+function verdrahteKarten(grid) {
+  grid.querySelectorAll('[data-detail]').forEach(karte => {
+    const auf = () => { location.href = `job.html?id=${encodeURIComponent(karte.dataset.detail)}` }
+    karte.addEventListener('click', auf)
+    karte.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' && e.key !== ' ') return
+      e.preventDefault()
+      auf()
+    })
+  })
 }
 
 ladeVorschauJobs()

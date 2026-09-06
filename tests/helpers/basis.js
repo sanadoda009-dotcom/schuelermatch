@@ -38,6 +38,22 @@ async function installiereSupabaseMock(context, antworten) {
       if (idFilter && idFilter.startsWith('eq.')) {
         daten = daten.filter(j => j.id === idFilter.slice(3))
       }
+      // `.limit(n)` wirklich anwenden (4.9.2026).
+      //
+      // Fehlte bisher: Eine Seite mit `.limit(3)` bekam vom Mock ALLE
+      // Zeilen. Ein Test auf eine begrenzte Liste wäre also still grün
+      // geworden, obwohl die Seite mehr zeigt — genau die Lücke, die am
+      // 1.9. im anderen Mock (supabase-fake.js) auffiel.
+      //
+      // ACHTUNG: `Number(null)` ist 0. Ohne die Prüfung auf „nicht
+      // vorhanden" schnitte jede Abfrage ohne limit auf null Zeilen
+      // zusammen — dieselbe Falle, die dort schon einmal zugeschnappt ist.
+      const rohesLimit = url.searchParams.get('limit')
+      if (rohesLimit !== null && rohesLimit !== '') {
+        const n = Number(rohesLimit)
+        if (Number.isInteger(n) && n >= 0) daten = daten.slice(0, n)
+      }
+
       if (einzeln) {
         if (!daten.length) {
           return route.fulfill({ status: 406, contentType: 'application/json', body: JSON.stringify({ code: 'PGRST116', message: 'JSON object requested, multiple (or no) rows returned' }) })
