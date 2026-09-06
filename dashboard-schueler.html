@@ -554,7 +554,12 @@
              Abbruchgrund. Hier musste ein Vierzehnjaehriger einen
              Motivationstext schreiben, bevor der Knopf ueberhaupt ging.
              Der Coach daneben bleibt - als Hilfe, nicht als Huerde. -->
-        <textarea id="bewerbung-motivation" placeholder="Freiwillig – z.B. warum gerade dieser Job zu dir passt." style="min-height:120px;"></textarea>
+        <textarea id="bewerbung-motivation" maxlength="2000" placeholder="Freiwillig – z.B. warum gerade dieser Job zu dir passt." style="min-height:120px;"></textarea>
+        <!-- 2000 wie bei den Chat-Nachrichten. Die Zahl steht auch als
+             Regel in der Datenbank (supabase/bewerbung-grenzen.sql) –
+             beide muessen dieselbe sein, sonst sagt das Formular „passt"
+             und die Datenbank lehnt danach ab. -->
+        <p class="mono feld-grenze">Höchstens 2000 Zeichen – für mehr ist der Chat da.</p>
         <div class="coach-rueckmeldung" id="coach-rueckmeldung" role="status"></div>
       </div>
       <div class="form-group">

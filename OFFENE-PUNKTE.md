@@ -16,9 +16,9 @@
 > **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
 > was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
 
-## ⏳ Wartet auf dich: neun SQL-Dateien
+## ⏳ Wartet auf dich: zehn SQL-Dateien
 
-Alle neun im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
+Alle zehn im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
 und unten, **wie du nachprüfst, dass es gewirkt hat**.
 
 | Datei | Was sie schließt |
@@ -32,8 +32,9 @@ und unten, **wie du nachprüfst, dass es gewirkt hat**.
 | `supabase/zeugnis-nur-eigene-anzeige.sql` | **Firma A kann Zeugnis und Lebenslauf lesen, die für Firma B bestimmt waren** — und der Schüler kann sein Zeugnis gar nicht löschen |
 | `supabase/profil-email-festnageln.sql` | Jeder kann `profiles.email` auf eine fremde Adresse setzen — und genau die nimmt der Mailversand |
 | `supabase/chat-erst-nach-zusage.sql` | **Eine Firma kann per API auch ohne Zusage an einen Schüler schreiben** — die Seite sagt an drei Stellen das Gegenteil |
+| `supabase/bewerbung-grenzen.sql` | `bewerbungen` hat als einzige Tabelle **keine einzige Regel**: beliebig viele Bewerbungen auf dieselbe Anzeige (jede löst eine E-Mail aus), beliebiger `status`, Freitext ohne Obergrenze |
 
-Der Code läuft in allen neun Fällen **auch ohne** die Änderung — er fällt
+Der Code läuft in allen zehn Fällen **auch ohne** die Änderung — er fällt
 dann auf das alte Verhalten zurück, statt kaputt zu gehen.
 
 ### Datenstand am 4.9.2026 nachgezählt — zwei Stolpersteine sind weg

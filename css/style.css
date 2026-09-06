@@ -3053,6 +3053,15 @@ main[tabindex="-1"]:focus { outline: none; }
 /* Ein freiwilliges Feld muss als freiwillig zu erkennen sein - sonst
    fuellt man es aus Pflichtgefuehl aus und bricht ab, wenn einem nichts
    einfaellt. */
+/* Die zulaessige Laenge eines Freitextfeldes. Bewusst NICHT
+   `.feld-freiwillig` - die heisst "dieses Feld musst du nicht ausfuellen"
+   und wird auch danach gesucht. Zwei Bedeutungen an einer Klasse machen
+   beide unscharf. */
+.feld-grenze {
+  font-size: 0.7rem; color: var(--ink-soft); margin-top: 4px;
+  font-weight: 500;
+}
+
 .feld-freiwillig {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 0.62rem; letter-spacing: 0.04em; text-transform: uppercase;
