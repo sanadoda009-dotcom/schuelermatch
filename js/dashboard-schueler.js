@@ -283,9 +283,9 @@ async function renderKonversationen() {
   }
 
   container.innerHTML = `<div class="konv-liste">${data.map(b => `
-    <button class="konv-item" data-bewerbung="${b.id}" data-titel="${escapeHtml(b.job?.titel || 'Job')}">
+    <button class="konv-item" data-bewerbung="${b.id}" data-titel="${escapeHtml(b.job?.titel || b.job_titel || 'Job')}">
       <div class="cv-photo-preview" style="background:linear-gradient(135deg,var(--match-green),var(--indigo));">💬</div>
-      <div><b>${escapeHtml(b.job?.titel || 'Job')}</b><span>Angenommen · Chat öffnen</span></div>
+      <div><b>${escapeHtml(b.job?.titel || b.job_titel || 'Job')}</b><span>Angenommen · Chat öffnen</span></div>
     </button>`).join('')}</div>`
 
   container.querySelectorAll('.konv-item').forEach(btn =>
@@ -526,6 +526,16 @@ async function renderMeineBewerbungen() {
 function bewerbungKarte(b) {
   const status = b.status || 'ausstehend'
   const job = b.job || {}
+
+  // Der Titel der Anzeige, auch wenn es die Anzeige nicht mehr gibt.
+  //
+  // `bewerbungen.job_id -> jobs` haengt heute auf ON DELETE CASCADE: Loescht
+  // die Firma ihre Anzeige, ist die Bewerbung des Schuelers mit weg.
+  // supabase/bewerbung-bleibt.sql aendert das auf SET NULL und legt dafuer
+  // `bewerbungen.job_titel` als Kopie an. Bis die Datei eingespielt ist,
+  // gibt es die Spalte nicht — dann ist sie schlicht `undefined` und es
+  // bleibt beim bisherigen Text.
+  const titel = job.titel || b.job_titel || ''
   const inaktiv = job.aktiv === false
   const datum = b.erstellt_am ? new Date(b.erstellt_am).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
 
@@ -565,7 +575,8 @@ function bewerbungKarte(b) {
     <div class="bew-card ${status === 'angenommen' ? 'bew-card--zusage' : ''}">
       <div class="bew-card-kopf">
         <div>
-          <b>${escapeHtml(job.titel || 'Job (nicht mehr verfügbar)')}</b>
+          <b>${escapeHtml(titel || 'Anzeige nicht mehr verfügbar')}</b>${
+            !job.titel && titel ? '<span class="bew-geloescht">Anzeige wurde entfernt</span>' : ''}
           <span class="bew-meta">${job.ort ? escapeHtml(job.ort) : ''}${job.stundenlohn ? ' · ' + job.stundenlohn + ' €/Std' : ''}${job.kategorie ? ' · ' + escapeHtml(job.kategorie) : ''}${inaktiv ? ' · <i>Anzeige pausiert</i>' : ''}</span>
         </div>
         <span class="bew-datum mono">${datum}</span>
@@ -577,7 +588,7 @@ function bewerbungKarte(b) {
         <div class="bew-linie ${entschieden ? 'done' : ''}"></div>
         ${schritt3}
       </div>
-      ${status === 'angenommen' ? `<button type="button" class="btn btn-green" style="margin-top:12px;" data-chat-bewerbung="${b.id}" data-chat-titel="${escapeHtml(job.titel || 'Job')}">💬 Zum Chat mit der Firma</button>` : ''}
+      ${status === 'angenommen' ? `<button type="button" class="btn btn-green" style="margin-top:12px;" data-chat-bewerbung="${b.id}" data-chat-titel="${escapeHtml(titel || 'Job')}">💬 Zum Chat mit der Firma</button>` : ''}
       ${absage ? `
         <div class="bew-absage">
           <p class="bew-absage-grund">${escapeHtml(absage.satz)}</p>

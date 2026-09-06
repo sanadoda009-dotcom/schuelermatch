@@ -16,9 +16,9 @@
 > **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
 > was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
 
-## ⏳ Wartet auf dich: sechs SQL-Dateien
+## ⏳ Wartet auf dich: sieben SQL-Dateien
 
-Alle sechs im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
+Alle sieben im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
 und unten, **wie du nachprüfst, dass es gewirkt hat**.
 
 | Datei | Was sie schließt |
@@ -28,9 +28,10 @@ und unten, **wie du nachprüfst, dass es gewirkt hat**.
 | `supabase/alter-pflicht.sql` | Schülerkonto ohne Alter — **vorher** die eine betroffene Zeile versorgen, ohne einen Wert zu raten |
 | `supabase/bewerbung-stand.sql` | Bewerbung ohne Stand: kein „angesehen", kein Datum, kein Absagegrund |
 | `supabase/bewerbung-inhalt-schuetzen.sql` | Eine Firma kann den Text einer fremden Bewerbung ändern |
-| `supabase/firma-oeffentlich.sql` | Firmenseite zeigt Logo und „Wer wir sind" noch nicht — legt die Sicht `firmen_oeffentlich` an |
+| `supabase/firma-oeffentlich.sql` | Firmenseite zeigt Logo und „Wer wir sind“ noch nicht — legt die Sicht `firmen_oeffentlich` an |
+| `supabase/bewerbung-bleibt.sql` | **Löscht die Firma ihre Anzeige, verschwinden alle Bewerbungen darauf und die Chats dazu** — Daten der Schüler |
 
-Der Code läuft in allen sechs Fällen **auch ohne** die Änderung — er fällt
+Der Code läuft in allen sieben Fällen **auch ohne** die Änderung — er fällt
 dann auf das alte Verhalten zurück, statt kaputt zu gehen.
 
 ## ⏳ Wartet auf dich: eine Regel in der Datenbank

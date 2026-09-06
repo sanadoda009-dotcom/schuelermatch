@@ -697,6 +697,12 @@ section { padding: 130px 24px; }
 .empty-state svg { width: 48px; height: 48px; opacity: 0.35; }
 .empty-state p { font-size: 0.95rem; margin: 0; }
 
+/* Eine Bewerbung, deren Anzeige es nicht mehr gibt (4.9.2026). */
+.bew-geloescht {
+  display: block; font-size: 0.7rem; color: var(--ink-soft);
+  font-family: 'IBM Plex Mono', monospace; font-weight: 500; margin-top: 2px;
+}
+
 /* Vorschlaege im leeren Trefferfall (4.9.2026).
    Statt "keine Jobs" plus einem Knopf, der alles wegwirft, steht hier je
    ein Knopf pro Filter, dessen Ruecknahme wieder Treffer bringt - mit der

@@ -431,19 +431,43 @@ function beendeBearbeitung() {
   zeigeWizardSchritt(1)
 }
 
+// Eine Anzeige zu löschen nimmt mehr mit, als dasteht (4.9.2026).
+//
+// In der Datenbank hängt `bewerbungen.job_id -> jobs ON DELETE CASCADE`,
+// und an der Bewerbung wiederum `nachrichten.bewerbung_id -> bewerbungen
+// ON DELETE CASCADE`. Löscht eine Firma ihre Anzeige, verschwinden also
+// alle Bewerbungen darauf und der komplette Chat dazu — Daten, die zu
+// den SCHÜLERN gehören, gelöscht durch die Gegenseite, ohne Rückfrage
+// und ohne Nachricht.
+//
+// Auf dem Knopf stand nur „Wirklich löschen?". Wer zweimal klickt, kann
+// nicht ahnen, dass damit drei Bewerbungen und drei Chats weg sind.
+//
+// Der saubere Weg ist zusätzlich supabase/bewerbung-bleibt.sql (wartet
+// auf Sanad): Dann bleibt die Bewerbung dem Schüler erhalten, mit dem
+// Titel der Anzeige als Kopie. Bis dahin muss wenigstens dastehen, was
+// passiert — und dass „Pausieren" meistens das ist, was gemeint war.
 async function loescheJob(jobId, btn) {
+  const mitBewerbungen = Number(btn?.dataset.bew || 0)
+
   // Zwei-Klick-Bestätigung statt nervigem Browser-Popup
   if (btn && btn.dataset.confirm !== '1') {
     btn.dataset.confirm = '1'
     btn.dataset.orig = btn.textContent
-    btn.textContent = 'Wirklich löschen?'
+    btn.textContent = mitBewerbungen ? 'Trotzdem löschen?' : 'Wirklich löschen?'
     btn.classList.add('btn-confirm')
+    if (mitBewerbungen) {
+      toast(`Damit verschwinden auch ${mitBewerbungen} Bewerbung`
+        + `${mitBewerbungen === 1 ? '' : 'en'} und der Chat dazu — auch für die `
+        + 'Schüler. Soll die Anzeige nur weg vom Schwarzen Brett, nimm „Pausieren".',
+        'fehler')
+    }
     clearTimeout(btn._t)
     btn._t = setTimeout(() => {
       btn.textContent = btn.dataset.orig
       btn.dataset.confirm = '0'
       btn.classList.remove('btn-confirm')
-    }, 4000)
+    }, mitBewerbungen ? 9000 : 4000)
     return
   }
   if (btn) clearTimeout(btn._t)
@@ -670,7 +694,7 @@ async function ladeEigeneJobs() {
         <button class="btn btn-outline" style="flex:1 1 45%; padding:9px;" data-edit="${job.id}">Bearbeiten</button>
         <button class="btn btn-outline" style="flex:1 1 45%; padding:9px;" data-duplicate="${job.id}">⧉ Duplizieren</button>
         <button class="btn btn-outline" style="flex:1 1 45%; padding:9px;" data-pause="${job.id}" data-aktiv="${job.aktiv}">${job.aktiv ? 'Pausieren' : 'Aktivieren'}</button>
-        <button class="btn btn-outline" style="flex:1 1 45%; padding:9px; color:var(--coral);" data-delete="${job.id}">Löschen</button>
+        <button class="btn btn-outline" style="flex:1 1 45%; padding:9px; color:var(--coral);" data-delete="${job.id}" data-bew="${alleBewFuerJob.length}">Löschen</button>
       </div>
       <p class="job-bew-hinweis">
         ${alleBewFuerJob.length
