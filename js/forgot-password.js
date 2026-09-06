@@ -17,6 +17,11 @@ form.addEventListener('submit', async (e) => {
 
   btn.disabled = false
 
+  // Die vorige Meldung weg, bevor eine neue kommt. Sonst stapeln sie sich:
+  // dreimal abgeschickt hiess dreimal derselbe Satz untereinander (gemessen
+  // am 4.9.2026), und die aelteste stand oben - also die falsche.
+  form.querySelector('.auth-msg')?.remove()
+
   const msg = document.createElement('p')
   msg.setAttribute('role', error ? 'alert' : 'status')
   msg.className = `auth-msg ${error ? 'auth-msg--error' : 'auth-msg--success'}`

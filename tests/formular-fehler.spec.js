@@ -6,12 +6,17 @@
 // ohne je den Grund zu erfahren. Eine Sackgasse im wichtigsten Trichter.
 // Beim Passwort-Zurücksetzen wurde stattdessen der rohe englische
 // Supabase-Text angezeigt.
-const { test, expect, setupDashboard } = require('./helpers/supabase-fake')
+const { test, expect, setupDashboard, SCHUELER } = require('./helpers/supabase-fake')
 
 test.describe('Passwort-Mindestlänge stimmt mit dem Server überein', () => {
   // Supabase ist auf 10 eingestellt. Weicht das Formular davon ab, entsteht
   // genau die Sackgasse von oben – deshalb hier festgenagelt.
-  for (const [seite, feld] of [['/register.html', '#reg-password'], ['/reset-password.html', '#password']]) {
+  // Der Anhang bei reset-password.html ist der Link aus der E-Mail. Seit
+  // dem 4.9. zeigt die Seite OHNE ihn gar kein Formular mehr, sondern
+  // sagt, dass der Link fehlt (tests/passwort-zuruecksetzen.spec.js) -
+  // und so kommt auch niemand dort an.
+  for (const [seite, feld] of [['/register.html', '#reg-password'],
+       ['/reset-password.html#access_token=eyJtest&type=recovery', '#password']]) {
     test(seite, async ({ page }) => {
       await setupDashboard(page.context(), {})
       await page.goto(seite)
@@ -40,11 +45,17 @@ test('Passwort zurücksetzen zeigt keinen englischen Rohtext', async ({ page }) 
   // Das Feld hat minlength=10, der Browser blockt also schon vorher – gut so.
   // Hier geht es um den Fall danach: Der Server lehnt trotzdem ab und
   // antwortet englisch. Dieser Text darf nie ungefiltert beim Nutzer landen.
-  await setupDashboard(page.context(), {})
+  //
+  // AM 4.9. KORRIGIERT: Der Test lief vorher OHNE Sitzung. supabase-js
+  // brach dann schon vor dem Netzwerkaufruf mit „Auth session missing!"
+  // ab — die hier nachgestellte englische Antwort wurde nie gelesen. Grün
+  // war er trotzdem, weil die Sammelmeldung ebenfalls auf „nicht geklappt"
+  // passte. Er prüfte also nicht, was in seinem Namen steht.
+  await setupDashboard(page.context(), { user: SCHUELER })
   await page.route('**/auth/v1/user*', r => r.fulfill({ status: 422,
     contentType: 'application/json',
     body: JSON.stringify({ message: 'Password should be at least 10 characters.' }) }))
-  await page.goto('/reset-password.html')
+  await page.goto('/reset-password.html#access_token=eyJtest&type=recovery')
   await page.fill('#password', 'langgenug123')
   await page.click('button[type=submit]')
   const meldung = page.locator('.auth-msg--error')
