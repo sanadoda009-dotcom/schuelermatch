@@ -16,9 +16,9 @@
 > **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
 > was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
 
-## ⏳ Wartet auf dich: sieben SQL-Dateien
+## ⏳ Wartet auf dich: acht SQL-Dateien
 
-Alle sieben im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
+Alle acht im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
 und unten, **wie du nachprüfst, dass es gewirkt hat**.
 
 | Datei | Was sie schließt |
@@ -30,9 +30,15 @@ und unten, **wie du nachprüfst, dass es gewirkt hat**.
 | `supabase/bewerbung-inhalt-schuetzen.sql` | Eine Firma kann den Text einer fremden Bewerbung ändern |
 | `supabase/firma-oeffentlich.sql` | Firmenseite zeigt Logo und „Wer wir sind“ noch nicht — legt die Sicht `firmen_oeffentlich` an |
 | `supabase/bewerbung-bleibt.sql` | **Löscht die Firma ihre Anzeige, verschwinden alle Bewerbungen darauf und die Chats dazu** — Daten der Schüler |
+| `supabase/zeugnis-nur-eigene-anzeige.sql` | **Firma A kann Zeugnis und Lebenslauf lesen, die für Firma B bestimmt waren** — und der Schüler kann sein Zeugnis gar nicht löschen |
 
-Der Code läuft in allen sieben Fällen **auch ohne** die Änderung — er fällt
+Der Code läuft in allen acht Fällen **auch ohne** die Änderung — er fällt
 dann auf das alte Verhalten zurück, statt kaputt zu gehen.
+
+**Das heißt aber nicht, dass es egal ist.** Bei den letzten beiden ist das
+alte Verhalten selbst das Problem: `bewerbung-bleibt.sql` und
+`zeugnis-nur-eigene-anzeige.sql` schließen Lücken, durch die jemand an
+fremde Daten kommt oder sie verliert. Die beiden zuerst.
 
 ## ⏳ Wartet auf dich: eine Regel in der Datenbank
 
