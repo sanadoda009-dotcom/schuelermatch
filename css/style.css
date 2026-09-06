@@ -697,6 +697,17 @@ section { padding: 130px 24px; }
 .empty-state svg { width: 48px; height: 48px; opacity: 0.35; }
 .empty-state p { font-size: 0.95rem; margin: 0; }
 
+/* Die Zahl der Anzeigen an jedem Kategorie-Knopf (4.9.2026).
+   Vorher sah man erst NACH dem Klick, ob hinter einer Kategorie etwas
+   steht - bei elf Knoepfen und drei gefuellten Kategorien waren das acht
+   Sackgassen. */
+.pill-zahl {
+  margin-left: 6px; font-family: 'IBM Plex Mono', monospace;
+  font-weight: 500; font-size: 0.72rem; opacity: 0.75;
+}
+.pill--leer { opacity: 0.55; }
+.pill.active .pill-zahl { opacity: 0.9; }
+
 /* Eine Bewerbung, deren Anzeige es nicht mehr gibt (4.9.2026). */
 .bew-geloescht {
   display: block; font-size: 0.7rem; color: var(--ink-soft);

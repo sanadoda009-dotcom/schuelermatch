@@ -150,7 +150,9 @@ test.describe('Aktive Filter als Chips', () => {
     await page.locator('#filter-reset-alle').click()
     await expect(page.locator('.filter-chip')).toHaveCount(0)
     await expect(page.locator('.job-card')).toHaveCount(4)
-    await expect(page.locator('#kategorie-pills .pill.active')).toHaveText('Alle')
+    // Seit dem 4.9. steht die Zahl der Anzeigen mit im Knopf
+  // ("Nachhilfe 2"), deshalb toContainText statt toHaveText.
+  await expect(page.locator('#kategorie-pills .pill.active')).toContainText('Alle')
   })
 })
 

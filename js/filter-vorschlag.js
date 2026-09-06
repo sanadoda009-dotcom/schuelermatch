@@ -77,3 +77,24 @@ export function entlastungen(jobs, f) {
   treffer.sort((a, b) => b.anzahl - a.anzahl || a.rang - b.rang)
   return treffer.map(({ schluessel, anzahl }) => ({ schluessel, anzahl }))
 }
+
+// Wie viele Anzeigen stehen hinter jedem Wert eines Feldes — unter den
+// ÜBRIGEN Filtern? (4.9.2026)
+//
+// Für die Kategorie-Knöpfe auf der Jobbörse. Eine Zahl, die alle anderen
+// Filter ignoriert, wäre eine Lüge: Sie verspräche „Verkauf 2", während
+// mit dem gesetzten Ort null übrig bleiben. Deshalb wird das gezählte
+// Feld selbst aus dem Filter genommen — genau wie bei `entlastungen`.
+//
+// Rückgabe: ein Objekt { wert: anzahl }. Werte ohne Treffer stehen NICHT
+// darin; wer eine 0 braucht, fragt mit `|| 0`.
+export function zaehleNach(jobs, f, feld) {
+  const ohne = { ...(f || {}), [feld]: null }
+  const zaehler = {}
+  for (const job of filtere(jobs, ohne)) {
+    const wert = job?.[feld]
+    if (wert === null || wert === undefined || wert === '') continue
+    zaehler[wert] = (zaehler[wert] || 0) + 1
+  }
+  return zaehler
+}

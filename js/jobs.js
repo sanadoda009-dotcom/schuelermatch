@@ -4,7 +4,7 @@ import { hole, zeigeLadefehler } from './zustand.js'
 import { meldeMitAnmeldung, meldeButtonHtml } from './melden.js'
 import { jobKarteHtml, istNeu } from './job-karte.js'
 import { MIN_ALTER, ALTERSOPTIONEN } from './jugendschutz.js'
-import { filtere, entlastungen } from './filter-vorschlag.js'
+import { filtere, entlastungen, zaehleNach } from './filter-vorschlag.js'
 
 let alleJobs = []
 let aktiveKategorie = ''
@@ -176,6 +176,45 @@ function wendeFilterAn() {
   renderJobs(sortiereJobs(filtere(alleJobs, f), sortierung), f)
   schreibeUrlParameter()
   zeigeAktiveFilter()
+  zeigeKategorieZahlen(f)
+}
+
+// An jeden Kategorie-Knopf die Zahl der Anzeigen dahinter (4.9.2026).
+//
+// DER BEFUND: Die Leiste bietet elf Kategorien an. Wie viele davon
+// wirklich etwas enthalten, sah man erst NACH dem Klick — und bei den
+// leeren landete man in der Sackgasse aus Runde 7. Gemessen am 4.9. auf
+// der laufenden Datenbank: 5 aktive Anzeigen in 3 Kategorien, also acht
+// Knöpfe, die ins Leere führen.
+//
+// Gezählt wird unter den ÜBRIGEN Filtern (siehe zaehleNach): Steht ein
+// Ort im Filter, zeigt „Verkauf 2" auch wirklich zwei erreichbare
+// Anzeigen und nicht zwei irgendwo im Land.
+function zeigeKategorieZahlen(f) {
+  const zahlen = zaehleNach(alleJobs, f, 'kategorie')
+  document.querySelectorAll('#kategorie-pills .pill').forEach(pill => {
+    const kat = pill.dataset.kat
+    // „Alle" bekommt die Gesamtzahl unter den übrigen Filtern.
+    const anzahl = kat
+      ? (zahlen[kat] || 0)
+      : Object.values(zahlen).reduce((a, b) => a + b, 0)
+
+    // Die Beschriftung EINMAL sichern, bevor die Zahl drankommt – sonst
+    // liest der nächste Durchlauf die eigene Zahl mit.
+    if (!pill.dataset.label) pill.dataset.label = (pill.textContent || '').trim()
+
+    let marke = pill.querySelector('.pill-zahl')
+    if (!marke) {
+      marke = document.createElement('span')
+      marke.className = 'pill-zahl'
+      pill.append(marke)
+    }
+    marke.textContent = String(anzahl)
+    pill.classList.toggle('pill--leer', anzahl === 0)
+    // Für Screenreader ausformuliert – „Verkauf 2" allein ist mehrdeutig.
+    pill.setAttribute('aria-label',
+      `${pill.dataset.label}: ${anzahl} ${anzahl === 1 ? 'Anzeige' : 'Anzeigen'}`)
+  })
 }
 
 /* ---------- AKTIVE FILTER SICHTBAR MACHEN ---------- */

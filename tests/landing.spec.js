@@ -17,7 +17,9 @@ test('Hero-Suche führt mit Suchbegriff zur Jobbörse', async ({ page }) => {
 test('Kategorie-Kachel verlinkt vorgefiltert in die Jobbörse', async ({ page }) => {
   await page.locator('.kat-tile', { hasText: 'Tierbetreuung' }).click()
   await expect(page).toHaveURL(/kategorie=Tierbetreuung/)
-  await expect(page.locator('#kategorie-pills .pill.active')).toHaveText('Tierbetreuung')
+  // Seit dem 4.9. steht die Zahl der Anzeigen mit im Knopf
+  // ("Nachhilfe 2"), deshalb toContainText statt toHaveText.
+  await expect(page.locator('#kategorie-pills .pill.active')).toContainText('Tierbetreuung')
   await expect(page.locator('.job-card')).toHaveCount(1)
 })
 

@@ -77,7 +77,9 @@ test('Sortierung „Höchster Lohn" und „Niedrigstes Mindestalter"', async ({ 
 test('Deep-Link ?q=&kategorie= stellt Filterzustand wieder her', async ({ page }) => {
   await page.goto('/jobs.html?q=mathe&kategorie=Nachhilfe')
   await expect(page.locator('#filter-suche')).toHaveValue('mathe')
-  await expect(page.locator('#kategorie-pills .pill.active')).toHaveText('Nachhilfe')
+  // Seit dem 4.9. steht die Zahl der Anzeigen mit im Knopf
+  // ("Nachhilfe 2"), deshalb toContainText statt toHaveText.
+  await expect(page.locator('#kategorie-pills .pill.active')).toContainText('Nachhilfe')
   await expect(page.locator('.job-card')).toHaveCount(1)
 })
 
