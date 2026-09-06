@@ -143,4 +143,38 @@ test.describe('die Karte im Einsatz', () => {
       els => els.filter(e => !e.querySelector('.job-frische')).length)
     expect(ohneFrische, 'Karte ohne Angabe, wie alt die Anzeige ist').toBe(0)
   })
+
+  // WÄCHTER (4.9.2026, nach dem Fund auf der Startseite)
+  //
+  // `jobKarteHtml` setzt die Klasse `job-card--clickable` — und damit
+  // `cursor: pointer` — IMMER, auch ohne `klickbar: true`. Nur `role`,
+  // `tabindex` und `aria-label` hängen an der Option.
+  //
+  // Wer die Karte rendert, muss sie also auch verdrahten. In
+  // js/jobs-preview.js war das vergessen: Die drei Karten auf der
+  // Startseite sahen klickbar aus und taten nichts (siehe
+  // tests/startseite-vorschau.spec.js). Damit das keine fünfte Datei
+  // trifft, wird hier nachgesehen, statt es zu hoffen.
+  test('jede Datei, die Karten baut, verdrahtet sie auch', async () => {
+    const fs = require('fs')
+    const path = require('path')
+    const jsOrdner = path.join(__dirname, '..', 'js')
+
+    const bauer = fs.readdirSync(jsOrdner)
+      .filter(f => f.endsWith('.js') && f !== 'job-karte.js')
+      .filter(f => fs.readFileSync(path.join(jsOrdner, f), 'utf8').includes('jobKarteHtml('))
+
+    // Wenn diese Liste leer wäre, prüfte der Test nichts.
+    expect(bauer.length, 'niemand baut Job-Karten?').toBeGreaterThan(0)
+
+    for (const datei of bauer) {
+      const quelle = fs.readFileSync(path.join(jsOrdner, datei), 'utf8')
+      // Entweder die Karte selbst oder der Titel-Knopf muss gebunden werden.
+      const verdrahtet = quelle.includes('[data-detail]')
+        || quelle.includes('data-detail-btn')
+      expect(verdrahtet,
+        `${datei} baut Job-Karten, bindet aber keinen Klick — sie sehen dann `
+        + 'klickbar aus und tun nichts').toBe(true)
+    }
+  })
 })

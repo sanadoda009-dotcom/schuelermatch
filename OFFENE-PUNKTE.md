@@ -25,7 +25,7 @@ und unten, **wie du nachprüfst, dass es gewirkt hat**.
 |---|---|
 | `supabase/meldungen-bleiben.sql` | Wer gemeldet wird, kann die Meldung selbst beseitigen (Anzeige oder Konto löschen) |
 | `supabase/mindestalter-pflicht.sql` | Anzeige ganz ohne Altersangabe möglich |
-| `supabase/alter-pflicht.sql` | Schülerkonto ohne Alter — **vorher** die eine betroffene Zeile versorgen, ohne einen Wert zu raten |
+| `supabase/alter-pflicht.sql` | Schülerkonto ohne Alter — **die Vorarbeit entfällt jetzt, siehe unten** |
 | `supabase/bewerbung-stand.sql` | Bewerbung ohne Stand: kein „angesehen", kein Datum, kein Absagegrund |
 | `supabase/firma-oeffentlich.sql` | Firmenseite zeigt Logo und „Wer wir sind“ noch nicht — legt die Sicht `firmen_oeffentlich` an |
 | `supabase/bewerbung-bleibt.sql` | **Löscht die Firma ihre Anzeige, verschwinden alle Bewerbungen darauf und die Chats dazu** — Daten der Schüler |
@@ -34,6 +34,38 @@ und unten, **wie du nachprüfst, dass es gewirkt hat**.
 
 Der Code läuft in allen acht Fällen **auch ohne** die Änderung — er fällt
 dann auf das alte Verhalten zurück, statt kaputt zu gehen.
+
+### Datenstand am 4.9.2026 nachgezählt — zwei Stolpersteine sind weg
+
+Ich habe die laufende Datenbank abgefragt, statt die Warnungen von damals
+weiterzuschleppen:
+
+| geprüft | gefunden |
+|---|---|
+| Schülerprofile ohne Alter | **0** |
+| Schüler unter 13 | 0 |
+| Anzeigen ohne Mindestalter | **0** |
+| Anzeigen mit Mindestalter unter 13 | 0 |
+| Aktive Anzeigen von nicht freigegebenen Firmen | 0 |
+| Bewerbungen nicht verifizierter Schüler | 0 |
+| Profile ohne Rolle · Firmen ohne Namen | 0 · 0 |
+| Offene Meldungen | 0 |
+| Aktive Job-Alarme | **0** |
+
+Daraus folgt:
+
+- **`alter-pflicht.sql` braucht keine Vorarbeit mehr.** Der Hinweis „erst
+  die eine Zeile ohne Alter versorgen, keinen Wert raten" stammt vom
+  1.9.; diese Zeile gibt es nicht mehr. Du kannst die Datei direkt
+  ausführen.
+- **`mindestalter-pflicht.sql` ebenso** — keine Anzeige ohne Altersangabe.
+- **Der fehlende Cron für den Job-Alarm ist gerade nicht dringend:** Es
+  gibt null aktive Alarme, also wartet niemand auf eine Mail. Sobald der
+  erste Schüler einen einrichtet, ändert sich das.
+
+Die Zahlen sind eine Momentaufnahme. Vor dem Ausführen einmal
+nachzählen lohnt sich — die Abfragen stehen jeweils unten in der
+SQL-Datei.
 
 **Das heißt aber nicht, dass es egal ist.** Bei dreien ist das alte
 Verhalten selbst das Problem: `bewerbung-bleibt.sql`,
