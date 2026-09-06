@@ -1,3 +1,28 @@
+// RICHTIGSTELLUNG (4.9.2026) — BITTE ZUERST LESEN
+//
+// Der unten beschriebene Befund war nur zur Haelfte richtig. Die
+// UPDATE-Regel auf `bewerbungen` schraenkt tatsaechlich keine Spalten
+// ein. ABER: In der laufenden Datenbank steht ein Trigger, der genau das
+// abfaengt —
+//
+//   trg_schuetze_bewerbung  BEFORE UPDATE ON bewerbungen
+//     -> schuetze_bewerbung_felder()
+//        new.motivationsschreiben := old.motivationsschreiben;
+//        new.zeugnis_url          := old.zeugnis_url;
+//        new.lebenslauf_url       := old.lebenslauf_url;
+//
+// Der Aenderungsversuch wird still auf den alten Wert zurueckgesetzt.
+// Die Luecke gibt es also nicht. Ich hatte damals `pg_policies` gelesen,
+// aber nicht die Trigger der Tabelle.
+//
+// supabase/bewerbung-inhalt-schuetzen.sql bleibt liegen und schadet
+// nicht — sie wuerde denselben Schutz mit einer LAUTEN Fehlermeldung
+// statt stillem Zuruecksetzen bewirken. Das ist Geschmackssache, kein
+// offener Punkt; in OFFENE-PUNKTE.md steht sie nicht mehr als Pflicht.
+//
+// MERKSATZ: Nach einer RLS-Regel immer auch die Trigger der Tabelle
+// lesen. `pg_policies` allein sagt nicht, was wirklich passiert.
+//
 // Der Inhalt einer Bewerbung gehört dem Schüler (2.9.2026).
 //
 // ANLASS: Beim Einbau des Bewerbungsstands musste ich prüfen, ob die Firma

@@ -27,18 +27,46 @@ und unten, **wie du nachprüfst, dass es gewirkt hat**.
 | `supabase/mindestalter-pflicht.sql` | Anzeige ganz ohne Altersangabe möglich |
 | `supabase/alter-pflicht.sql` | Schülerkonto ohne Alter — **vorher** die eine betroffene Zeile versorgen, ohne einen Wert zu raten |
 | `supabase/bewerbung-stand.sql` | Bewerbung ohne Stand: kein „angesehen", kein Datum, kein Absagegrund |
-| `supabase/bewerbung-inhalt-schuetzen.sql` | Eine Firma kann den Text einer fremden Bewerbung ändern |
 | `supabase/firma-oeffentlich.sql` | Firmenseite zeigt Logo und „Wer wir sind“ noch nicht — legt die Sicht `firmen_oeffentlich` an |
 | `supabase/bewerbung-bleibt.sql` | **Löscht die Firma ihre Anzeige, verschwinden alle Bewerbungen darauf und die Chats dazu** — Daten der Schüler |
 | `supabase/zeugnis-nur-eigene-anzeige.sql` | **Firma A kann Zeugnis und Lebenslauf lesen, die für Firma B bestimmt waren** — und der Schüler kann sein Zeugnis gar nicht löschen |
+| `supabase/profil-email-festnageln.sql` | Jeder kann `profiles.email` auf eine fremde Adresse setzen — und genau die nimmt der Mailversand |
 
 Der Code läuft in allen acht Fällen **auch ohne** die Änderung — er fällt
 dann auf das alte Verhalten zurück, statt kaputt zu gehen.
 
-**Das heißt aber nicht, dass es egal ist.** Bei den letzten beiden ist das
-alte Verhalten selbst das Problem: `bewerbung-bleibt.sql` und
-`zeugnis-nur-eigene-anzeige.sql` schließen Lücken, durch die jemand an
-fremde Daten kommt oder sie verliert. Die beiden zuerst.
+**Das heißt aber nicht, dass es egal ist.** Bei dreien ist das alte
+Verhalten selbst das Problem: `bewerbung-bleibt.sql`,
+`zeugnis-nur-eigene-anzeige.sql` und `profil-email-festnageln.sql`
+schließen Lücken, durch die jemand an fremde Daten kommt, sie verliert
+oder Mails an Fremde auslöst. **Die drei zuerst.**
+
+### Richtigstellung: `bewerbung-inhalt-schuetzen.sql` brauchst du nicht
+
+Am 2.9. habe ich gemeldet, eine Firma könne den Text einer fremden
+Bewerbung ändern, weil die UPDATE-Regel keine Spalten einschränkt. Die
+Regel tut das tatsächlich nicht — **aber ein Trigger fängt es längst ab.**
+In der laufenden Datenbank steht:
+
+```
+trg_schuetze_bewerbung  BEFORE UPDATE ON bewerbungen
+  -> schuetze_bewerbung_felder()
+     new.motivationsschreiben := old.motivationsschreiben;
+     new.zeugnis_url          := old.zeugnis_url;
+     new.lebenslauf_url       := old.lebenslauf_url;
+     ...
+```
+
+Der Versuch wird still auf den alten Wert zurückgesetzt. **Die Lücke gibt
+es nicht.** Ich hatte damals nur die Regel gelesen, nicht die Trigger.
+
+Die Datei bleibt liegen, sie schadet nicht — sie würde denselben Schutz
+mit einer *lauten* Fehlermeldung statt stillem Zurücksetzen bewirken. Das
+ist Geschmackssache, kein offener Punkt. Deshalb steht sie nicht mehr in
+der Tabelle oben.
+
+**Merksatz für mich:** Nach einer RLS-Regel immer auch die Trigger der
+Tabelle lesen. `pg_policies` allein sagt nicht, was wirklich passiert.
 
 ## ⏳ Wartet auf dich: eine Regel in der Datenbank
 
