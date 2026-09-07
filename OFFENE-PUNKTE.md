@@ -37,6 +37,42 @@ und unten, **wie du nachprüfst, dass es gewirkt hat**.
 Der Code läuft in allen zehn Fällen **auch ohne** die Änderung — er fällt
 dann auf das alte Verhalten zurück, statt kaputt zu gehen.
 
+### Reihenfolge? Keine. Nachgeprüft.
+
+Zehn Dateien sind viel. Deshalb habe ich nachgesehen, ob es eine
+Reihenfolge gibt, die du einhalten musst — **es gibt keine.**
+
+Nur zwei Dateien legen überhaupt neue Spalten an, und jede benutzt
+ausschließlich ihre eigenen:
+
+| Datei | legt an |
+|---|---|
+| `bewerbung-stand.sql` | `angesehen_am`, `entschieden_am`, `absage_grund` |
+| `bewerbung-bleibt.sql` | `job_titel` |
+| alle übrigen | nichts Neues |
+
+Keine Datei stützt sich auf eine Spalte aus einer anderen. Du kannst sie
+also in beliebiger Reihenfolge ausführen, einzeln, mit Pausen dazwischen.
+`tests/sql-reihenfolge.spec.js` hält das fest — sollte ich künftig eine
+Datei schreiben, die sich auf eine andere stützt, fällt es dort auf und
+nicht bei dir im SQL-Editor.
+
+**Zwei Wechselwirkungen, damit sie dir später nicht wie Fehler vorkommen:**
+
+- `bewerbung-bleibt.sql` macht `job_id` nullable. Der eindeutige Index aus
+  `bewerbung-grenzen.sql` behandelt NULL-Werte als verschieden — eine
+  Bewerbung, deren Anzeige gelöscht wurde, blockiert also keine neue.
+  So soll es sein.
+- Nach `bewerbung-bleibt.sql` verliert eine Firma den Zugriff auf Zeugnis
+  und Lebenslauf, sobald sie ihre eigene Anzeige löscht: Die Regel aus
+  `zeugnis-nur-eigene-anzeige.sql` sucht über `job_id`, und das steht dann
+  auf NULL. Auch das ist gewollt.
+
+Jede Datei sagt oben, **warum**, und unten, **wie du nachprüfst, dass es
+gewirkt hat** — und wie du sie rückgängig machst. Das ist inzwischen bei
+allen zehn so; bei `meldungen-bleiben.sql` hat der Test gemerkt, dass der
+Rückweg fehlte.
+
 ### Datenstand am 4.9.2026 nachgezählt — zwei Stolpersteine sind weg
 
 Ich habe die laufende Datenbank abgefragt, statt die Warnungen von damals

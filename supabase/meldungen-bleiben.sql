@@ -55,3 +55,17 @@ alter table public.meldungen
 --   meldungen_job_id_fkey           ... ON DELETE SET NULL
 --   meldungen_melder_id_fkey        ... ON DELETE SET NULL
 --   meldungen_nachricht_id_fkey     ... ON DELETE SET NULL
+
+-- Rueckgaengig, falls noetig - aber NUR mit Bedacht: Danach kann die
+-- gemeldete Seite die Meldung wieder selbst beseitigen, indem sie ihre
+-- Anzeige oder ihr Konto loescht. Genau dafuer gibt es diese Datei.
+--
+--   alter table public.meldungen drop constraint if exists meldungen_job_id_fkey;
+--   alter table public.meldungen add constraint meldungen_job_id_fkey
+--     foreign key (job_id) references public.jobs(id) on delete cascade;
+--
+--   alter table public.meldungen drop constraint if exists meldungen_nachricht_id_fkey;
+--   alter table public.meldungen add constraint meldungen_nachricht_id_fkey
+--     foreign key (nachricht_id) references public.nachrichten(id) on delete cascade;
+--
+-- Die Spalten muessen dafuer nullable bleiben - das sind sie bereits.
