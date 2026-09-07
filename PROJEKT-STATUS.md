@@ -1,3 +1,15 @@
+> **Ist-Zustand der Sicherheit: [SICHERHEIT-STAND.md](SICHERHEIT-STAND.md)**
+>
+> Diese Datei hier ist chronologisch — sie erzaehlt, was wann passiert
+> ist. Fuer die Frage „was gilt gerade?" muesste man sie ganz lesen und
+> im Kopf verrechnen, welche spaetere Zeile eine fruehere aufhebt.
+>
+> Genau daran bin ich am 2.9.2026 gescheitert: Ich meldete eine Luecke,
+> die es nicht gab (eine Firma koenne den Text einer fremden Bewerbung
+> aendern) — der Schutz dagegen stand seit dem 27.8. weiter unten unter
+> „Security-Fix #4". Deshalb gibt es jetzt eine Seite mit dem
+> Ist-Zustand.
+
 # SchülerMatch – Projektstatus
 
 ## Was es ist
