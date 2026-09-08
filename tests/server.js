@@ -4,6 +4,22 @@
 // wodurch unter Parallel-Last einzelne Anfragen mit ERR_CONNECTION_REFUSED
 // abgewiesen wurden. Folge: einzelne JS-Module luden nicht, `init()` lief nie
 // und Tests scheiterten scheinbar zufällig. Node verkraftet die Last problemlos.
+// WAS DIESER SERVER BEWUSST NICHT TUT (8.9.2026)
+//
+// Er setzt KEINE Content-Security-Policy. In Produktion tut das
+// `vercel.json`, und zwar streng: Der Browser laedt dort nur von den
+// ausdruecklich erlaubten Adressen.
+//
+// Ein gruener Testlauf beweist also NICHT, dass die CSP passt. Wer einen
+// neuen CDN einbindet und die CSP nicht mitzieht, sieht hier alles gruen
+// und in Produktion ein Skript, das nicht laedt.
+//
+// Diese Luecke schliesst `tests/csp-deckt-alles.spec.js` von der anderen
+// Seite: Er liest die CSP aus vercel.json und haelt sie gegen die
+// Adressen, die im Quelltext wirklich geladen werden.
+//
+// Die CSP hier nachzubauen waere der schlechtere Weg - dann gaebe es zwei
+// Fassungen, die auseinanderlaufen koennen.
 const http = require('http')
 const fs = require('fs')
 const path = require('path')
