@@ -194,15 +194,44 @@ function zeigeFirmaStatusBanner() {
 }
 
 // Bewerber-Ampel: bewertet auf einen Blick, wie gut ein Bewerber passt.
-function bewerberAmpel(bewerber, job) {
-  const verifiziert = Boolean(bewerber.verifiziert)
-  const alterPasst = !job.mindestalter || (bewerber.alter_jahre && bewerber.alter_jahre >= job.mindestalter)
-  const cvVoll = Array.isArray(bewerber.lebenslauf_bloecke) && bewerber.lebenslauf_bloecke.some(b => b.inhalt?.trim() || b.tags?.trim() || b.bild_url)
+// Was diese Bewerbung von anderen unterscheidet - Tatsachen statt Urteil.
+//
+// VORHER stand hier eine Ampel aus drei Punkten: verifiziert, Alter
+// passt, Lebenslauf gefuellt. "Top-Match" bei drei, "Passt teils" bei
+// zwei, sonst "Pruefen". Nachgerechnet am 8.9.2026 traegt davon fast
+// nichts:
+//
+//   verifiziert  Die INSERT-Regel auf `bewerbungen` verlangt
+//                `ist_verifiziert(auth.uid())`. JEDE Bewerbung kommt
+//                also von einem verifizierten Schueler - in der
+//                laufenden Datenbank sind es 0 Ausnahmen. Das Signal ist
+//                konstant wahr und unterscheidet nichts.
+//   Alter passt  Wird mit supabase/bewerben-nur-alt-genug.sql ebenfalls
+//                konstant: Wer zu jung ist, kann sich dann gar nicht
+//                mehr bewerben.
+//
+// Uebrig bliebe EIN veraenderliches Signal, praesentiert als Urteil aus
+// dreien. Eine Firma, die sich auf "Top-Match" verlaesst, wird damit in
+// die Irre gefuehrt.
+//
+// Deshalb jetzt: die Tatsachen, die wirklich variieren. Kein Punktestand,
+// keine Bewertung eines Menschen durch die Plattform - die Entscheidung
+// gehoert der Firma.
+//
+// Das FEHLENDE Anschreiben wird bewusst NICHT als Minus gezeigt: Es ist
+// seit dem 2.9. ausdruecklich freiwillig, und die Anzeigenseite sagt das
+// auch. Es dann hier gegen den Schueler zu werten, waere ein Wortbruch.
+function bewerberSignale(bewerber, bewerbung) {
+  const cvVoll = Array.isArray(bewerber.lebenslauf_bloecke)
+    && bewerber.lebenslauf_bloecke.some(b => b.inhalt?.trim() || b.tags?.trim() || b.bild_url)
+  const signale = [cvVoll
+    ? { klasse: 'signal-ja', text: 'Lebenslauf ausgefüllt' }
+    : { klasse: 'signal-offen', text: 'Lebenslauf noch leer' }]
 
-  const punkte = [verifiziert, alterPasst, cvVoll].filter(Boolean).length
-  if (punkte === 3) return { klasse: 'ampel-gruen', text: 'Top-Match' }
-  if (punkte === 2) return { klasse: 'ampel-gelb', text: 'Passt teils' }
-  return { klasse: 'ampel-rot', text: 'Prüfen' }
+  if ((bewerbung?.motivationsschreiben || '').trim()) {
+    signale.push({ klasse: 'signal-ja', text: 'mit Anschreiben' })
+  }
+  return signale
 }
 
 function zeigeLogo() {
@@ -484,14 +513,14 @@ async function loescheJob(jobId, btn) {
 // Ansicht "Bewerbungen" statt eingeschachtelt in der Anzeigenliste.
 function bewerberItemHtml(b, job) {
   const foto = sichereMediaUrl(b.bewerber.foto_url)
-  const ampel = bewerberAmpel(b.bewerber, job)
+  const signale = bewerberSignale(b.bewerber, b)
   return `
     <div class="bewerber-item">
       <div style="display:flex; gap:10px; align-items:center;">
         <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${foto ? `background-image:url('${foto}')` : ''}">${foto ? '' : escapeHtml((b.bewerber.name || '?')[0].toUpperCase())}</div>
         <div>
           <strong>${escapeHtml(b.bewerber.name || 'Unbekannt')}</strong>, ${b.bewerber.alter_jahre || '?'} Jahre – ${escapeHtml(b.bewerber.ort || '')}
-          <span class="ampel ${ampel.klasse}"><span class="ampel-dot"></span>${ampel.text}</span>
+          ${signale.map(sig => `<span class="signal ${sig.klasse}"><span class="signal-punkt"></span>${sig.text}</span>`).join('')}
           <span class="status-badge status-${escapeHtml(b.status || 'ausstehend')}">${statusLabel(b.status)}</span><br>
           <a href="mailto:${escapeHtml(b.bewerber.email || '')}" class="mono">${escapeHtml(b.bewerber.email || '')}</a>
           ${b.erstellt_am ? `<span class="mono" style="font-size:0.68rem; color:var(--ink-soft);"> · beworben am ${new Date(b.erstellt_am).toLocaleDateString('de-DE')}</span>` : ''}

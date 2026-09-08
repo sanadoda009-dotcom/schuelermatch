@@ -97,8 +97,8 @@ Deno.serve(async (req) => {
            <p>Hallo ${vorname(p.name)}, wir haben deine Unterlagen geprüft – du bist ab sofort
            als Schüler verifiziert.</p>
            <p>Das heißt: Du kannst dich auf alle Jobs bewerben, für die du alt genug bist.
-           Arbeitgeber sehen bei dir das Verifiziert-Zeichen und wissen, dass du
-           wirklich Schüler bist.</p>
+           Arbeitgeber bekommen ausschließlich Bewerbungen von verifizierten
+           Schülern zu sehen – deine zählt jetzt dazu.</p>
            <p>Übrigens: Dein hochgeladenes Dokument haben wir nach der Prüfung
            direkt wieder gelöscht.</p>
            <p><a href="${SITE_URL}/dashboard-schueler.html"

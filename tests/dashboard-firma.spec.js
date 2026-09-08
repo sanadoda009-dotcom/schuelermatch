@@ -70,7 +70,11 @@ test.describe('eingeloggt (freigegebene Firma)', () => {
     const gruppe = page.locator('.bew-gruppe', { hasText: 'Eisverkäufer' })
     await expect(gruppe.locator('.bewerber-item')).toHaveCount(1)
     await expect(gruppe.locator('.bewerber-item')).toContainText('Lena')
-    await expect(gruppe.locator('.ampel')).toContainText('Top-Match') // verifiziert + Alter passt + CV
+    // Seit dem 8.9. stehen dort Tatsachen statt eines Urteils: Die alte
+    // Ampel rechnete mit „verifiziert" und „Alter passt" - beides ist bei
+    // einer eingegangenen Bewerbung konstant wahr (siehe
+    // tests/bewerber-signale.spec.js).
+    await expect(gruppe.locator('.signal').first()).toContainText('Lebenslauf')
     await expect(gruppe.getByRole('button', { name: 'Annehmen' })).toBeVisible()
     await expect(gruppe.getByRole('button', { name: 'Ablehnen' })).toBeVisible()
   })

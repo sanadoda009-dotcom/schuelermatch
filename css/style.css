@@ -533,6 +533,19 @@ section { padding: 130px 24px; }
 .abzeichen span { font-size: 0.75rem; color: var(--ink-soft); line-height: 1.4; }
 
 /* BEWERBER-AMPEL */
+/* Tatsachen zu einer Bewerbung (8.9.2026) - loest die alte Ampel ab.
+   Die trug ein Urteil ("Top-Match") aus drei Punkten, von denen zwei
+   konstant sind: Bewerben setzt Verifizierung voraus, und mit
+   supabase/bewerben-nur-alt-genug.sql auch das passende Alter. Hier
+   stehen nur noch Angaben, die wirklich variieren.
+   Farben wie bei der Ampel, damit die Kontrastpruefungen weiter gelten. */
+.signal { display: inline-flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 500; padding: 3px 9px; border-radius: 100px; margin-left: 6px; }
+.signal-punkt { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.signal-ja { background: rgba(0,200,150,0.1); color: var(--match-green-dark); }
+.signal-ja .signal-punkt { background: var(--match-green); }
+.signal-offen { background: rgba(240,180,41,0.12); color: #a67c00; }
+.signal-offen .signal-punkt { background: #f0b429; }
+
 .ampel { display: inline-flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 500; padding: 3px 9px; border-radius: 100px; margin-left: 6px; }
 .ampel-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .ampel-gruen { background: rgba(0,200,150,0.1); color: var(--match-green-dark); }
