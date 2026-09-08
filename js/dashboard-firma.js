@@ -725,6 +725,12 @@ async function ladeEigeneJobs() {
         <button class="btn btn-outline" style="flex:1 1 45%; padding:9px;" data-pause="${job.id}" data-aktiv="${job.aktiv}">${job.aktiv ? 'Pausieren' : 'Aktivieren'}</button>
         <button class="btn btn-outline" style="flex:1 1 45%; padding:9px; color:var(--coral);" data-delete="${job.id}" data-bew="${alleBewFuerJob.length}">Löschen</button>
       </div>
+      ${(job.lat == null || job.lon == null) ? `
+      <p class="job-ohne-ort">
+        <b>Ohne Ortszuordnung.</b> Diese Anzeige erscheint nicht, wenn ein Schüler
+        „im Umkreis von X km" sucht — und das ist die übliche Suche. Öffne
+        „Bearbeiten", prüfe die Schreibweise des Orts und speichere erneut.
+      </p>` : ''}
       <p class="job-bew-hinweis">
         ${alleBewFuerJob.length
           ? `<button type="button" class="job-bew-link" data-zu-bewerbungen="${job.id}">${alleBewFuerJob.length} Bewerbung${alleBewFuerJob.length === 1 ? '' : 'en'} ansehen →</button>`

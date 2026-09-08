@@ -450,6 +450,17 @@ section { padding: 130px 24px; }
 .merken-btn.gemerkt svg { fill: var(--coral); stroke: var(--coral); }
 .job-card { position: relative; }
 .job-card--clickable { cursor: pointer; }
+
+/* Anzeige ohne Ortszuordnung (8.9.2026).
+   Ohne lat/lon faellt eine Anzeige aus JEDER Umkreissuche der Schueler -
+   `if (d == null || d > radius) return false` in dashboard-schueler.js.
+   Beim Speichern gibt es dazu einen Toast; danach sah man es nie wieder.
+   Am 8.9. waren 2 der 5 aktiven Anzeigen betroffen. */
+.job-ohne-ort {
+  margin: 10px 0 0; padding: 9px 12px; border-radius: 9px;
+  background: rgba(240,180,41,0.12); color: #7a5c00;
+  font-size: 0.78rem; line-height: 1.5;
+}
 /* Der Anzeigentitel als echter Link (8.9.2026). Sieht aus wie vorher -
    es geht um Mittelklick, "Link kopieren", Screenreader und darum, dass
    ueberhaupt ein href auf eine Anzeige zeigt. */
