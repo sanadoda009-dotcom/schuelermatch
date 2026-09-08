@@ -16,9 +16,9 @@
 > **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
 > was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
 
-## ⏳ Wartet auf dich: zehn SQL-Dateien
+## ⏳ Wartet auf dich: elf SQL-Dateien
 
-Alle zehn im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
+Alle elf im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
 und unten, **wie du nachprüfst, dass es gewirkt hat**.
 
 | Datei | Was sie schließt |
@@ -33,9 +33,36 @@ und unten, **wie du nachprüfst, dass es gewirkt hat**.
 | `supabase/profil-email-festnageln.sql` | Jeder kann `profiles.email` auf eine fremde Adresse setzen — und genau die nimmt der Mailversand |
 | `supabase/chat-erst-nach-zusage.sql` | **Eine Firma kann per API auch ohne Zusage an einen Schüler schreiben** — die Seite sagt an drei Stellen das Gegenteil |
 | `supabase/bewerbung-grenzen.sql` | `bewerbungen` hat als einzige Tabelle **keine einzige Regel**: beliebig viele Bewerbungen auf dieselbe Anzeige (jede löst eine E-Mail aus), beliebiger `status`, Freitext ohne Obergrenze |
+| `supabase/ausweis-weg-bei-freigabe.sql` | **Die Freischalt-Mail sagt „Dokument gelöscht“ — bei einer Freigabe am Betreiber-Bereich vorbei stimmt das nicht** |
 
-Der Code läuft in allen zehn Fällen **auch ohne** die Änderung — er fällt
+Der Code läuft in allen elf Fällen **auch ohne** die Änderung — er fällt
 dann auf das alte Verhalten zurück, statt kaputt zu gehen.
+
+### 🔴 Zwei Ausweisdokumente liegen noch da — deine Entscheidung
+
+Am 5.9.2026 in der Ablage `verifizierung` gefunden: **zwei Dateien, beide
+bei bereits verifizierten Schülern**, hochgeladen am 1. und 5. Juli. Bei
+beiden steht der Pfad noch im Profil.
+
+Die Freischalt-Mail sagt diesen Schülern wörtlich: „Übrigens: Dein
+hochgeladenes Dokument haben wir nach der Prüfung direkt wieder
+gelöscht.“ Das stimmt bei ihnen nicht.
+
+Der Betreiber-Bereich ist nicht schuld — der Knopf dort löscht die Datei
+zuerst und bricht ab, wenn das misslingt. Aber die **Mail verschickt ein
+Trigger**, kein Knopf: Wird `verifiziert` im SQL-Editor oder im
+Supabase-Dashboard gesetzt, geht die Zusage trotzdem raus. Genau so sind
+die beiden Fälle entstanden — der Admin-Knopf hätte die Pfade auf NULL
+gesetzt, sie stehen aber noch da.
+
+**Ich habe die Dateien nicht angefasst.** Es sind Ausweisdokumente von
+Minderjährigen, das Löschen ist endgültig, und es ist deine Entscheidung.
+Die Abfrage zum Ansehen und der Löschbefehl stehen in
+`supabase/ausweis-weg-bei-freigabe.sql`. Der saubere Weg wäre: im
+Betreiber-Bereich das Konto zurückziehen und neu freischalten.
+
+Der Betreiber-Bereich zeigt so einen Fall jetzt an — als eigene Zahl
+(„Ausweis liegt noch da“) und mit einem Hinweis darunter.
 
 ### Reihenfolge? Keine. Nachgeprüft.
 

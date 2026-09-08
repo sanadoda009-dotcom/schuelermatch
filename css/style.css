@@ -705,6 +705,17 @@ section { padding: 130px 24px; }
 .empty-state svg { width: 48px; height: 48px; opacity: 0.35; }
 .empty-state p { font-size: 0.95rem; margin: 0; }
 
+/* Betreiber-Bereich: ein verifizierter Schueler hat noch ein
+   Ausweisdokument liegen (5.9.2026). Die Freischalt-Mail sagt, es sei
+   geloescht - das muss auffallen. */
+.admin-dok-hinweis {
+  margin: 12px 0 0; padding: 11px 14px; border-radius: 10px;
+  background: rgba(255,193,7,0.12); color: #7a5c00;
+  font-size: 0.84rem; line-height: 1.55;
+}
+.admin-dok-hinweis[hidden] { display: none; }
+.stat-box--warnung b { color: #7a5c00; }
+
 /* Die Zahl der Anzeigen an jedem Kategorie-Knopf (4.9.2026).
    Vorher sah man erst NACH dem Klick, ob hinter einer Kategorie etwas
    steht - bei elf Knoepfen und drei gefuellten Kategorien waren das acht

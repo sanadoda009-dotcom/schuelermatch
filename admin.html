@@ -38,6 +38,10 @@
       <h2 style="font-size:1.7rem;">Schüler-Verifizierung</h2>
       <p style="color:var(--ink-soft);">Prüfe Schülerausweise und schalte Schüler mit einem Klick frei.</p>
       <div class="stats-row" id="admin-stats"></div>
+      <!-- Steht nur da, wenn ein bereits verifizierter Schueler noch ein
+           Ausweisdokument in der Ablage hat. Die Freischalt-Mail behauptet
+           dann etwas Falsches - siehe js/admin.js, dokumentUebrig(). -->
+      <p class="admin-dok-hinweis" id="admin-dok-hinweis" role="status" hidden></p>
     </div>
     <div class="pill-row" id="admin-filter" style="margin-bottom:20px;">
       <button type="button" class="pill active" data-af="offen">⏳ Zu prüfen</button>

@@ -110,6 +110,25 @@ function istOffen(s) {
   return hatDokument(s) && !s.verifiziert
 }
 
+// Verifiziert UND das Dokument liegt noch da (5.9.2026).
+//
+// Die Freischalt-Mail sagt dem Schüler: „Dein hochgeladenes Dokument
+// haben wir nach der Prüfung direkt wieder gelöscht." Wer hier
+// freischaltet, hält das auch — `entscheide()` löscht die Dateien zuerst
+// und bricht ab, wenn das misslingt.
+//
+// Die Mail verschickt aber ein TRIGGER auf `profiles`, kein Knopf. Wird
+// `verifiziert` an dieser Oberfläche vorbei gesetzt (SQL-Editor,
+// Supabase-Dashboard), geht die Zusage trotzdem raus und das Dokument
+// bleibt liegen. Am 5.9.2026 waren das zwei Konten mit Dateien vom Juli.
+//
+// `supabase/ausweis-weg-bei-freigabe.sql` schließt das in der Datenbank.
+// Hier steht es trotzdem sichtbar — für die Fälle, die vorher entstanden
+// sind, und als Kontrolle, dass es nicht wieder vorkommt.
+function dokumentUebrig(s) {
+  return hatDokument(s) && s.verifiziert
+}
+
 function render() {
   const offen = alleSchueler.filter(istOffen).length
   const verifiziert = alleSchueler.filter(s => s.verifiziert).length
@@ -119,10 +138,23 @@ function render() {
   // sonst staende dort dauerhaft eine leere Warteschlange.
   if (statistik) renderStatistik()
 
+  const uebrig = alleSchueler.filter(dokumentUebrig).length
+
   document.getElementById('admin-stats').innerHTML = `
     <div class="stat-box"><b>${offen}</b><span>Zu prüfen</span></div>
     <div class="stat-box"><b>${verifiziert}</b><span>Verifiziert</span></div>
-    <div class="stat-box"><b>${alleSchueler.length}</b><span>Schüler gesamt</span></div>`
+    <div class="stat-box"><b>${alleSchueler.length}</b><span>Schüler gesamt</span></div>
+    ${uebrig ? `<div class="stat-box stat-box--warnung" id="dok-uebrig"><b>${uebrig}</b><span>Ausweis liegt noch da</span></div>` : ''}`
+
+  const hinweis = document.getElementById('admin-dok-hinweis')
+  if (hinweis) {
+    hinweis.hidden = !uebrig
+    hinweis.textContent = uebrig
+      ? `${uebrig} verifizierte${uebrig === 1 ? 'r Schüler hat' : ' Schüler haben'} noch ein `
+        + 'Ausweisdokument in der Ablage. Die Freischalt-Mail sagt, es sei gelöscht — '
+        + 'das stimmt dann nicht. Konto zurückziehen und neu freischalten räumt es weg.'
+      : ''
+  }
 
   let liste = alleSchueler
   if (filter === 'offen') liste = alleSchueler.filter(istOffen)
