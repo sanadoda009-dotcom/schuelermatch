@@ -71,7 +71,17 @@ Deno.serve(async () => {
   const proFirma = new Map<string, { name: string; email: string; jobs: Map<string, number> }>()
   for (const b of bewerbungen ?? []) {
     const firma = b.job?.firma
-    if (!firma || firma.benachrichtigung !== 'taeglich' || !firma.email) continue
+    // `benachrichtigung` darf NULL sein. Der Vorgabewert der Spalte ist
+    // 'taeglich', und das Firmenprofil zeigt bei NULL auch "Einmal
+    // taeglich gesammelt (empfohlen)" an (js/dashboard-firma.js).
+    //
+    // Ein harter Vergleich auf 'taeglich' hat NULL uebersprungen: Die
+    // Firma sah im Profil "taeglich" und bekam NIE eine Mail - weder
+    // sofort (mail-ereignis prueft auf 'sofort') noch gesammelt. Still
+    // und deshalb schwer zu bemerken.
+    if (!firma || !firma.email) continue
+    const wie = firma.benachrichtigung ?? 'taeglich'
+    if (wie !== 'taeglich') continue
     if (!proFirma.has(firma.id)) proFirma.set(firma.id, { name: firma.name, email: firma.email, jobs: new Map() })
     const eintrag = proFirma.get(firma.id)!
     const titel = b.job?.titel ?? 'Job'
@@ -87,8 +97,8 @@ Deno.serve(async () => {
     const ok = await sendeMail(
       firma.email,
       `${gesamt} neue Bewerbung${gesamt === 1 ? '' : 'en'} bei SchülerMatch`,
-      `<h2 style="font-family:sans-serif">Deine Bewerbungen heute</h2>
-       <p>Hallo ${esc(firma.name || '')}, du hast heute <b>${gesamt}</b> neue Bewerbung${gesamt === 1 ? '' : 'en'} erhalten:</p>
+      `<h2 style="font-family:sans-serif">Neue Bewerbungen bei dir</h2>
+       <p>Hallo ${esc(firma.name || '')}, in den letzten 24 Stunden sind <b>${gesamt}</b> neue Bewerbung${gesamt === 1 ? '' : 'en'} eingegangen:</p>
        <ul>${liste}</ul>
        <p><a href="${SITE_URL}/dashboard-firma.html"
          style="display:inline-block;background:#2b2f8f;color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
