@@ -1188,7 +1188,12 @@ async function speichereProfil(e) {
   }
 
   if (ortUnbekannt) {
-    toast('Profil gespeichert. Den Ort konnten wir aber nicht finden – prüf die Schreibweise, sonst zeigen wir dir keine Entfernungen an.', 'fehler')
+    // Bei einer Postleitzahl liegt es nicht an der Schreibweise - der
+    // Dienst kennt deutsche PLZ fast nie (1 von 10 im Test am 8.9.2026).
+    toast(geo.plz
+      ? 'Profil gespeichert. Postleitzahlen können wir aber nicht zuverlässig zuordnen – schreib den Ortsnamen (z.B. München), sonst zeigen wir dir keine Entfernungen an.'
+      : 'Profil gespeichert. Den Ort konnten wir aber nicht finden – prüf die Schreibweise, sonst zeigen wir dir keine Entfernungen an.',
+      'fehler')
   }
 
   profile = { ...profile, ...updates }

@@ -29,9 +29,13 @@ test.describe('geocode unterscheidet drei Fälle', () => {
   }
 
   test('Ort gefunden', async ({ page }) => {
+    // `country_code` gehört seit dem 8.9. dazu: Der Dienst lieferte
+    // ungefragt Orte aus aller Welt (10115 -> New York), und geprüft wird
+    // jetzt die ANTWORT statt der Anfrage. Die echte Antwort enthält das
+    // Feld immer; fehlt es, gilt der Treffer bewusst als unbrauchbar.
     await setupDashboard(page.context(), {})
     await page.route(GEO, r => r.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ results: [{ latitude: 48.1, longitude: 11.5 }] }) }))
+      body: JSON.stringify({ results: [{ latitude: 48.1, longitude: 11.5, country_code: 'DE' }] }) }))
     await page.goto('/index.html')
     expect(await frage(page, 'München')).toEqual({ status: 'ok', lat: 48.1, lon: 11.5 })
   })
@@ -41,7 +45,9 @@ test.describe('geocode unterscheidet drei Fälle', () => {
     await page.route(GEO, r => r.fulfill({ status: 200, contentType: 'application/json',
       body: JSON.stringify({}) }))
     await page.goto('/index.html')
-    expect(await frage(page, 'Xyzstadt')).toEqual({ status: 'unbekannt' })
+    // `plz` sagt dem Aufrufer, ob die Eingabe wie eine Postleitzahl
+    // aussah - dann ist "prüf die Schreibweise" der falsche Rat.
+    expect(await frage(page, 'Xyzstadt')).toEqual({ status: 'unbekannt', plz: false })
   })
 
   test('Dienst gestört', async ({ page }) => {

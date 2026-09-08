@@ -427,7 +427,13 @@ async function speichereJob(e) {
   if (ortUnbekannt) {
     // Ohne Koordinaten taucht die Anzeige in der Umkreissuche der Schüler
     // nicht auf - das sollte die Firma wissen.
-    toast('Den Ort konnten wir nicht zuordnen. Prüf die Schreibweise, sonst finden Schüler die Anzeige nicht über die Umkreissuche.', 'fehler')
+    // Bei einer Postleitzahl ist die Ursache eine andere - der Dienst
+    // kennt deutsche PLZ fast nie (1 von 10 im Test am 8.9.2026).
+    // "Pruef die Schreibweise" waere da ein sinnloser Rat.
+    toast(geo.plz
+      ? 'Postleitzahlen können wir leider nicht zuverlässig zuordnen. Schreib den Ortsnamen (z.B. München), sonst finden Schüler die Anzeige nicht über die Umkreissuche.'
+      : 'Den Ort konnten wir nicht zuordnen. Prüf die Schreibweise, sonst finden Schüler die Anzeige nicht über die Umkreissuche.',
+      'fehler')
   }
   document.querySelector('.sidebar-item[data-view="jobs"]')?.click() // zur Job-Übersicht
   await ladeEigeneJobs()
