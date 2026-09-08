@@ -29,9 +29,29 @@ const PRUEFUNG = `(() => {
     // Checkboxen in einem <label>: Trefferfläche ist der ganze Text,
     // nicht das kleine Kästchen.
     if (el.type === 'checkbox' && el.closest('label')) return
-    // Der Jobtitel im Dashboard ist ein Knopf, damit die Karte per
-    // Tastatur erreichbar ist – angetippt wird die ganze Karte.
-    if (el.classList.contains('job-titel-btn')) return
+    // Der Jobtitel in einer Jobkarte: Knopf im Dashboard, seit dem
+    // 8.9.2026 ein echter Link auf den oeffentlichen Seiten. Beide sind
+    // KEINE eigenen Tippziele - angetippt wird die ganze Karte, der
+    // Klick blubbert ohnehin dorthin. Der Link ist fuer Strg-Klick,
+    // "Link kopieren", Screenreader und Suchmaschinen da.
+    //
+    // Die Ausnahme gilt aber nur, wenn die Karte selbst gross genug ist.
+    // Sonst wuerde sie den Fall verstecken, den sie zu erklaeren
+    // vorgibt. Ist die Karte zu klein, wird SIE gemeldet.
+    if (el.classList.contains('job-titel-btn') || el.classList.contains('job-titel-link')) {
+      const karte = el.closest('.job-card')
+      const kr = karte && karte.getBoundingClientRect()
+      if (kr && kr.height >= 44 && kr.width >= 44) return
+      if (karte) {
+        const kName = 'div.job-card (Traegerkarte von ' + nenne(el) + ')'
+        if (!gesehen.has(kName)) {
+          gesehen.add(kName)
+          zuKlein.push(kName + ' ist nur '
+            + Math.round(kr.width) + 'x' + Math.round(kr.height))
+        }
+        return
+      }
+    }
 
     const r = el.getBoundingClientRect()
     const name = nenne(el)
