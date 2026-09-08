@@ -17,7 +17,12 @@ async function geoMocken(page, treffer = { lat: 48.137, lon: 11.575 }) {
   await page.route('**/geocoding-api.open-meteo.com/**', route =>
     route.fulfill({
       status: 200, contentType: 'application/json',
-      body: JSON.stringify({ results: treffer ? [{ latitude: treffer.lat, longitude: treffer.lon }] : [] }),
+      // `country_code` gehoert dazu, seit js/geo.js das Land an der
+      // ANTWORT prueft (8.9.2026). Der Dienst lieferte vorher ungefragt
+      // Orte aus aller Welt - 10115 ergab New York, und diese
+      // Koordinaten landeten im Profil. Ohne das Feld gilt ein Treffer
+      // bewusst als unbrauchbar; die echte Antwort enthaelt es immer.
+      body: JSON.stringify({ results: treffer ? [{ latitude: treffer.lat, longitude: treffer.lon, country_code: 'DE' }] : [] }),
     }))
 }
 
