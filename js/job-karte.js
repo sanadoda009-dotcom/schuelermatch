@@ -85,13 +85,33 @@ const HERZ = '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.9-9.5-9.2C1.1 8.
  * @param {object} o       Was diese Ansicht zusätzlich kann:
  *   titelAlsKnopf  Überschrift als <button> (Dashboard: Karte ist nicht
  *                  als Ganzes klickbar, der Titel öffnet die Ansicht).
- *   klickbar       Ganze Karte öffnet die Ansicht (Jobbörse).
+ *   klickbar       Ganze Karte öffnet die Ansicht (Jobbörse). Der Titel
+ *                  wird dabei ein echter <a href="job.html?id=…"> — siehe
+ *                  den Absatz „Warum der Titel ein Link ist" unten.
  *   merkbar        Herz zum Merken zeigen.
  *   gemerkt        Herz ist gefüllt.
  *   distanz        Entfernung in km, wenn berechenbar.
  *   fussHtml       Was unten steht (Bewerben-Knopf oder Status).
  *   jetzt          Für Tests: fester Zeitpunkt.
  */
+// WARUM DER TITEL EIN LINK IST (8.9.2026)
+//
+// Die Karte war ein <div> mit `role="button"`. Damit gab es auf der
+// ganzen Seite KEINEN href auf eine einzelne Anzeige. Folgen:
+//
+//   * Mittelklick und Strg-Klick taten nichts. Auf einem Jobbrett ist
+//     „mehrere Anzeigen in Tabs oeffnen" die normale Art zu suchen.
+//   * „Link kopieren" fehlte im Kontextmenue.
+//   * Screenreader sagten „Schaltflaeche" statt „Link", obwohl das Ziel
+//     eine eigene Seite ist.
+//   * Und: js/job-detail.js legt fuer jede Anzeige JobPosting-Daten fuer
+//     Google an - aber nichts verlinkte dorthin. Die Karten entstehen
+//     erst per JavaScript, und selbst dann stand da kein href.
+//
+// Der Titel ist deshalb jetzt ein echter Link. Der normale Klick oeffnet
+// weiterhin das Fenster in der Seite (js/jobs.js faengt ihn ab); mit
+// Strg, Cmd, Umschalt oder mittlerer Maustaste greift der Browser selbst.
+
 export function jobKarteHtml(job, o = {}) {
   const alter = alterText(job, o.jetzt ?? Date.now())
   const klick = o.klickbar
@@ -110,7 +130,9 @@ export function jobKarteHtml(job, o = {}) {
 
       <h3>${o.titelAlsKnopf
         ? `<button type="button" class="job-titel-btn" data-detail-btn="${job.id}">${escapeHtml(job.titel)}</button>`
-        : escapeHtml(job.titel)}</h3>
+        : o.klickbar
+          ? `<a class="job-titel-link" data-detail-link href="job.html?id=${encodeURIComponent(job.id)}">${escapeHtml(job.titel)}</a>`
+          : escapeHtml(job.titel)}</h3>
       ${job.firma_name ? `<p class="job-firma">bei ${escapeHtml(job.firma_name)}</p>` : ''}
 
       <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${

@@ -450,6 +450,11 @@ section { padding: 130px 24px; }
 .merken-btn.gemerkt svg { fill: var(--coral); stroke: var(--coral); }
 .job-card { position: relative; }
 .job-card--clickable { cursor: pointer; }
+/* Der Anzeigentitel als echter Link (8.9.2026). Sieht aus wie vorher -
+   es geht um Mittelklick, "Link kopieren", Screenreader und darum, dass
+   ueberhaupt ein href auf eine Anzeige zeigt. */
+.job-titel-link { color: inherit; text-decoration: none; }
+.job-titel-link:hover, .job-titel-link:focus-visible { text-decoration: underline; }
 
 /* BEWERBUNGS-STATUS (kein Button, sondern Status-Anzeige) */
 .job-status {

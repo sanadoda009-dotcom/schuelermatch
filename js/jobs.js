@@ -360,7 +360,19 @@ function renderJobs(jobs, f) {
   grid.innerHTML = jobs.map(job => jobKarteHtml(job, { klickbar: true })).join('')
 
   grid.querySelectorAll('[data-detail]').forEach(karte => {
-    karte.addEventListener('click', () => oeffneDetail(karte.dataset.detail))
+    karte.addEventListener('click', (e) => {
+      // Der Titel ist seit dem 8.9. ein echter Link auf job.html?id=…
+      // Ein GEWOEHNLICHER Klick soll weiter das Fenster in der Seite
+      // oeffnen - schneller als ein Seitenwechsel. Mit Strg, Cmd,
+      // Umschalt oder mittlerer Maustaste gehoert die Entscheidung dem
+      // Nutzer: Dann laesst der Browser den Link einfach machen.
+      const link = e.target.closest('a[data-detail-link]')
+      if (link) {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+        e.preventDefault()
+      }
+      oeffneDetail(karte.dataset.detail)
+    })
     // role="button" heisst fuer Tastaturnutzer: Enter UND Leertaste muessen ausloesen.
     karte.addEventListener('keydown', e => {
       if (e.key !== 'Enter' && e.key !== ' ') return
