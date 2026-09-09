@@ -171,6 +171,7 @@ async function init() {
   })
 
   await ladeJobs()
+  await oeffneGeteilteAnzeige()
 
   // Nach den Jobs: Die Alarm-Karte sitzt unter der Liste, muss also
   // nicht auf den ersten Blick da sein. Laeuft die Abfrage schief -
@@ -1502,6 +1503,48 @@ function renderJobs(jobs) {
   grid.querySelectorAll('button[data-detail-btn]').forEach(btn => {
     btn.addEventListener('click', () => oeffneDetail(btn.dataset.detailBtn))
   })
+}
+
+// Ein geteilter Link fuehrt jetzt auch fuer Angemeldete irgendwohin
+// (9.9.2026).
+//
+// DER BEFUND: job.html hat einen "Link kopieren"-Knopf - Teilen ist also
+// ausdruecklich vorgesehen. Nur pruefte die Seite nie, ob der Empfaenger
+// angemeldet ist: Sie zeigte zweimal "Kostenlos registrieren &
+// bewerben". Wer laengst ein Konto hat, landete in einem
+// Registrierungsformular. Und `dashboard-schueler.html` kannte gar
+// keinen Parameter - es gab also keinen Weg vom geteilten Link zur
+// Bewerbung.
+//
+// jobs.html konnte das laengst (`?job=`); hier fehlte es.
+async function oeffneGeteilteAnzeige() {
+  const id = new URLSearchParams(location.search).get('job')
+  if (!id) return
+
+  // Die Adresse wieder saubermachen: Ein Neuladen soll das Fenster nicht
+  // ein zweites Mal aufziehen, und der Link im Verlauf soll stimmen.
+  history.replaceState(null, '', location.pathname)
+
+  if (alleJobs.some(j => j.id === id)) { oeffneDetail(id); return }
+
+  // Nicht in der eigenen Liste - dann gehoert gesagt, WARUM. "Nichts
+  // passiert" waere hier die schlechteste Antwort: Der Schueler hat
+  // gerade auf einen Link geklickt, den ihm jemand geschickt hat.
+  const { data: job } = await supabase
+    .from('jobs').select('titel, mindestalter, aktiv').eq('id', id).maybeSingle()
+
+  if (!job || job.aktiv === false) {
+    toast('Diese Anzeige gibt es nicht mehr – sie wurde zurückgezogen oder pausiert.', 'fehler')
+    return
+  }
+  const meins = profile.alter_jahre
+  if (job.mindestalter != null && meins != null && meins < job.mindestalter) {
+    toast(`„${job.titel}" ist ab ${job.mindestalter} Jahren ausgeschrieben – dafür bist du `
+      + `mit ${meins} noch zu jung. Das ist keine Entscheidung der Firma, sondern `
+      + 'das Jugendarbeitsschutzgesetz.', 'fehler')
+    return
+  }
+  toast(`„${job.titel}" passt gerade nicht zu deinen Filtern – setz sie oben zurück.`, 'info')
 }
 
 function oeffneDetail(jobId) {

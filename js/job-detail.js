@@ -232,9 +232,9 @@ async function ladeJob() {
 
     ${eckdatenHtml(job)}
 
-    <div class="job-cta-oben">
-      <a href="register.html?rolle=schueler" class="btn btn-green">Kostenlos registrieren &amp; bewerben</a>
-      <p>Kostenlos, und du brauchst kein Anschreiben.</p>
+    <div class="job-cta-oben" data-cta>
+      <a href="register.html?rolle=schueler" class="btn btn-green" data-cta-link>Kostenlos registrieren &amp; bewerben</a>
+      <p data-cta-text>Kostenlos, und du brauchst kein Anschreiben.</p>
     </div>
 
     <p class="job-frische${istAlt(job) ? ' job-alt' : ''}">
@@ -251,9 +251,9 @@ async function ladeJob() {
     <div class="legal-highlight" style="margin-top:24px;">
       <h2>Bewerben</h2>
       <p>Zum Bewerben brauchst du ein kostenloses Schüler-Konto. Wir prüfen einmal kurz, ob du wirklich Schüler:in bist – danach bewirbst du dich mit einem Klick.</p>
-      <div class="hero-ctas" style="margin-top:14px;">
-        <a href="register.html?rolle=schueler" class="btn btn-green">Kostenlos registrieren & bewerben</a>
-        <a href="login.html" class="btn btn-outline">Ich habe schon ein Konto</a>
+      <div class="hero-ctas" style="margin-top:14px;" data-cta-unten>
+        <a href="register.html?rolle=schueler" class="btn btn-green" data-cta-link>Kostenlos registrieren & bewerben</a>
+        <a href="login.html" class="btn btn-outline" data-cta-login>Ich habe schon ein Konto</a>
       </div>
     </div>
 
@@ -278,6 +278,40 @@ async function ladeJob() {
       prompt('Link zum Kopieren:', location.href)
     }
   })
+
+  // Zum Schluss, damit die Seite ohne Sitzung nichts davon merkt.
+  passeCtaAnSitzungAn(job.id)
+}
+
+// WER SCHON ANGEMELDET IST, SOLL SICH NICHT NOCHMAL REGISTRIEREN
+// (9.9.2026)
+//
+// Diese Seite hat einen "Link kopieren"-Knopf - Teilen ist ausdruecklich
+// vorgesehen. Sie prueft aber nie, ob der Empfaenger angemeldet ist, und
+// zeigte deshalb zweimal "Kostenlos registrieren & bewerben". Wer laengst
+// ein Konto hat, landete in einem Registrierungsformular; einen Weg von
+// hier zur Bewerbung gab es gar nicht.
+//
+// Erst NACH dem Rendern, und still, wenn etwas schiefgeht: Die Seite ist
+// oeffentlich und muss auch ohne Sitzung vollstaendig funktionieren.
+async function passeCtaAnSitzungAn(jobId) {
+  let sitzung = null
+  try {
+    const { data } = await supabase.auth.getSession()
+    sitzung = data?.session || null
+  } catch { return }
+  if (!sitzung) return
+
+  const ziel = `dashboard-schueler.html?job=${encodeURIComponent(jobId)}`
+  document.querySelectorAll('[data-cta-link]').forEach(a => {
+    a.href = ziel
+    a.textContent = 'Im Dashboard öffnen & bewerben'
+  })
+  const hinweis = document.querySelector('[data-cta-text]')
+  if (hinweis) hinweis.textContent = 'Du bist angemeldet – du brauchst kein Anschreiben.'
+
+  // "Ich habe schon ein Konto" ist jetzt gegenstandslos.
+  document.querySelector('[data-cta-login]')?.remove()
 }
 
 ladeJob()
