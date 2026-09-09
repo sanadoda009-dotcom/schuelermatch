@@ -91,6 +91,21 @@ Betreiber-Bereich das Konto zurückziehen und neu freischalten.
 Der Betreiber-Bereich zeigt so einen Fall jetzt an — als eigene Zahl
 („Ausweis liegt noch da“) und mit einem Hinweis darunter.
 
+### 📅 Zwei Angaben, die von selbst veralten
+
+Beides kein Fehler heute — aber beides läuft ab, ohne dass jemand etwas
+merkt. Deshalb hier notiert statt nur im Quelltext.
+
+| Was | Stand | Läuft aus |
+|---|---|---|
+| **Mindestlohn** in `ferienjob.html` (13,90 €) | September 2026 | Bei der nächsten Anpassung. Die aktuelle Höhe steht beim [Bundesministerium für Arbeit](https://www.bmas.de/DE/Arbeit/Arbeitsrecht/Mindestlohn/mindestlohn.html). |
+| **Ferientermine** in `js/ferien.js` (`STAND`) | August 2026 | Nach den Sommerferien 2027. Danach zeigt `ferienjob.html` ehrlich an, dass keine Termine hinterlegt sind — das ist getestet, aber die Seite ist dann eben leer. |
+
+Die Zahl im Ratgeber trägt jetzt Datum und Quelle direkt daneben, und
+`tests/zahlen-mit-stand.spec.js` verlangt beides für jeden Geldbetrag,
+der als geltendes Recht dasteht — samt der Prüfung, dass alle Seiten
+denselben Betrag nennen.
+
 ### Reihenfolge? Keine. Nachgeprüft.
 
 Zehn Dateien sind viel. Deshalb habe ich nachgesehen, ob es eine

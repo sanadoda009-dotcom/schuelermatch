@@ -451,6 +451,11 @@ section { padding: 130px 24px; }
 .job-card { position: relative; }
 .job-card--clickable { cursor: pointer; }
 
+/* Eine Zahl, die sich mit der Zeit aendert, braucht ein Datum und eine
+   Quelle (9.9.2026). Der Mindestlohn stand als harte Zahl da - ohne
+   beides. js/ferien.js macht es mit STAND und QUELLE richtig vor. */
+.angabe-stand { font-size: 0.82rem; color: var(--ink-soft); }
+
 /* Anzeige ohne Ortszuordnung (8.9.2026).
    Ohne lat/lon faellt eine Anzeige aus JEDER Umkreissuche der Schueler -
    `if (d == null || d > radius) return false` in dashboard-schueler.js.
