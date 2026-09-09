@@ -149,7 +149,15 @@ async function init() {
   initGlocke({
     rolle: 'firma',
     profileId: profile.id,
-    onNavigate: () => document.querySelector('.sidebar-item[data-view="jobs"]')?.click()
+    // Das ZIEL der Benachrichtigung benutzen, nicht immer "jobs" (9.9.2026).
+    //
+    // Hier stand `() => ... [data-view="jobs"]` - der Parameter wurde gar
+    // nicht erst entgegengenommen. Solange die Bewerber in der
+    // Anzeigenliste steckten, fiel das nicht auf. Seit dem 2.9. gibt es
+    // eine eigene Ansicht "Bewerbungen", und seitdem fuehrte JEDE
+    // Benachrichtigung an ihr vorbei - "Neue Bewerbung" ebenso wie "1
+    // neue Nachricht". Das Schueler-Dashboard macht es seit jeher richtig.
+    onNavigate: (ziel) => document.querySelector(`.sidebar-item[data-view="${ziel}"]`)?.click()
   })
 
   // Anzeigen-Vorlagen

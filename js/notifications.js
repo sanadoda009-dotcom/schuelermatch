@@ -29,8 +29,18 @@ async function sammle(rolle, profileId) {
     const t = m.bewerbung?.job?.titel || 'Job'
     proKonv[t] = (proKonv[t] || 0) + 1
   })
+  // Wohin der Klick fuehrt, haengt an der Rolle: Der Schueler hat eine
+  // eigene Ansicht "Nachrichten", die Firma nicht - dort sitzt der Chat
+  // am jeweiligen Bewerber, also in "Bewerbungen".
+  //
+  // Vorher stand hier fuer BEIDE `ziel: 'nachrichten'`. Im
+  // Firmen-Dashboard gibt es diese Ansicht nicht, der Klick tat also
+  // schlicht nichts - still, und deshalb schwer zu bemerken. Gefunden
+  // vom Waechter in tests/glocke-ziel.spec.js, der jedes Ziel gegen die
+  // Ansichten BEIDER Dashboards haelt.
+  const nachrichtenZiel = rolle === 'schueler' ? 'nachrichten' : 'bewerbungen'
   Object.entries(proKonv).forEach(([titel, n]) => {
-    items.push({ icon: '💬', text: `<b>${n} neue Nachricht${n > 1 ? 'en' : ''}</b> · ${escapeHtml(titel)}`, ziel: 'nachrichten', frisch: true })
+    items.push({ icon: '💬', text: `<b>${n} neue Nachricht${n > 1 ? 'en' : ''}</b> · ${escapeHtml(titel)}`, ziel: nachrichtenZiel, frisch: true })
   })
 
   if (rolle === 'schueler') {
@@ -48,7 +58,12 @@ async function sammle(rolle, profileId) {
         text: b.status === 'angenommen'
           ? `<b>Angenommen!</b> ${escapeHtml(b.job?.titel || 'Job')}`
           : `Bewerbung für ${escapeHtml(b.job?.titel || 'Job')}: <b>nicht geklappt</b>`,
-        ziel: 'jobs', frisch, schluessel: key,
+        // Die Entscheidung steht in der Ansicht "Bewerbungen", nicht auf
+        // dem Jobbrett: dort sind die Zeitleiste, der Absagegrund und -
+        // bei einer Zusage - der Knopf zum Chat. Wer erfaehrt, dass er
+        // angenommen wurde, und dann auf einer Liste fremder Anzeigen
+        // landet, muss selbst weitersuchen.
+        ziel: 'bewerbungen', frisch, schluessel: key,
       })
     })
   } else {
@@ -68,7 +83,13 @@ async function sammle(rolle, profileId) {
       items.push({
         icon: '🧑‍🎓',
         text: `<b>${frisch ? 'Neue Bewerbung' : 'Bewerbung'}</b> · ${escapeHtml(b.job?.titel || 'Job')}`,
-        ziel: 'jobs', frisch, schluessel: b.id,
+        // Seit dem 2.9.2026 gibt es im Firmen-Dashboard eine eigene
+        // Ansicht "Bewerbungen" - vorher steckten die Bewerber in der
+        // Anzeigenliste, und `jobs` war richtig. Beim Aufteilen der
+        // Ansicht ist die Glocke nicht mitgezogen worden: Sie fuehrte
+        // weiter zu den Anzeigen statt zu der Bewerbung, von der sie
+        // gerade erzaehlt hat.
+        ziel: 'bewerbungen', frisch, schluessel: b.id,
       })
     })
   }
