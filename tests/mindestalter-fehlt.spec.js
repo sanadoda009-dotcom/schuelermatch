@@ -96,8 +96,23 @@ test('kein Modul gibt das Mindestalter ungeprüft aus', async () => {
     const zeilen = fs.readFileSync(path.join(ordner, datei), 'utf8').split(/\r?\n/)
     zeilen.forEach((zeile, i) => {
       if (!zeile.includes('${job.mindestalter}')) return
-      if (zeile.includes('== null') || zeile.includes('job.mindestalter ?')) return
-      if (/if \(job\.mindestalter\)/.test(zeile)) return
+
+      // Die Absicherung steht nicht immer in derselben Zeile - haeufig
+      // steht sie in einem `if` darueber, und das ist die saubere Form.
+      // Ein zeilenweiser Waechter zwaenge dazu, schlechteren Code zu
+      // schreiben, nur damit er schweigt. Deshalb das kleine Fenster.
+      // (Am 9.9.2026 aufgefallen, als eine korrekt abgesicherte Stelle
+      // gemeldet wurde.)
+      // Bewusst dieselben, LOCKEREN Bedingungen wie vorher - nur auf dem
+      // Fenster statt auf der einen Zeile. Ein erster Versuch verschaerfte
+      // sie nebenbei auf `job.mindestalter == null` und meldete dadurch
+      // `job?.mindestalter == null` in job-karte.js: eine tadellos
+      // abgesicherte Zeile. Ein Waechter, der sauberen Code anmahnt, ist
+      // schlimmer als keiner.
+      const umfeld = zeilen.slice(Math.max(0, i - 3), i + 1).join(' ')
+      if (umfeld.includes('== null') || umfeld.includes('!= null')) return
+      if (umfeld.includes('mindestalter ?')) return
+      if (/if \((job\??\.)?mindestalter\)/.test(umfeld)) return
       treffer.push(`js/${datei}:${i + 1}`)
     })
   }
