@@ -10,8 +10,18 @@
 //      Damit wären ungültige Daten ausgeliefert worden.
 //   2. `validThrough` fehlte immer. Google zeigt Anzeigen sonst
 //      unbegrenzt weiter, auch längst besetzte.
+//
+// Und einer vom 11.9.2026, der die Kehrseite von (2) ist: `validThrough`
+// stand danach auf `erstellt_am + 90 Tage`. Nach 90 Tagen fällt die
+// Anzeige aus Google heraus — hier steht sie weiter und ist weiter
+// bewerbbar. Gemessen in der Datenbank: fünf aktive Anzeigen, die
+// älteste vom 2.7.2026; sie wäre am 30.9. die erste gewesen, der das
+// stumm passiert. Die Frist läuft jetzt ab heute statt ab dem
+// Einstelltag.
 const { test, expect } = require('./helpers/basis')
-const { JOBS } = require('./helpers/fixtures')
+const { JOBS, vorTagen } = require('./helpers/fixtures')
+
+const HEUTE = new Date().toISOString().slice(0, 10)
 
 // Die fünf Angaben, ohne die Google eine Stellenanzeige verwirft.
 const PFLICHT = ['title', 'description', 'datePosted', 'hiringOrganization', 'jobLocation']
@@ -58,6 +68,45 @@ test('ein vollständiger Job bringt alle Pflichtangaben mit', async ({ page }) =
     .toMatch(/^\d{4}-\d{2}-\d{2}$/)
   expect(new Date(ld.validThrough) > new Date(ld.datePosted),
     'validThrough muss NACH datePosted liegen').toBe(true)
+})
+
+test('eine alte, aber laufende Anzeige gilt auch bei Google noch', async ({ page }) => {
+  // Genau der Fall, der am 30.9. eingetreten wäre: Die Anzeige steht auf
+  // der Seite, man kann sich bewerben — und Google hätte erfahren, dass
+  // sie abgelaufen ist.
+  await oeffneJob(page, {
+    ...JOBS[0], id: 'aaaaaaaa-0000-4000-8000-0000000000fa', erstellt_am: vorTagen(100),
+  })
+  await page.waitForTimeout(400)
+
+  const ld = await strukturierteDaten(page)
+  expect(ld.validThrough >= HEUTE,
+    `Die Anzeige ist hier bewerbbar, aber Google erfährt „gültig bis `
+    + `${ld.validThrough}" — heute ist ${HEUTE}`).toBe(true)
+})
+
+test('das Einstelldatum entscheidet nicht darüber, wie lange sie gilt', async ({ page }) => {
+  // Der Wächter gegen einen Rückfall, und der Grund ist der Kern der
+  // Sache: Wie lange eine Anzeige gilt, hängt nicht daran, wann sie
+  // eingestellt wurde, sondern nur daran, ob sie noch läuft. Zwei
+  // Anzeigen ein halbes Jahr auseinander müssen deshalb denselben Tag
+  // melden. Wer wieder ab `erstellt_am` rechnet, bekommt hier zwei
+  // verschiedene Werte.
+  await oeffneJob(page, {
+    ...JOBS[0], id: 'aaaaaaaa-0000-4000-8000-0000000000f9', erstellt_am: vorTagen(1),
+  })
+  await page.waitForTimeout(400)
+  const frisch = await strukturierteDaten(page)
+
+  await oeffneJob(page, {
+    ...JOBS[0], id: 'aaaaaaaa-0000-4000-8000-0000000000f8', erstellt_am: vorTagen(200),
+  })
+  await page.waitForTimeout(400)
+  const alt = await strukturierteDaten(page)
+
+  expect(frisch.datePosted, 'sonst prüft der Test zwei gleiche Anzeigen')
+    .not.toBe(alt.datePosted)
+  expect(alt.validThrough).toBe(frisch.validThrough)
 })
 
 test('der Stundenlohn steht als Betrag pro Stunde da', async ({ page }) => {

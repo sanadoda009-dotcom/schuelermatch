@@ -1,20 +1,24 @@
 # SchülerMatch – Offene Punkte
 
-> **Stand 26. August 2026.**
-> Alles ist committet und gepusht, **795 E2E-Tests grün**, Live-Stand deployed.
-> Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben in der Session-Liste).
+> **Stand 11. September 2026.**
+> Alles ist committet und gepusht, Live-Stand deployed.
+> Wie viele Tests es gerade sind, sagt `npm test` — eine Zahl an dieser Stelle
+> stimmt nach der nächsten Runde nicht mehr. Hier stand bis heute „795“ vom
+> 26. August; es sind inzwischen gut tausend.
+> Vollständiger Verlauf: `PROJEKT-STATUS.md` (neueste Einträge oben).
+> Aktueller Stand der Zugriffsregeln: `SICHERHEIT-STAND.md`.
 >
 > **Teststart:** `npm test` im Projektordner. Node liegt portable unter
 > `AppData/Local/Programs/nodejs-portable` → PATH ergänzen.
 > Läuft die Vorschau (`preview_start`), vor einem vollen Testlauf stoppen – beide teilen Port 5500.
+> Und **nie zwei Testläufe gleichzeitig**: Sie teilen sich denselben Server, und
+> dann fallen Tests um, die einzeln grün sind.
 >
-> **Laufender Dauerauftrag:** Sanad hat per `/loop` erteilt, die Seite fortlaufend in allen
-> Bereichen zu verbessern (60-Sekunden-Takt). Die Schleife wurde beim Sitzungswechsel gestoppt –
-> zum Fortsetzen `/loop` mit demselben Text neu starten.
-> Erledigt: Barrierefreiheit, Ladezeit/jsPDF, Schriftschnitte, Tastaturbedienung & Fokus-Sichtbarkeit,
-> Fehler- und Leerzustände (dabei ein echter Bug gefunden: Weiterleitungsschleife bei Server-Störung).
-> **Als Nächstes geplant: Formular-Fehlermeldungen** — versteht man beim Registrieren und Bewerben,
-> was schiefging und was zu tun ist? Danach Bildgrößen gegen Layout-Sprünge.
+> **Laufender Dauerauftrag:** Sanad hat per `/loop` erteilt, die Seite fortlaufend
+> in allen Bereichen zu verbessern. Die Schleife endet mit der Sitzung – zum
+> Fortsetzen `/loop` mit demselben Text neu starten. Was in den einzelnen Runden
+> gefunden und behoben wurde, steht in `PROJEKT-STATUS.md`; jede Runde
+> hinterlässt außerdem ihren Befund als Kommentar im jeweiligen Test.
 
 ## ⏳ Wartet auf dich: zwölf SQL-Dateien
 
@@ -65,32 +69,6 @@ Betreiber-Bereich das Konto zurückziehen und neu freischalten.
 Der Betreiber-Bereich zeigt so einen Fall jetzt an — als eigene Zahl
 („Ausweis liegt noch da“) und mit einem Hinweis darunter.
 
-### 🔴 Zwei Ausweisdokumente liegen noch da — deine Entscheidung
-
-Am 5.9.2026 in der Ablage `verifizierung` gefunden: **zwei Dateien, beide
-bei bereits verifizierten Schülern**, hochgeladen am 1. und 5. Juli. Bei
-beiden steht der Pfad noch im Profil.
-
-Die Freischalt-Mail sagt diesen Schülern wörtlich: „Übrigens: Dein
-hochgeladenes Dokument haben wir nach der Prüfung direkt wieder
-gelöscht.“ Das stimmt bei ihnen nicht.
-
-Der Betreiber-Bereich ist nicht schuld — der Knopf dort löscht die Datei
-zuerst und bricht ab, wenn das misslingt. Aber die **Mail verschickt ein
-Trigger**, kein Knopf: Wird `verifiziert` im SQL-Editor oder im
-Supabase-Dashboard gesetzt, geht die Zusage trotzdem raus. Genau so sind
-die beiden Fälle entstanden — der Admin-Knopf hätte die Pfade auf NULL
-gesetzt, sie stehen aber noch da.
-
-**Ich habe die Dateien nicht angefasst.** Es sind Ausweisdokumente von
-Minderjährigen, das Löschen ist endgültig, und es ist deine Entscheidung.
-Die Abfrage zum Ansehen und der Löschbefehl stehen in
-`supabase/ausweis-weg-bei-freigabe.sql`. Der saubere Weg wäre: im
-Betreiber-Bereich das Konto zurückziehen und neu freischalten.
-
-Der Betreiber-Bereich zeigt so einen Fall jetzt an — als eigene Zahl
-(„Ausweis liegt noch da“) und mit einem Hinweis darunter.
-
 ### 📅 Zwei Angaben, die von selbst veralten
 
 Beides kein Fehler heute — aber beides läuft ab, ohne dass jemand etwas
@@ -106,9 +84,51 @@ Die Zahl im Ratgeber trägt jetzt Datum und Quelle direkt daneben, und
 der als geltendes Recht dasteht — samt der Prüfung, dass alle Seiten
 denselben Betrag nennen.
 
+### ✅ Am 11.9. behoben: Anzeigen wären ab dem 30.9. aus Google gefallen
+
+Ein dritter Fall derselben Art, nur mit einem Datum daran. `job.html`
+meldete Google für jede Anzeige „gültig bis“ — gerechnet als
+**Einstelltag + 90 Tage**. Danach fällt die Anzeige aus Google für Jobs
+heraus; auf der Seite steht sie weiter und ist weiter bewerbbar. Nichts
+wäre passiert, nichts geloggt worden.
+
+In der Datenbank nachgesehen: fünf aktive Anzeigen, die älteste vom
+2.7.2026. **Sie wäre am 30.9. die erste gewesen, der das still
+passiert.**
+
+Ein Enddatum, das eine Firma setzen könnte, gibt es in der Tabelle
+`jobs` nicht — die einzige Wahrheit über eine Anzeige ist `aktiv`, und
+die erfährt Google längst richtig: Eine zurückgezogene Anzeige liefert
+„nicht verfügbar“ und gar keine strukturierten Daten mehr. Die Frist
+läuft deshalb jetzt ab heute statt ab dem Einstelltag; die 30 Tage sind
+nur noch das Netz für Seiten, die Google nicht mehr besucht.
+`tests/google-jobs.spec.js` hält beides fest — auch den Wächter, dass
+zwei Anzeigen ein halbes Jahr auseinander denselben Tag melden müssen.
+
+### 📝 Zwei kleine Funde vom 11.9., beide noch offen
+
+**`forgot-password.html` ist in `robots.txt` gesperrt, hat aber kein
+`noindex`.** Das ist genau die falsche Hälfte: Eine Sperre in
+`robots.txt` verhindert das *Lesen* der Seite, nicht das Aufnehmen der
+Adresse — und weil Google die Seite nicht lesen darf, sieht es ein
+`noindex` dort auch nie. `login.html` verlinkt sie, und `login.html`
+steht in der Sitemap. `admin.html` macht es im selben Projekt richtig
+herum: kein Eintrag in `robots.txt`, dafür `noindex` in der Seite.
+Betrifft ebenso `reset-password.html` und die beiden Dashboards. Kein
+Sicherheitsproblem — die Seiten sind ohnehin geschützt —, es sieht nur
+schlecht aus, wenn sie in einem Suchergebnis auftauchen.
+
+**Einzelne Anzeigen stehen in keiner Sitemap.** Google findet
+`job.html?id=…` nur, indem es das JavaScript auf `jobs.html` ausführt.
+Für Google für Jobs ist eine Sitemap ausdrücklich empfohlen. Das wäre
+aber eine erzeugte Datei (eine Vercel-Funktion), kein Handgriff — und
+`tests/job-titel-link.spec.js` verbietet aus gutem Grund einen Eintrag
+`/job.html` **ohne** `?id=`, weil die Seite ohne Id leer ist. Wer das
+angeht, muss diesen Test mitnehmen.
+
 ### Reihenfolge? Keine. Nachgeprüft.
 
-Zehn Dateien sind viel. Deshalb habe ich nachgesehen, ob es eine
+Zwölf Dateien sind viel. Deshalb habe ich nachgesehen, ob es eine
 Reihenfolge gibt, die du einhalten musst — **es gibt keine.**
 
 Nur zwei Dateien legen überhaupt neue Spalten an, und jede benutzt

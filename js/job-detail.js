@@ -4,6 +4,11 @@ import { hole, zeigeLadefehler } from './zustand.js'
 import { meldeMitAnmeldung, meldeButtonHtml } from './melden.js'
 import { alterText, istAlt } from './job-karte.js'
 
+// Wie lange die Seite gegenueber Google fuer eine Anzeige geradesteht.
+// Die Frist laeuft ab HEUTE, nicht ab dem Einstelldatum - warum, steht
+// unten beim `validThrough`.
+const GUELTIG_TAGE = 30
+
 function escapeHtml(str) {
   const div = document.createElement('div'); div.textContent = str ?? ''; return div.innerHTML
 }
@@ -176,12 +181,30 @@ async function ladeJob() {
       title: job.titel,
       description: job.beschreibung || job.titel,
       datePosted: job.erstellt_am.slice(0, 10),
-      // Ohne validThrough zeigt Google Anzeigen unbegrenzt weiter, auch
-      // laengst besetzte. 90 Tage passen zur eigenen Logik der Seite,
-      // die eine Anzeige ab zwei Monaten als moeglicherweise veraltet
-      // kennzeichnet. Wird ein Job pausiert, liefert diese Seite ohnehin
+      // Bis wann die Anzeige gilt. Ohne diese Angabe zeigt Google
+      // Anzeigen unbegrenzt weiter, auch laengst besetzte.
+      //
+      // Hier stand `erstellt_am + 90 Tage`. Das war eine Behauptung, die
+      // die Seite nicht einhaelt: Nach 90 Tagen faellt die Anzeige aus
+      // Google fuer Jobs heraus - hier steht sie weiter, und man kann
+      // sich weiter bewerben. Es passiert nichts, es wird nichts
+      // geloggt; die Anzeige verliert nur still ihren Weg zu den
+      // Schuelern. Am 11.9.2026 in der Datenbank nachgesehen: fuenf
+      // aktive Anzeigen, die aelteste vom 2.7. - sie waere am 30.9. die
+      // erste gewesen, der das passiert.
+      //
+      // Ein Enddatum, das eine Firma setzen koennte, gibt es in der
+      // Tabelle `jobs` nicht. Die einzige Wahrheit ueber eine Anzeige
+      // ist `aktiv` - und die erfaehrt Google laengst auf dem richtigen
+      // Weg: Wird die Anzeige zurueckgezogen, liefert diese Seite oben
       // "nicht verfuegbar" und gar keine strukturierten Daten mehr.
-      validThrough: new Date(new Date(job.erstellt_am).getTime() + 90 * 864e5)
+      //
+      // Deshalb laeuft die Frist jetzt mit dem heutigen Tag mit. Was
+      // Google erfaehrt, ist damit genau das, was die Seite selbst tut.
+      // Die 30 Tage sind das Sicherheitsnetz fuer den umgekehrten Fall:
+      // eine Seite, die Google nicht mehr besucht, faellt von selbst
+      // heraus.
+      validThrough: new Date(Date.now() + GUELTIG_TAGE * 864e5)
         .toISOString().slice(0, 10),
       employmentType: 'PART_TIME',
       hiringOrganization: { '@type': 'Organization', name: job.firma_name || 'Arbeitgeber auf SchülerMatch' },

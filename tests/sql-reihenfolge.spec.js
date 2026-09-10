@@ -60,15 +60,43 @@ test('die Liste nennt nur Dateien, die es gibt', async () => {
   }
 })
 
-test('die Überschrift nennt die richtige Zahl', async () => {
-  // Zweimal an einem Tag falsch gehabt: Zeile ergänzt, Zahl vergessen.
-  const ZAHLWORT = {
-    3: 'drei', 4: 'vier', 5: 'fünf', 6: 'sechs', 7: 'sieben',
-    8: 'acht', 9: 'neun', 10: 'zehn', 11: 'elf', 12: 'zwölf',
-  }
+// Zweimal an einem Tag falsch gehabt: Zeile ergänzt, Zahl vergessen.
+const ZAHLWORT = {
+  3: 'drei', 4: 'vier', 5: 'fünf', 6: 'sechs', 7: 'sieben',
+  8: 'acht', 9: 'neun', 10: 'zehn', 11: 'elf', 12: 'zwölf',
+}
+
+// Alle Stellen, die dieselbe Zahl noch einmal aussprechen.
+//
+// Am 11.9. kam ein dritter Fall dazu, den der alte Test nicht sah: Die
+// Überschrift sagte „zwölf“, im Text darunter stand weiter „Zehn Dateien
+// sind viel“. Er prüfte eben nur die Überschrift.
+//
+// Jede Stelle ist einzeln freiwillig — wer einen Satz umschreibt, soll
+// hier nicht scheitern. Vacuum ist trotzdem ausgeschlossen: Mindestens
+// drei der vier müssen zu finden sein.
+const ZAEHLSTELLEN = [
+  /Wartet auf dich: (\p{L}+) SQL-Dateien/u,
+  /Alle (\p{L}+) im Supabase-SQL-Editor/u,
+  /(\p{L}+) Dateien sind viel/u,
+  /in allen (\p{L}+) Fällen/u,
+]
+
+test('jede Stelle nennt dieselbe, richtige Zahl', async () => {
   const erwartet = ZAHLWORT[OFFEN.length]
   expect(erwartet, `kein Zahlwort für ${OFFEN.length} hinterlegt`).toBeTruthy()
-  expect(TABELLE).toContain(`Wartet auf dich: ${erwartet} SQL-Dateien`)
+
+  let gefunden = 0
+  for (const muster of ZAEHLSTELLEN) {
+    const treffer = PUNKTE.match(muster)
+    if (!treffer) continue
+    gefunden++
+    expect(treffer[1].toLowerCase(),
+      `„${treffer[0]}“ — es sind ${OFFEN.length} Dateien, also „${erwartet}“`)
+      .toBe(erwartet)
+  }
+  expect(gefunden, 'zu wenige Zählstellen gefunden — dann prüft der Test kaum etwas')
+    .toBeGreaterThanOrEqual(3)
 })
 
 test('keine Datei stützt sich auf eine Spalte aus einer anderen', async () => {
