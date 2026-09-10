@@ -522,12 +522,28 @@ section { padding: 130px 24px; }
   content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
   width: 3px; height: 20px; background: var(--match-green); border-radius: 0 3px 3px 0;
 }
-.sidebar-item .sidebar-badge {
-  margin-left: auto; background: var(--coral); color: #fff;
+/* Die rote Zahl, die sagt: hier wartet etwas.
+ *
+ * Die Regel hing bis zum 11.9.2026 an `.sidebar-item .sidebar-badge` -
+ * sie galt also nur in der Seitenleiste. Im Betreiber-Bereich sitzen
+ * dieselben Abzeichen aber an den Reitern (`.admin-tab`), und dort
+ * bekamen sie gar keine Gestaltung: gemessen als graue Ziffer auf
+ * durchsichtigem Grund, ohne Pille, in der Farbe des Reiters.
+ *
+ * Betroffen war unter anderem das Abzeichen fuer offene Meldungen - das
+ * einzige Zeichen dafuer, dass jemand eine Anzeige oder eine Nachricht
+ * gemeldet hat. Es stand da, aber es sah nach einem Tippfehler aus statt
+ * nach einem Hinweis.
+ */
+.sidebar-badge {
+  background: var(--coral); color: #fff;
   font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; font-weight: 500;
   min-width: 20px; height: 20px; padding: 0 6px; border-radius: 100px;
-  display: flex; align-items: center; justify-content: center;
+  display: inline-flex; align-items: center; justify-content: center;
 }
+/* In der Seitenleiste ganz nach rechts; am Reiter sorgt dessen eigenes
+ * `gap` fuer den Abstand. */
+.sidebar-item .sidebar-badge { margin-left: auto; }
 .sidebar-badge:empty { display: none; }
 .sidebar-user {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 8px;
