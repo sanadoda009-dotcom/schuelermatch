@@ -90,6 +90,28 @@ function knoepfeSperren(gesperrt) {
   karte?.querySelectorAll('button').forEach(b => { b.disabled = gesperrt })
 }
 
+// Was gesagt gehört, wenn der Alarm ohne Koordinaten gespeichert wurde.
+//
+// Wichtig ist die Folge, nicht die Ursache: „Ort nicht gefunden" allein
+// klingt nach einer Kleinigkeit. Dass der Alarm dann nur noch auf genau
+// diese Schreibweise hört, ist der Satz, der zum Nachbessern bringt.
+function ortHinweis(geo, ort) {
+  const folge = `Wir suchen dann nicht im Umkreis, sondern nur nach Anzeigen, `
+    + `bei denen genau „${ort}" als Ort steht.`
+  if (geo.status === 'gestoert') {
+    return `Job-Alarm gespeichert. Den Ort konnten wir gerade nicht nachschlagen. `
+      + `${folge} Speicher ihn später noch einmal.`
+  }
+  // Bei einer Postleitzahl liegt es nicht an der Schreibweise - der
+  // Dienst kennt deutsche PLZ fast nie (1 von 10 im Test am 8.9.2026).
+  if (geo.plz) {
+    return `Job-Alarm gespeichert. Postleitzahlen können wir aber nicht zuverlässig `
+      + `zuordnen – schreib den Ortsnamen (z.B. München). ${folge}`
+  }
+  return `Job-Alarm gespeichert. Den Ort „${ort}" konnten wir aber nicht finden – `
+    + `prüf die Schreibweise. ${folge}`
+}
+
 // Legt den Alarm an oder überschreibt ihn.
 //
 // `quelle` liefert die Werte — entweder aus den Job-Filtern (Schnellweg
@@ -155,7 +177,25 @@ async function einrichten(quelle = filterLesen) {
     alarm = data
     zeichne()
     zeichneFormular()
-    toast('Job-Alarm gespeichert. Wir melden uns, sobald etwas Passendes kommt.')
+
+    // Ohne Koordinaten vergleicht der Alarm den Ortsnamen Zeichen fuer
+    // Zeichen - siehe supabase/functions/mail-job-alarm/treffer.js:
+    //   if (alarm.ort) return normOrt(job.ort) === normOrt(alarm.ort)
+    // Ein Tippfehler trifft damit nie etwas, und der Schueler wartet auf
+    // Mails, die nie kommen. Am 11.9.2026 stand genau so ein Alarm in
+    // der Datenbank: `ort` war ein Personenname.
+    //
+    // Das Profilformular und das Anzeigenformular nennen diesen Fall
+    // laengst beim Namen (js/dashboard-schueler.js, js/dashboard-firma.js
+    // ueber uebernehmeKoordinaten). Der Alarm war der dritte Aufrufer von
+    // geocode() und der einzige, der schwieg - ausgerechnet der, bei dem
+    // das Schweigen am teuersten ist: Hier merkt man es erst daran, dass
+    // wochenlang nichts kommt.
+    if (lat == null || lon == null) {
+      toast(ortHinweis(geo, f.ort), 'fehler')
+    } else {
+      toast('Job-Alarm gespeichert. Wir melden uns, sobald etwas Passendes kommt.')
+    }
   } catch (e) {
     console.error(e)
     toast('Der Job-Alarm ließ sich gerade nicht speichern. Versuch es später noch einmal.', 'fehler')

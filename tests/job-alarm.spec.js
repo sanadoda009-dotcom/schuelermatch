@@ -135,6 +135,102 @@ test('ohne Koordinaten wird trotzdem gespeichert', async ({ page }) => {
   expect(zeile.lon).toBeNull()
 })
 
+/* Was der Schüler dabei erfährt (11.9.2026).
+ *
+ * DER BEFUND: Gespeichert wurde der Alarm ohne Koordinaten — und dazu
+ * stand „Job-Alarm gespeichert. Wir melden uns, sobald etwas Passendes
+ * kommt."
+ *
+ * Ohne Koordinaten vergleicht die Funktion aber den Ortsnamen Zeichen
+ * für Zeichen (supabase/functions/mail-job-alarm/treffer.js):
+ *
+ *     if (alarm.ort) return normOrt(job.ort) === normOrt(alarm.ort)
+ *
+ * Ein Tippfehler trifft damit nie etwas. Der Schüler wartet auf Mails,
+ * die nie kommen, und erfährt es erst daran, dass wochenlang nichts
+ * kommt — wenn überhaupt.
+ *
+ * Dass das keine Theorie ist: Am 11.9.2026 stand genau so ein Alarm in
+ * der Datenbank, `ort` war ein Personenname.
+ *
+ * Das Profilformular und das Anzeigenformular nennen diesen Fall längst
+ * beim Namen. Der Alarm war der dritte Aufrufer von `geocode()` und der
+ * einzige, der schwieg — ausgerechnet der, bei dem das Schweigen am
+ * teuersten ist.
+ */
+
+// Der Text der letzten Meldung.
+async function meldung(page) {
+  const el = page.locator('.toast, #toast').last()
+  await el.waitFor({ state: 'visible', timeout: 20_000 })
+  return el.textContent()
+}
+
+test('ein unbekannter Ort wird beim Namen genannt', async ({ page }) => {
+  await setupDashboard(page.context(), { user: SCHUELER })
+  await geoMocken(page, null)
+  await page.goto('/dashboard-schueler.html')
+  await warteAufDashboard(page)
+
+  await page.fill('#filter-ort', 'Kleinkleckersdorf')
+  await page.locator('#alarm-an').click()
+
+  const t = await meldung(page)
+  expect(t).toContain('Kleinkleckersdorf')
+  expect(t, 'die Ursache').toMatch(/nicht finden|Schreibweise/)
+  // Und vor allem die FOLGE - „Ort nicht gefunden" allein klingt nach
+  // einer Kleinigkeit.
+  expect(t, 'die Folge fehlt: dass nur noch der genaue Ortsname zählt')
+    .toMatch(/nicht im Umkreis|genau/)
+})
+
+test('bei einer Postleitzahl steht der richtige Grund da', async ({ page }) => {
+  // Nicht die Schreibweise ist schuld - der Dienst kennt deutsche
+  // Postleitzahlen fast nie. „Prüf die Schreibweise" wäre hier eine
+  // falsche Fährte.
+  await setupDashboard(page.context(), { user: SCHUELER })
+  await geoMocken(page, null)
+  await page.goto('/dashboard-schueler.html')
+  await warteAufDashboard(page)
+
+  await page.fill('#filter-ort', '10115')
+  await page.locator('#alarm-an').click()
+
+  const t = await meldung(page)
+  expect(t).toContain('Postleitzahlen')
+  expect(t, 'was stattdessen zu tun ist').toContain('Ortsnamen')
+})
+
+test('bei gestörtem Dienst und neuem Ort steht der andere Grund da', async ({ page }) => {
+  // Auch hier bleibt der Alarm ohne Koordinaten - aber es ist NICHT die
+  // Schuld des Schülers, und der Rat ist ein anderer.
+  await oeffneDashboard(page)
+  await page.fill('#filter-ort', 'München')
+  await page.locator('#alarm-an').click()
+  await expect(karte(page)).toContainText('Job-Alarm läuft')
+
+  await page.route('**/geocoding-api.open-meteo.com/**', route => route.abort())
+  await page.fill('#filter-ort', 'Hamburg')
+  await page.locator('#alarm-neu').click()
+
+  const t = await meldung(page)
+  expect(t).toMatch(/nicht nachschlagen/)
+  expect(t, 'kein Vorwurf an den Schüler').not.toMatch(/Schreibweise/)
+  expect(t, 'und der Rat, es später zu wiederholen').toMatch(/später/)
+})
+
+test('bei einem gefundenen Ort bleibt es beim guten Zuspruch', async ({ page }) => {
+  // Die Gegenprobe: Sonst stünde bei jedem Speichern eine Warnung, und
+  // dann liest sie bald niemand mehr.
+  await oeffneDashboard(page)
+  await page.fill('#filter-ort', 'München')
+  await page.locator('#alarm-an').click()
+
+  const t = await meldung(page)
+  expect(t).toContain('Wir melden uns')
+  expect(t).not.toMatch(/nicht finden|Umkreis/)
+})
+
 test('bei gestörtem Geo-Dienst bleiben die bisherigen Koordinaten erhalten', async ({ page }) => {
   // geocode() unterscheidet „Ort gibt es nicht" von „Dienst antwortet
   // nicht". Beim zweiten Fall darf ein bereits gespeicherter Umkreis
