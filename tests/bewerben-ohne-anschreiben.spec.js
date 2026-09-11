@@ -107,3 +107,42 @@ test('die Anzeigenseite verspricht nichts, was der Code nicht hält', async () =
   expect(versprichtOhne && feldPflicht,
     'job.html verspricht „kein Anschreiben", das Feld ist aber Pflicht').toBe(false)
 })
+
+/* Und die Gegenrichtung: Was wir den Firmen versprechen (12.9.2026).
+ *
+ * DER BEFUND: `fuer-firmen.html` sagte unter „Bewerbungen mit Substanz":
+ *
+ *   „Zu jeder Bewerbung gehören ein Lebenslauf UND ein kurzes
+ *    Motivationsschreiben."
+ *
+ * Dieselbe Sorte Fehler wie oben, nur andersherum gerichtet: Auf der
+ * Schülerseite steht am Feld „freiwillig" und darunter „Du kannst dich
+ * auch ohne abschicken". Zwei Seiten desselben Produkts, die sich
+ * widersprechen — und die Firma erfährt es an der ersten Bewerbung ohne
+ * Anschreiben.
+ *
+ * Der Lebenslauf dagegen IST Pflicht, und zwar hart: `oeffneBewerbungs-
+ * Modal` lässt das Fenster ohne `lebenslaufVollstaendig()` gar nicht
+ * erst auf. Der Satz war also nur zur Hälfte falsch — deshalb nennt er
+ * jetzt beide Hälften getrennt.
+ */
+test('was den Firmen versprochen wird, hält die Schülerseite auch', async () => {
+  const firmen = fs.readFileSync(path.join(__dirname, '..', 'fuer-firmen.html'), 'utf8')
+  const dashboard = fs.readFileSync(path.join(__dirname, '..', 'dashboard-schueler.html'), 'utf8')
+  const schueler = fs.readFileSync(path.join(__dirname, '..', 'js', 'dashboard-schueler.js'), 'utf8')
+
+  // Dass das Anschreiben freiwillig ist, steht am Feld selbst. Wird es
+  // je wieder Pflicht, greift diese Prüfung von selbst nicht mehr.
+  const istFreiwillig = /Anschreiben <span class="feld-freiwillig">freiwillig<\/span>/.test(dashboard)
+  expect(istFreiwillig, 'sonst prüft der Test nichts').toBe(true)
+
+  expect(/gehören ein Lebenslauf und ein kurzes Motivationsschreiben/.test(firmen),
+    'fuer-firmen.html verspricht ein Anschreiben an JEDER Bewerbung, '
+    + 'die Schülerseite nennt es freiwillig').toBe(false)
+
+  // Und die Hälfte, die stimmt, soll auch stehen bleiben: Der Lebenslauf
+  // ist Pflicht, weil das Fenster ohne ihn nicht aufgeht.
+  expect(schueler, 'ohne diese Sperre wäre auch der Lebenslauf nur ein Wunsch')
+    .toContain('if (!lebenslaufVollstaendig())')
+  expect(firmen).toMatch(/Zu jeder Bewerbung gehört ein Lebenslauf/)
+})
