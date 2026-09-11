@@ -845,18 +845,31 @@ async function ladeEigeneJobs() {
   // supabase/bewerbung-stand.sql sind noch nicht eingespielt - PostgREST
   // weist ein Update auf eine unbekannte Spalte KOMPLETT zurueck. Ohne
   // diesen Rueckfall waeren Annehmen und Ablehnen ab sofort kaputt.
+  // Ob der Grund dabei wirklich mitgeschrieben wurde, gibt die Funktion
+  // zurueck - und zwar seit dem 11.9.2026.
+  //
+  // Vorher fiel er im Rueckfall still unter den Tisch. Die Firma las
+  // beim Absagen "Der Schueler liest den Grund - das hilft ihm bei der
+  // naechsten Bewerbung", waehlte sorgfaeltig, und danach stand
+  // "Bewerber abgelehnt". Gespeichert war nur der Status. Am 11.9. in
+  // der Datenbank nachgesehen: `absage_grund` gibt es dort bis heute
+  // nicht, der Rueckfall ist also nicht der Ausnahme-, sondern der
+  // Normalfall. Wir haben eine Firma um Sorgfalt gebeten und das
+  // Ergebnis weggeworfen.
   async function schreibeEntscheidung(id, wert, grund) {
     const voll = { status: wert, entschieden_am: new Date().toISOString() }
     if (wert === 'abgelehnt' && grund) voll.absage_grund = grund
 
     const { error } = await supabase.from('bewerbungen').update(voll).eq('id', id)
-    if (!error) return { error: null }
+    if (!error) return { error: null, grundGespeichert: Boolean(grund) }
 
     // PGRST204: Spalte gibt es nicht. Dann wenigstens den Status setzen.
     if (error.code === 'PGRST204' || /column .* does not exist/i.test(error.message || '')) {
-      return supabase.from('bewerbungen').update({ status: wert }).eq('id', id)
+      const { error: nurStatus } = await supabase
+        .from('bewerbungen').update({ status: wert }).eq('id', id)
+      return { error: nurStatus, grundGespeichert: false }
     }
-    return { error }
+    return { error, grundGespeichert: false }
   }
 
   // Verdrahtet die Entscheidungsknoepfe. Wird auch auf die Grund-Auswahl
@@ -891,17 +904,22 @@ async function ladeEigeneJobs() {
         }
 
         btn.disabled = true
-        const { error } = await schreibeEntscheidung(
+        const { error, grundGespeichert } = await schreibeEntscheidung(
           btn.dataset.statusId, wert, btn.dataset.grund)
         if (error) {
           toast(verstaendlich(error), 'fehler')
           btn.disabled = false
           return
         }
-        // Der Schüler bekommt automatisch eine E-Mail (Edge Function "mail-ereignis")
+        // Der Schüler bekommt automatisch eine E-Mail (Edge Function
+        // "mail-ereignis"). Den Grund trägt sie nicht - der steht beim
+        // Schüler in „Bewerbungen". Deshalb hier auch keine Zusage, die
+        // Mail werde ihn enthalten.
         toast(wert === 'angenommen'
           ? 'Bewerber angenommen ✓ – E-Mail geht automatisch raus'
-          : 'Bewerber abgelehnt – höfliche E-Mail geht automatisch raus')
+          : grundGespeichert
+            ? 'Bewerber abgelehnt – höfliche E-Mail geht raus, den Grund sieht er in seinen Bewerbungen.'
+            : 'Bewerber abgelehnt – höfliche E-Mail geht raus. Deinen Grund konnten wir diesmal nicht speichern, der Schüler sieht ihn also nicht.')
         await ladeEigeneJobs()
       })
     })

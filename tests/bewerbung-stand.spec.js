@@ -229,4 +229,78 @@ test.describe('die Firma sagt ab', () => {
     await expect.poll(() => db.bewerbungen[0].status, { timeout: 20_000 }).toBe('angenommen')
     expect(db.bewerbungen[0].entschieden_am).toBeTruthy()
   })
+
+  /* Solange die Spalten fehlen (11.9.2026).
+   *
+   * Alle Tests hier oben laufen in einer Welt, in der
+   * `supabase/bewerbung-stand.sql` schon eingespielt ist. In der echten
+   * Datenbank ist es das nicht — am 11.9.2026 nachgesehen: `bewerbungen`
+   * hat dort id, job_id, schueler_id, status, erstellt_am,
+   * motivationsschreiben, zeugnis_url, lebenslauf_url. Sonst nichts.
+   *
+   * PostgREST weist ein Update auf eine unbekannte Spalte KOMPLETT
+   * zurück (PGRST204). Dafür gibt es einen Rückfall, der wenigstens den
+   * Status schreibt — richtig so, sonst wäre Absagen ganz kaputt.
+   *
+   * DER BEFUND: Der Grund fiel dabei still unter den Tisch. Die Firma
+   * liest vorher „Der Schüler liest den Grund – das hilft ihm bei der
+   * nächsten Bewerbung", wählt sorgfältig aus, und bekommt danach
+   * „Bewerber abgelehnt". Wir haben um Sorgfalt gebeten und das Ergebnis
+   * weggeworfen — und weil der Rückfall in keinem Test vorkam, fiel es
+   * niemandem auf.
+   *
+   * Der Rückfall ist dabei nicht der Ausnahme-, sondern der Normalfall:
+   * Bis die Datei eingespielt ist, geht JEDE Absage diesen Weg.
+   */
+  async function spaltenFehlen(page) {
+    await page.route('**/rest/v1/bewerbungen*', async route => {
+      const req = route.request()
+      const rumpf = String(req.postData() || '')
+      if (req.method() === 'PATCH' && /absage_grund|entschieden_am/.test(rumpf)) {
+        return route.fulfill({
+          status: 400, contentType: 'application/json',
+          body: JSON.stringify({
+            code: 'PGRST204',
+            message: "Could not find the 'absage_grund' column of 'bewerbungen' in the schema cache",
+          }),
+        })
+      }
+      await route.fallback()
+    })
+  }
+
+  test('ohne die Spalten wird trotzdem abgesagt', async ({ page }) => {
+    const db = await firmenDashboard(page)
+    await spaltenFehlen(page)
+    await page.locator('button', { hasText: 'Ablehnen' }).first().click()
+    await page.locator('.absage-wahl[data-grund="entfernung"]').click()
+
+    await expect.poll(() => db.bewerbungen[0].status, { timeout: 20_000 }).toBe('abgelehnt')
+  })
+
+  test('und es wird gesagt, dass der Grund nicht ankam', async ({ page }) => {
+    await firmenDashboard(page)
+    await spaltenFehlen(page)
+    await page.locator('button', { hasText: 'Ablehnen' }).first().click()
+    await page.locator('.absage-wahl[data-grund="entfernung"]').click()
+
+    const meldung = page.locator('.toast, #toast').last()
+    await expect(meldung).toBeVisible({ timeout: 20_000 })
+    await expect(meldung, 'die Absage selbst ist raus').toContainText('abgelehnt')
+    await expect(meldung, 'und die Firma erfährt, dass ihr Grund nicht ankam')
+      .toContainText('nicht speichern')
+  })
+
+  test('mit den Spalten steht dort das Gegenteil', async ({ page }) => {
+    // Die Gegenprobe: Sonst stünde die Warnung immer da, und dann liest
+    // sie niemand mehr.
+    await firmenDashboard(page)
+    await page.locator('button', { hasText: 'Ablehnen' }).first().click()
+    await page.locator('.absage-wahl[data-grund="entfernung"]').click()
+
+    const meldung = page.locator('.toast, #toast').last()
+    await expect(meldung).toBeVisible({ timeout: 20_000 })
+    await expect(meldung).toContainText('sieht er in seinen Bewerbungen')
+    await expect(meldung).not.toContainText('nicht speichern')
+  })
 })
