@@ -130,6 +130,42 @@ Schutz-Triggern vorbei. Deshalb gilt dort:
   der Datenbank laden" ausweicht, gehört die Frage dazu: **wer darf diese
   Spalte schreiben?**
 
+## Die Schicht, die keine Datenbankschicht ist: der Browser
+
+Die vier Schichten oben regeln, **wer welchen Wert lesen und schreiben
+darf**. Sie sagen nichts darüber, was passiert, wenn dieser Wert dann
+angezeigt wird — und genau dort saß der Fund vom 11.9.2026.
+
+`js/toast.js` baute seine Meldung mit `innerHTML` und dem übergebenen
+Text mittendrin. In `js/dashboard-schueler.js` geht in zwei Meldungen der
+**Titel einer Anzeige** ein, und den Titel schreibt die Firma. Gemessen
+mit dem Titel `Aushilfe <img src=x onerror="window.__xss=1">`: Der Code
+lief im angemeldeten Schülerkonto. Der Weg dahin ist ein Klick auf einen
+geteilten Link.
+
+RLS hat dabei alles richtig gemacht — die Firma *darf* ihren
+Anzeigentitel schreiben, und der Schüler *darf* ihn lesen. Die Lücke lag
+danach.
+
+**Die Regel im Projekt lautet deshalb:** Fremder Text geht nie roh in
+`innerHTML`. Entweder durch `escapeHtml()` (so machen es
+`js/job-karte.js`, `js/chat.js`, `js/firma.js`, `js/admin.js`) oder gar
+nicht erst als Zeichenkette, sondern als `textContent` an einem Element —
+so jetzt der Toast.
+
+Am 11.9. daraufhin durchgesehen: 28 Stellen, an denen ein Datenbankfeld
+in eine Vorlage mit `innerHTML` geht. **Der Toast war der einzige Fund**;
+alle übrigen gehen durch `escapeHtml` oder tragen eigene Konstanten.
+Adressen für Bilder laufen zusätzlich über `sichereMediaUrl()` in
+`js/sicher.js`, das das Protokoll prüft und Ausbruchzeichen kodiert.
+
+Zu beachten: Die Inhaltsregeln in `vercel.json` fangen das **nicht** ab —
+`script-src` erlaubt `'unsafe-inline'`, und ein `onerror` ist genau das.
+
+`tests/toast-ist-text.spec.js` hält es fest, bewusst über das Verhalten
+statt über den Quelltext: Wer `toast.js` umbaut, darf das — es darf nur
+kein HTML mehr ausgeführt werden.
+
 ## So bringst du diese Datei auf den neuesten Stand
 
 Die fünf Abfragen aus der Tabelle oben ausführen und die Abschnitte
