@@ -166,3 +166,92 @@ test('die SQL-Datei nennt nur öffentliche Spalten', async () => {
   expect(kopf).toContain("role = 'firma'")
   expect(kopf).toContain('freigegeben')
 })
+
+/* „Wer wir sind" gehört auch auf die Anzeige (11.9.2026).
+ *
+ * DER BEFUND: Unter dem Feld im Firmen-Dashboard steht wörtlich:
+ *
+ *   „Steht auf deiner Firmenseite und bei jeder Anzeige. Für Schüler ist
+ *    das oft die einzige Möglichkeit, vorher zu erfahren, bei wem sie
+ *    sich bewerben."
+ *
+ * Nachgesehen: `ueber_mich` kam in `js/job-detail.js` überhaupt nicht
+ * vor. Die zweite Hälfte des Satzes war falsch — und zwar die, auf die
+ * es ankommt: Die Firmenseite muss man erst aufrufen, die Anzeige liest
+ * man ohnehin. Wer über Google oder einen geteilten Link auf eine
+ * Anzeige kommt, sah von der Firma nur den Namen.
+ */
+test.describe('„Wer wir sind" auf der Anzeigenseite', () => {
+  const PROFIL = {
+    id: FIRMA_ID, name: 'Eiscafé Sonne', ort: 'München', foto_url: null,
+    ueber_mich: 'Wir sind ein kleines Eiscafé am Marktplatz.\nBei uns meldet sich Frau Kern.',
+    erstellt_am: '2026-03-04T10:00:00Z',
+  }
+
+  // Wie `seite()` weiter oben, nur für job.html. `.single()` erwartet ein
+  // Objekt, keine Liste.
+  async function anzeige(page, { profil } = {}) {
+    const json = koerper => ({
+      status: 200,
+      headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' },
+      body: JSON.stringify(koerper),
+    })
+    await page.route('**/rest/v1/jobs*', route => route.fulfill(json(JOBS[0])))
+    await page.route('**/rest/v1/bewertungen*', route => route.fulfill(json([])))
+    await page.route('**/rest/v1/firmen_oeffentlich*', route => {
+      if (profil === undefined) {
+        // So verhält sich Supabase, solange es die Sicht nicht gibt.
+        return route.fulfill({
+          status: 404,
+          headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*' },
+          body: JSON.stringify({ code: '42P01', message: 'relation "firmen_oeffentlich" does not exist' }),
+        })
+      }
+      return route.fulfill(json(profil))
+    })
+    await page.goto(`/job.html?id=${JOBS[0].id}`)
+    await expect(page.locator('#job-detail h1')).toBeVisible({ timeout: 20_000 })
+  }
+
+  test('der Text steht unter der Beschreibung', async ({ page }) => {
+    await anzeige(page, { profil: PROFIL })
+    await expect(page.locator('#job-detail')).toContainText('Wer wir sind')
+    await expect(page.locator('#job-detail')).toContainText('Frau Kern')
+  })
+
+  test('solange es die Sicht nicht gibt, fehlt der Abschnitt — sonst nichts', async ({ page }) => {
+    // Genau der Zustand der echten Datenbank am 11.9.2026. Die Anzeige
+    // muss vollständig bleiben; ein Schüler soll von der halbfertigen
+    // Baustelle nichts mitbekommen.
+    await anzeige(page)
+    await expect(page.locator('#job-detail')).not.toContainText('Wer wir sind')
+    await expect(page.locator('#job-detail')).toContainText('Beschreibung')
+    await expect(page.locator('#job-detail')).toContainText('Eis verkaufen')
+    await expect(page.locator('[data-cta-link]').first()).toBeVisible()
+  })
+
+  test('ein leeres Feld erzeugt keine leere Überschrift', async ({ page }) => {
+    await anzeige(page, { profil: { ...PROFIL, ueber_mich: '   ' } })
+    await expect(page.locator('#job-detail')).toContainText('Beschreibung')
+    await expect(page.locator('#job-detail')).not.toContainText('Wer wir sind')
+  })
+
+  test('fremder Text wird nicht als HTML eingesetzt', async ({ page }) => {
+    await anzeige(page, { profil: { ...PROFIL, ueber_mich: '<img src=x onerror="window.__aua=1">' } })
+    await expect(page.locator('#job-detail')).toContainText('Wer wir sind')
+    expect(await page.evaluate(() => window.__aua)).toBeUndefined()
+    await expect(page.locator('#job-detail')).toContainText('<img src=x')
+  })
+
+  test('das Versprechen im Formular und die Anzeige gehören zusammen', async () => {
+    // Der Wächter: Wer den Satz im Dashboard stehen lässt, muss den Text
+    // auch auf der Anzeige zeigen. Umgekehrt darf man den Satz gern
+    // umschreiben — dann greift diese Prüfung von selbst nicht mehr.
+    const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard-firma.html'), 'utf8')
+    if (!/bei jeder Anzeige/.test(html)) return
+    const quelle = fs.readFileSync(path.join(__dirname, '..', 'js', 'job-detail.js'), 'utf8')
+    expect(quelle,
+      'das Feld verspricht „bei jeder Anzeige", die Anzeigenseite kennt ueber_mich aber nicht')
+      .toContain('ueber_mich')
+  })
+})

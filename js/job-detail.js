@@ -57,6 +57,37 @@ async function ladeBewertungenHtml(firmaId) {
   </section>`
 }
 
+// „Wer wir sind" - der Text, den die Firma in ihrem Profil schreibt.
+//
+// Das Feld im Firmen-Dashboard sagt darunter woertlich: „Steht auf
+// deiner Firmenseite UND BEI JEDER ANZEIGE. Fuer Schueler ist das oft
+// die einzige Moeglichkeit, vorher zu erfahren, bei wem sie sich
+// bewerben." Am 11.9.2026 nachgesehen: `ueber_mich` kam in job-detail.js
+// ueberhaupt nicht vor. Die zweite Haelfte des Satzes war schlicht
+// falsch - und zwar die, auf die es ankommt: Die Firmenseite muss man
+// erst aufrufen, die Anzeige liest man ohnehin.
+//
+// Der Text kommt aus der Sicht `firmen_oeffentlich`, genau wie auf der
+// Firmenseite. Gibt es sie noch nicht (supabase/firma-oeffentlich.sql
+// nicht eingespielt), liefert Supabase einen Fehler statt Daten - dann
+// bleibt der Abschnitt einfach weg. Ein Schueler soll nichts von einer
+// halbfertigen Baustelle mitbekommen.
+//
+// Die Sicht zeigt nur freigegebene Firmen. Was hier steht, ist also
+// geprueft - anders als der Anzeigentext, den die Firma frei schreibt.
+async function firmenVorstellungHtml(firmaId) {
+  if (!firmaId) return ''
+  const { data } = await supabase
+    .from('firmen_oeffentlich').select('ueber_mich').eq('id', firmaId).maybeSingle()
+  const text = data?.ueber_mich
+  if (!text || !text.trim()) return ''
+  return `
+    <section>
+      <h2>Wer wir sind</h2>
+      <p style="white-space:pre-wrap;">${escapeHtml(text.trim())}</p>
+    </section>`
+}
+
 // Wie alt ist die Anzeige? Eine Stelle von vor einem halben Jahr ist
 // meist längst vergeben - das sollte man sehen, bevor man Zeit in eine
 // Bewerbung steckt.
@@ -160,7 +191,10 @@ async function ladeJob() {
 
   // Aufruf zählen + Titel/Meta für Teilen setzen
   supabase.rpc('job_aufruf_zaehlen', { p_job: id })
-  const bewertungenHtml = await ladeBewertungenHtml(job.firma_id)
+  const [bewertungenHtml, vorstellungHtml] = await Promise.all([
+    ladeBewertungenHtml(job.firma_id),
+    firmenVorstellungHtml(job.firma_id),
+  ])
 
   // Strukturierte Daten (schema.org JobPosting) -> Google-Jobs-Auffindbarkeit
   //
@@ -268,6 +302,8 @@ async function ladeJob() {
       <h2>Beschreibung</h2>
       ${beschreibungHtml(job.beschreibung)}
     </section>
+
+    ${vorstellungHtml}
 
     ${bewertungenHtml}
 
