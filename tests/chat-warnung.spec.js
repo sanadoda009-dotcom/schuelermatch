@@ -123,3 +123,69 @@ test('jede Warnart hat einen Text', async ({ page }) => {
   })
   expect(fehlt).toEqual([])
 })
+
+/* Was den Eltern versprochen wird (13.9.2026).
+ *
+ * `eltern.html` sagt wörtlich: „Fragt jemand im Chat nach der
+ * Handynummer, nach Vorauszahlungen oder nach einem Treffen allein,
+ * blendet die Seite von selbst eine Warnung ein."
+ *
+ * Nachgemessen mit realistischen Nachrichten: Die Hälfte blieb stumm.
+ *   - Erkannt wurde, wer selbst eine Nummer HINSCHREIBT – nicht, wer
+ *     danach FRAGT. „Gib mir mal deine Handynummer" löste nichts aus.
+ *   - „Vorauszahlung" stand nicht in der Liste, ausgerechnet das Wort
+ *     der Eltern-Seite. Auch „im Voraus zahlen" nicht, obwohl die
+ *     Warnung selbst so formuliert ist.
+ *   - „Allein treffen" und „unter vier Augen" wurden nicht erkannt.
+ *
+ * Die Grundhaltung oben bleibt: kein Fehlalarm bei normalen Absprachen.
+ * Die Liste HARMLOS läuft unverändert weiter, und die neuen Regeln haben
+ * eigene Gegenproben – darunter die Beruhigungen, die ein seriöser
+ * Arbeitgeber zu genau diesen Themen schreibt.
+ */
+test.describe('was eltern.html verspricht', () => {
+  const VERSPROCHEN = [
+    ['kontakt', 'Gib mir mal deine Handynummer'],
+    ['kontakt', 'Kannst du mir deine Nummer schicken?'],
+    ['kontakt', 'Was ist deine Telefonnummer?'],
+    ['kontakt', 'Schick mir deine private E-Mail'],
+    ['geld', 'Für die Anmeldung brauchen wir eine Vorauszahlung von 30 Euro'],
+    ['geld', 'Du müsstest 20 € im Voraus zahlen'],
+    ['geld', 'Bitte vorab 15 Euro bezahlen'],
+    ['treffen', 'Wir können uns auch allein treffen'],
+    ['treffen', 'Treffen wir uns unter vier Augen'],
+    ['treffen', 'Ich hol dich allein ab'],
+  ]
+  for (const [art, text] of VERSPROCHEN) {
+    test(`${art}: „${text.slice(0, 40)}"`, async ({ page }) => {
+      expect(await warnung(page, text)).toBe(art)
+    })
+  }
+
+  const GEGENPROBEN = [
+    'Bezahlt wird am Monatsende',
+    'Ich zahle dir den Lohn bar aus',
+    'Wir treffen uns im Laden, meine Kollegin ist auch da',
+    'Deine Eltern können gerne mitkommen',
+    'Die Adresse vom Laden ist Hauptstraße 5',
+    'Meine Nummer steht im Profil',
+    'Vorab musst du nichts zahlen',
+    'Du musst nicht allein arbeiten, wir treffen uns als Team',
+    'Wie viele Stunden kannst du vorab schon sagen?',
+  ]
+  for (const text of GEGENPROBEN) {
+    test(`keine Warnung: „${text.slice(0, 40)}"`, async ({ page }) => {
+      expect(await warnung(page, text), 'Fehlalarm').toBeNull()
+    })
+  }
+
+  test('die Eltern-Seite verspricht noch genau diese drei Fälle', async () => {
+    // Ändert sich der Satz dort, gehören die Fälle oben neu gefasst.
+    const fs = require('fs')
+    const path = require('path')
+    const html = fs.readFileSync(path.join(__dirname, '..', 'eltern.html'), 'utf8')
+    expect(html).toMatch(/nach der Handynummer/)
+    expect(html).toMatch(/Vorauszahlungen/)
+    expect(html).toMatch(/Treffen allein/)
+  })
+})

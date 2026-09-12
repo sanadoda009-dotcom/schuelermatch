@@ -41,14 +41,49 @@ export function warnungFuer(text) {
   // Andere Messenger sind gemeint als „lass uns woanders schreiben".
   if (/\b(whatsapp|telegram|snapchat|instagram|insta|tiktok|discord|signal)\b/.test(t)) return 'kontakt'
 
+  // Nach DEINER Nummer oder Adresse fragen, ohne selbst eine zu nennen.
+  //
+  // eltern.html verspricht wörtlich eine Warnung, wenn „jemand im Chat
+  // nach der Handynummer fragt". Erkannt wurde bis zum 12.9.2026 aber
+  // nur, wer selbst eine Nummer oder Adresse hinschreibt – „Gib mir mal
+  // deine Handynummer" blieb stumm. Das Wort allein reicht nicht („meine
+  // Nummer steht im Profil" ist harmlos); gewarnt wird, wenn nach der
+  // Nummer des Gegenübers gefragt wird.
+  if (/(deine|ihre|eure)\s+(handy|telefon)?-?(nummer|nr\b)/.test(t)) return 'kontakt'
+  if (/(deine|ihre|eure)\s+(private[n]?\s+)?(e-?mail|mailadresse|adresse|anschrift)/.test(t)) return 'kontakt'
+
   // --- Geld --------------------------------------------------------
   // Wortgrenzen kennen in JavaScript nur ASCII und greifen vor ü/ä/ö
   // nicht, darum hier bewusst ohne. Die Begriffe sind eindeutig genug.
-  if (/(vorkasse|anzahlung|kaution|gebühr|überweis|paypal|gutschein|amazon-?karte)/.test(t)) return 'geld'
+  //
+  // „Vorauszahlung" selbst stand bis zum 12.9.2026 nicht in der Liste –
+  // ausgerechnet das Wort, mit dem eltern.html die Warnung verspricht.
+  // Ebenso fehlten „im Voraus zahlen" und „vorab bezahlen", obwohl die
+  // Warnung selbst genau so formuliert ist („nie im Voraus zahlen").
+  // Nicht jedes „zahlen" ist gemeint – Lohn wird auch bezahlt. Gewarnt
+  // wird nur, wenn die Zahlung VOR dem Job liegen soll.
+  if (/(vorkasse|anzahlung|vorauszahlung|kaution|gebühr|überweis|paypal|gutschein|amazon-?karte)/.test(t)) return 'geld'
+  //
+  // Die Beruhigung „Vorab musst du nichts zahlen" soll dabei nichts
+  // auslösen – das ist der natürlichste Satz eines seriösen
+  // Arbeitgebers zu genau diesem Thema. Deshalb zählt die Stelle nur,
+  // wenn zwischen „vorab" und „zahlen" keine Verneinung steht.
+  const vorab = t.match(/(im voraus|vorab)\s+((?:\S+\s+){0,3})(zahl|bezahl|schick)/)
+    || t.match(/(zahl|bezahl)\S*\s+((?:\S+\s+){0,3})(im voraus|vorab)/)
+  if (vorab && !/\b(nicht|nichts|kein|keine|nie)\b/.test(vorab[2])) return 'geld'
 
   // --- Treffen unter vier Augen ------------------------------------
-  if (/(zu mir nach haus|bei mir zuhause|bei mir zu haus|meine wohnung|komm allein|ganz allein)/.test(t))
+  //
+  // eltern.html sagt „Treffen allein". Erkannt wurden bis zum 12.9.2026
+  // nur feste Wendungen wie „komm allein"; „wir können uns auch allein
+  // treffen" und „unter vier Augen" blieben stumm. Ein Treffen im Laden
+  // mit Kolleginnen soll dagegen nichts auslösen – deshalb braucht es
+  // beides: das Treffen UND das Alleinsein.
+  if (/(zu mir nach haus|bei mir zuhause|bei mir zu haus|meine wohnung|komm allein|ganz allein|unter vier augen)/.test(t))
     return 'treffen'
+  // „Du musst nicht allein arbeiten" ist das Gegenteil einer Gefahr.
+  if (/allein/.test(t) && !/nicht\s+allein/.test(t)
+      && /(treffen|triff|vorbeikomm|abhol|hol\S*\s+dich)/.test(t)) return 'treffen'
 
   return null
 }
