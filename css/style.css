@@ -1926,6 +1926,20 @@ input, textarea, select, code, .mono, [class*="chip"], .job-badge {
   hyphens: none;
 }
 
+/* Knopf-Beschriftungen nie mitten im Wort trennen (13.9.2026).
+   Die Regel darüber schloss `button` ausdrücklich ein – gedacht für lange
+   Wörter am schmalen Rand. Getroffen hat sie aber kurze Beschriftungen in
+   engen Knöpfen: „Sen-den" im Chat der Firma, „Zu-rück" im Chat des
+   Schülers, „Schü-ler-Verifi-zie-rung" in den Admin-Reitern, auf 320px
+   „Arbeit-geber" bei der Anmeldung. Drei davon an einem Tag einzeln
+   geflickt; das hier ist die Ursache. Ein Knopf bricht an Leerzeichen um,
+   nicht in der Silbe.
+   Fließtext in anklickbaren Karten (<p> in einem [role=button]) bleibt
+   bewusst getrennt – das ist Text, keine Beschriftung. */
+button, .btn, button > span, button > b, .btn > span {
+  hyphens: manual;
+}
+
 /* 2) Kategorie-Kacheln: Grid-Kinder dürfen schrumpfen, sonst sprengen
       lange Wörter wie "Organisation" das Raster. */
 .kat-tile { min-width: 0; }

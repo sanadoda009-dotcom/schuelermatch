@@ -109,3 +109,53 @@ test('nichts läuft seitlich aus dem Kasten', async ({ page }) => {
     expect(ueber, `${seite}: läuft über`).toEqual([])
   }
 })
+
+/* Knopf-Beschriftungen werden nicht mitten im Wort getrennt (13.9.2026).
+ *
+ * Die Regel oben schloss `button` ausdrücklich ein. Getroffen hat sie
+ * kurze Beschriftungen in engen Knöpfen: „Sen-den" im Chat der Firma,
+ * „Zu-rück" im Chat des Schülers, „Schü-ler-Verifi-zie-rung" in den
+ * Admin-Reitern, auf 320px „Arbeit-geber" bei der Anmeldung. Drei davon
+ * wurden an einem Tag einzeln geflickt, bevor die Ursache dran war.
+ *
+ * Gemessen wird wie ein Leser: Steht ein einzelnes Wort eines Knopfes
+ * auf mehr als einer Zeile?
+ */
+const GETRENNTE_WOERTER = () => {
+  const raus = []
+  document.querySelectorAll('button, .btn').forEach(b => {
+    if (!b.getBoundingClientRect().width || getComputedStyle(b).visibility === 'hidden') return
+    const w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT)
+    let n
+    while ((n = w.nextNode())) {
+      for (const wort of n.textContent.split(/\s+/).filter(x => x.length > 3)) {
+        const i = n.textContent.indexOf(wort)
+        const r = document.createRange()
+        r.setStart(n, i); r.setEnd(n, i + wort.length)
+        const tops = [...r.getClientRects()].map(k => k.top)
+        if (tops.length > 1 && Math.max(...tops) - Math.min(...tops) > 4) raus.push(wort)
+      }
+    }
+  })
+  return raus
+}
+
+test.describe('Knöpfe trennen nicht', () => {
+  for (const seite of ['/login.html', '/register.html', '/jobs.html', '/job-finder.html']) {
+    test(`keine Knopf-Beschriftung mitten im Wort getrennt: ${seite}`, async ({ page }) => {
+      await page.goto(seite)
+      await page.waitForTimeout(600)
+      expect(await page.evaluate(GETRENNTE_WOERTER)).toEqual([])
+    })
+  }
+
+  test('die Regel selbst: Knöpfe manuell, Fließtext automatisch', async ({ page }) => {
+    await page.goto('/register.html')
+    const s = await page.evaluate(() => ({
+      knopf: getComputedStyle(document.querySelector('button')).hyphens,
+      text: getComputedStyle(document.querySelector('p')).hyphens,
+    }))
+    expect(s.knopf).toBe('manual')
+    expect(s.text, 'Fließtext muss weiter getrennt werden').toBe('auto')
+  })
+})
