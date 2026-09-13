@@ -217,6 +217,14 @@ a:focus-visible, button:focus-visible, .btn:focus-visible {
 
 /* SECTIONS */
 section { padding: 130px 24px; }
+/* Die 130px sind für die großen Abschnitte der Startseite gedacht. In
+   den Arbeitsbereichen erbte sie jedes <section> mit – in der Ansicht
+   „Bewerbungen" stand deshalb unter den Filtern ein leerer Streifen,
+   und jede Anzeigen-Gruppe war seitlich eingerückt (13.9.2026, von
+   Sanad als Bildschirmfoto gemeldet). Ebenso die Reiter im
+   Betreiber-Bereich. `:where` hält die Regel ohne Gewicht: Eine eigene
+   Klasse wie `.alarm-karte` behält ihren Innenabstand. */
+:where(.jobs-page, .admin-wrap) section { padding: 0; }
 .section-head { max-width: 600px; margin: 0 auto 50px; text-align: center; }
 .section-head .eyebrow-light {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--coral);
@@ -849,8 +857,49 @@ footer .logo { color: white; }
 /* BEWERBER-LISTE (Firmen-Dashboard) */
 .bewerber-list { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
 .bewerber-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--ink-soft); margin-bottom: 10px; }
-.bewerber-item { font-size: 0.85rem; padding: 10px; background: var(--paper); border-radius: 8px; margin-bottom: 8px; }
-.bewerber-item a { color: var(--match-green-dark); }
+/* Eine Bewerbung als Karte: links wer, rechts was man tun kann.
+   Vorher Seitenfarbe ohne Kante und Knöpfe über die volle Breite –
+   siehe den Kommentar an bewerberItemHtml in js/dashboard-firma.js. */
+.bewerber-item {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 14px 24px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px 18px; margin-bottom: 10px; font-size: 0.9rem;
+}
+.bew-person { display: flex; gap: 14px; align-items: flex-start; flex: 1 1 340px; min-width: 0; }
+.bewerber-item .bew-foto { width: 44px; height: 44px; font-size: 1.05rem; }
+.bew-angaben { min-width: 0; }
+.bew-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.bew-name strong { font-size: 1rem; color: var(--ink); }
+.bew-meta { color: var(--ink-soft); font-size: 0.85rem; }
+.bew-marken { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.bew-marken .signal, .bew-marken .status-badge { margin-left: 0; }
+.bew-kontakt {
+  display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 8px;
+  font-size: 0.8rem; color: var(--ink-soft);
+}
+.bew-kontakt a { color: var(--match-green-dark); overflow-wrap: anywhere; }
+.bew-aktionen { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.bew-unterlagen, .bew-entscheidung { display: flex; flex-wrap: wrap; gap: 8px; }
+.bew-knopf { padding: 9px 16px; font-size: 0.85rem; min-height: 40px; white-space: nowrap; }
+.bew-ablehnen { color: var(--coral); }
+/* Die Gründe beim Ablehnen treten an die Stelle der zwei Knöpfe und
+   brauchen die ganze Breite der Karte. */
+.bew-aktionen .absage-gruende { flex: 1 1 100%; max-width: 560px; }
+.bewerber-item:has(.absage-gruende) { align-items: flex-start; }
+.bewerber-item:has(.absage-gruende) .bew-aktionen {
+  flex: 1 1 100%; justify-content: flex-start;
+  padding: 14px 0 0 58px; border-top: 1px solid var(--line);
+}
+/* Beim Wählen eines Grundes lenkt der Lebenslauf-Knopf nur ab; „Doch
+   nicht" zeichnet die Karte neu und bringt ihn zurück. */
+.bewerber-item:has(.absage-gruende) .bew-unterlagen { display: none; }
+@media (max-width: 720px) {
+  .bew-aktionen { flex: 1 1 100%; justify-content: stretch; }
+  .bew-unterlagen, .bew-entscheidung { flex: 1 1 100%; }
+  .bew-knopf { flex: 1 1 0; min-height: 44px; }
+  .bewerber-item:has(.absage-gruende) .bew-aktionen { padding-left: 0; }
+}
 .cv-block { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 0.82rem; }
 .status-badge {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;

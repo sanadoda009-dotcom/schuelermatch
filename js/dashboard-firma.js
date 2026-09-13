@@ -525,32 +525,58 @@ async function loescheJob(jobId, btn) {
 
 // Eine einzelne Bewerbung. Steht seit dem 2.9.2026 in der eigenen
 // Ansicht "Bewerbungen" statt eingeschachtelt in der Anzeigenliste.
+//
+// Aufbau neu am 13.9.2026. Die Einträge waren noch für ihren alten Platz
+// gebaut - klein, eingeschachtelt in einer schmalen Anzeigen-Karte, mit
+// Knöpfen auf `flex:1`. In der breiten eigenen Ansicht wurden daraus
+// Balken über die ganze Seite, allen voran ein schwarzer „Lebenslauf
+// (PDF)", der jede Bewerbung erschlug. Und der Eintrag hatte die Farbe
+// der Seite, also keine Kante: Bewerbungen liefen ineinander.
+//
+// Jetzt eine Karte mit zwei Seiten: links, WER sich beworben hat (und
+// in welchem Stand), rechts, was man damit TUN kann. Der Status steht
+// vorn, weil er als Erstes zählt; die Knöpfe sind so breit wie ihr Text.
 function bewerberItemHtml(b, job) {
   const foto = sichereMediaUrl(b.bewerber.foto_url)
   const signale = bewerberSignale(b.bewerber, b)
+  const status = b.status || 'ausstehend'
+  const meta = [
+    b.bewerber.alter_jahre ? `${b.bewerber.alter_jahre} Jahre` : null,
+    b.bewerber.ort ? escapeHtml(b.bewerber.ort) : null,
+  ].filter(Boolean).join(' · ')
+  const daten = `data-email="${escapeHtml(b.bewerber.email || '')}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}"`
   return `
     <div class="bewerber-item">
-      <div style="display:flex; gap:10px; align-items:center;">
-        <div class="cv-photo-preview" style="width:40px; height:40px; font-size:1rem; ${foto ? `background-image:url('${foto}')` : ''}">${foto ? '' : escapeHtml((b.bewerber.name || '?')[0].toUpperCase())}</div>
-        <div>
-          <strong>${escapeHtml(b.bewerber.name || 'Unbekannt')}</strong>, ${b.bewerber.alter_jahre || '?'} Jahre – ${escapeHtml(b.bewerber.ort || '')}
-          ${signale.map(sig => `<span class="signal ${sig.klasse}"><span class="signal-punkt"></span>${sig.text}</span>`).join('')}
-          <span class="status-badge status-${escapeHtml(b.status || 'ausstehend')}">${statusLabel(b.status)}</span><br>
-          <a href="mailto:${escapeHtml(b.bewerber.email || '')}" class="mono">${escapeHtml(b.bewerber.email || '')}</a>
-          ${b.erstellt_am ? `<span class="mono" style="font-size:0.68rem; color:var(--ink-soft);"> · beworben am ${new Date(b.erstellt_am).toLocaleDateString('de-DE')}</span>` : ''}
+      <div class="bew-person">
+        <div class="cv-photo-preview bew-foto" ${foto ? `style="background-image:url('${foto}')"` : ''}>${foto ? '' : escapeHtml((b.bewerber.name || '?')[0].toUpperCase())}</div>
+        <div class="bew-angaben">
+          <div class="bew-name">
+            <strong>${escapeHtml(b.bewerber.name || 'Unbekannt')}</strong>
+            ${meta ? `<span class="bew-meta">${meta}</span>` : ''}
+          </div>
+          <div class="bew-marken">
+            <span class="status-badge status-${escapeHtml(status)}">${statusLabel(b.status)}</span>
+            ${signale.map(sig => `<span class="signal ${sig.klasse}"><span class="signal-punkt"></span>${sig.text}</span>`).join('')}
+          </div>
+          <div class="bew-kontakt">
+            <a href="mailto:${escapeHtml(b.bewerber.email || '')}">${escapeHtml(b.bewerber.email || '')}</a>
+            ${b.erstellt_am ? `<span>beworben am ${new Date(b.erstellt_am).toLocaleDateString('de-DE')}</span>` : ''}
+          </div>
         </div>
       </div>
-      <div style="display:flex; gap:8px; margin-top:10px;">
-        <button class="btn btn-dark" style="flex:1; padding:8px; font-size:0.82rem;" data-pdf-id="${b.id}">Lebenslauf (PDF)</button>
-        ${b.zeugnis_url ? `<button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem;" data-zeugnis-id="${b.id}">Zeugnis</button>` : ''}
+      <div class="bew-aktionen">
+        <div class="bew-unterlagen">
+          <button type="button" class="btn btn-outline bew-knopf" data-pdf-id="${b.id}">Lebenslauf</button>
+          ${b.zeugnis_url ? `<button type="button" class="btn btn-outline bew-knopf" data-zeugnis-id="${b.id}">Zeugnis</button>` : ''}
+        </div>
+        ${status === 'ausstehend' ? `
+        <div class="bew-entscheidung">
+          <button type="button" class="btn btn-outline bew-knopf bew-ablehnen" data-status-id="${b.id}" data-status-wert="abgelehnt" ${daten}>Ablehnen</button>
+          <button type="button" class="btn btn-green bew-knopf" data-status-id="${b.id}" data-status-wert="angenommen" ${daten}>Annehmen</button>
+        </div>` : ''}
+        ${b.status === 'angenommen' ? `
+        <button type="button" class="btn btn-green bew-knopf" data-chat="${b.id}" data-chat-name="${escapeHtml(b.bewerber.name || 'Bewerber')}">💬 Nachricht schreiben</button>` : ''}
       </div>
-      ${(b.status || 'ausstehend') === 'ausstehend' ? `
-      <div style="display:flex; gap:8px; margin-top:8px;">
-        <button class="btn btn-green" style="flex:1; padding:8px; font-size:0.82rem;" data-status-id="${b.id}" data-status-wert="angenommen" data-email="${escapeHtml(b.bewerber.email || '')}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}">Annehmen</button>
-        <button class="btn btn-outline" style="flex:1; padding:8px; font-size:0.82rem; color:var(--coral);" data-status-id="${b.id}" data-status-wert="abgelehnt" data-email="${escapeHtml(b.bewerber.email || '')}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}">Ablehnen</button>
-      </div>` : ''}
-      ${b.status === 'angenommen' ? `
-      <button class="btn btn-green btn-full" style="margin-top:8px; padding:8px; font-size:0.82rem;" data-chat="${b.id}" data-chat-name="${escapeHtml(b.bewerber.name || 'Bewerber')}">💬 Nachricht schreiben</button>` : ''}
     </div>`
 }
 
