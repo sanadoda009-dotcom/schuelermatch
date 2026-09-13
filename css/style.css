@@ -1226,6 +1226,23 @@ footer .logo { color: white; }
 .bew-schritt.gruen { color: var(--match-green-dark); font-weight: 600; }
 .bew-linie { flex: 1; min-width: 18px; max-width: 70px; height: 2px; background: var(--line); border-radius: 2px; }
 .bew-linie.done { background: var(--match-green); }
+
+/* Auf dem Handy senkrecht (13.9.2026).
+   Nebeneinander passten die drei Schritte schon auf 390px nicht: Der
+   letzte brach um, die Verbindungslinien hingen lose am Zeilenende oder
+   standen allein am Anfang der nächsten Zeile. Mit „Wartet auf die
+   Firma" oder „Diesmal nicht geklappt" samt Datum erst recht. Senkrecht
+   liest es sich außerdem wie das, was es ist: eine Abfolge.
+   Die Linie sitzt mittig unter dem 22px großen Punkt. */
+@media (max-width: 520px) {
+  .bew-timeline { flex-direction: column; align-items: flex-start; gap: 2px; flex-wrap: nowrap; }
+  .bew-linie { flex: none; width: 2px; height: 10px; min-width: 0; max-width: none; margin-left: 10px; }
+  .bew-schritt { white-space: normal; }
+  .bew-schritt em { display: inline; margin: 0 0 0 6px; }
+  /* Die drei Zahlen passen nebeneinander, statt eine allein umzubrechen. */
+  .bew-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .bew-stats > div { min-width: 0; padding: 12px 12px; }
+}
 .bew-trost { margin: 12px 0 0; font-size: 0.85rem; color: var(--ink-soft); background: var(--paper); border-radius: 10px; padding: 10px 14px; }
 
 /* ============================================================
