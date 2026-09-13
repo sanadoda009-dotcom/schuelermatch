@@ -37,8 +37,9 @@ for (const [rolle, user, url] of [['Schüler', SCHUELER, '/dashboard-schueler.ht
       })
       expect(m.hoehe, 'Kopfzeile umgebrochen').toBeLessThan(100)
       // 44px wie überall im Projekt. Die erste Fassung der Korrektur machte
-      // den Knopf 39px hoch – diese Zeile hat es gefangen; tests/tippziele-
-      // mobil.spec.js misst auf 412px und sieht die Regel bis 400px nicht.
+      // den Knopf in dieser Desktop-Messung 39px hoch – diese Zeile hat es
+      // gefangen. (Auf dem emulierten Android-Gerät waren es 44px; die
+      // Mindesthöhe sitzt jetzt trotzdem fest.)
       expect(m.logout, 'Logout groß genug zum Tippen').toBeGreaterThanOrEqual(44)
     })
   }

@@ -146,3 +146,38 @@ test('Tippziele gross genug: Admin-Bereich', async ({ page }) => {
   await page.waitForTimeout(800)
   expect(await page.evaluate(PRUEFUNG)).toEqual([])
 })
+
+// Dieselbe Prüfung auf 360px (13.9.2026).
+//
+// Das Pixel 7 dieses Projekts ist 412px breit. Regeln, die nur für
+// schmalere Handys gelten (@media bis 400px), sah diese Datei deshalb gar
+// nicht. Anlass war ein verkleinerter Logout-Knopf für 360px. (Er war nur
+// in der Desktop-Messung 39px hoch; auf dem emulierten Android-Gerät
+// rendert die Schrift höher, dort waren es 44px – kein echter Fehler.)
+// 360px ist die schmalste gängige Breite; die wichtigsten Seiten stehen
+// hier deshalb ein zweites Mal.
+//
+// Gegenprobe beim Einbau: Ohne die Mindesthöhe der Admin-Reiter meldet
+// dieser Block „button.admin-tab ist nur 184x43".
+test.describe('auf 360px', () => {
+  test.use({ viewport: { width: 360, height: 740 } })
+
+  for (const [name, pfad, user, warte, db] of [
+    ['Jobbörse', '/jobs.html', null],
+    ['Job-Detail', '/job.html?id=aaaaaaaa-0000-4000-8000-000000000001', null],
+    ['Schüler-Dashboard', '/dashboard-schueler.html', SCHUELER, warteAufDashboard,
+      () => defaultDb({ profiles: [profilZeile(SCHUELER, { verifiziert: true }), profilZeile(FIRMA)] })],
+    ['Firmen-Dashboard', '/dashboard-firma.html', FIRMA, warteAufDashboard,
+      () => defaultDb({ profiles: [profilZeile(FIRMA)] })],
+    ['Admin-Bereich', '/admin.html', ADMIN, warteAufAdmin,
+      () => defaultDb({ profiles: [profilZeile(ADMIN, { ist_admin: true }), profilZeile(SCHUELER), profilZeile(FIRMA)] })],
+  ]) {
+    test(`Tippziele groß genug: ${name}`, async ({ page }) => {
+      await setupDashboard(page.context(), user ? { user, db: db() } : {})
+      await page.goto(pfad)
+      if (warte) await warte(page)
+      await page.waitForTimeout(1500)
+      expect(await page.evaluate(PRUEFUNG)).toEqual([])
+    })
+  }
+})
