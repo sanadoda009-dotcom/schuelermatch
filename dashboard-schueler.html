@@ -326,22 +326,31 @@
       <div id="verify-banner-2"></div>
     </div>
 
+    <!-- Alles mit data-nur-unverifiziert verschwindet, sobald das Konto
+         verifiziert ist (js/dashboard-schueler.js, renderVerifyStatus).
+         Bis zum 13.9.2026 stand das Upload-Angebot auch dann noch da –
+         unter „✓ Als Schüler verifiziert" ein grüner Knopf
+         „Schülerausweis hochladen" und der Satz „Wir prüfen deine
+         Unterlagen … und schalten dich frei". Ein Ausweis, der dann
+         hochgeladen wird, prüft niemand mehr, und er bleibt liegen. -->
     <div class="post-job-box" style="max-width:640px;">
-      <h3 style="margin-bottom:6px;">Option 1: Schülerausweis</h3>
-      <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:16px;">Lade ein Foto deines Schülerausweises hoch.</p>
+      <p id="verify-fertig" class="verify-fertig" hidden>Du musst nichts mehr hochladen.</p>
+
+      <h3 style="margin-bottom:6px;" data-nur-unverifiziert>Option 1: Schülerausweis</h3>
+      <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:16px;" data-nur-unverifiziert>Lade ein Foto deines Schülerausweises hoch.</p>
       <input type="file" id="ausweis-datei" aria-label="Schülerausweis auswählen" accept="image/*,application/pdf" style="display:none;">
-      <button type="button" id="ausweis-btn" class="btn btn-green">Schülerausweis hochladen</button>
+      <button type="button" id="ausweis-btn" class="btn btn-green" data-nur-unverifiziert>Schülerausweis hochladen</button>
       <p class="mono" id="ausweis-status" style="font-size:0.75rem; color:var(--ink-soft); margin-top:8px;"></p>
 
-      <hr style="border:none; border-top:1px solid var(--line); margin:28px 0;">
+      <hr style="border:none; border-top:1px solid var(--line); margin:28px 0;" data-nur-unverifiziert>
 
-      <h3 style="margin-bottom:6px;">Option 2: Schulbestätigung</h3>
-      <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:16px;">Hast du keinen Schülerausweis? Lade stattdessen eine Bestätigung deiner Schule hoch (z.B. vom Sekretariat unterschrieben).</p>
+      <h3 style="margin-bottom:6px;" data-nur-unverifiziert>Option 2: Schulbestätigung</h3>
+      <p style="color:var(--ink-soft); font-size:0.88rem; margin-bottom:16px;" data-nur-unverifiziert>Hast du keinen Schülerausweis? Lade stattdessen eine Bestätigung deiner Schule hoch (z.B. vom Sekretariat unterschrieben).</p>
       <input type="file" id="bestaetigung-datei" aria-label="Schulbestätigung auswählen" accept="image/*,application/pdf" style="display:none;">
-      <button type="button" id="bestaetigung-btn" class="btn btn-outline">Schulbestätigung hochladen</button>
+      <button type="button" id="bestaetigung-btn" class="btn btn-outline" data-nur-unverifiziert>Schulbestätigung hochladen</button>
       <p class="mono" id="bestaetigung-status" style="font-size:0.75rem; color:var(--ink-soft); margin-top:8px;"></p>
 
-      <p style="color:var(--ink-soft); font-size:0.82rem; margin-top:24px;">Wir prüfen deine Unterlagen manuell und schalten dich meist innerhalb weniger Stunden frei.</p>
+      <p style="color:var(--ink-soft); font-size:0.82rem; margin-top:24px;" data-nur-unverifiziert>Wir prüfen deine Unterlagen manuell und schalten dich meist innerhalb weniger Stunden frei.</p>
     </div>
   </div>
 

@@ -613,6 +613,10 @@ section { padding: 130px 24px; }
 .verify-badge--ok { background: rgba(0,200,150,0.1); color: var(--match-green-dark); border: 1px solid rgba(0,200,150,0.25); }
 .verify-badge--pending { background: rgba(255,193,7,0.12); color: #a67c00; border: 1px solid rgba(255,193,7,0.3); }
 .verify-badge--missing { background: rgba(165,68,44,0.1); color: var(--coral); border: 1px solid rgba(165,68,44,0.25); }
+/* Verifiziert: kein Upload-Angebot mehr (13.9.2026). `hidden` allein
+   reicht nicht, weil .btn eine eigene display-Angabe hat. */
+[data-nur-unverifiziert][hidden], .verify-fertig[hidden] { display: none; }
+.verify-fertig { margin: 0; font-size: 0.92rem; color: var(--ink); line-height: 1.55; }
 
 /* DASHBOARD STATS */
 .stats-row { display: flex; gap: 14px; margin-top: 20px; flex-wrap: wrap; }

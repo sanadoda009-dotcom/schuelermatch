@@ -96,6 +96,62 @@ test.describe('eingeloggt', () => {
     await expect(page.getByRole('button', { name: 'Schülerausweis hochladen' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Schulbestätigung hochladen' })).toBeVisible()
   })
+
+  /* Wer verifiziert ist, wird nicht mehr um einen Ausweis gebeten (13.9.2026).
+   *
+   * Beim Durchfotografieren aller Ansichten gefunden: Unter „✓ Als Schüler
+   * verifiziert" stand weiter ein grüner Knopf „Schülerausweis
+   * hochladen" und darunter „Wir prüfen deine Unterlagen manuell und
+   * schalten dich meist innerhalb weniger Stunden frei". Zwei Aussagen,
+   * die sich widersprechen – und ein Weg, den Ausweis eines
+   * Minderjährigen in eine Ablage zu legen, in der ihn niemand mehr
+   * prüft. Im Betreiber-Bereich zählt er dann nur unter „Ausweis liegt
+   * noch da".
+   */
+  function verifiziertDb(extra = {}) {
+    return defaultDb({ profiles: [profilZeile(SCHUELER, { verifiziert: true, ...extra })] })
+  }
+
+  test('verifiziert: kein Upload-Angebot und kein „wir prüfen"', async ({ page }) => {
+    await setupDashboard(page.context(), { user: SCHUELER, db: verifiziertDb() })
+    await page.goto('/dashboard-schueler.html')
+    await navigate(page, 'verifizierung')
+    const ansicht = page.locator('#view-verifizierung')
+    await expect(ansicht).toContainText('nichts mehr hochladen')
+    await expect(page.getByRole('button', { name: 'Schülerausweis hochladen' })).toBeHidden()
+    await expect(page.getByRole('button', { name: 'Schulbestätigung hochladen' })).toBeHidden()
+    // Sichtbarkeit, nicht Textinhalt: Ausgeblendeter Text zählt für
+    // toContainText weiter mit.
+    await expect(ansicht.getByText('Wir prüfen deine Unterlagen')).toBeHidden()
+  })
+
+  test('verifiziert mit altem Dokument: das Löschen bleibt möglich', async ({ page }) => {
+    // Genau so sind die zwei liegengebliebenen Ausweise vom Juli
+    // entstanden. Der Schüler soll sie selbst wegräumen können.
+    await setupDashboard(page.context(), {
+      user: SCHUELER, db: verifiziertDb({ schuelerausweis_url: `${SCHUELER.id}/ausweis.jpg` }),
+    })
+    await page.goto('/dashboard-schueler.html')
+    await navigate(page, 'verifizierung')
+    await expect(page.locator('#view-verifizierung')).toContainText('wir brauchen es nicht mehr')
+    await expect(page.locator('#ausweis-status .dok-loeschen')).toBeVisible()
+  })
+
+  test('verifiziert: auch ein Upload über das Dateifeld wird nicht angenommen', async ({ page }) => {
+    await setupDashboard(page.context(), { user: SCHUELER, db: verifiziertDb() })
+    const hochgeladen = []
+    await page.route('**/storage/v1/object/**', route => {
+      if (route.request().method() !== 'GET') hochgeladen.push(route.request().url())
+      return route.fallback()
+    })
+    await page.goto('/dashboard-schueler.html')
+    await navigate(page, 'verifizierung')
+    await page.locator('#ausweis-datei').setInputFiles({
+      name: 'ausweis.jpg', mimeType: 'image/jpeg', buffer: Buffer.from('ffd8ffe0', 'hex'),
+    })
+    await expect(page.locator('.toast').last()).toContainText('schon verifiziert')
+    expect(hochgeladen).toEqual([])
+  })
 })
 
 test.describe('Bewerbungs-Flow', () => {

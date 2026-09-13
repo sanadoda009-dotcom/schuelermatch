@@ -982,6 +982,25 @@ function renderVerifyStatus() {
   document.getElementById('verify-banner').innerHTML = badgeHtml
   document.getElementById('verify-banner-2').innerHTML = badgeHtml
 
+  // Verifiziert heißt: nichts mehr hochladen. Bis zum 13.9.2026 stand das
+  // Upload-Angebot trotzdem da, samt „Wir prüfen deine Unterlagen …". Ein
+  // dann hochgeladener Ausweis eines Minderjährigen wird von niemandem
+  // mehr geprüft – im Betreiber-Bereich zählt er nur unter „Ausweis liegt
+  // noch da" – und bleibt in der Ablage.
+  //
+  // Liegt von früher noch ein Dokument da, bleibt die Zeile mit
+  // „Dokument löschen" stehen: Dann kann der Schüler es selbst wegräumen.
+  const verifiziert = Boolean(profile.verifiziert)
+  document.querySelectorAll('[data-nur-unverifiziert]').forEach(el => { el.hidden = verifiziert })
+  const fertig = document.getElementById('verify-fertig')
+  if (fertig) {
+    fertig.hidden = !verifiziert
+    fertig.textContent = (profile.schuelerausweis_url || profile.schulbestaetigung_url)
+      ? 'Dein Konto ist freigeschaltet, du musst nichts mehr hochladen. Unten liegt noch ein '
+        + 'Dokument von dir – wir brauchen es nicht mehr, du kannst es löschen.'
+      : 'Dein Konto ist freigeschaltet, du musst nichts mehr hochladen.'
+  }
+
   setzeDokStatus('ausweis-status', profile.schuelerausweis_url, 'schuelerausweis_url')
   setzeDokStatus('bestaetigung-status', profile.schulbestaetigung_url, 'schulbestaetigung_url')
 }
@@ -1036,6 +1055,15 @@ async function loescheDokument(e) {
 async function ladeVerifizierungsDokument(e, dateiname, spalte) {
   const file = e.target.files[0]
   if (!file) return
+
+  // Die Knöpfe sind für Verifizierte ausgeblendet (renderVerifyStatus).
+  // Das hier fängt den Rest ab: Ein Ausweis, den niemand mehr prüft,
+  // soll gar nicht erst in die Ablage.
+  if (profile.verifiziert) {
+    e.target.value = ''
+    toast('Du bist schon verifiziert – du musst nichts mehr hochladen.', 'info')
+    return
+  }
 
   // Groesse und Dateiart pruefen, bevor etwas losgeschickt wird. Der
   // Bucket lehnt beides ohnehin ab - aber mit einer englischen Meldung.
