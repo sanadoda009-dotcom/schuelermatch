@@ -1478,6 +1478,11 @@ footer .logo { color: white; }
   border-bottom: 1px solid var(--line);
 }
 .ll-zurueck { font-size: 0.85rem; color: var(--ink-soft); text-decoration: none; }
+/* Auf dem Handy reicht „← Zurück": Das Logo daneben führt zum selben Ziel. */
+@media (max-width: 600px) {
+  .ll-zurueck { white-space: nowrap; }
+  .ll-zurueck-lang { display: none; }
+}
 .ll-zurueck:hover { color: var(--ink); }
 .ll-savestatus { margin-left: auto; font-size: 0.72rem; color: var(--ink-soft); }
 
@@ -1549,7 +1554,12 @@ footer .logo { color: white; }
 @media (max-width: 980px) {
   .ll-wrap { grid-template-columns: 1fr; }
   .ll-mobil-toggle {
-    display: flex; gap: 8px; position: sticky; top: 52px; z-index: 55;
+    /* Die Höhe der Kopfzeile misst js/lebenslauf.js (13.9.2026). Fest
+       stand hier 52px – auf dem Handy war die Kopfzeile aber 73 bis 103px
+       hoch, weil „Zurück zum Dashboard" und „Alle Änderungen gespeichert"
+       umbrachen. Beim Scrollen schob sich die Umschaltung darunter; auf
+       360px verschwand sie ganz. */
+    display: flex; gap: 8px; position: sticky; top: var(--ll-kopf-hoehe, 52px); z-index: 55;
     background: var(--paper); padding: 10px 22px;
   }
   .ll-mobil-toggle button {

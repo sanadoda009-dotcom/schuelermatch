@@ -990,4 +990,18 @@ async function ladeBlockBildHoch(blockId, file) {
   geaendert(true)
 }
 
+// Die Umschaltung „Bearbeiten | Vorschau" klebt auf dem Handy unter der
+// Kopfzeile – und zwar unter ihrer TATSÄCHLICHEN Höhe. Die hängt an der
+// Länge der Speichermeldung („⚠ Speichern fehlgeschlagen – …") und an der
+// Bildschirmbreite; ein fester Wert in der CSS stimmte nie für alle.
+function kopfhoeheMerken() {
+  const kopf = document.querySelector('.ll-topbar')
+  if (!kopf) return
+  const setzen = () => document.documentElement.style
+    .setProperty('--ll-kopf-hoehe', Math.ceil(kopf.getBoundingClientRect().height) + 'px')
+  setzen()
+  if ('ResizeObserver' in window) new ResizeObserver(setzen).observe(kopf)
+}
+kopfhoeheMerken()
+
 init()
