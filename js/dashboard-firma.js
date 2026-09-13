@@ -4,7 +4,7 @@ import { hole, zeigeLadefehler, verstaendlich } from './zustand.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
-import { initSidebar } from './sidebar.js'
+import { initSidebar, oeffneAnsichtAusAdresse } from './sidebar.js'
 import { toast } from './toast.js'
 import { ladeChat } from './chat.js'
 import { initGlocke } from './notifications.js'
@@ -182,6 +182,8 @@ async function init() {
   })
 
   await ladeEigeneJobs()
+  // Aus einer E-Mail: direkt in die genannte Ansicht (siehe js/sidebar.js).
+  oeffneAnsichtAusAdresse()
 }
 
 // Zeigt neuen/gesperrten Firmen, dass ihre Jobs (noch) nicht öffentlich sind.

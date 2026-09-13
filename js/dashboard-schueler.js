@@ -4,7 +4,7 @@ import { requireAuth, logout } from './session.js'
 import { dokumentPfad, pfadAusUrl, pruefeDatei, pruefeFuerBucket, verwaisterPfad } from './dokument-pfad.js'
 import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf, erzeugeLebenslaufPdf, lebenslaufAlsBlob } from './pdf.js'
-import { initSidebar } from './sidebar.js'
+import { initSidebar, oeffneAnsichtAusAdresse } from './sidebar.js'
 import { toast } from './toast.js'
 import { ladeChat, zaehleUngelesen } from './chat.js'
 import { initGlocke } from './notifications.js'
@@ -171,6 +171,8 @@ async function init() {
   })
 
   await ladeJobs()
+  // Aus einer E-Mail: direkt in die genannte Ansicht (siehe js/sidebar.js).
+  oeffneAnsichtAusAdresse()
   await oeffneGeteilteAnzeige()
 
   // Nach den Jobs: Die Alarm-Karte sitzt unter der Liste, muss also

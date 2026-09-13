@@ -1,6 +1,26 @@
 import { supabase } from './supabase.js'
 import { pruefeAlter, brauchtEinwilligung } from './jugendschutz.js'
 
+// Das Ziel nach dem Login (13.9.2026).
+//
+// `?weiter=` kommt aus der Adresse, also von außen – daraus darf keine
+// Weiterleitung auf eine fremde Seite werden. Angenommen wird deshalb
+// NUR das eigene Dashboard der Rolle, mit schlichten Parametern. Alles
+// andere (fremde Domain, //, javascript:, das Dashboard der anderen
+// Rolle) fällt auf das Standardziel zurück.
+export function zielNachLogin(role, suche = location.search) {
+  const standard = role === 'firma' ? 'dashboard-firma.html' : 'dashboard-schueler.html'
+  const weiter = new URLSearchParams(suche).get('weiter')
+  if (!weiter) return standard
+  // Feste Muster statt zusammengesetzter Zeichenketten: Beim Schreiben
+  // gingen einmal die Backslashes verloren, und der Ausdruck war ungültig.
+  const ERLAUBT = {
+    'dashboard-firma.html': /^dashboard-firma\.html(\?[A-Za-z0-9_=&%.-]*)?$/,
+    'dashboard-schueler.html': /^dashboard-schueler\.html(\?[A-Za-z0-9_=&%.-]*)?$/,
+  }
+  return ERLAUBT[standard].test(weiter) ? weiter : standard
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('login-form')
   const registerForm = document.getElementById('register-form')
@@ -90,9 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return
       }
 
-      // Weiterleitung je nach Rolle
+      // Weiterleitung je nach Rolle – und, wenn es eines gibt, zurück zum
+      // Ziel, von dem das Dashboard hierher geschickt hat (siehe js/session.js).
       const role = data.user.user_metadata?.role
-      window.location.href = role === 'firma' ? 'dashboard-firma.html' : 'dashboard-schueler.html'
+      window.location.href = zielNachLogin(role)
     })
   }
 

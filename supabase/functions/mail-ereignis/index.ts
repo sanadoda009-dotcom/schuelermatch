@@ -131,7 +131,10 @@ Deno.serve(async (req) => {
     // Bewerbung mit Job, Firma und Schüler nachladen (Service-Role liest alles)
     const { data: b, error } = await supabase
       .from('bewerbungen')
-      .select('id, status, job:job_id(titel, firma:firma_id(name, email, benachrichtigung)), schueler:schueler_id(name, email)')
+      // '*' statt fester Spalten (13.9.2026): So kommt `absage_grund` mit,
+      // sobald supabase/bewerbung-stand.sql eingespielt ist – und eine
+      // fehlende Spalte bricht die Abfrage nicht ab (dann gäbe es gar keine Mail).
+      .select('*, job:job_id(titel, firma:firma_id(name, email, benachrichtigung)), schueler:schueler_id(name, email)')
       .eq('id', id)
       .single()
     if (error || !b) return new Response('lookup failed', { status: 200 })
@@ -149,7 +152,7 @@ Deno.serve(async (req) => {
           `<h2 style="font-family:sans-serif">Neue Bewerbung 🎉</h2>
            <p><b>${esc(schueler?.name ?? 'Ein Schüler')}</b> hat sich auf deine Anzeige
            <b>„${jobTitel}"</b> beworben.</p>
-           <p><a href="${SITE_URL}/dashboard-firma.html"
+           <p><a href="${SITE_URL}/dashboard-firma.html?ansicht=bewerbungen"
              style="display:inline-block;background:#2b2f8f;color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
              Bewerbung ansehen</a></p>`,
         )
@@ -166,7 +169,7 @@ Deno.serve(async (req) => {
              <p>Hallo ${vorname(schueler?.name)}, <b>${esc(firma?.name ?? 'die Firma')}</b> hat deine Bewerbung
              für <b>„${jobTitel}"</b> angenommen.</p>
              <p>Öffne den Chat im Dashboard, um die nächsten Schritte zu klären.</p>
-             <p><a href="${SITE_URL}/dashboard-schueler.html"
+             <p><a href="${SITE_URL}/dashboard-schueler.html?ansicht=nachrichten"
                style="display:inline-block;background-color:#00795c;background-image:linear-gradient(120deg,#00795c,#2b2f8f);color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
                Zum Chat</a></p>`,
           )
@@ -176,11 +179,14 @@ Deno.serve(async (req) => {
             `Deine Bewerbung für „${jobTitel}"`,
             `<h2 style="font-family:sans-serif">Diesmal hat es nicht geklappt</h2>
              <p>Hallo ${vorname(schueler?.name)}, danke für deine Bewerbung für <b>„${jobTitel}"</b>.
-             Diesmal hat sich die Firma für jemand anderen entschieden – das sagt nichts über dich aus.</p>
+             Diesmal hat es nicht gepasst – das sagt nichts über dich aus.</p>
+             ${b.absage_grund
+               ? '<p>Die Firma hat dazu einen Grund angegeben. Du findest ihn in deinen Bewerbungen – er hilft dir bei der nächsten.</p>'
+               : ''}
              <p>Bleib dran, dein nächster Job wartet schon!</p>
-             <p><a href="${SITE_URL}/jobs.html"
+             <p><a href="${SITE_URL}/dashboard-schueler.html?ansicht=bewerbungen"
                style="display:inline-block;background:#2b2f8f;color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
-               Weitere Jobs entdecken</a></p>`,
+               Zu deinen Bewerbungen</a></p>`,
           )
         }
       }

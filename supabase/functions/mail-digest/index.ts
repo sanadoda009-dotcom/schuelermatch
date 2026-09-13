@@ -100,7 +100,7 @@ Deno.serve(async () => {
       `<h2 style="font-family:sans-serif">Neue Bewerbungen bei dir</h2>
        <p>Hallo ${esc(firma.name || '')}, in den letzten 24 Stunden sind <b>${gesamt}</b> neue Bewerbung${gesamt === 1 ? '' : 'en'} eingegangen:</p>
        <ul>${liste}</ul>
-       <p><a href="${SITE_URL}/dashboard-firma.html"
+       <p><a href="${SITE_URL}/dashboard-firma.html?ansicht=bewerbungen"
          style="display:inline-block;background:#2b2f8f;color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
          Bewerbungen ansehen</a></p>`,
     )

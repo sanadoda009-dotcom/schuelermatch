@@ -25,3 +25,28 @@ export function initSidebar(onSelect) {
     })
   })
 }
+
+// Öffnet die Ansicht, die in der Adresse steht: ?ansicht=bewerbungen
+// (13.9.2026).
+//
+// Anlass sind die E-Mails. „Zum Chat" in der Zusage-Mail führte ins
+// Schüler-Dashboard – das mit der Jobbörse öffnet, nicht mit dem Chat.
+// „Bewerbung ansehen" an die Firma landete auf „Job posten". Dasselbe,
+// was die Glocke bis zum 9.9. tat, nur in der Mail.
+//
+// Nur Ansichten, die es als Menüpunkt gibt; alles andere wird still
+// übergangen. Danach verschwindet der Parameter aus der Adresse, damit
+// ein Neuladen nicht wieder dorthin springt. Andere Parameter (?job=)
+// bleiben stehen.
+export function oeffneAnsichtAusAdresse() {
+  const adresse = new URL(location.href)
+  const ansicht = adresse.searchParams.get('ansicht')
+  if (!ansicht) return false
+  adresse.searchParams.delete('ansicht')
+  history.replaceState(null, '', adresse.pathname + adresse.search + adresse.hash)
+  if (!/^[a-z]+$/.test(ansicht)) return false
+  const eintrag = document.querySelector(`.sidebar-item[data-view="${ansicht}"]`)
+  if (!eintrag) return false
+  eintrag.click()
+  return true
+}

@@ -1,6 +1,6 @@
 # SchülerMatch – Offene Punkte
 
-> **Stand 11. September 2026.**
+> **Stand 13. September 2026.**
 > Alles ist committet und gepusht, Live-Stand deployed.
 > Wie viele Tests es gerade sind, sagt `npm test` — eine Zahl an dieser Stelle
 > stimmt nach der nächsten Runde nicht mehr. Hier stand bis heute „795“ vom
@@ -19,6 +19,29 @@
 > Fortsetzen `/loop` mit demselben Text neu starten. Was in den einzelnen Runden
 > gefunden und behoben wurde, steht in `PROJEKT-STATUS.md`; jede Runde
 > hinterlässt außerdem ihren Befund als Kommentar im jeweiligen Test.
+
+## 🔴 Wartet auf dich: zwei E-Mail-Funktionen neu ausrollen
+
+**Am 13.9.2026 nachgesehen: Die Mail-Funktionen, die gerade live laufen, sind
+alt.** Edge Functions gehen nicht mit `git push` live – sie müssen einzeln
+ausgerollt werden, und das ist seit Juli bei zweien nicht passiert:
+
+| Funktion | Live seit | Was im Repository steht, aber nie ankam |
+|---|---|---|
+| `mail-ereignis` | 28.7. | Zusage-Mail: Knopf „Zum Chat" hatte nur einen Farbverlauf als Hintergrund – in manchen Mailprogrammen **weiße Schrift auf Weiß** (Fix vom 26.8.) · Verifizierungs-Mail verspricht „**auf alle Jobs** bewerben" – falsch für jüngere Schüler (Fix vom 8.9.) · Links führen jetzt direkt in Chat bzw. Bewerbungen · Absage-Mail behauptet nicht mehr pauschal „für jemand anderen entschieden" (13.9.) |
+| `mail-digest` | 20.7. | **Anzeigentitel und Firmenname gehen ungeschützt ins Mail-HTML** – im Repository maskiert · Firmen ohne gespeicherte Einstellung bekommen **gar keine** Tagesmail, obwohl „täglich" die Voreinstellung ist (Fix vom 8.9.) · Link führt jetzt zu den Bewerbungen |
+
+`mail-job-alarm` und `konto-loeschen` stimmen mit dem Repository überein.
+
+**So geht's:** im Supabase-Dashboard unter *Edge Functions* die beiden
+Funktionen mit dem Inhalt aus `supabase/functions/mail-ereignis/index.ts`
+und `supabase/functions/mail-digest/index.ts` neu bereitstellen (oder per
+CLI `supabase functions deploy mail-ereignis` und `… mail-digest`).
+Secrets (`RESEND_API_KEY`, `MAIL_ABSENDER`, `SITE_URL`) bleiben, wie sie sind.
+
+**Nachher prüfen:** In der Liste der Edge Functions muss bei beiden das
+Datum von heute stehen. `tests/mail-ziele.spec.js` prüft die Texte im
+Repository – ob sie live sind, kann nur der Blick ins Dashboard sagen.
 
 ## ⏳ Wartet auf dich: zwölf SQL-Dateien
 

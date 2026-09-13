@@ -36,7 +36,13 @@ export async function requireAuth(expectedRole, optionen = {}) {
   }
 
   if (!session) {
-    window.location.href = 'login.html'
+    // Wohin es nach dem Login zurückgeht (13.9.2026). Vorher ging die
+    // Adresse verloren: Wer aus einer E-Mail (?ansicht=bewerbungen) oder
+    // über einen geteilten Anzeigen-Link (?job=…) kam und nicht angemeldet
+    // war, landete nach dem Login auf der Startansicht. Geprüft wird das
+    // Ziel in js/auth.js – nur das eigene Dashboard wird angenommen.
+    const weiter = location.pathname.replace(/^.*\//, '') + location.search
+    window.location.href = 'login.html' + (location.search ? '?weiter=' + encodeURIComponent(weiter) : '')
     return null
   }
 
