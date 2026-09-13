@@ -340,6 +340,48 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 11.–13. September 2026 - Versprechen gegen Code, dann alles durchfotografiert
+
+Jede Runde: messen → beheben → nachmessen → Test → Gegenprobe gegen den alten
+Stand → Suite → Commit → live per curl geprüft. Der Befund steht jeweils als
+Kommentar im Test und ausführlich im Commit. Voller Lauf zuletzt: **1240 grün**.
+
+**Versprechen gegen Code (11.–12.9.)**
+- `0474c5b` Google-Jobs: `validThrough` = Einstelltag + 90 Tage – ab dem 30.9. wären laufende Anzeigen still aus Google gefallen
+- `157e17d` Abzeichen offener Meldungen im Betreiber-Bereich war ungestaltet (grau, 8×17px)
+- `2df70cc` **Sicherheit:** `toast()` baute mit `innerHTML` – ein Anzeigentitel mit HTML lief als Code im Schülerkonto (siehe SICHERHEIT-STAND.md)
+- `8f39f43` Job-Alarm nahm unbekannte Orte an und versprach Mails, die nie kamen
+- `b1b3849` Absagegrund wurde bei fehlender Spalte still verworfen, Firma las „der Schüler liest den Grund"
+- `7fabe3e` „Wer ihr seid" stand – anders als versprochen – bei keiner Anzeige
+- `07063ff` fuer-firmen.html versprach ein Anschreiben an jeder Bewerbung, es ist freiwillig
+- `4c253de` Chat-Warnung hielt nur die Hälfte von dem, was eltern.html verspricht
+
+**Durchfotografiert (13.9.), ausgelöst von Sanads Bildschirmfoto „grässlich"**
+Jede Ansicht beider Dashboards, Betreiber-Bereich, Lebenslauf-Editor, Dialoge
+und alle öffentlichen Seiten – breit, 390px, 360px, teils 320px.
+- `97e3577` Bewerbungsansicht der Firma: Karte je Bewerbung, Knöpfe nicht mehr seitenbreit
+- `e4b5509` `section { padding: 130px }` der Startseite erbten Dashboards, Admin, Editor → `:where(...)`
+- `ac9a4a1` Verifizierte wurden weiter um ihren Ausweis gebeten (Upload blieb liegen)
+- `4281b1b` Geschlossenes Menü/Filterfeld nur verschoben: 15 unsichtbare Tab-Stopps, Schatten-Streifen; Jugendschutz-Hinweis stand im geschlossenen Filterfeld
+- `ad948a2` Firmenseite ohne Firma blieb in Google (kein noindex)
+- `bf3c056` Private Seiten mit noindex statt robots.txt-Sperre (alte Test-Vorgabe mit Begründung ersetzt)
+- `7a865bf` 20 grüne Kästen ohne Innenabstand (`.legal-page section` überstimmte die Klasse); gequetschtes Logo
+- `ae0b24b` Zeitleiste der Bewerbung auf dem Handy senkrecht
+- `523356f` Betreiber-Bereich auf dem Handy: zerhackte Reiter, zweizeilige Kopfzeile
+- `8eada04` Editor: „Bearbeiten | Vorschau" verschwand beim Scrollen unter der Kopfzeile
+- `50b2a67` Grauer Streifen oben links auf jeder Seite (Schatten des versteckten Sprunglinks)
+- `66e608c` Chat-Eingabe des Schülers unter dem Bildschirmrand; Kopfzeile auf 360/375px zweizeilig
+- `a6abc67` Tippziele zusätzlich auf 360px geprüft (das Pixel-7-Projekt ist 412px breit)
+- `866c442` Knopf-Beschriftungen nicht mehr mitten im Wort getrennt – Ursache statt dritter Einzelflick
+
+**Neue Helfer und Wächter:** `tests/helpers/filter.js` (Filter öffnen wie ein
+Mensch) · `tests/section-abstand.spec.js` (jede Seite mit `<section>` im
+richtigen Rahmen; keine Rücksetz-Regel mit Gewicht) · `tests/statisch.spec.js`
+(jede Seite: Sitemap, noindex oder bewusst dynamisch) · `tests/schubladen.spec.js`.
+
+**Bewusst offen, Sanads Entscheidung:** Ansichts-Überschriften sind im
+Schüler-Dashboard blau, im Firmen-Dashboard schwarz.
+
 ## Session 1. September 2026 (Teil 5) - Der Lebenslauf-Editor, neu gebaut
 
 Sanads Auftrag: "mir gefaellt die Vorschau, aber wie man die Sachen
