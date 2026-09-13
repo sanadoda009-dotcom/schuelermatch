@@ -73,7 +73,10 @@ test('die Löhne stimmen mit der Jobideen-Seite überein', async ({ page }) => {
 test('der Filter heißt nicht mehr irreführend "Mindestlohn"', async ({ page }) => {
   await page.goto('/jobs.html')
   await page.waitForTimeout(800)
-  const label = await page.locator('label[for="filter-gehalt"]').innerText()
+  // textContent statt innerText: Das Label steht im Filterfeld, und das
+  // ist seit dem 13.9.2026 geschlossen wirklich ausgeblendet – innerText
+  // liefert dann leeren Text. Geprüft wird hier der Wortlaut.
+  const label = (await page.locator('label[for="filter-gehalt"]').textContent()).trim()
   expect(label, 'kein falscher Eindruck eines gesetzlichen Anspruchs').not.toBe('Mindestlohn')
   expect(label).toContain('Stundenlohn')
 })

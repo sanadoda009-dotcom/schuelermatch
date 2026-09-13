@@ -515,9 +515,18 @@ section { padding: 130px 24px; }
   position: fixed; top: 0; left: -280px; width: 260px; height: 100%;
   background: var(--card); border-right: 1px solid var(--line); z-index: 50;
   padding: 90px 16px 16px; display: flex; flex-direction: column; gap: 6px;
-  transition: left 0.25s ease; box-shadow: 8px 0 30px rgba(22,26,31,0.08);
+  box-shadow: 8px 0 30px rgba(22,26,31,0.08);
+  /* Geschlossen ist WEG, nicht nur verschoben (13.9.2026). Vorher lag das
+     Menü bloß 280px links außerhalb: Die Tab-Taste lief durch acht
+     unsichtbare Menüpunkte, der Fokus verschwand vom Bildschirm, und
+     Bildschirmleser lasen alles vor. Dazu reichte der Schatten ~18px
+     in die Seite hinein – ein grauer Streifen am linken Rand jeder
+     Dashboard-Seite. `visibility` erst NACH dem Hinausfahren umschalten,
+     damit die Animation bleibt. */
+  visibility: hidden;
+  transition: left 0.25s ease, visibility 0s linear 0.25s;
 }
-.sidebar.open { left: 0; }
+.sidebar.open { left: 0; visibility: visible; transition: left 0.25s ease, visibility 0s; }
 .sidebar-label {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; text-transform: uppercase;
   letter-spacing: 1px; color: var(--ink-soft); padding: 6px 16px; margin-top: 8px;
@@ -1687,10 +1696,14 @@ footer .logo { color: white; }
   width: 330px; max-width: 88vw; z-index: 60;
   background: var(--card); border-right: 1px solid var(--line);
   padding: 22px; overflow-y: auto;
-  transform: translateX(-100%); transition: transform 0.25s ease;
+  transform: translateX(-100%);
   box-shadow: 8px 0 40px rgba(22,26,31,0.15);
+  /* Wie beim Seitenmenü: geschlossen unsichtbar für Tastatur und
+     Bildschirmleser, nicht nur aus dem Bild geschoben (13.9.2026). */
+  visibility: hidden;
+  transition: transform 0.25s ease, visibility 0s linear 0.25s;
 }
-.filter-panel.offen { transform: translateX(0); }
+.filter-panel.offen { transform: translateX(0); visibility: visible; transition: transform 0.25s ease, visibility 0s; }
 
 .filter-panel-kopf { display: flex; align-items: center; margin-bottom: 18px; }
 .filter-panel-kopf b { font-size: 1.1rem; }
@@ -2624,6 +2637,7 @@ main[tabindex="-1"]:focus { outline: none; }
   color: var(--ink-soft);
 }
 .jugendschutz-hinweis[hidden] { display: none; }
+.jugendschutz-hinweis--oben { margin: 0 0 16px; }
 
 /* Anhaltspunkte zu einer neuen Firma im Betreiber-Bereich.
    Heisst bewusst NICHT .firma-hinweis - den Namen gibt es schon als

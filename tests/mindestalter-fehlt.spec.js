@@ -19,6 +19,7 @@
 // `supabase/mindestalter-pflicht.sql` bereit.
 
 const { test, expect } = require('./helpers/basis')
+const { imFilter } = require('./helpers/filter')
 const fs = require('fs')
 const path = require('path')
 
@@ -70,7 +71,9 @@ test('ohne Altersangabe rutscht die Anzeige nicht durch den Altersfilter', async
   await page.goto('/jobs.html')
   await expect(page.locator('.job-card')).toHaveCount(2)
 
-  await page.locator('#filter-alter').selectOption('13')
+  await imFilter(page, async () => {
+    await page.locator('#filter-alter').selectOption('13')
+  })
   await expect(page.locator('#jobs-grid')).not.toContainText('Aushilfe ohne Altersangabe')
   await expect(page.locator('#jobs-grid')).not.toContainText('Aushilfe ab 16')
 })

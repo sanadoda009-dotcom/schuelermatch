@@ -26,6 +26,7 @@
 // es zu beheben.
 
 const { test, expect, setupDashboard, warteAufDashboard, FIRMA, SCHUELER, defaultDb } = require('./helpers/supabase-fake')
+const { imFilter } = require('./helpers/filter')
 
 const BASIS = {
   firma_id: FIRMA.id, firma_name: FIRMA.name, beschreibung: 'Eis verkaufen.',
@@ -103,10 +104,12 @@ test.describe('warum es zählt — der Filter im Schüler-Dashboard', () => {
     await expect(page.locator('.job-card')).toHaveCount(2)
 
     // Mit Umkreis: nur die mit Ortszuordnung — obwohl beide in München sind.
-    const regler = page.locator('#filter-radius')
-    await expect(regler).toBeVisible()
-    await regler.fill('50')
-    await regler.dispatchEvent('input')
+    await imFilter(page, async () => {
+      const regler = page.locator('#filter-radius')
+      await expect(regler).toBeVisible()
+      await regler.fill('50')
+      await regler.dispatchEvent('input')
+    })
     await expect(page.locator('.job-card')).toHaveCount(1)
     await expect(page.locator('.job-card')).toContainText('Mit Ortszuordnung')
   })

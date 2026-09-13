@@ -2,6 +2,7 @@
 // Rendern, Suche (inkl. Synonyme), Kategorie-Pills, Filter, Sortierung,
 // URL-Sync/Deep-Links, Empty-State mit Reset, Job-Detail-Modal, NEU-Badge.
 const { test, expect } = require('./helpers/basis')
+const { imFilter } = require('./helpers/filter')
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/jobs.html')
@@ -50,18 +51,26 @@ test('Kategorie-Pills filtern; „Alle" hebt den Filter wieder auf', async ({ pa
 })
 
 test('Ort-, Alters-, Lohn- und Arbeitszeit-Filter kombinieren korrekt', async ({ page }) => {
-  await page.locator('#filter-ort').fill('münchen')
+  await imFilter(page, async () => {
+    await page.locator('#filter-ort').fill('münchen')
+  })
   await expect(page.locator('.job-card')).toHaveCount(3) // Augsburg fliegt raus
 
-  await page.locator('#filter-alter').selectOption('14')
+  await imFilter(page, async () => {
+    await page.locator('#filter-alter').selectOption('14')
+  })
   await expect(page.locator('.job-card')).toHaveCount(1) // nur Hunde (ab 13)
   await expect(page.locator('.job-card')).toContainText('Hunde ausführen')
 
-  await page.locator('#filter-alter').selectOption('')
-  await page.locator('#filter-gehalt').selectOption('14')
+  await imFilter(page, async () => {
+    await page.locator('#filter-alter').selectOption('')
+    await page.locator('#filter-gehalt').selectOption('14')
+  })
   await expect(page.locator('.job-card')).toHaveCount(2) // Café 14 + Nachhilfe 16
 
-  await page.locator('#filter-arbeitszeit').selectOption('Wochenende')
+  await imFilter(page, async () => {
+    await page.locator('#filter-arbeitszeit').selectOption('Wochenende')
+  })
   await expect(page.locator('.job-card')).toHaveCount(1)
   await expect(page.locator('.job-card')).toContainText('Café Sonnenschein')
 })

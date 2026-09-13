@@ -10,6 +10,7 @@
 // dieser Zustand herrscht gerade, weil die Datenbank-Änderung noch
 // aussteht.
 const { test, expect, setupDashboard, SCHUELER, defaultDb, warteAufDashboard } = require('./helpers/supabase-fake')
+const { imFilter } = require('./helpers/filter')
 
 // Die Geokodierung geht sonst wirklich ins Netz und macht den Test
 // langsam und wackelig.
@@ -68,7 +69,9 @@ test('ohne Ort wird nichts gespeichert, sondern erklärt', async ({ page }) => {
     await route.fallback()
   })
 
-  await page.fill('#filter-ort', '')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', '')
+  })
   await page.locator('#alarm-an').click()
 
   await expect(page.locator('.toast--fehler')).toContainText('Ort')
@@ -87,10 +90,12 @@ test('der Alarm übernimmt die aktuellen Filter', async ({ page }) => {
   })
 
   // So, wie ein Schüler es einstellen würde, bevor er aufgibt.
-  await page.fill('#filter-ort', 'München')
-  await page.selectOption('#filter-kategorie', 'Nachhilfe')
-  await page.selectOption('#filter-arbeitszeit', 'Nachmittags')
-  await page.selectOption('#filter-gehalt', '12')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', 'München')
+    await page.selectOption('#filter-kategorie', 'Nachhilfe')
+    await page.selectOption('#filter-arbeitszeit', 'Nachmittags')
+    await page.selectOption('#filter-gehalt', '12')
+  })
   await page.locator('#alarm-an').click()
 
   await expect(karte(page)).toContainText('Job-Alarm läuft')
@@ -126,7 +131,9 @@ test('ohne Koordinaten wird trotzdem gespeichert', async ({ page }) => {
     await route.fallback()
   })
 
-  await page.fill('#filter-ort', 'Kleinkleckersdorf')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', 'Kleinkleckersdorf')
+  })
   await page.locator('#alarm-an').click()
 
   await expect(karte(page)).toContainText('Job-Alarm läuft')
@@ -172,7 +179,9 @@ test('ein unbekannter Ort wird beim Namen genannt', async ({ page }) => {
   await page.goto('/dashboard-schueler.html')
   await warteAufDashboard(page)
 
-  await page.fill('#filter-ort', 'Kleinkleckersdorf')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', 'Kleinkleckersdorf')
+  })
   await page.locator('#alarm-an').click()
 
   const t = await meldung(page)
@@ -193,7 +202,9 @@ test('bei einer Postleitzahl steht der richtige Grund da', async ({ page }) => {
   await page.goto('/dashboard-schueler.html')
   await warteAufDashboard(page)
 
-  await page.fill('#filter-ort', '10115')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', '10115')
+  })
   await page.locator('#alarm-an').click()
 
   const t = await meldung(page)
@@ -205,12 +216,16 @@ test('bei gestörtem Dienst und neuem Ort steht der andere Grund da', async ({ p
   // Auch hier bleibt der Alarm ohne Koordinaten - aber es ist NICHT die
   // Schuld des Schülers, und der Rat ist ein anderer.
   await oeffneDashboard(page)
-  await page.fill('#filter-ort', 'München')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', 'München')
+  })
   await page.locator('#alarm-an').click()
   await expect(karte(page)).toContainText('Job-Alarm läuft')
 
   await page.route('**/geocoding-api.open-meteo.com/**', route => route.abort())
-  await page.fill('#filter-ort', 'Hamburg')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', 'Hamburg')
+  })
   await page.locator('#alarm-neu').click()
 
   const t = await meldung(page)
@@ -223,7 +238,9 @@ test('bei einem gefundenen Ort bleibt es beim guten Zuspruch', async ({ page }) 
   // Die Gegenprobe: Sonst stünde bei jedem Speichern eine Warnung, und
   // dann liest sie bald niemand mehr.
   await oeffneDashboard(page)
-  await page.fill('#filter-ort', 'München')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', 'München')
+  })
   await page.locator('#alarm-an').click()
 
   const t = await meldung(page)
@@ -236,7 +253,9 @@ test('bei gestörtem Geo-Dienst bleiben die bisherigen Koordinaten erhalten', as
   // nicht". Beim zweiten Fall darf ein bereits gespeicherter Umkreis
   // nicht stillschweigend verlorengehen — solange der Ort derselbe ist.
   await oeffneDashboard(page)
-  await page.fill('#filter-ort', 'München')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', 'München')
+  })
   await page.locator('#alarm-an').click()
   await expect(karte(page)).toContainText('Job-Alarm läuft')
 
@@ -252,7 +271,9 @@ test('bei gestörtem Geo-Dienst bleiben die bisherigen Koordinaten erhalten', as
     await route.fallback()
   })
 
-  await page.selectOption('#filter-kategorie', 'Nachhilfe')
+  await imFilter(page, async () => {
+    await page.selectOption('#filter-kategorie', 'Nachhilfe')
+  })
   await page.locator('#alarm-neu').click()
   await expect(page.locator('.alarm-kriterien')).toContainText('Nachhilfe')
 
@@ -263,7 +284,9 @@ test('bei gestörtem Dienst und NEUEM Ort werden die alten Koordinaten verworfen
   // Sie zeigten sonst auf die alte Stadt, und der Umkreis suchte am
   // falschen Fleck — schlimmer als gar keine Koordinate.
   await oeffneDashboard(page)
-  await page.fill('#filter-ort', 'München')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', 'München')
+  })
   await page.locator('#alarm-an').click()
   await expect(karte(page)).toContainText('Job-Alarm läuft')
 
@@ -278,7 +301,9 @@ test('bei gestörtem Dienst und NEUEM Ort werden die alten Koordinaten verworfen
     await route.fallback()
   })
 
-  await page.fill('#filter-ort', 'Hamburg')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', 'Hamburg')
+  })
   await page.locator('#alarm-neu').click()
   await expect(page.locator('.alarm-kriterien')).toContainText('Hamburg')
 
@@ -287,7 +312,9 @@ test('bei gestörtem Dienst und NEUEM Ort werden die alten Koordinaten verworfen
 
 test('ein laufender Alarm lässt sich ausschalten', async ({ page }) => {
   await oeffneDashboard(page)
-  await page.fill('#filter-ort', 'München')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', 'München')
+  })
   await page.locator('#alarm-an').click()
   await expect(karte(page)).toContainText('Job-Alarm läuft')
 
@@ -328,7 +355,9 @@ test('ohne Filter-Ort nimmt der Alarm den Wohnort aus dem Profil', async ({ page
     await route.fallback()
   })
 
-  await page.fill('#filter-ort', '')
+  await imFilter(page, async () => {
+    await page.fill('#filter-ort', '')
+  })
   await page.locator('#alarm-an').click()
 
   await expect(karte(page)).toContainText('Job-Alarm läuft')
@@ -474,8 +503,10 @@ test.describe('Job-Alarm selbst einstellen', () => {
     await page.goto('/dashboard-schueler.html')
     await warteAufDashboard(page)
 
-    await page.locator('#filter-ort').fill('Bremen')
-    await page.locator('#filter-kategorie').selectOption('Gastronomie')
+    await imFilter(page, async () => {
+      await page.locator('#filter-ort').fill('Bremen')
+      await page.locator('#filter-kategorie').selectOption('Gastronomie')
+    })
     await zuEinstellungen(page)
     await page.locator('#alarm-von-filtern').click()
 

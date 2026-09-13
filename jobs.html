@@ -94,7 +94,6 @@
           <option value="19">19 Jahre</option><option value="20">20 Jahre</option>
         </select>
         <span class="filter-hinweis">Zeigt nur Jobs, für die du alt genug bist.</span>
-        <p class="jugendschutz-hinweis" id="alter-filter-hinweis" role="status" hidden></p>
       </div>
 
       <div class="filter-gruppe">
@@ -147,6 +146,13 @@
       </div>
 
       <div class="aktive-filter" id="aktive-filter"></div>
+
+      <!-- Stand bis zum 13.9.2026 IM Filterfeld. Das ist eine Schublade,
+           die geschlossen startet – wer über jobs.html?alter=12 kam, bekam
+           die Erklärung also nie zu sehen. Der Test dazu war grün, weil die
+           Schublade nur aus dem Bild geschoben war; seit sie geschlossen
+           wirklich unsichtbar ist, fiel es auf. -->
+      <p class="jugendschutz-hinweis jugendschutz-hinweis--oben" id="alter-filter-hinweis" role="status" hidden></p>
 
       <h2 class="sr-only">Suchergebnisse</h2>
         <div class="jobs-grid" id="jobs-grid">
