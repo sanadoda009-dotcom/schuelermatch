@@ -83,6 +83,27 @@ test('Sprunglink führt wirklich in den Inhalt', async ({ page }) => {
   expect(await page.evaluate(() => document.activeElement?.tagName.toLowerCase())).toBe('main')
 })
 
+test('der versteckte Sprunglink wirft keinen Schatten in die Seite', async ({ page }) => {
+  // 13.9.2026: Der Schatten lag immer an. Versteckt endet der Link bei
+  // etwa -14px, der Schatten (6px versetzt, 20px weich) reichte ~12px in
+  // die Seite – ein grauer Streifen oben links auf jeder Seite. Jetzt
+  // erscheint er nur, solange der Link den Fokus hat.
+  await setupDashboard(page.context(), {})
+  await page.goto('/index.html')
+  const ruhe = await page.evaluate(() => {
+    const s = document.querySelector('.skip-link')
+    const r = s.getBoundingClientRect()
+    return { schatten: getComputedStyle(s).boxShadow, unten: Math.round(r.bottom) }
+  })
+  expect(ruhe.unten, 'der Link selbst liegt über dem Bildschirm').toBeLessThanOrEqual(0)
+  expect(ruhe.schatten, 'versteckt kein Schatten').toBe('none')
+
+  await page.keyboard.press('Tab')
+  await page.waitForTimeout(300)
+  expect(await page.evaluate(() => getComputedStyle(document.querySelector('.skip-link')).boxShadow))
+    .not.toBe('none')
+})
+
 test.describe('Rollen-Auswahl ist ein echter Knopf', () => {
   for (const seite of ['/login.html', '/register.html']) {
     test(`bedienbar per Tastatur: ${seite}`, async ({ page }) => {
