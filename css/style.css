@@ -730,6 +730,29 @@ section { padding: 130px 24px; }
 .chat-kopf .cv-photo-preview { width: 40px; height: 40px; font-size: 0.95rem; }
 .chat-kopf b { font-size: 0.95rem; }
 .chat-kopf .zurueck { margin-left: auto; background: none; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 0.82rem; color: var(--ink-soft); }
+/* Chat des Schülers auf dem Handy (13.9.2026). Auf 360 × 760 lag das
+   Eingabefeld unter dem Bildschirmrand (gemessen: Unterkante 833px):
+   Der Verlauf war fest 380px hoch, darüber Seitenüberschrift, Chat-Kopf
+   und Sicherheitshinweis. Und die Silbentrennung machte aus „← Zurück"
+   drei Zeilen „Zu-rück". Jetzt passt der Verlauf sich der Bildschirmhöhe
+   an, und beim Öffnen rückt der Chat nach oben (js/dashboard-schueler.js). */
+.chat-kopf b { min-width: 0; }
+.chat-kopf .zurueck { white-space: nowrap; hyphens: none; flex-shrink: 0; }
+#chat-container .chat-box { scroll-margin-top: 84px; }
+/* Kopfzeile der Dashboards auf schmalen Handys (13.9.2026). Auf 360 und
+   375px – gängige iPhone-Breiten – brach „Logout" in eine zweite Zeile,
+   die Kopfzeile wurde 120 statt 80px hoch. Es fehlte ein Pixel: Knöpfe
+   und Logo 328px, Seitenrand 48px, zusammen 376px. */
+@media (max-width: 400px) {
+  nav { padding-left: 16px; padding-right: 16px; }
+  nav #logout-btn { padding: 12px 14px; min-height: 44px; }
+}
+@media (max-width: 600px) {
+  #chat-container .chat-thread {
+    height: calc(100vh - 300px); height: calc(100dvh - 300px);
+    min-height: 220px; max-height: 380px;
+  }
+}
 .chat-thread { height: 380px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: var(--paper); }
 .chat-msg { max-width: 75%; padding: 10px 14px; border-radius: 16px; font-size: 0.9rem; line-height: 1.45; position: relative; }
 .chat-msg p { margin: 0; white-space: pre-wrap; word-break: break-word; }

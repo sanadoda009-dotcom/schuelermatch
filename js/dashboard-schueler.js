@@ -312,6 +312,12 @@ async function oeffneChat(bewerbungId, titel) {
     aktualisiereNachrichtenBadge()
   })
   chatCleanup = await ladeChat(cc.querySelector('#chat-inner'), bewerbungId, profile.id)
+  // Auf dem Handy den Chat nach oben rücken: Sonst stehen Überschrift und
+  // Einleitung der Ansicht darüber, und das Eingabefeld liegt unter dem
+  // Bildschirmrand (13.9.2026, gemessen auf 360 × 760).
+  if (window.matchMedia?.('(max-width: 600px)').matches) {
+    cc.querySelector('.chat-box')?.scrollIntoView({ block: 'start' })
+  }
   setTimeout(aktualisiereNachrichtenBadge, 500)
 }
 
