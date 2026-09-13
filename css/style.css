@@ -424,6 +424,10 @@ section { padding: 130px 24px; }
 .job-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
 .company-logo {
   width: 48px; height: 48px; border-radius: 12px;
+  /* Fest, nicht schrumpfbar (13.9.2026): Neben einem langen Titel, der
+     auf dem Handy umbricht, wurde das Logo auf job.html zu einem
+     schmalen hohen Streifen gequetscht. */
+  flex-shrink: 0;
   background: linear-gradient(135deg, var(--coral), var(--indigo));
   display: flex; align-items: center; justify-content: center;
   color: white; font-weight: 700; font-size: 1.1rem;
@@ -850,7 +854,12 @@ footer .logo { color: white; }
 .legal-page { max-width: 760px; padding: 50px 24px 80px; }
 .legal-page h1 { font-size: 2.1rem; margin-bottom: 8px; }
 .legal-sub { color: var(--ink-soft); margin-bottom: 40px; font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; }
-.legal-page section { padding: 0; margin-bottom: 32px; }
+/* `:where` hält die Regel ohne Gewicht (13.9.2026). Als
+   `.legal-page section` wog sie mehr als jede eigene Klasse – und nahm
+   den 20 grünen Kästen `<section class="legal-highlight">` auf den
+   Ratgeber- und Infoseiten ihren Innenabstand: Der Text stieß direkt an
+   den Rand. Derselbe Kasten als <div> auf job.html sah richtig aus. */
+:where(.legal-page) section { padding: 0; margin-bottom: 32px; }
 .legal-page h2 { font-size: 1.15rem; margin-bottom: 10px; }
 .legal-page p, .legal-page li { color: var(--ink-soft); font-size: 0.95rem; line-height: 1.7; }
 .legal-page ul { padding-left: 20px; margin: 0; }

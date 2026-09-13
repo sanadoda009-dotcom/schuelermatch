@@ -72,3 +72,55 @@ test.describe('Lebenslauf-Editor', () => {
     expect(m.luecke, `leerer Streifen unter den Knöpfen: ${m.luecke}px`).toBeLessThan(60)
   })
 })
+
+/* Die Gegenrichtung: Eine Regel für <section> darf keine eigene Klasse
+ * überstimmen (13.9.2026).
+ *
+ * Beim Durchfotografieren der öffentlichen Seiten gefunden:
+ * `.legal-page section { padding: 0 }` wog mehr als
+ * `.legal-highlight { padding: 22px 24px }`. Die 20 grünen
+ * Hervorhebungskästen auf Ratgeber- und Infoseiten hatten deshalb keinen
+ * Innenabstand – der Text stieß an den Rand. Derselbe Kasten als <div>
+ * auf job.html sah richtig aus, darum fiel es dort nie auf.
+ *
+ * Beide Rücksetz-Regeln stehen jetzt in `:where(...)` und haben kein
+ * Gewicht mehr. Dieser Test prüft, dass das so bleibt.
+ */
+const HERVORHEBUNG = ['arbeitsvertrag', 'bewerbungsfoto', 'datenschutz', 'eltern', 'fairer-lohn',
+  'ferienjob', 'fuer-firmen', 'jobideen', 'jugendarbeitsschutz', 'ratgeber', 'taschengeld']
+
+test('keine Rücksetz-Regel für <section> hat mehr Gewicht als eine Klasse', async () => {
+  const css = fs.readFileSync(path.join(WURZEL, 'css', 'style.css'), 'utf8')
+  // „.irgendwas section { … padding: 0" ohne :where – genau die Form, die
+  // eine Klasse am <section> überstimmt.
+  const schwer = [...css.matchAll(/^([^\n{}]*[.#][\w-]+\s+section)\s*\{[^}]*padding:\s*0/gm)]
+    .map(m => m[1].trim())
+    .filter(sel => !sel.startsWith(':where('))
+    .filter(sel => !/@media print/.test(sel))
+  expect(schwer, 'diese Regeln nehmen jedem <section class="…"> seinen Innenabstand').toEqual([])
+})
+
+for (const seite of HERVORHEBUNG) {
+  test(`${seite}: der grüne Kasten hat Innenabstand`, async ({ page }) => {
+    await page.goto(`/${seite}.html`)
+    const innen = await page.locator('section.legal-highlight').first()
+      .evaluate(el => parseFloat(getComputedStyle(el).paddingLeft))
+    expect(innen, 'Text stößt an den Rand des Kastens').toBeGreaterThan(10)
+  })
+}
+
+test('auf der Anzeigenseite bleibt das Firmenlogo quadratisch – auch neben langem Titel', async ({ page }) => {
+  // Auf dem Handy wurde es neben einem umbrechenden Titel zu einem
+  // schmalen hohen Streifen gequetscht.
+  await page.setViewportSize({ width: 390, height: 844 })
+  const { JOBS } = require('./helpers/fixtures')
+  await setupDashboard(page.context(), { db: defaultDb() })
+  await page.goto('/job.html?id=' + JOBS[0].id)
+  const logo = page.locator('#job-detail .company-logo')
+  await expect(logo).toBeVisible({ timeout: 20_000 })
+  const { breite, hoehe } = await logo.evaluate(el => {
+    const r = el.getBoundingClientRect()
+    return { breite: Math.round(r.width), hoehe: Math.round(r.height) }
+  })
+  expect(breite, `Logo ${breite}×${hoehe}`).toBe(hoehe)
+})
