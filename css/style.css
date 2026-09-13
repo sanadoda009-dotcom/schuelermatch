@@ -222,9 +222,14 @@ section { padding: 130px 24px; }
    „Bewerbungen" stand deshalb unter den Filtern ein leerer Streifen,
    und jede Anzeigen-Gruppe war seitlich eingerückt (13.9.2026, von
    Sanad als Bildschirmfoto gemeldet). Ebenso die Reiter im
-   Betreiber-Bereich. `:where` hält die Regel ohne Gewicht: Eine eigene
-   Klasse wie `.alarm-karte` behält ihren Innenabstand. */
-:where(.jobs-page, .admin-wrap) section { padding: 0; }
+   Betreiber-Bereich, und der Lebenslauf-Editor: Dort begannen beide
+   Spalten 130px unter der Kopfzeile, auf dem Handy blieb unter
+   „Bearbeiten | Vorschau" ein leerer Streifen, und der Inhalt stand
+   24px weiter eingerückt als die Knöpfe darüber. `:where` hält die
+   Regel ohne Gewicht: Eine eigene Klasse wie `.alarm-karte` behält
+   ihren Innenabstand. Wer eine neue Seite mit <section> baut, muss
+   ihren Rahmen hier eintragen – tests/section-abstand.spec.js prüft das. */
+:where(.jobs-page, .admin-wrap, .ll-wrap) section { padding: 0; }
 .section-head { max-width: 600px; margin: 0 auto 50px; text-align: center; }
 .section-head .eyebrow-light {
   font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--coral);
