@@ -1373,6 +1373,24 @@ footer .logo { color: white; }
    ADMIN-BEREICH (Verifizierungen prüfen)
    ============================================================ */
 .admin-wrap { max-width: 900px; margin: 0 auto; padding: 26px 22px 70px; }
+/* Betreiber-Bereich auf dem Handy (13.9.2026).
+   Beim Durchfotografieren gefunden: Die automatische Silbentrennung (für
+   Fließtext gedacht, gilt aber auch für Knöpfe) zerhackte die schmalen
+   Reiter – „Schü-ler-Verifi-zie-rung" auf vier Zeilen, der vierte Reiter
+   abgeschnitten. In der Kopfzeile ebenso „Zum Da-sh-board" und „Lo-gout".
+   Und von drei Zahlen rutschte die dritte allein in eine zweite Reihe.
+   Reiter jetzt ungetrennt und seitlich wischbar; die Kopfzeile darf
+   umbrechen, ihre Teile nicht. Nur hier, nicht an .ll-topbar selbst:
+   Im Lebenslauf-Editor klebt die Umschaltung darunter bei top: 52px. */
+@media (max-width: 720px) {
+  .admin-tabs { overflow-x: auto; scrollbar-width: none; }
+  .admin-tabs::-webkit-scrollbar { display: none; }
+  .admin-tab { flex: 0 0 auto; white-space: nowrap; hyphens: none; padding: 12px 12px; min-height: 44px; }
+  .admin-topbar { flex-wrap: wrap; row-gap: 6px; gap: 10px; padding: 10px 16px; }
+  .admin-topbar > * { white-space: nowrap; hyphens: none; }
+  .admin-wrap .stats-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .admin-wrap .stat-box { min-width: 0; padding: 12px; }
+}
 .admin-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
 .admin-tab {
   background: none; border: none; border-bottom: 2px solid transparent;
