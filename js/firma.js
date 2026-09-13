@@ -33,7 +33,29 @@ function escapeHtml(str) {
 
 const el = () => document.getElementById('firma-seite')
 
+// Eine Firmenseite, die es nicht gibt, gehört nicht in Google (13.9.2026).
+//
+// firma.html ist eine statische Datei und liefert IMMER HTTP 200 – die
+// Firma kommt erst per Abfrage dazu. Google sah bisher also nie, dass
+// die Seite leer ist, und behielt die Adresse, mit „Diesen Arbeitgeber
+// gibt es hier nicht" als Treffer. Die Anzeigenseite macht es seit dem
+// 26.8. richtig (nichtIndexieren in js/job-detail.js); hier fehlte es.
+//
+// Wie dort: nur bei „nicht gefunden". Eine Störung der Verbindung geht
+// über zeigeLadefehler und darf die Firma NICHT aus dem Index werfen.
+function nichtIndexieren() {
+  let meta = document.querySelector('meta[name="robots"]')
+  if (!meta) {
+    meta = document.createElement('meta')
+    meta.name = 'robots'
+    document.head.appendChild(meta)
+  }
+  meta.setAttribute('content', 'noindex')
+  document.title = 'Arbeitgeber nicht gefunden – SchülerMatch'
+}
+
 function zeigeNichtGefunden() {
+  nichtIndexieren()
   el().innerHTML = `
     <div class="empty-state">
       <h1>Diesen Arbeitgeber gibt es hier nicht</h1>

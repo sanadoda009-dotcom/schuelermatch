@@ -149,6 +149,45 @@ test.describe('ohne die Sicht funktioniert die Seite trotzdem', () => {
   })
 })
 
+/* Eine Firmenseite, die es nicht gibt, gehört nicht in Google (13.9.2026).
+ *
+ * firma.html liefert immer HTTP 200. Zeigte sie „Diesen Arbeitgeber gibt
+ * es hier nicht", behielt Google die Adresse trotzdem – mit genau diesem
+ * Satz als Treffer. Die Anzeigenseite setzt dafür seit dem 26.8. ein
+ * `noindex` (tests/verschwundene-anzeige.spec.js); hier fehlte es.
+ */
+test.describe('Suchmaschinen', () => {
+  const robots = page => page.evaluate(() =>
+    document.querySelector('meta[name="robots"]')?.getAttribute('content') ?? null)
+
+  test('eine Firma, die es nicht gibt, wird auf noindex gesetzt', async ({ page }) => {
+    await seite(page, { jobs: [] })
+    await expect(page.locator('main')).toContainText('gibt es hier nicht', { timeout: 20_000 })
+    expect(await robots(page), 'sonst bleibt die leere Seite in Google').toBe('noindex')
+    expect(await page.title()).toMatch(/nicht gefunden/i)
+  })
+
+  test('ohne Kennung in der Adresse ebenfalls', async ({ page }) => {
+    await page.goto('/firma.html')
+    await expect(page.locator('main')).toContainText('gibt es hier nicht', { timeout: 20_000 })
+    expect(await robots(page)).toBe('noindex')
+  })
+
+  test('bei einer Störung NICHT – die Firma gibt es vermutlich noch', async ({ page }) => {
+    await page.route('**/rest/v1/jobs*', route => route.abort())
+    await page.goto(`/firma.html?id=${FIRMA_ID}`)
+    await expect(page.locator('main')).toContainText(/nicht geladen|Verbindung|erneut/i, { timeout: 20_000 })
+    expect(await robots(page),
+      'eine vorübergehende Störung darf die Firma nicht aus dem Index werfen').toBeNull()
+  })
+
+  test('eine vorhandene Firma bleibt indexierbar', async ({ page }) => {
+    await seite(page)
+    await expect(page.locator('h1')).toHaveText('Eiscafé Sonne', { timeout: 20_000 })
+    expect(await robots(page)).toBeNull()
+  })
+})
+
 test('die SQL-Datei nennt nur öffentliche Spalten', async () => {
   // Der Kern der Entscheidung: eine Sicht statt einer RLS-Regel. RLS wirkt
   // auf Zeilen – wer die Zeile lesen darf, liest auch `email`.
