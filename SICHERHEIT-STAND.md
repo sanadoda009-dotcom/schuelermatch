@@ -83,6 +83,17 @@ Kurzfassung dessen, was `pg_policies` sagt:
 - **`meldungen`** nur die eigenen — und Admin.
 - **`job_alarme`, `gemerkte_jobs`** ausschließlich die eigenen Zeilen.
 
+**Bekannte Lücke (13.9.2026): Sperren trennt eine Firma nicht von den
+Schülern.** Keine einzige Regel fragt nach `firma_status = 'gesperrt'` –
+nur die öffentliche Lese-Regel für `jobs` verlangt eine *freigegebene*
+Firma. Eine gesperrte Firma kann deshalb weiter Nachrichten schreiben und
+lesen, Bewerbungen lesen und entscheiden, die Profile ihrer Bewerber
+(mit E-Mail-Adresse) lesen und Zeugnisse laden.
+`supabase/firma-gesperrt-kein-kontakt.sql` schließt das mit
+**einschränkenden** Regeln (`as restrictive`), noch nicht eingespielt.
+Einschränkend heißt: Sie werden mit UND verknüpft und gelten neben jeder
+erlaubenden Regel, egal in welcher Fassung die eingespielt ist.
+
 ## Storage
 
 | Bucket | öffentlich | Grenzen | wer liest |

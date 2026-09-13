@@ -43,9 +43,9 @@ Secrets (`RESEND_API_KEY`, `MAIL_ABSENDER`, `SITE_URL`) bleiben, wie sie sind.
 Datum von heute stehen. `tests/mail-ziele.spec.js` prüft die Texte im
 Repository – ob sie live sind, kann nur der Blick ins Dashboard sagen.
 
-## ⏳ Wartet auf dich: zwölf SQL-Dateien
+## ⏳ Wartet auf dich: dreizehn SQL-Dateien
 
-Alle zwölf im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
+Alle dreizehn im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
 und unten, **wie du nachprüfst, dass es gewirkt hat**.
 
 | Datei | Was sie schließt |
@@ -62,8 +62,9 @@ und unten, **wie du nachprüfst, dass es gewirkt hat**.
 | `supabase/bewerbung-grenzen.sql` | `bewerbungen` hat als einzige Tabelle **keine einzige Regel**: beliebig viele Bewerbungen auf dieselbe Anzeige (jede löst eine E-Mail aus), beliebiger `status`, Freitext ohne Obergrenze |
 | `supabase/ausweis-weg-bei-freigabe.sql` | **Die Freischalt-Mail sagt „Dokument gelöscht“ — bei einer Freigabe am Betreiber-Bereich vorbei stimmt das nicht** |
 | `supabase/bewerben-nur-alt-genug.sql` | **Ein verifizierter 14-Jähriger kann sich per API auf eine „ab 16“-Anzeige bewerben** — das Alter wird nur im Dashboard gefiltert |
+| `supabase/firma-gesperrt-kein-kontakt.sql` | **Eine gesperrte Firma kann weiter Schülern schreiben, Bewerbungen samt Lebenslauf und E-Mail-Adresse lesen und Zeugnisse laden** – „Sperren" versteckt nur ihre Anzeigen (13.9.). Wirkt über zusätzliche einschränkende Regeln, fasst keine bestehende an. |
 
-Der Code läuft in allen zwölf Fällen **auch ohne** die Änderung — er fällt
+Der Code läuft in allen dreizehn Fällen **auch ohne** die Änderung — er fällt
 dann auf das alte Verhalten zurück, statt kaputt zu gehen.
 
 ### 🔴 Zwei Ausweisdokumente liegen noch da — deine Entscheidung
@@ -146,7 +147,7 @@ angeht, muss diesen Test mitnehmen.
 
 ### Reihenfolge? Keine. Nachgeprüft.
 
-Zwölf Dateien sind viel. Deshalb habe ich nachgesehen, ob es eine
+Dreizehn Dateien sind viel. Deshalb habe ich nachgesehen, ob es eine
 Reihenfolge gibt, die du einhalten musst — **es gibt keine.**
 
 Nur zwei Dateien legen überhaupt neue Spalten an, und jede benutzt

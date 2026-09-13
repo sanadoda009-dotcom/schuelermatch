@@ -63,7 +63,7 @@ test('die Liste nennt nur Dateien, die es gibt', async () => {
 // Zweimal an einem Tag falsch gehabt: Zeile ergänzt, Zahl vergessen.
 const ZAHLWORT = {
   3: 'drei', 4: 'vier', 5: 'fünf', 6: 'sechs', 7: 'sieben',
-  8: 'acht', 9: 'neun', 10: 'zehn', 11: 'elf', 12: 'zwölf',
+  8: 'acht', 9: 'neun', 10: 'zehn', 11: 'elf', 12: 'zwölf', 13: 'dreizehn', 14: 'vierzehn', 15: 'fünfzehn',
 }
 
 // Alle Stellen, die dieselbe Zahl noch einmal aussprechen.

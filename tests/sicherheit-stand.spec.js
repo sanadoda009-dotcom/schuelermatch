@@ -63,7 +63,7 @@ test('nennt die offenen Punkte, statt sie zu verschweigen', async () => {
   // schließt, muss hier auftauchen.
   const offen = ['profil-email-festnageln.sql', 'chat-erst-nach-zusage.sql',
                  'zeugnis-nur-eigene-anzeige.sql', 'bewerbung-bleibt.sql',
-                 'meldungen-bleiben.sql', 'firma-oeffentlich.sql']
+                 'meldungen-bleiben.sql', 'firma-oeffentlich.sql', 'firma-gesperrt-kein-kontakt.sql']
   for (const datei of offen) {
     expect(STAND, `${datei} fehlt in der Übersicht`).toContain(datei)
   }
