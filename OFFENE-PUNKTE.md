@@ -105,18 +105,13 @@ nur noch das Netz für Seiten, die Google nicht mehr besucht.
 `tests/google-jobs.spec.js` hält beides fest — auch den Wächter, dass
 zwei Anzeigen ein halbes Jahr auseinander denselben Tag melden müssen.
 
-### 📝 Zwei kleine Funde vom 11.9., beide noch offen
+### 📝 Zwei kleine Funde vom 11.9. – einer davon am 13.9. behoben
 
-**`forgot-password.html` ist in `robots.txt` gesperrt, hat aber kein
-`noindex`.** Das ist genau die falsche Hälfte: Eine Sperre in
-`robots.txt` verhindert das *Lesen* der Seite, nicht das Aufnehmen der
-Adresse — und weil Google die Seite nicht lesen darf, sieht es ein
-`noindex` dort auch nie. `login.html` verlinkt sie, und `login.html`
-steht in der Sitemap. `admin.html` macht es im selben Projekt richtig
-herum: kein Eintrag in `robots.txt`, dafür `noindex` in der Seite.
-Betrifft ebenso `reset-password.html` und die beiden Dashboards. Kein
-Sicherheitsproblem — die Seiten sind ohnehin geschützt —, es sieht nur
-schlecht aus, wenn sie in einem Suchergebnis auftauchen.
+~~**`forgot-password.html` ist in `robots.txt` gesperrt, hat aber kein
+`noindex`.**~~ **Am 13.9. behoben:** Die vier Seiten (beide Dashboards,
+beide Passwort-Seiten) tragen jetzt `noindex` und stehen nicht mehr in
+`robots.txt` – genau wie `admin.html`. `tests/statisch.spec.js` prüft
+seitdem jede Seite: Sitemap, `noindex` oder bewusst dynamisch.
 
 **Einzelne Anzeigen stehen in keiner Sitemap.** Google findet
 `job.html?id=…` nur, indem es das JavaScript auf `jobs.html` ausführt.

@@ -1,8 +1,15 @@
 User-agent: *
 Allow: /
-Disallow: /dashboard-schueler.html
-Disallow: /dashboard-firma.html
-Disallow: /reset-password.html
-Disallow: /forgot-password.html
+
+# Seiten, die nicht in Suchergebnisse gehören (Dashboards, Passwort-Seiten,
+# Betreiber-Bereich, Lebenslauf-Editor), tragen <meta name="robots"
+# content="noindex"> – und stehen deshalb bewusst NICHT hier.
+#
+# Bis zum 13.9.2026 standen vier davon hier unter „Disallow". Eine Sperre
+# in robots.txt verhindert aber nur das LESEN einer Seite, nicht das
+# Aufnehmen ihrer Adresse: Verlinkt eine andere Seite sie (login.html
+# verlinkt forgot-password.html), kann die Adresse trotzdem im Index
+# landen. Und weil Google die gesperrte Seite nicht lesen darf, sieht es
+# ein noindex darin nie. tests/statisch.spec.js prüft beides.
 
 Sitemap: https://schuelermatch.de/sitemap.xml
