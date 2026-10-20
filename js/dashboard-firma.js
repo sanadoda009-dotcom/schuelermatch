@@ -121,6 +121,11 @@ async function init() {
   document.getElementById('cancel-edit-btn').addEventListener('click', beendeBearbeitung)
 
   document.getElementById('profile-name').value = profile.name || ''
+  // Nach der Freigabe ist der Name geprueft und in der Datenbank
+  // eingefroren (supabase/firmenname-fest.sql).
+  const nameFest = profile.firma_status === 'freigegeben'
+  document.getElementById('profile-name').disabled = nameFest
+  document.getElementById('name-fest-hinweis').hidden = !nameFest
   document.getElementById('profile-ort').value = profile.ort || ''
   document.getElementById('profile-benachrichtigung').value = profile.benachrichtigung || 'taeglich'
   document.getElementById('profile-ueber-uns').value = profile.ueber_mich || ''
@@ -314,13 +319,17 @@ async function speichereProfil(e) {
   btn.textContent = 'Speichert...'
 
   const updates = {
-    name: document.getElementById('profile-name').value,
     ort: document.getElementById('profile-ort').value,
     // Die Spalte heisst `ueber_mich`, weil sie urspruenglich fuer Schueler
     // angelegt wurde. Fuer eine Firma ist es "Wer ihr seid" - dieselbe
     // Spalte, kein Umbau noetig. Sie lag bis zum 2.9.2026 ungenutzt herum.
     ueber_mich: document.getElementById('profile-ueber-uns').value.trim() || null,
     benachrichtigung: document.getElementById('profile-benachrichtigung').value
+  }
+  // Freigegeben: Namen nicht mitschicken - die Datenbank wuerde ihn ohnehin
+  // still auf den geprueften zuruecksetzen (supabase/firmenname-fest.sql).
+  if (profile.firma_status !== 'freigegeben') {
+    updates.name = document.getElementById('profile-name').value
   }
 
   const { error } = await supabase.from('profiles').update(updates).eq('id', profile.id)

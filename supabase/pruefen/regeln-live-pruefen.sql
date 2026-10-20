@@ -80,6 +80,16 @@ begin
          else 'GEAENDERT (FEHLER)' end
     from public.bewerbungen where id = b_absage;
 
+  -- firmenname-fest.sql (20.10.2026)
+  update public.profiles set name = 'Andere Firma' where id = firma;
+  insert into _erg select 'freigegeben: Firmenname aendern',
+    case when name <> 'Andere Firma' then 'bleibt' else 'GEAENDERT (FEHLER)' end
+    from public.profiles where id = firma;
+  update public.jobs set firma_name = 'Polizei' where id = job15;
+  insert into _erg select 'fremder Name auf der Anzeige',
+    case when firma_name is distinct from 'Polizei' then 'Profilname' else 'UEBERNOMMEN (FEHLER)' end
+    from public.jobs where id = job15;
+
   -- Sperren ohne Anmeldung (siehe FALLE oben)
   perform set_config('role', 'postgres', true);
   perform set_config('request.jwt.claims', '', true);

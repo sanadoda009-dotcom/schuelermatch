@@ -49,9 +49,9 @@ brauchen die Edge Functions.
 |---|---|---|
 | `bewerbungen` | `id`, `job_id`, `schueler_id`, `motivationsschreiben`, `zeugnis_url`, `lebenslauf_url`, `erstellt_am`, `job_titel`; `angesehen_am` nur einmal setzbar (`bewerbung-titel-festnageln.sql`) | `status`, `entschieden_am`, `absage_grund` |
 | `nachrichten` | `id`, `bewerbung_id`, `absender_id`, `text`, `erstellt_am` | **nur `gelesen`** |
-| `profiles` | `ist_admin`, `verifiziert`, `firma_status`, `role`, `email`; `alter_jahre` ab der Verifizierung; Dokumentpfade nur im eigenen Ordner (Admins ausgenommen, `alter-nach-verifizierung-fest.sql`) | Name, Ort, Schule, Foto, Alter vor der Verifizierung, … |
+| `profiles` | `ist_admin`, `verifiziert`, `firma_status`, `role`, `email`; `alter_jahre` ab der Verifizierung; `name` einer freigegebenen Firma; Dokumentpfade nur im eigenen Ordner (Admins ausgenommen, `alter-nach-verifizierung-fest.sql`, `firmenname-fest.sql`) | Ort, Schule, Foto, Name/Alter vor der Prüfung, … |
 | `bewertungen` | über `schuetze_bewertung_felder()` | Sterne, Kommentar |
-| `jobs` | über `schuetze_job_felder()` | die Anzeigenfelder |
+| `jobs` | über `schuetze_job_felder()`; `firma_name` setzt `trg_job_firmenname` immer aus dem Profil (`firmenname-fest.sql`) | die Anzeigenfelder |
 | `job_alarme` | über `schuetze_job_alarm_felder()` | die Suchkriterien |
 | `meldungen` | `schuetze_meldung_felder()` + `meldung_zitat_setzen()` **bei INSERT** | — |
 

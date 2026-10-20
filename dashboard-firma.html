@@ -237,7 +237,16 @@
       <form id="profile-form">
         <div class="form-group">
           <label for="profile-name">Firmenname</label>
-          <input type="text" id="profile-name" required>
+          <input type="text" id="profile-name" required aria-describedby="name-fest-hinweis">
+          <!-- Seit 20.10.2026 friert die Datenbank den Namen einer freigegebenen
+               Firma ein (supabase/firmenname-fest.sql): Geprueft wurde dieser
+               Name. Ohne Hinweis saehe die Firma "gespeichert" und beim
+               naechsten Laden wieder den alten. -->
+          <p class="feld-hilfe" id="name-fest-hinweis" hidden>
+            Diesen Namen haben wir bei der Freigabe geprüft – deshalb steht er fest
+            und erscheint so auf allen deinen Anzeigen. Hat sich euer Name geändert?
+            Schreib uns (Kontakt im <a href="impressum.html">Impressum</a>), dann passen wir ihn an.
+          </p>
         </div>
         <div class="form-group">
           <label for="profile-ort">Standort</label>
