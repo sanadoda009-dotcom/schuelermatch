@@ -375,6 +375,33 @@ geprüft, NACHHER abgefragt.
 Volle Suite: 1255 grün (nach Anpassung des Ausweis-Tests an die neue
 Fassung, `9721a7e`).
 
+**Nachmittag – ein Muster, viermal:** Eine Prüfung legt einen Wert fest,
+danach darf man ihn wieder ändern. Alle Schutz-Trigger gegen alle Spalten
+gehalten (eine Abfrage) und gefunden:
+- `bewerbungen.job_titel` – die Firma konnte die Titel-Kopie umschreiben
+  (`a3da4ee`, `b2f0a2c`). Neu: `tests/spalten-schutz.spec.js` verlangt für
+  jede neue Spalte an `bewerbungen` eine Entscheidung.
+- `profiles.alter_jahre` – ein verifizierter Schüler konnte sein Alter
+  hochsetzen und sich auf „ab 18" bewerben (`0ab4b25`). Jetzt nach der
+  Verifizierung fest, Profilfeld gesperrt mit Hinweis.
+- Firmenname – nach der Freigabe frei änderbar, und auf eine Anzeige ließ
+  sich über die API **jeder** Name schreiben (`b28e89c`). Jetzt fest, die
+  Anzeige bekommt ihn immer aus dem Profil.
+- `ist_verifiziert` / `ist_gesperrte_firma` waren ohne Anmeldung für jede
+  Konto-Id abfragbar (`0ae7425`).
+
+Jeder Fall mit echten Konten durchgespielt (Rollback, keine Mail);
+`supabase/pruefen/regeln-live-pruefen.sql` umfasst jetzt 16 Fälle, 0 Fehler.
+Volle Suite: **1270 grün**.
+
+Eigene Fehler, beide notiert: Ein Commit ging mit rotem Test raus (`| tail`
+verschluckt den Exit-Code), und ein Regex-Test war grün, weil die
+Prüfanleitung im SQL-Kommentar dieselbe Zeile nennt. Beides behoben.
+
+Offen bei Sanad, unverändert bewusst nicht selbst gemacht: Zeitplan für den
+Job-Alarm (die Datenschutzerklärung verspricht ihn schon), Schutz gegen
+geleakte Passwörter (Auth-Einstellung), die zwei alten Ausweisdokumente.
+
 ## Session 11.–13. September 2026 - Versprechen gegen Code, dann alles durchfotografiert
 
 Jede Runde: messen → beheben → nachmessen → Test → Gegenprobe gegen den alten
