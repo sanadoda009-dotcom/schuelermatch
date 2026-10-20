@@ -139,7 +139,9 @@ Deno.serve(async (req) => {
       .single()
     if (error || !b) return new Response('lookup failed', { status: 200 })
 
-    const jobTitel = esc(b.job?.titel ?? 'einen Job')
+    // Seit 20.10.2026 (bewerbung-bleibt.sql) kann die Anzeige geloescht sein;
+    // dann steht ihr Titel noch als Kopie in `job_titel`.
+    const jobTitel = esc(b.job?.titel ?? b.job_titel ?? 'einen Job')
     const firma = b.job?.firma
     const schueler = b.schueler
 
