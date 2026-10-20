@@ -37,7 +37,7 @@ Nachgeprüft: Der ausgerollte Quelltext stimmt mit
 **Merksatz:** Edge Functions gehen nicht mit `git push` live. Nach jeder
 Änderung in `supabase/functions/` einzeln ausrollen.
 
-## ✅ Eingespielt am 20.10.2026: sechzehn SQL-Dateien
+## ✅ Eingespielt am 20.10.2026: siebzehn SQL-Dateien
 
 Sanad hat am 20.10. gesagt „mach alles selber". Jede Datei wurde **vorher
 gegen die laufende Datenbank geprüft** (stimmen die Namen, die sie
@@ -62,6 +62,7 @@ nicht dem „success" geglaubt.
 | `supabase/bewerbung-titel-festnageln.sql` | **Am selben Tag nachgeschoben:** Die Firma konnte die Titel-Kopie (`job_titel`) umschreiben – der Schutz-Trigger war älter als die Spalte. Jetzt eingefroren, `angesehen_am` nur einmal setzbar. `tests/spalten-schutz.spec.js` verlangt künftig für jede neue Spalte eine Entscheidung. |
 | `supabase/alter-nach-verifizierung-fest.sql` | **Ebenfalls nachgeschoben:** Ein verifizierter Schüler konnte sein Alter im Profil frei ändern – genau die Zahl, nach der die Datenbank das Bewerben erlaubt. Jetzt nach der Verifizierung eingefroren (Formular gesperrt, mit Hinweis); Dokumentpfade nur im eigenen Ordner. **Folge:** Nach einem Geburtstag trägt der Betreiber das neue Alter ein. Sauberer wäre ein Geburtsdatum statt eines Alters – größere Umstellung, nicht begonnen. |
 | `supabase/firmenname-fest.sql` | **Ebenfalls nachgeschoben:** Eine freigegebene Firma konnte ihren geprüften Namen ändern, und auf eine Anzeige ließ sich über die API **jeder** Name schreiben (der Browser kopierte ihn nur). Jetzt: Name nach der Freigabe fest (Formular gesperrt, mit Hinweis), Anzeigen bekommen ihn immer aus dem Profil. Vier alte Test-Anzeigen ohne Namen bleiben unangetastet. |
+| `supabase/pruef-funktionen-nicht-fuer-gaeste.sql` | Ohne Anmeldung ließ sich zu jeder Konto-Id abfragen, ob ein Schüler verifiziert oder eine Firma gesperrt ist (`ist_verifiziert`, `ist_gesperrte_firma`). Jetzt nur noch für Angemeldete – nur deren Regeln brauchen sie. Jobbörse für Gäste geprüft: unverändert. |
 
 ### Zwei Fallen, die erst beim Einspielen auffielen
 

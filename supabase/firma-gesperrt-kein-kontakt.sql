@@ -59,7 +59,8 @@ as $$
 $$;
 
 revoke all on function public.ist_gesperrte_firma(uuid) from public;
-grant execute on function public.ist_gesperrte_firma(uuid) to anon, authenticated;
+-- 20.10.2026: nicht mehr fuer Gaeste (pruef-funktionen-nicht-fuer-gaeste.sql)
+grant execute on function public.ist_gesperrte_firma(uuid) to authenticated;
 
 -- Nachrichten: weder lesen noch schreiben.
 drop policy if exists "Gesperrte Firma: keine Nachrichten" on public.nachrichten;
