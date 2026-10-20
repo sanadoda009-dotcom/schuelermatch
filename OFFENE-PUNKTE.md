@@ -37,7 +37,7 @@ Nachgeprüft: Der ausgerollte Quelltext stimmt mit
 **Merksatz:** Edge Functions gehen nicht mit `git push` live. Nach jeder
 Änderung in `supabase/functions/` einzeln ausrollen.
 
-## ✅ Eingespielt am 20.10.2026: dreizehn SQL-Dateien
+## ✅ Eingespielt am 20.10.2026: vierzehn SQL-Dateien
 
 Sanad hat am 20.10. gesagt „mach alles selber". Jede Datei wurde **vorher
 gegen die laufende Datenbank geprüft** (stimmen die Namen, die sie
@@ -59,6 +59,7 @@ nicht dem „success" geglaubt.
 | `supabase/bewerbung-stand.sql` | `angesehen_am`, `entschieden_am`, `absage_grund` |
 | `supabase/firma-oeffentlich.sql` | Sicht `firmen_oeffentlich` (sechs Spalten, keine E-Mail) |
 | `supabase/ausweis-weg-bei-freigabe.sql` | Keine Freigabe, solange noch ein Ausweisdokument in der Ablage liegt |
+| `supabase/bewerbung-titel-festnageln.sql` | **Am selben Tag nachgeschoben:** Die Firma konnte die Titel-Kopie (`job_titel`) umschreiben – der Schutz-Trigger war älter als die Spalte. Jetzt eingefroren, `angesehen_am` nur einmal setzbar. `tests/spalten-schutz.spec.js` verlangt künftig für jede neue Spalte eine Entscheidung. |
 
 ### Zwei Fallen, die erst beim Einspielen auffielen
 

@@ -47,7 +47,7 @@ brauchen die Edge Functions.
 
 | Tabelle | eingefroren | also änderbar bleibt |
 |---|---|---|
-| `bewerbungen` | `id`, `job_id`, `schueler_id`, `motivationsschreiben`, `zeugnis_url`, `lebenslauf_url`, `erstellt_am` | **nur `status`** |
+| `bewerbungen` | `id`, `job_id`, `schueler_id`, `motivationsschreiben`, `zeugnis_url`, `lebenslauf_url`, `erstellt_am`, `job_titel`; `angesehen_am` nur einmal setzbar (`bewerbung-titel-festnageln.sql`) | `status`, `entschieden_am`, `absage_grund` |
 | `nachrichten` | `id`, `bewerbung_id`, `absender_id`, `text`, `erstellt_am` | **nur `gelesen`** |
 | `profiles` | `ist_admin`, `verifiziert`, `firma_status`, `role`, `email` (Admins ausgenommen) | Name, Ort, Alter, Schule, Foto, … |
 | `bewertungen` | über `schuetze_bewertung_felder()` | Sterne, Kommentar |

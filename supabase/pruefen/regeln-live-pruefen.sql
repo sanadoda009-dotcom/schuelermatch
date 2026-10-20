@@ -67,6 +67,13 @@ begin
   update public.bewerbungen set angesehen_am = now() where id = b_absage;
   get diagnostics n = row_count;
   insert into _erg values ('Firma setzt angesehen_am', case when n = 1 then 'erlaubt' else 'KEINE ZEILE (FEHLER)' end);
+  -- bewerbung-titel-festnageln.sql (20.10.2026)
+  select job_titel into t from public.bewerbungen where id = b_absage;
+  update public.bewerbungen set job_titel = 'Umgeschrieben', angesehen_am = now() + interval '1 day' where id = b_absage;
+  insert into _erg select 'Firma schreibt Titel-Kopie / angesehen_am um',
+    case when job_titel is not distinct from t and angesehen_am < now() + interval '1 hour' then 'bleibt'
+         else 'GEAENDERT (FEHLER)' end
+    from public.bewerbungen where id = b_absage;
 
   -- Sperren ohne Anmeldung (siehe FALLE oben)
   perform set_config('role', 'postgres', true);
