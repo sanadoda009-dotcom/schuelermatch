@@ -57,10 +57,11 @@ test('führt alle vier Ablagen mit ihrer Sichtbarkeit auf', async () => {
   }
 })
 
-test('nennt die offenen Punkte, statt sie zu verschweigen', async () => {
-  // Eine Sicherheitsübersicht, die nur das Erledigte auflistet, ist eine
-  // Werbebroschüre. Jede noch nicht eingespielte Datei, die eine Lücke
-  // schließt, muss hier auftauchen.
+test('nennt bei jeder geschlossenen Lücke die Datei, aus der die Regel stammt', async () => {
+  // Bis zum 20.10.2026 hieß dieser Test „nennt die offenen Punkte" – die
+  // Dateien warteten noch. Seitdem sind sie eingespielt, und die Übersicht
+  // muss weiter sagen, WOHER jede Regel kommt: Wer eine Regel ändern will,
+  // findet dort das Warum und den Rückweg.
   const offen = ['profil-email-festnageln.sql', 'chat-erst-nach-zusage.sql',
                  'zeugnis-nur-eigene-anzeige.sql', 'bewerbung-bleibt.sql',
                  'meldungen-bleiben.sql', 'firma-oeffentlich.sql', 'firma-gesperrt-kein-kontakt.sql']

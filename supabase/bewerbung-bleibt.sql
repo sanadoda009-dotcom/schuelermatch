@@ -65,6 +65,9 @@ begin
 end;
 $$;
 
+-- Reine Trigger-Funktion: von aussen nicht aufrufbar (20.10.2026)
+revoke all on function public.bewerbung_job_titel() from public, anon, authenticated;
+
 drop trigger if exists bewerbung_job_titel_trg on public.bewerbungen;
 create trigger bewerbung_job_titel_trg
   before insert on public.bewerbungen

@@ -29,6 +29,21 @@
 --
 -- Beide Spalten sind bereits nullbar, es ist also keine Spaltenaenderung
 -- noetig.
+--
+-- NACHTRAG 20.10.2026 (beim Einspielen gefunden): Die Regel `meldung_ziel`
+-- verlangte bei typ='job' ein job_id IS NOT NULL (und bei 'nachricht'
+-- entsprechend). Mit SET NULL waere jedes Loeschen einer gemeldeten Anzeige
+-- und jedes Konto-Loeschen mit gemeldeter Nachricht an dieser Regel
+-- GESCHEITERT. Sie erlaubt jetzt ein leeres Ziel; dass eine Meldung nie
+-- auf Anzeige UND Nachricht zugleich zeigt, bleibt erhalten. Der Wortlaut
+-- steht ohnehin in `zitat`.
+
+alter table public.meldungen drop constraint if exists meldung_ziel;
+alter table public.meldungen
+  add constraint meldung_ziel check (
+    (typ = 'job' and nachricht_id is null)
+    or (typ = 'nachricht' and job_id is null)
+  );
 
 alter table public.meldungen
   drop constraint if exists meldungen_job_id_fkey;

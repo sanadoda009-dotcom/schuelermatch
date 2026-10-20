@@ -1,7 +1,9 @@
 # Was schützt gerade was
 
-**Stand: 5.9.2026, aus der laufenden Datenbank ausgelesen — nicht aus der
-Historie abgeschrieben.**
+**Stand: 20.10.2026, aus der laufenden Datenbank ausgelesen — nicht aus der
+Historie abgeschrieben.** An diesem Tag wurden alle dreizehn wartenden
+SQL-Dateien eingespielt; die Abschnitte unten nennen bei jeder Regel die
+Datei, aus der sie stammt.
 
 ## Warum es diese Datei gibt
 
@@ -47,7 +49,7 @@ brauchen die Edge Functions.
 |---|---|---|
 | `bewerbungen` | `id`, `job_id`, `schueler_id`, `motivationsschreiben`, `zeugnis_url`, `lebenslauf_url`, `erstellt_am` | **nur `status`** |
 | `nachrichten` | `id`, `bewerbung_id`, `absender_id`, `text`, `erstellt_am` | **nur `gelesen`** |
-| `profiles` | `ist_admin`, `verifiziert`, `firma_status`, `role` (Admins ausgenommen) | Name, Ort, Alter, Schule, Foto, … |
+| `profiles` | `ist_admin`, `verifiziert`, `firma_status`, `role`, `email` (Admins ausgenommen) | Name, Ort, Alter, Schule, Foto, … |
 | `bewertungen` | über `schuetze_bewertung_felder()` | Sterne, Kommentar |
 | `jobs` | über `schuetze_job_felder()` | die Anzeigenfelder |
 | `job_alarme` | über `schuetze_job_alarm_felder()` | die Suchkriterien |
@@ -56,10 +58,17 @@ brauchen die Edge Functions.
 **Deshalb ist die weite UPDATE-Regel auf `bewerbungen` kein Loch:** Die
 Firma darf die Zeile anfassen, aber der Trigger lässt nur `status` durch.
 
-**Bekannte Lücke in dieser Schicht:** `profiles.email` ist **nicht**
-eingefroren — und genau diese Spalte lädt `mail-ereignis` als
-Empfängeradresse. `supabase/profil-email-festnageln.sql` schließt das,
-ist aber noch nicht eingespielt.
+**Geschlossen am 20.10.2026:** `profiles.email` war nicht eingefroren —
+und genau diese Spalte lädt `mail-ereignis` als Empfängeradresse.
+`supabase/profil-email-festnageln.sql` friert sie jetzt mit ein.
+
+Zwei weitere Trigger, die keine Spalten einfrieren, aber zur Schicht
+gehören:
+
+| Trigger | Tabelle | tut |
+|---|---|---|
+| `bewerbung_job_titel_trg` | `bewerbungen` | schreibt beim Anlegen den Anzeigentitel mit (`supabase/bewerbung-bleibt.sql`) |
+| `trg_ausweis_weg_bei_freigabe` | `profiles` | lehnt eine Freigabe ab, solange noch ein Ausweisdokument in der Ablage liegt (`supabase/ausweis-weg-bei-freigabe.sql`) |
 
 ## Schicht 1: Wer darf welche Zeilen?
 
@@ -69,30 +78,27 @@ Kurzfassung dessen, was `pg_policies` sagt:
   Schreiben/Löschen nur die eigene Firma. Admin liest alles.
 - **`profiles`** nur das eigene Profil — plus „Firma sieht Profil von
   Bewerbern" (eingeschränkt auf die eigenen Anzeigen) und Admin.
-  Öffentliche Firmendaten sollen über die Sicht `firmen_oeffentlich`
-  laufen (`supabase/firma-oeffentlich.sql`, noch nicht eingespielt) —
+  Öffentliche Firmendaten laufen über die Sicht `firmen_oeffentlich`
+  (`supabase/firma-oeffentlich.sql`, sechs Spalten, keine E-Mail) —
   **eine Sicht und keine RLS-Regel, weil RLS auf ZEILEN wirkt und in
   derselben Zeile `email` steht.**
 - **`bewerbungen`** der eigene Schüler; die Firma nur für ihre Anzeigen.
-  Einfügen nur verifizierte Schüler (`ist_verifiziert(auth.uid())`).
-- **`nachrichten`** beide Seiten der Bewerbung. **Ohne Prüfung des
-  Stands** — die Zusage gilt bisher nur im Browser
-  (`supabase/chat-erst-nach-zusage.sql`, noch nicht eingespielt).
+  Einfügen nur verifizierte Schüler, die das Mindestalter der Anzeige
+  erreichen (`ist_verifiziert` + `ist_alt_genug`,
+  `supabase/bewerben-nur-alt-genug.sql`). Eine Bewerbung je Anzeige,
+  nur drei Stände (`supabase/bewerbung-grenzen.sql`).
+- **`nachrichten`** lesen beide Seiten der Bewerbung; **schreiben nur bei
+  `status = 'angenommen'`** (`supabase/chat-erst-nach-zusage.sql`).
 - **`bewertungen`** öffentlich lesbar; schreiben nur, wer bei dieser Firma
   `status = 'angenommen'` hat. Eine je Firma und Schüler.
 - **`meldungen`** nur die eigenen — und Admin.
 - **`job_alarme`, `gemerkte_jobs`** ausschließlich die eigenen Zeilen.
 
-**Bekannte Lücke (13.9.2026): Sperren trennt eine Firma nicht von den
-Schülern.** Keine einzige Regel fragt nach `firma_status = 'gesperrt'` –
-nur die öffentliche Lese-Regel für `jobs` verlangt eine *freigegebene*
-Firma. Eine gesperrte Firma kann deshalb weiter Nachrichten schreiben und
-lesen, Bewerbungen lesen und entscheiden, die Profile ihrer Bewerber
-(mit E-Mail-Adresse) lesen und Zeugnisse laden.
-`supabase/firma-gesperrt-kein-kontakt.sql` schließt das mit
-**einschränkenden** Regeln (`as restrictive`), noch nicht eingespielt.
-Einschränkend heißt: Sie werden mit UND verknüpft und gelten neben jeder
-erlaubenden Regel, egal in welcher Fassung die eingespielt ist.
+**Gesperrte Firmen (seit 20.10.2026):** Vier **einschränkende** Regeln
+(`as restrictive`) aus `supabase/firma-gesperrt-kein-kontakt.sql` trennen
+eine gesperrte Firma von Nachrichten, Bewerbungen, fremden Profilen und
+Zeugnissen. Einschränkend heißt: Sie werden mit UND verknüpft und gelten
+neben jeder erlaubenden Regel.
 
 ## Storage
 
@@ -103,14 +109,14 @@ erlaubenden Regel, egal in welcher Fassung die eingespielt ist.
 | `verifizierung` | nein | 6 MB, Bild/PDF | der Schüler selbst, Admin |
 | `zeugnisse` | nein | 6 MB, Bild/PDF | der Schüler selbst; die Firma seiner Bewerbung |
 
-**Zwei offene Punkte hier**, beide in `supabase/zeugnis-nur-eigene-anzeige.sql`:
+**Seit 20.10.2026** (`supabase/zeugnis-nur-eigene-anzeige.sql`): Die
+Firmen-Leseregel prüft beide Pfad-Segmente — `<schueler_id>/<job_id>/…` —,
+eine Firma sieht also nur Zeugnis und Lebenslauf zu IHREN Anzeigen. Und der
+Schüler darf sein Zeugnis selbst löschen.
 
-1. Die Firmen-Leseregel prüft nur das **erste** Pfad-Segment (die
-   Schüler-Id). Der Pfad ist aber `<schueler_id>/<job_id>/…` — eine
-   Bewerbung bei Firma A genügt, danach ist der ganze Ordner für A offen,
-   **einschließlich Zeugnis und Lebenslauf für Firma B.**
-2. Für `zeugnisse` gibt es **gar keine Löschregel**. Ein Schüler wird ein
-   falsch hochgeladenes Zeugnis nur mit dem ganzen Konto los.
+**Direktes Löschen per SQL ist gesperrt:** Supabase hat den Trigger
+`protect_objects_delete` auf `storage.objects`. Dateien gehen nur noch über
+die Storage-Schnittstelle weg (Admin-Knopf, Dashboard, Edge Functions).
 
 **Merksatz:** Eine Storage-Regel prüft Pfad-SEGMENTE. Ist der Pfad tiefer
 als die Regel, ist alles darunter offen.
@@ -121,9 +127,9 @@ als die Regel, ist alles darunter offen.
 
 | Kaskade | Folge | Stand |
 |---|---|---|
-| `bewerbungen.job_id → jobs` | Firma löscht Anzeige → alle Bewerbungen und (über `nachrichten.bewerbung_id`) alle Chats weg | offen, `bewerbung-bleibt.sql` |
-| `meldungen.job_id → jobs` | Gemeldete Firma löscht die Anzeige → Meldung weg | offen, `meldungen-bleiben.sql` |
-| `meldungen.nachricht_id → nachrichten` | dasselbe über den Chat | offen, dieselbe Datei |
+| `bewerbungen.job_id → jobs` | war: Firma löscht Anzeige → alle Bewerbungen und Chats weg | **SET NULL seit 20.10.**, `bewerbung-bleibt.sql` |
+| `meldungen.job_id → jobs` | war: gemeldete Firma löscht die Anzeige → Meldung weg | **SET NULL seit 20.10.**, `meldungen-bleiben.sql` |
+| `meldungen.nachricht_id → nachrichten` | dasselbe über den Chat | **SET NULL seit 20.10.**, dieselbe Datei |
 | `meldungen.melder_id → profiles` | **behoben am 27.8.** → SET NULL | erledigt |
 | `bewerbungen.schueler_id → profiles` | eigenes Konto weg → eigene Bewerbung weg | **so gewollt** |
 

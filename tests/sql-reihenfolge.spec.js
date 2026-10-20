@@ -33,10 +33,14 @@ const path = require('path')
 const WURZEL = path.join(__dirname, '..')
 const PUNKTE = fs.readFileSync(path.join(WURZEL, 'OFFENE-PUNKTE.md'), 'utf8')
 
-// Die Tabelle „Wartet auf dich" – nur der Block, nicht die ganze Datei.
-const TABELLE = PUNKTE.slice(
-  PUNKTE.indexOf('## ⏳ Wartet auf dich:'),
-  PUNKTE.indexOf('### Datenstand'))
+// 20.10.2026: Alle dreizehn sind eingespielt. Die Tabelle heisst jetzt
+// „Eingespielt am …" – die Dateien bleiben als nachvollziehbares Rezept
+// im Repository (Warum, Pruefteil, Rueckweg), und dafuer gelten dieselben
+// Regeln wie vorher. Wartet kuenftig wieder etwas, kommt eine Tabelle
+// „Wartet auf dich" dazu; dann zaehlt der erste Block, den es gibt.
+const START = ['## ⏳ Wartet auf dich:', '## ✅ Eingespielt am']
+  .map(k => PUNKTE.indexOf(k)).filter(i => i >= 0)
+const TABELLE = PUNKTE.slice(Math.min(...START), PUNKTE.indexOf('###', Math.min(...START)))
 
 const OFFEN = [...TABELLE.matchAll(/\| `supabase\/([a-z0-9-]+\.sql)` \|/g)].map(m => m[1])
 
@@ -77,6 +81,7 @@ const ZAHLWORT = {
 // drei der vier müssen zu finden sein.
 const ZAEHLSTELLEN = [
   /Wartet auf dich: (\p{L}+) SQL-Dateien/u,
+  /Eingespielt am [\d.]+: (\p{L}+) SQL-Dateien/u,
   /Alle (\p{L}+) im Supabase-SQL-Editor/u,
   /(\p{L}+) Dateien sind viel/u,
   /in allen (\p{L}+) Fällen/u,
@@ -95,8 +100,10 @@ test('jede Stelle nennt dieselbe, richtige Zahl', async () => {
       `„${treffer[0]}“ — es sind ${OFFEN.length} Dateien, also „${erwartet}“`)
       .toBe(erwartet)
   }
-  expect(gefunden, 'zu wenige Zählstellen gefunden — dann prüft der Test kaum etwas')
-    .toBeGreaterThanOrEqual(3)
+  // Seit dem 20.10. steht die Zahl nur noch in der Ueberschrift; die
+  // Saetze, die sie fuer die Warteliste wiederholten, gibt es nicht mehr.
+  expect(gefunden, 'keine Zählstelle gefunden — dann prüft der Test nichts')
+    .toBeGreaterThanOrEqual(1)
 })
 
 test('keine Datei stützt sich auf eine Spalte aus einer anderen', async () => {

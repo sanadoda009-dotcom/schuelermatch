@@ -1,6 +1,6 @@
 # SchülerMatch – Offene Punkte
 
-> **Stand 13. September 2026.**
+> **Stand 20. Oktober 2026.**
 > Alles ist committet und gepusht, Live-Stand deployed.
 > Wie viele Tests es gerade sind, sagt `npm test` — eine Zahl an dieser Stelle
 > stimmt nach der nächsten Runde nicht mehr. Hier stand bis heute „795“ vom
@@ -43,29 +43,53 @@ Secrets (`RESEND_API_KEY`, `MAIL_ABSENDER`, `SITE_URL`) bleiben, wie sie sind.
 Datum von heute stehen. `tests/mail-ziele.spec.js` prüft die Texte im
 Repository – ob sie live sind, kann nur der Blick ins Dashboard sagen.
 
-## ⏳ Wartet auf dich: dreizehn SQL-Dateien
+## ✅ Eingespielt am 20.10.2026: dreizehn SQL-Dateien
 
-Alle dreizehn im Supabase-SQL-Editor ausführen. Jede Datei sagt oben, **warum**,
-und unten, **wie du nachprüfst, dass es gewirkt hat**.
+Sanad hat am 20.10. gesagt „mach alles selber". Jede Datei wurde **vorher
+gegen die laufende Datenbank geprüft** (stimmen die Namen, die sie
+ersetzt? gibt es Daten, an denen sie scheitert?) und **nachher abgefragt**,
+nicht dem „success" geglaubt.
 
-| Datei | Was sie schließt |
+| Datei | Was jetzt gilt |
 |---|---|
-| `supabase/meldungen-bleiben.sql` | Wer gemeldet wird, kann die Meldung selbst beseitigen (Anzeige oder Konto löschen) |
-| `supabase/mindestalter-pflicht.sql` | Anzeige ganz ohne Altersangabe möglich |
-| `supabase/alter-pflicht.sql` | Schülerkonto ohne Alter — **die Vorarbeit entfällt jetzt, siehe unten** |
-| `supabase/bewerbung-stand.sql` | Bewerbung ohne Stand: kein „angesehen", kein Datum, kein Absagegrund |
-| `supabase/firma-oeffentlich.sql` | Firmenseite zeigt Logo und „Wer wir sind“ noch nicht — legt die Sicht `firmen_oeffentlich` an |
-| `supabase/bewerbung-bleibt.sql` | **Löscht die Firma ihre Anzeige, verschwinden alle Bewerbungen darauf und die Chats dazu** — Daten der Schüler |
-| `supabase/zeugnis-nur-eigene-anzeige.sql` | **Firma A kann Zeugnis und Lebenslauf lesen, die für Firma B bestimmt waren** — und der Schüler kann sein Zeugnis gar nicht löschen |
-| `supabase/profil-email-festnageln.sql` | Jeder kann `profiles.email` auf eine fremde Adresse setzen — und genau die nimmt der Mailversand |
-| `supabase/chat-erst-nach-zusage.sql` | **Eine Firma kann per API auch ohne Zusage an einen Schüler schreiben** — die Seite sagt an drei Stellen das Gegenteil |
-| `supabase/bewerbung-grenzen.sql` | `bewerbungen` hat als einzige Tabelle **keine einzige Regel**: beliebig viele Bewerbungen auf dieselbe Anzeige (jede löst eine E-Mail aus), beliebiger `status`, Freitext ohne Obergrenze |
-| `supabase/ausweis-weg-bei-freigabe.sql` | **Die Freischalt-Mail sagt „Dokument gelöscht“ — bei einer Freigabe am Betreiber-Bereich vorbei stimmt das nicht** |
-| `supabase/bewerben-nur-alt-genug.sql` | **Ein verifizierter 14-Jähriger kann sich per API auf eine „ab 16“-Anzeige bewerben** — das Alter wird nur im Dashboard gefiltert |
-| `supabase/firma-gesperrt-kein-kontakt.sql` | **Eine gesperrte Firma kann weiter Schülern schreiben, Bewerbungen samt Lebenslauf und E-Mail-Adresse lesen und Zeugnisse laden** – „Sperren" versteckt nur ihre Anzeigen (13.9.). Wirkt über zusätzliche einschränkende Regeln, fasst keine bestehende an. |
+| `supabase/bewerbung-bleibt.sql` | Löscht eine Firma ihre Anzeige, bleiben Bewerbungen und Chats stehen (`job_id` → SET NULL, Titel als Kopie in `job_titel`) |
+| `supabase/zeugnis-nur-eigene-anzeige.sql` | Firma A sieht nur Zeugnisse/Lebensläufe zu IHREN Anzeigen; Schüler darf sein Zeugnis löschen |
+| `supabase/chat-erst-nach-zusage.sql` | Schreiben im Chat nur bei `status = 'angenommen'` – auch über die API |
+| `supabase/firma-gesperrt-kein-kontakt.sql` | Gesperrte Firma: keine Nachrichten, keine Bewerbungen, keine fremden Profile, keine Zeugnisse |
+| `supabase/bewerben-nur-alt-genug.sql` | Bewerben nur, wer das Mindestalter der Anzeige erreicht |
+| `supabase/profil-email-festnageln.sql` | `profiles.email` ist eingefroren wie Rolle und Status |
+| `supabase/bewerbung-grenzen.sql` | Eine Bewerbung je Anzeige, nur drei Stände, Längengrenzen für Freitext |
+| `supabase/meldungen-bleiben.sql` | Meldungen überleben das Löschen von Anzeige oder Nachricht |
+| `supabase/mindestalter-pflicht.sql` | Keine Anzeige ohne Mindestalter |
+| `supabase/alter-pflicht.sql` | Kein Schülerkonto ohne Alter |
+| `supabase/bewerbung-stand.sql` | `angesehen_am`, `entschieden_am`, `absage_grund` |
+| `supabase/firma-oeffentlich.sql` | Sicht `firmen_oeffentlich` (sechs Spalten, keine E-Mail) |
+| `supabase/ausweis-weg-bei-freigabe.sql` | Keine Freigabe, solange noch ein Ausweisdokument in der Ablage liegt |
 
-Der Code läuft in allen dreizehn Fällen **auch ohne** die Änderung — er fällt
-dann auf das alte Verhalten zurück, statt kaputt zu gehen.
+### Zwei Fallen, die erst beim Einspielen auffielen
+
+- **`ausweis-weg-bei-freigabe.sql` hätte jede Freigabe zerstört.** Supabase
+  hat inzwischen den Trigger `protect_objects_delete` auf `storage.objects`
+  – direktes Löschen per SQL wirft einen Fehler, auch wenn nichts zu
+  löschen ist. Die erste Fassung löschte dort. **Umgebaut:** Sie lehnt eine
+  Freigabe ab, solange noch ein Dokument daliegt; der Admin-Knopf löscht es
+  vorher ohnehin über die Storage-Schnittstelle.
+- **`meldungen-bleiben.sql` wäre an einer eigenen Regel gescheitert.**
+  `meldung_ziel` verlangte bei jeder Meldung ein Ziel. Mit SET NULL wäre
+  das Löschen einer gemeldeten Anzeige und jedes Konto-Löschen mit
+  gemeldeter Nachricht abgebrochen. Die Regel erlaubt jetzt ein leeres
+  Ziel (der Wortlaut steht in `zitat`).
+
+Dazu nach der Supabase-Sicherheitsprüfung: `ist_alt_genug` antwortet nur
+noch für das eigene Konto (sonst ließe sich mit fremder Id das Alter eines
+Minderjährigen eingrenzen), die beiden neuen Trigger-Funktionen sind von
+außen nicht aufrufbar. Die Meldung „Security Definer View" für
+`firmen_oeffentlich` ist **Absicht** – genau so zeigt die Sicht nur sechs
+Spalten, ohne `profiles` öffentlich zu machen.
+
+**Noch offen bei dir:** In den Supabase-Einstellungen unter *Auth →
+Passwörter* den Schutz gegen geleakte Passwörter einschalten (Prüfung
+gegen HaveIBeenPwned). Ein Schalter, kein Code.
 
 ### 🔴 Zwei Ausweisdokumente liegen noch da — deine Entscheidung
 
@@ -86,9 +110,10 @@ gesetzt, sie stehen aber noch da.
 
 **Ich habe die Dateien nicht angefasst.** Es sind Ausweisdokumente von
 Minderjährigen, das Löschen ist endgültig, und es ist deine Entscheidung.
-Die Abfrage zum Ansehen und der Löschbefehl stehen in
-`supabase/ausweis-weg-bei-freigabe.sql`. Der saubere Weg wäre: im
-Betreiber-Bereich das Konto zurückziehen und neu freischalten.
+Die Abfrage zum Ansehen steht in `supabase/ausweis-weg-bei-freigabe.sql`.
+**Per SQL löschen geht seit dem Supabase-Update nicht mehr** – nur über
+das Dashboard (*Storage → verifizierung*) oder im Betreiber-Bereich: Konto
+zurückziehen und neu freischalten.
 
 Der Betreiber-Bereich zeigt so einen Fall jetzt an — als eigene Zahl
 („Ausweis liegt noch da“) und mit einem Hinweis darunter.
@@ -145,85 +170,18 @@ aber eine erzeugte Datei (eine Vercel-Funktion), kein Handgriff — und
 `/job.html` **ohne** `?id=`, weil die Seite ohne Id leer ist. Wer das
 angeht, muss diesen Test mitnehmen.
 
-### Reihenfolge? Keine. Nachgeprüft.
-
-Dreizehn Dateien sind viel. Deshalb habe ich nachgesehen, ob es eine
-Reihenfolge gibt, die du einhalten musst — **es gibt keine.**
-
-Nur zwei Dateien legen überhaupt neue Spalten an, und jede benutzt
-ausschließlich ihre eigenen:
-
-| Datei | legt an |
-|---|---|
-| `bewerbung-stand.sql` | `angesehen_am`, `entschieden_am`, `absage_grund` |
-| `bewerbung-bleibt.sql` | `job_titel` |
-| alle übrigen | nichts Neues |
-
-Keine Datei stützt sich auf eine Spalte aus einer anderen. Du kannst sie
-also in beliebiger Reihenfolge ausführen, einzeln, mit Pausen dazwischen.
-`tests/sql-reihenfolge.spec.js` hält das fest — sollte ich künftig eine
-Datei schreiben, die sich auf eine andere stützt, fällt es dort auf und
-nicht bei dir im SQL-Editor.
-
-**Zwei Wechselwirkungen, damit sie dir später nicht wie Fehler vorkommen:**
-
-- `bewerbung-bleibt.sql` macht `job_id` nullable. Der eindeutige Index aus
-  `bewerbung-grenzen.sql` behandelt NULL-Werte als verschieden — eine
-  Bewerbung, deren Anzeige gelöscht wurde, blockiert also keine neue.
-  So soll es sein.
-- Nach `bewerbung-bleibt.sql` verliert eine Firma den Zugriff auf Zeugnis
-  und Lebenslauf, sobald sie ihre eigene Anzeige löscht: Die Regel aus
-  `zeugnis-nur-eigene-anzeige.sql` sucht über `job_id`, und das steht dann
-  auf NULL. Auch das ist gewollt.
-
-Jede Datei sagt oben, **warum**, und unten, **wie du nachprüfst, dass es
-gewirkt hat** — und wie du sie rückgängig machst. Das ist inzwischen bei
-allen zehn so; bei `meldungen-bleiben.sql` hat der Test gemerkt, dass der
-Rückweg fehlte.
-
-### Datenstand am 4.9.2026 nachgezählt — zwei Stolpersteine sind weg
-
-Ich habe die laufende Datenbank abgefragt, statt die Warnungen von damals
-weiterzuschleppen:
+### Datenstand am 20.10.2026
 
 | geprüft | gefunden |
 |---|---|
-| Schülerprofile ohne Alter | **0** |
-| Schüler unter 13 | 0 |
-| Anzeigen ohne Mindestalter | **0** |
-| Anzeigen mit Mindestalter unter 13 | 0 |
-| Aktive Anzeigen von nicht freigegebenen Firmen | 0 |
-| Bewerbungen nicht verifizierter Schüler | 0 |
-| Profile ohne Rolle · Firmen ohne Namen | 0 · 0 |
-| Offene Meldungen | 0 |
-| Aktive Job-Alarme | **0** |
+| Aktive Anzeigen · Firmen · Schüler · Bewerbungen | 5 · 1 · 4 · 3 |
+| Letzte Registrierung | 23.7.2026 |
+| Doppelbewerbungen · Texte über der Grenze | 0 · 0 |
+| Bewerbungen, für die der Schüler zu jung ist | 0 |
+| Schüler ohne Alter · Anzeigen ohne Mindestalter | 0 · 0 |
 
-Daraus folgt:
-
-- **`alter-pflicht.sql` braucht keine Vorarbeit mehr.** Der Hinweis „erst
-  die eine Zeile ohne Alter versorgen, keinen Wert raten" stammt vom
-  1.9.; diese Zeile gibt es nicht mehr. Du kannst die Datei direkt
-  ausführen.
-- **`mindestalter-pflicht.sql` ebenso** — keine Anzeige ohne Altersangabe.
-- **Der fehlende Cron für den Job-Alarm ist gerade nicht dringend:** Es
-  gibt null aktive Alarme, also wartet niemand auf eine Mail. Sobald der
-  erste Schüler einen einrichtet, ändert sich das.
-
-Die Zahlen sind eine Momentaufnahme. Vor dem Ausführen einmal
-nachzählen lohnt sich — die Abfragen stehen jeweils unten in der
-SQL-Datei.
-
-**Das heißt aber nicht, dass es egal ist.** Bei fünfen ist das alte
-Verhalten selbst das Problem: `bewerbung-bleibt.sql`,
-`zeugnis-nur-eigene-anzeige.sql`, `profil-email-festnageln.sql` und
-`chat-erst-nach-zusage.sql` und `bewerben-nur-alt-genug.sql` schließen
-Lücken, durch die jemand an fremde Daten kommt, sie verliert, Mails an
-Fremde auslöst, einem Kind schreiben kann, ohne dazu berechtigt zu sein —
-oder sich auf eine Anzeige bewirbt, für die es nach dem
-Jugendarbeitsschutzgesetz zu jung ist.
-
-**Die fünf zuerst**, und davon `bewerben-nur-alt-genug.sql` und
-`chat-erst-nach-zusage.sql` als erste.
+**Seit Juli kommt niemand neu dazu.** Die Regeln sind jetzt dicht; der
+Engpass ist das Angebot, nicht der Code.
 
 ### Richtigstellung: `bewerbung-inhalt-schuetzen.sql` brauchst du nicht
 

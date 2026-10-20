@@ -61,11 +61,19 @@ as $$
     select 1
       from public.profiles p, public.jobs job
      where p.id = u
+       -- Nachtrag 20.10.2026: nur fuer das eigene Konto. Mit fremder Id
+       -- liesse sich sonst ueber Anzeigen verschiedener Mindestalter das
+       -- Alter eines Minderjaehrigen eingrenzen (Supabase-Sicherheitspruefung
+       -- meldete die Funktion als oeffentlich aufrufbar).
+       and u = auth.uid()
        and job.id = j
        and job.mindestalter is not null
        and coalesce(p.alter_jahre, 13) >= job.mindestalter
   );
 $$;
+
+revoke all on function public.ist_alt_genug(uuid, uuid) from public, anon;
+grant execute on function public.ist_alt_genug(uuid, uuid) to authenticated;
 
 comment on function public.ist_alt_genug(uuid, uuid) is
   'Erreicht der Schueler das Mindestalter der Anzeige? Ohne Altersangabe '
