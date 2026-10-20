@@ -121,9 +121,15 @@ test.describe('die SQL-Datei zieht die Zusage in die Datenbank', () => {
     expect(wirksam).toMatch(/coalesce\(old\.verifiziert, false\) is false/)
   })
 
-  test('räumt Ablage und Profil auf', async () => {
-    expect(wirksam).toContain('delete from storage.objects')
+  test('lehnt die Freigabe ab, solange ein Dokument daliegt – und löscht selbst nichts', async () => {
+    // Bis 20.10.2026 löschte die Datei selbst in storage.objects. Supabase
+    // sperrt das inzwischen (protect_objects_delete, FOR EACH STATEMENT –
+    // wirft auch bei null Zeilen). Ein DELETE hier hätte JEDE Freigabe
+    // abgebrochen. Deshalb: prüfen statt löschen. Kommt das DELETE zurück,
+    // wird dieser Test rot.
+    expect(wirksam).not.toMatch(/delete\s+from\s+storage\.objects/i)
     expect(wirksam).toContain("bucket_id = 'verifizierung'")
+    expect(wirksam).toMatch(/raise exception/i)
     expect(wirksam).toMatch(/new\.schuelerausweis_url\s*:=\s*null/)
     expect(wirksam).toMatch(/new\.schulbestaetigung_url\s*:=\s*null/)
   })
@@ -132,6 +138,6 @@ test.describe('die SQL-Datei zieht die Zusage in die Datenbank', () => {
     // Ich lösche keine Ausweisdokumente von Minderjährigen auf eigene
     // Faust — aber verschweigen darf ich sie auch nicht.
     expect(sql).toContain('NICHT angefasst')
-    expect(sql).toMatch(/Entscheidung gehoert dir|Entscheidung gehört dir/)
+    expect(sql).toMatch(/Entscheidung[\s-]*gehoert[\s-]*Sanad|Entscheidung gehört dir/)
   })
 })
