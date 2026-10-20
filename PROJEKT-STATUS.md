@@ -340,6 +340,41 @@ Der Nutzer hat einen Master-Prompt gegeben: eigenständig als Produktteam arbeit
 - **Deploy-Sicherheit**: `package.json` hat bewusst KEIN build-Script (Vercel deployt weiter statisch); `.vercelignore` neu - schliesst tests/, node_modules/, Configs, *.md u.a. vom Deploy aus. `.gitignore` um test-results/ + playwright-report/ ergaenzt.
 - 3 anfaengliche Testfehler waren Setup-Fehler, keine App-Bugs (Theme-Override im Init-Script, Mobil-Spec im Desktop-Projekt, "Jetzt starten" statt "Login" auf index.html).
 
+## Session 20. Oktober 2026 - Die Warteliste ist leer: dreizehn SQL-Dateien und zwei Mail-Funktionen live
+
+Sanad: „mach alles selber". Ab heute spiele ich Datenbank-Änderungen und
+Edge Functions selbst ein – jeweils VORHER gegen die laufende Datenbank
+geprüft, NACHHER abgefragt.
+
+- **Alle 13 SQL-Dateien eingespielt** (`e0ef51a`). Zwei davon wären so,
+  wie sie im September geschrieben waren, schiefgegangen:
+  `ausweis-weg-bei-freigabe.sql` löschte in `storage.objects` – Supabase
+  sperrt das inzwischen (`protect_objects_delete`), JEDE Freigabe wäre
+  gescheitert; jetzt prüft der Trigger und lehnt ab, solange ein Dokument
+  daliegt. `meldungen-bleiben.sql` wäre an der eigenen Regel `meldung_ziel`
+  gescheitert (Ziel war Pflicht) – Regel gelockert.
+- **Supabase-Sicherheitsprüfung danach:** `ist_alt_genug` war für jeden
+  mit fremder Id aufrufbar – das Alter eines Minderjährigen ließe sich
+  über Anzeigen mit verschiedenem Mindestalter eingrenzen. Jetzt nur fürs
+  eigene Konto; neue Trigger-Funktionen nicht von außen aufrufbar.
+- **Mit echten Konten durchgespielt**, ohne Spuren (Transaktion + rollback,
+  `supabase/pruefen/regeln-live-pruefen.sql`, `b7d5eaf`): zu jung,
+  doppelt, E-Mail ändern, Chat vor/nach Zusage, gesperrte Firma – alle
+  13 Fälle wie erwartet, der normale Weg geht weiter.
+- **mail-ereignis v7 und mail-digest v4 ausgerollt** (`5f6df09`), vorher
+  vom Juli. Bei gelöschter Anzeige nennt die Mail jetzt den gespeicherten
+  Titel.
+- **Anzeigentext hatte keine Längengrenze im Formular** (`00d635f`), die
+  Datenbank seit heute schon (4000). `tests/textgrenzen.spec.js` liest die
+  Grenzen aus der SQL-Datei; `verstaendlich()` erklärt abgelehnte
+  CHECK-Regeln statt „gleich nochmal".
+- **Richtigstellung:** Seit Juli keine Registrierung – das liegt an der
+  Zugangssperre (`js/gate.js`), nicht am Angebot. Auffindbarkeit (z. B.
+  Sitemap für einzelne Anzeigen) lohnt erst, wenn sie fällt.
+
+Volle Suite: 1255 grün (nach Anpassung des Ausweis-Tests an die neue
+Fassung, `9721a7e`).
+
 ## Session 11.–13. September 2026 - Versprechen gegen Code, dann alles durchfotografiert
 
 Jede Runde: messen → beheben → nachmessen → Test → Gegenprobe gegen den alten
