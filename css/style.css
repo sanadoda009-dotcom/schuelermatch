@@ -3306,6 +3306,17 @@ main[tabindex="-1"]:focus { outline: none; }
   font-size: 0.8rem; line-height: 1.5; color: var(--ink-soft);
   margin: 0 0 10px;
 }
+/* Ein Link im Hilfetext muss als Link erkennbar sein - nicht nur an der
+   Farbe (am 20.10. fotografiert: "Impressum" sah aus wie Fliesstext). */
+.feld-hilfe a { color: var(--indigo); text-decoration: underline; text-underline-offset: 2px; }
+.form-group input + .feld-hilfe, .form-group select + .feld-hilfe { margin-top: 6px; }
+
+/* Gesperrte Felder (Alter nach der Verifizierung, Firmenname nach der
+   Freigabe): Vorher sahen sie aus wie bearbeitbare - man klickt hinein und
+   nichts passiert. Jetzt grau hinterlegt mit "nicht erlaubt"-Zeiger. */
+.form-group input:disabled, .form-group select:disabled, .form-group textarea:disabled {
+  background: #efece6; color: var(--ink-soft); cursor: not-allowed; opacity: 1;
+}
 
 /* Etwas Luft zwischen Knopf, Zusatz und dem, was darunter kommt. */
 .job-cta-oben { margin-bottom: 18px; }
