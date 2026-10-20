@@ -174,8 +174,13 @@ angeht, muss diesen Test mitnehmen.
 | Bewerbungen, für die der Schüler zu jung ist | 0 |
 | Schüler ohne Alter · Anzeigen ohne Mindestalter | 0 · 0 |
 
-**Seit Juli kommt niemand neu dazu.** Die Regeln sind jetzt dicht; der
-Engpass ist das Angebot, nicht der Code.
+**Seit Juli kommt niemand neu dazu – und das ist erwartbar:** Die Seite
+steht noch hinter der Zugangssperre (`js/gate.js`, `GATE_AKTIV = true`,
+„Diese Seite ist gerade im Aufbau"). Ohne Passwort sieht sie niemand,
+auch Google nicht. Eine Sitemap für die einzelnen Anzeigen oder andere
+Arbeit an der Auffindbarkeit lohnt sich deshalb erst, wenn die Sperre
+fällt. (Am 20.10. zuerst falsch eingeschätzt als „Engpass ist das
+Angebot" – nachgesehen statt geraten.)
 
 ### Richtigstellung: `bewerbung-inhalt-schuetzen.sql` brauchst du nicht
 

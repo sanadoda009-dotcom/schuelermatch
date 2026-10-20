@@ -139,5 +139,12 @@ export function verstaendlich(error, was = 'Das') {
   if (roh.includes('mime type') || roh.includes('not supported'))
     return 'Diese Dateiart geht hier nicht. Nimm ein Bild (JPG, PNG) oder ein PDF.'
 
+  // Eine CHECK-Regel der Datenbank hat abgelehnt (seit 20.10.2026 u. a.
+  // Laengengrenzen fuer Anschreiben, Anzeigentext und "Ueber uns"). Das
+  // allgemeine "versuch es gleich nochmal" waere hier eine Endlosschleife:
+  // Derselbe Text scheitert beim zweiten Mal genauso.
+  if (roh.includes('check constraint') || roh.includes('violates check'))
+    return 'Eine Angabe passt so nicht – oft ist ein Text zu lang. Kürz ihn bitte und versuch es dann nochmal.'
+
   return was + ' hat gerade nicht geklappt. Versuch es gleich nochmal.'
 }
