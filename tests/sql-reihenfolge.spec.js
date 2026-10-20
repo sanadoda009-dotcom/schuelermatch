@@ -121,8 +121,17 @@ test('keine Datei stützt sich auf eine Spalte aus einer anderen', async () => {
 
   for (const datei of OFFEN) {
     const koerper = ohneKopfkommentar(inhalt(datei))
+    // Eine Reihenfolge ist erlaubt, wenn sie DASTEHT (20.10.2026:
+    // bewerbung-titel-festnageln.sql friert Spalten ein, die zwei andere
+    // Dateien anlegen - das geht nur danach). Verboten bleibt die
+    // verschwiegene Abhaengigkeit.
+    const voraus = (inhalt(datei).match(/^-- SETZT VORAUS:\s*(.+)$/m)?.[1] || '')
+      .split(',').map(x => x.trim()).filter(Boolean)
+    for (const v of voraus) {
+      expect(OFFEN, `${datei} setzt ${v} voraus, das es in der Liste nicht gibt`).toContain(v)
+    }
     for (const [spalte, quelle] of legtAn) {
-      if (quelle === datei) continue
+      if (quelle === datei || voraus.includes(quelle)) continue
       expect(koerper.includes(spalte),
         `${datei} benutzt die Spalte ${spalte}, die erst ${quelle} anlegt — `
         + 'damit gäbe es eine Reihenfolge, die eingehalten werden muss').toBe(false)

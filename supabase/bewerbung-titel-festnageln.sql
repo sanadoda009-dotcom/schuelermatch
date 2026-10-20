@@ -1,6 +1,10 @@
 -- Die Titel-Kopie einer Bewerbung darf die Firma nicht umschreiben
 -- (20.10.2026, am selben Tag eingespielt)
 --
+-- SETZT VORAUS: bewerbung-bleibt.sql, bewerbung-stand.sql
+-- (sie legen `job_titel` und `angesehen_am` an; ohne sie scheitert die
+-- Funktion beim ersten UPDATE an einer unbekannten Spalte)
+--
 -- WARUM
 -- Mit supabase/bewerbung-bleibt.sql bekam `bewerbungen` am 20.10. die
 -- Spalte `job_titel`: eine Kopie des Anzeigentitels. Sie ist das, was dem
