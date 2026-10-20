@@ -357,6 +357,15 @@ der automatisch E-Mails an Minderjährige auslöst, und den gibst du frei.
 Empfehlung: `0 16 * * *` (18 Uhr deutscher Sommerzeit, nach Schulschluss).
 Solange es keine Alarme gibt, passiert ohnehin nichts.
 
+**Am 20.10.2026 nachgesehen:** In `cron.job` steht nur `mail-digest-taeglich`
+(die Sammel-Mail an Firmen), der Job-Alarm weiterhin nicht. Aktive Alarme:
+**0** – es wartet also niemand. Aber `datenschutz.html` sagt Schülern schon
+heute: „Einmal täglich prüfen wir, ob passende neue Anzeigen dazugekommen
+sind, und schicken höchstens eine Sammel-Mail." **Spätestens wenn die
+Zugangssperre fällt, muss eins von beiden passieren:** den Zeitplan setzen –
+oder den Job-Alarm im Dashboard ausblenden, bis er läuft. Sonst richtet
+jemand einen Alarm ein und hört nie wieder etwas.
+
 **Eine Notiz von mir, die sich beim Nachsehen als falsch erwies:** Ich hatte
 angemerkt, dass Firmen einstellen können wie oft sie E-Mails bekommen und
 Schüler nicht. Stimmt – ist aber richtig so. Schüler bekommen nur Mails über
