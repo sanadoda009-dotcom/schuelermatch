@@ -42,6 +42,12 @@ async function init() {
   // Profil
   document.getElementById('profile-name').value = profile.name || ''
   document.getElementById('profile-alter').value = profile.alter_jahre || 15
+  // Nach der Verifizierung ist das Alter geprueft und in der Datenbank
+  // eingefroren (supabase/alter-nach-verifizierung-fest.sql). Das Feld
+  // sagt das, statt eine Aenderung anzunehmen, die nie ankommt.
+  const alterFest = profile.verifiziert === true
+  document.getElementById('profile-alter').disabled = alterFest
+  document.getElementById('alter-fest-hinweis').hidden = !alterFest
   document.getElementById('profile-ort').value = profile.ort || ''
   document.getElementById('profile-form').addEventListener('submit', speichereProfil)
 
@@ -1204,8 +1210,12 @@ async function speichereProfil(e) {
 
   const updates = {
     name: document.getElementById('profile-name').value,
-    alter_jahre: parseInt(document.getElementById('profile-alter').value),
     ort: document.getElementById('profile-ort').value
+  }
+  // Verifiziert: Alter nicht mitschicken - die Datenbank wuerde es ohnehin
+  // still auf den geprueften Wert zuruecksetzen.
+  if (profile.verifiziert !== true) {
+    updates.alter_jahre = parseInt(document.getElementById('profile-alter').value)
   }
 
   // Wohnort in Koordinaten umwandeln (für den Umkreis-Filter).

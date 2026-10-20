@@ -37,7 +37,7 @@ Nachgeprüft: Der ausgerollte Quelltext stimmt mit
 **Merksatz:** Edge Functions gehen nicht mit `git push` live. Nach jeder
 Änderung in `supabase/functions/` einzeln ausrollen.
 
-## ✅ Eingespielt am 20.10.2026: vierzehn SQL-Dateien
+## ✅ Eingespielt am 20.10.2026: fünfzehn SQL-Dateien
 
 Sanad hat am 20.10. gesagt „mach alles selber". Jede Datei wurde **vorher
 gegen die laufende Datenbank geprüft** (stimmen die Namen, die sie
@@ -60,6 +60,7 @@ nicht dem „success" geglaubt.
 | `supabase/firma-oeffentlich.sql` | Sicht `firmen_oeffentlich` (sechs Spalten, keine E-Mail) |
 | `supabase/ausweis-weg-bei-freigabe.sql` | Keine Freigabe, solange noch ein Ausweisdokument in der Ablage liegt |
 | `supabase/bewerbung-titel-festnageln.sql` | **Am selben Tag nachgeschoben:** Die Firma konnte die Titel-Kopie (`job_titel`) umschreiben – der Schutz-Trigger war älter als die Spalte. Jetzt eingefroren, `angesehen_am` nur einmal setzbar. `tests/spalten-schutz.spec.js` verlangt künftig für jede neue Spalte eine Entscheidung. |
+| `supabase/alter-nach-verifizierung-fest.sql` | **Ebenfalls nachgeschoben:** Ein verifizierter Schüler konnte sein Alter im Profil frei ändern – genau die Zahl, nach der die Datenbank das Bewerben erlaubt. Jetzt nach der Verifizierung eingefroren (Formular gesperrt, mit Hinweis); Dokumentpfade nur im eigenen Ordner. **Folge:** Nach einem Geburtstag trägt der Betreiber das neue Alter ein. Sauberer wäre ein Geburtsdatum statt eines Alters – größere Umstellung, nicht begonnen. |
 
 ### Zwei Fallen, die erst beim Einspielen auffielen
 

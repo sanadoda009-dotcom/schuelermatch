@@ -373,11 +373,20 @@
                hier war es uebersehen worden - und seit der Regel
                chk_alter_jahre in der Datenbank haette ein Speichern mit
                10 eine unverstaendliche Meldung ergeben. -->
-          <select id="profile-alter">
+          <select id="profile-alter" aria-describedby="alter-fest-hinweis">
             <option value="13">13</option><option value="14">14</option><option value="15">15</option>
             <option value="16">16</option><option value="17">17</option><option value="18">18</option>
             <option value="19">19</option><option value="20">20</option>
           </select>
+          <!-- Seit 20.10.2026 friert die Datenbank das Alter nach der
+               Verifizierung ein (supabase/alter-nach-verifizierung-fest.sql).
+               Ohne diesen Hinweis saehe ein Schueler sein neues Alter
+               "gespeichert" - und beim naechsten Laden wieder das alte. -->
+          <p class="feld-hilfe" id="alter-fest-hinweis" hidden>
+            Dein Alter haben wir bei der Verifizierung mit deinem Ausweis geprüft –
+            deshalb kannst du es hier nicht mehr ändern. Hattest du Geburtstag?
+            Schreib uns (Kontakt im <a href="impressum.html">Impressum</a>), dann tragen wir es ein.
+          </p>
         </div>
         <div class="form-group">
           <label for="profile-ort">Wohnort</label>

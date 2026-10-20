@@ -54,6 +54,11 @@ begin
   update public.profiles set email = 'fremd@example.com' where id = s15;
   select case when email = t then 'bleibt' else 'GEAENDERT (FEHLER)' end into t from public.profiles where id = s15;
   insert into _erg values ('eigene E-Mail per API aendern', t);
+  -- alter-nach-verifizierung-fest.sql (20.10.2026): s15 ist verifiziert und 15
+  update public.profiles set alter_jahre = 20 where id = s15;
+  insert into _erg select 'verifiziert: Alter 15 -> 20',
+    case when alter_jahre = 15 then 'bleibt' else 'GEAENDERT (FEHLER)' end
+    from public.profiles where id = s15;
 
   perform set_config('request.jwt.claims', json_build_object('sub', s20, 'role','authenticated')::text, true);
   begin insert into public.nachrichten(bewerbung_id, absender_id, text) values (b_absage, s20, 'test');
