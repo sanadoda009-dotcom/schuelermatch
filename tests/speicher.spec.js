@@ -169,6 +169,7 @@ const HOST_GENANNT = {
   'blufrvuskqiloslyxjkx.supabase.co': 'Supabase',
   // Sentry laedt nur, wenn ein DSN eingetragen ist - siehe eigener Test.
   'js.sentry-cdn.com': 'Sentry',
+  'js-de.sentry-cdn.com': 'Sentry',   // EU-Lader, seit 23.11.2026
   'sentry.io': 'Sentry',
 }
 

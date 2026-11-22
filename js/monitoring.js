@@ -15,10 +15,16 @@
 // kein Performance-Tracing). Vor echtem Launch mit Minderjährigen: Sentry als
 // Auftragsverarbeiter in die Datenschutzerklärung aufnehmen (EU-Region wählen!).
 
-const SENTRY_DSN = '' // <- hier deinen Sentry-DSN einfügen, dann ist die Überwachung aktiv
+// Seit 23.11.2026 aktiv: Projekt schuelermatch-web, Daten im EU-Rechenzentrum
+// (ingest.de). Ein DSN ist kein Geheimnis - er steht ohnehin im Browser.
+const SENTRY_DSN = 'https://7e9cfb53cd616b8ad899e90bcd2a4055@o4512477848403968.ingest.de.sentry.io/4512477892902992'
 
 ;(function () {
   if (!SENTRY_DSN) return
+  // Nur auf der echten Seite. Lokal und in den Tests (localhost) bleibt
+  // Sentry aus - sonst landeten Testfehler im echten Konto, und jeder
+  // Testlauf haenge an einem fremden Server.
+  if (!/^(www\.)?schuelermatch\.de$/.test(location.hostname)) return
 
   // Öffentlichen Schlüssel aus dem DSN ziehen -> versions-unabhängiger Loader.
   let publicKey
@@ -31,7 +37,7 @@ const SENTRY_DSN = '' // <- hier deinen Sentry-DSN einfügen, dann ist die Über
     Sentry.init({
       dsn: SENTRY_DSN,
       environment: location.hostname === 'schuelermatch.de' ? 'production' : 'development',
-      release: 'schuelermatch@2026-07',
+      release: 'schuelermatch@2026-11',
       sendDefaultPii: false,     // keine personenbezogenen Daten von sich aus
       tracesSampleRate: 0,       // kein Performance-Tracing (weniger Daten)
       // Bekannte, harmlose Fehler nicht melden (Browser-Extensions, Netzwerk-Aussetzer)
@@ -53,7 +59,8 @@ const SENTRY_DSN = '' // <- hier deinen Sentry-DSN einfügen, dann ist die Über
   }
 
   const s = document.createElement('script')
-  s.src = `https://js.sentry-cdn.com/${publicKey}.min.js`
+  // EU-Lader (js-de): Das Projekt liegt im EU-Rechenzentrum.
+  s.src = `https://js-de.sentry-cdn.com/${publicKey}.min.js`
   s.crossOrigin = 'anonymous'
   s.onerror = () => console.warn('[monitoring] Sentry-Loader konnte nicht geladen werden.')
   document.head.appendChild(s)

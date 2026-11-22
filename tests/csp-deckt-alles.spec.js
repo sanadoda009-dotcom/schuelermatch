@@ -106,8 +106,9 @@ test('die Sentry-Adressen bleiben, solange der Baustein da ist', async () => {
   // Aktivierung still nicht funktioniert.
   const csp = cspWert()
   const quelle = fs.readFileSync(path.join(WURZEL, 'js', 'monitoring.js'), 'utf8')
-  if (quelle.includes('js.sentry-cdn.com')) {
-    expect(csp).toContain('js.sentry-cdn.com')
+  const lader = quelle.match(/https:\/\/(js(?:-de)?\.sentry-cdn\.com)/)?.[1]
+  if (lader) {
+    expect(csp).toContain(lader)
     expect(csp, 'ohne ingest-Adresse kann Sentry nichts melden')
       .toMatch(/ingest[a-z.]*\.sentry\.io/)
   }
