@@ -482,10 +482,7 @@ Langfristig gehört eine Konto-Löschung in die Anwendung selbst.
 
 ## 🔔 Monitoring (eingebaut, teils noch zu aktivieren)
 - **Uptime-Monitor**: LÄUFT automatisch über GitHub Actions (`.github/workflows/uptime.yml`) – prüft schuelermatch.de alle 10 Min, mailt dir bei Ausfall. Kein Fremdanbieter. Nur sicherstellen: GitHub-Benachrichtigungen für fehlgeschlagene Actions an (Settings → Notifications). Manuell testen: Repo → Actions → „Uptime-Check" → „Run workflow".
-- **Sentry (Fehler-Tracking)**: EINGEBAUT auf allen 15 Seiten (`js/monitoring.js`), aber INAKTIV bis du deinen DSN einträgst:
-  1. Kostenloses Konto auf sentry.io → neues Projekt „Browser/JavaScript" → **EU-Region wählen** (DSGVO!)
-  2. DSN kopieren, in `js/monitoring.js` bei `SENTRY_DSN = ''` einfügen, pushen
-  3. **Vor echtem Launch**: Sentry als Auftragsverarbeiter in die Datenschutzerklärung aufnehmen (neuer Empfänger, wie Resend/Open-Meteo). — *Seit 26.8. abgesichert: `tests/speicher.spec.js` fällt um, sobald der DSN gesetzt ist und Sentry nicht in der Erklärung steht.*
+- **Sentry (Fehler-Tracking)**: ✅ **AKTIV seit 23.11.2026.** Projekt `schuelermatch-web` in der Organisation `schuelermatch` (EU-Rechenzentrum, `ingest.de`). Nur Fehlermeldungen – kein Session Replay, kein Tracing, keine personenbezogenen Daten (`sendDefaultPii: false`). Läuft nur auf schuelermatch.de, lokal und in den Tests aus. In der Datenschutzerklärung (Abschnitt 5) genannt; `tests/speicher.spec.js` hält das fest.
 
 ## 🛡️ Security-Audit (umgesetzt am 26. Juli) — 3 Rest-Punkte für DICH
 Ein umfassender Audit wurde durchgeführt; 8 von 11 Befunden sind bereits gefixt (Details in PROJEKT-STATUS.md). **Diese 3 kann nur der Eigentümer im Dashboard erledigen:**
