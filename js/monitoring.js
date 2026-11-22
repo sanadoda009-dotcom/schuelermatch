@@ -17,7 +17,7 @@
 
 // Seit 23.11.2026 aktiv: Projekt schuelermatch-web, Daten im EU-Rechenzentrum
 // (ingest.de). Ein DSN ist kein Geheimnis - er steht ohnehin im Browser.
-const SENTRY_DSN = 'https://7e9cfb53cd616b8ad899e90bcd2a4055@o4512477848403968.ingest.de.sentry.io/4512477892902992'
+const SENTRY_DSN = 'https://e531c8ca62a30692e98f72335097ef35@o4512477848403968.ingest.de.sentry.io/4512477937860688'
 
 ;(function () {
   if (!SENTRY_DSN) return
