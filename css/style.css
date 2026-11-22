@@ -3401,6 +3401,15 @@ main[tabindex="-1"]:focus { outline: none; }
   color: var(--ink-soft); background: var(--paper);
   border-color: var(--line); font-weight: 500;
 }
+/* Gewerbenachweis (22.11.2026): Kasten im Firmen-Dashboard, Zeile im
+   Betreiber-Bereich, Marke neben dem Firmennamen in der Anzeige. */
+.job-firma .firma-marke { display: inline-block; margin-left: 6px; vertical-align: middle; }
+.gewerbe-kasten { margin-top: 18px; }
+.gewerbe-stand { margin: 0 0 6px; }
+.gewerbe-stand--ok { color: var(--match-green-dark); }
+.admin-gewerbe { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.admin-gewerbe .btn { min-height: 44px; }
+#firma-filter .pill .sidebar-badge { margin-left: 6px; }
 .firma-bewertung {
   border: 1px solid var(--line); border-radius: 12px;
   padding: 14px 16px; margin-bottom: 10px; background: var(--card);

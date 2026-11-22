@@ -37,7 +37,7 @@ Nachgeprüft: Der ausgerollte Quelltext stimmt mit
 **Merksatz:** Edge Functions gehen nicht mit `git push` live. Nach jeder
 Änderung in `supabase/functions/` einzeln ausrollen.
 
-## ✅ Eingespielt am 20.10.2026: zwanzig SQL-Dateien
+## ✅ Eingespielt am 20.10.2026: einundzwanzig SQL-Dateien
 
 Sanad hat am 20.10. gesagt „mach alles selber". Jede Datei wurde **vorher
 gegen die laufende Datenbank geprüft** (stimmen die Namen, die sie
@@ -66,6 +66,7 @@ nicht dem „success" geglaubt.
 | `supabase/chat-abschaffen.sql` | **22.11.2026, Sanads Entscheidung:** Kein Chat mehr – ein Kanal, in dem ein Erwachsener einem Kind frei schreibt, kann zu Skandalen führen. Nachrichten endgültig gelöscht (zwei, Testdaten), Tabelle zu. Nach einer Zusage meldet sich die Firma per Telefon (freiwillige Nummer beim Bewerben, `bewerbungen.telefon`) oder E-Mail. |
 | `supabase/datenbank-pflege.sql` | **22.11.2026, nach der Supabase-Prüfung:** Die letzte von außen aufrufbare Trigger-Funktion (`schuetze_job_alarm_felder`) ist zu, sieben Fremdschlüssel haben einen Index. Was bewusst so bleibt, steht in der Datei. |
 | `supabase/admin-zwei-faktor.sql` | **22.11.2026:** Admin-Rechte nur noch mit zweitem Faktor. `ist_admin()` verlangt `aal2` im Anmelde-Token; der Betreiber-Bereich richtet die Authenticator-App ein bzw. fragt den Code ab (`js/admin-mfa.js`). Notfall siehe unten „Admin-Zwei-Faktor“. |
+| `supabase/gewerbe-nachweis.sql` | **22.11.2026:** Abzeichen „✓ Gewerbe nachgewiesen“. Firmen laden freiwillig Gewerbeanmeldung oder Handelsregisterauszug hoch (Ablage `verifizierung`, Spalte `gewerbe_url`), der Betreiber prüft im Reiter Firmen → „Gewerbenachweis“. Das Abzeichen (`gewerbe_geprueft`) setzt nur ein Admin, und erst wenn der Nachweis gelöscht ist. Sichtbar auf Firmenseite und Anzeige. |
 
 ### Zwei Fallen, die erst beim Einspielen auffielen
 
@@ -458,7 +459,7 @@ Langfristig gehört eine Konto-Löschung in die Anwendung selbst.
 ## 🔜 Nächste Features (nach Priorität)
 1. ~~**Melden-Funktion**~~ ✅ **ERLEDIGT am 22.8.** — Melde-Button im Job-Detail und an fremden Chat-Nachrichten, 5 Melde-Gründe + Freitext, neuer Admin-Reiter „Meldungen“ mit Filter und Status. 9 E2E-Tests.
 2. ~~**Deutsche E-Mail-Vorlagen**~~ ✅ **ERLEDIGT am 28.7.** — alle 3 Auth-Mails (Bestätigung, Passwort-Reset, E-Mail-Änderung) sind auf Deutsch und im SchülerMatch-Design. In Supabase eingetragen und nach Neuladen verifiziert. Quelltexte: `supabase/mail-vorlagen-deutsch.md`.
-3. **„Verifiziertes Unternehmen"-Abzeichen** (Stufe 2): optionaler Gewerbeschein-Upload für echte Firmen, Privatpersonen bleiben ohne
+3. ~~**„Verifiziertes Unternehmen"-Abzeichen**~~ ✅ **ERLEDIGT am 22.11.** — heißt „✓ Gewerbe nachgewiesen“, siehe `supabase/gewerbe-nachweis.sql`. Privatpersonen bleiben ohne, ohne Nachteil.
 4. **Job-Alarm per E-Mail** — **MOTOR GEBAUT am 26.8., DREI SCHRITTE OFFEN.**
    Fertig: Tabelle+Regeln (`supabase/job-alarm.sql`), tägliche Funktion
    (`supabase/functions/mail-job-alarm/`), Abmelde-Seite (`job-alarm-aus.html`, 6 Tests).

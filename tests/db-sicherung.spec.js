@@ -44,6 +44,8 @@ const ERWARTETE_TRIGGER = [
   'bewerbung_mail_update',
   'firma_freigabe_mail',
   'profil_verifiziert_mail',
+  // Abzeichen erst nach geloeschtem Nachweis (supabase/gewerbe-nachweis.sql)
+  'trg_wache_gewerbe_weg',
 ]
 
 test('jeder Datenbank-Trigger ist im Repo hinterlegt', () => {

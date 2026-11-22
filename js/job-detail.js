@@ -75,10 +75,15 @@ async function ladeBewertungenHtml(firmaId) {
 //
 // Die Sicht zeigt nur freigegebene Firmen. Was hier steht, ist also
 // geprueft - anders als der Anzeigentext, den die Firma frei schreibt.
+// Seit 22.11.2026 kommt aus derselben Abfrage auch das Abzeichen
+// "Gewerbe nachgewiesen" (supabase/gewerbe-nachweis.sql) - '*' statt
+// fester Spalten, damit eine fehlende Spalte die Vorstellung nicht mitreisst.
+let gewerbeGeprueft = false
 async function firmenVorstellungHtml(firmaId) {
   if (!firmaId) return ''
   const { data } = await supabase
-    .from('firmen_oeffentlich').select('ueber_mich').eq('id', firmaId).maybeSingle()
+    .from('firmen_oeffentlich').select('*').eq('id', firmaId).maybeSingle()
+  gewerbeGeprueft = data?.gewerbe_geprueft === true
   const text = data?.ueber_mich
   if (!text || !text.trim()) return ''
   return `
@@ -278,7 +283,8 @@ async function ladeJob() {
         ${job.firma_name
           ? `<p class="job-firma">bei ${job.firma_id
               ? `<a href="firma.html?id=${encodeURIComponent(job.firma_id)}">${escapeHtml(job.firma_name)}</a>`
-              : escapeHtml(job.firma_name)}</p>`
+              : escapeHtml(job.firma_name)}${gewerbeGeprueft
+              ? ' <span class="firma-marke" title="Die Firma hat uns ihre Gewerbeanmeldung oder einen Handelsregisterauszug gezeigt.">✓ Gewerbe nachgewiesen</span>' : ''}</p>`
           : ''}
       </div>
     </div>

@@ -49,7 +49,7 @@ brauchen die Edge Functions.
 |---|---|---|
 | `bewerbungen` | `id`, `job_id`, `schueler_id`, `motivationsschreiben`, `zeugnis_url`, `lebenslauf_url`, `erstellt_am`, `job_titel`; `angesehen_am` nur einmal setzbar (`bewerbung-titel-festnageln.sql`) | `status`, `entschieden_am`, `absage_grund` |
 | `nachrichten` | (Trigger bleibt, Tabelle ist seit 22.11.2026 zu und leer) | – |
-| `profiles` | `ist_admin`, `verifiziert`, `firma_status`, `role`, `email`; `alter_jahre` ab der Verifizierung; `name` einer freigegebenen Firma; Dokumentpfade nur im eigenen Ordner (Admins ausgenommen, `alter-nach-verifizierung-fest.sql`, `firmenname-fest.sql`) | Ort, Schule, Foto, Name/Alter vor der Prüfung, … |
+| `profiles` | `ist_admin`, `verifiziert`, `firma_status`, `role`, `email`; `alter_jahre` ab der Verifizierung; `name` einer freigegebenen Firma; Dokumentpfade nur im eigenen Ordner; `gewerbe_geprueft` (das Abzeichen) nur durch Admins und erst, wenn der Nachweis gelöscht ist (Admins ausgenommen, `alter-nach-verifizierung-fest.sql`, `firmenname-fest.sql`, `gewerbe-nachweis.sql`) | Ort, Schule, Foto, Name/Alter vor der Prüfung, … |
 | `bewertungen` | über `schuetze_bewertung_felder()` | Sterne, Kommentar |
 | `jobs` | über `schuetze_job_felder()`; `firma_name` setzt `trg_job_firmenname` immer aus dem Profil (`firmenname-fest.sql`) | die Anzeigenfelder |
 | `job_alarme` | über `schuetze_job_alarm_felder()` | die Suchkriterien |
@@ -119,7 +119,7 @@ neben jeder erlaubenden Regel.
 |---|---|---|---|
 | `avatars` | **ja** | 3 MB, nur Bild | jeder mit der Adresse |
 | `lebenslauf-bilder` | **ja** | 3 MB, nur Bild | jeder mit der Adresse |
-| `verifizierung` | nein | 6 MB, Bild/PDF | der Schüler selbst, Admin |
+| `verifizierung` | nein | 6 MB, Bild/PDF | der Schüler selbst (Ausweis) bzw. die Firma selbst (Gewerbenachweis, seit 22.11.2026), Admin |
 | `zeugnisse` | nein | 6 MB, Bild/PDF | der Schüler selbst; die Firma seiner Bewerbung |
 
 **Seit 20.10.2026** (`supabase/zeugnis-nur-eigene-anzeige.sql`): Die

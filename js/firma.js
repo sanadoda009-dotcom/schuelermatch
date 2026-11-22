@@ -136,6 +136,7 @@ function render({ id, name, profil, jobs, bewertungen }) {
         <p class="company-name">${ort ? `${ICONS.pin} ${escapeHtml(ort)}` : ''}</p>
         <p class="firma-marken">
           <span class="firma-marke">✓ Von SchülerMatch geprüft</span>
+          ${profil?.gewerbe_geprueft ? '<span class="firma-marke" title="Die Firma hat uns ihre Gewerbeanmeldung oder einen Handelsregisterauszug gezeigt.">✓ Gewerbe nachgewiesen</span>' : ''}
           ${seit ? `<span class="firma-marke firma-marke--leise">dabei seit ${escapeHtml(seit)}</span>` : ''}
         </p>
       </div>

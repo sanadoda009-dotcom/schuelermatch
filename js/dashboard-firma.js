@@ -10,6 +10,7 @@ import { initGlocke } from './notifications.js'
 import { geocode, uebernehmeKoordinaten } from './geo.js'
 import { sichereMediaUrl } from './sicher.js'
 import { dokumentPfad, pruefeFuerBucket } from './dokument-pfad.js'
+import { initGewerbe } from './gewerbe-nachweis.js'
 import { ABSAGE_GRUENDE } from './absage.js'
 
 let profile
@@ -133,6 +134,7 @@ async function init() {
     () => document.getElementById('firma-logo-datei').click())
   document.getElementById('firma-logo-datei')?.addEventListener('change', ladeLogoHoch)
   document.getElementById('profile-form').addEventListener('submit', speichereProfil)
+  initGewerbe(profile)
 
   initSidebar((view) => {
     document.querySelectorAll('.dashboard-view').forEach(v => v.classList.remove('active'))

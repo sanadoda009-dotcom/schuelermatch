@@ -230,7 +230,7 @@ function karte(s) {
 async function zeigeDokument(pfad, spalte, name) {
   const inhalt = document.getElementById('dok-inhalt')
   document.getElementById('dok-titel').textContent =
-    (DOKUMENTE.find(d => d.spalte === spalte)?.label || 'Dokument') + ' – ' + name
+    (spalte === 'gewerbe_url' ? 'Gewerbenachweis' : DOKUMENTE.find(d => d.spalte === spalte)?.label || 'Dokument') + ' – ' + name
   inhalt.innerHTML = '<p style="padding:30px; text-align:center; color:var(--ink-soft);">Wird geladen…</p>'
   document.getElementById('dok-overlay').classList.add('open')
 
@@ -340,7 +340,7 @@ async function zurueckziehen(id, btn) {
 async function ladeFirmen() {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, email, ort, firma_status, erstellt_am')
+    .select('id, name, email, ort, firma_status, erstellt_am, gewerbe_url, gewerbe_geprueft')
     .eq('role', 'firma')
     .order('erstellt_am', { ascending: false })
 
@@ -364,6 +364,7 @@ async function ladeFirmen() {
 
 function renderFirmen() {
   const neu = alleFirmen.filter(f => f.firma_status === 'neu').length
+  const nachweise = alleFirmen.filter(wartetNachweis).length
   document.getElementById('firma-stats').innerHTML = `
     <div class="stat-box"><b>${neu}</b><span>Zu prüfen</span></div>
     <div class="stat-box"><b>${alleFirmen.filter(f => f.firma_status === 'freigegeben').length}</b><span>Freigegeben</span></div>
@@ -371,20 +372,79 @@ function renderFirmen() {
 
   // Badges an den Reitern
   const bs = document.getElementById('tab-badge-firmen')
-  if (bs) bs.textContent = neu > 0 ? neu : ''
+  if (bs) bs.textContent = neu + nachweise > 0 ? neu + nachweise : ''
+  const bn = document.getElementById('badge-nachweis')
+  if (bn) bn.textContent = nachweise > 0 ? nachweise : ''
 
   let liste = alleFirmen
-  if (firmaFilter !== 'alle') liste = alleFirmen.filter(f => f.firma_status === firmaFilter)
+  if (firmaFilter === 'nachweis') liste = alleFirmen.filter(wartetNachweis)
+  else if (firmaFilter !== 'alle') liste = alleFirmen.filter(f => f.firma_status === firmaFilter)
 
   const box = document.getElementById('firma-liste')
   if (!liste.length) {
-    box.innerHTML = `<div class="empty-state"><p>${firmaFilter === 'neu' ? 'Keine neuen Firmen zu prüfen 🎉' : 'Keine Einträge.'}</p></div>`
+    box.innerHTML = `<div class="empty-state"><p>${firmaFilter === 'neu' ? 'Keine neuen Firmen zu prüfen 🎉'
+      : firmaFilter === 'nachweis' ? 'Kein Gewerbenachweis wartet 🎉' : 'Keine Einträge.'}</p></div>`
     return
   }
 
   box.innerHTML = liste.map(f => firmaKarte(f)).join('')
   box.querySelectorAll('[data-frei-firma]').forEach(b => b.addEventListener('click', () => setzeFirmaStatus(b.dataset.freiFirma, 'freigegeben', b)))
   box.querySelectorAll('[data-sperr-firma]').forEach(b => b.addEventListener('click', () => setzeFirmaStatus(b.dataset.sperrFirma, 'gesperrt', b)))
+  box.querySelectorAll('[data-dok]').forEach(b => b.addEventListener('click', () => zeigeDokument(b.dataset.dok, b.dataset.spalte, b.dataset.name)))
+  box.querySelectorAll('[data-gewerbe-ok]').forEach(b => b.addEventListener('click', () => entscheideGewerbe(b.dataset.gewerbeOk, 'ok', b)))
+  box.querySelectorAll('[data-gewerbe-nein]').forEach(b => b.addEventListener('click', () => entscheideGewerbe(b.dataset.gewerbeNein, 'nein', b)))
+  box.querySelectorAll('[data-gewerbe-weg]').forEach(b => b.addEventListener('click', () => entscheideGewerbe(b.dataset.gewerbeWeg, 'weg', b)))
+}
+
+// Ein Gewerbenachweis liegt vor und ist noch nicht entschieden.
+function wartetNachweis(f) {
+  return !!f.gewerbe_url && !f.gewerbe_geprueft
+}
+
+// Abzeichen "Gewerbe nachgewiesen" (22.11.2026, supabase/gewerbe-nachweis.sql).
+// Wie beim Schuelerausweis: Erst wird die Datei geloescht, dann entschieden
+// - die Datenbank vergibt das Abzeichen nicht, solange der Nachweis noch
+// in der Ablage liegt.
+async function entscheideGewerbe(id, art, btn) {
+  const f = alleFirmen.find(x => x.id === id)
+  if (!f) return
+  if (art !== 'ok' && btn.dataset.confirm !== '1') {
+    btn.dataset.confirm = '1'
+    btn.dataset.orig = btn.textContent
+    btn.textContent = art === 'nein' ? 'Wirklich ablehnen?' : 'Wirklich entziehen?'
+    btn.classList.add('btn-confirm')
+    clearTimeout(btn._t)
+    btn._t = setTimeout(() => { btn.dataset.confirm = '0'; btn.textContent = btn.dataset.orig; btn.classList.remove('btn-confirm') }, 4000)
+    return
+  }
+  clearTimeout(btn._t)
+  btn.disabled = true
+
+  if (art !== 'weg' && f.gewerbe_url) {
+    const { error: delErr } = await supabase.storage.from('verifizierung').remove([f.gewerbe_url])
+    if (delErr) {
+      toast('Nachweis konnte nicht gelöscht werden: ' + delErr.message, 'fehler')
+      btn.disabled = false
+      return
+    }
+  }
+  const aenderung = art === 'ok'
+    ? { gewerbe_geprueft: true, gewerbe_url: null }
+    : art === 'nein'
+      ? { gewerbe_url: null }
+      : { gewerbe_geprueft: false }
+  const { error } = await supabase.from('profiles').update(aenderung).eq('id', id)
+  if (error) {
+    toast('Fehler: ' + error.message, 'fehler')
+    btn.disabled = false
+    return
+  }
+  toast(art === 'ok'
+    ? `${f.name || 'Firma'}: Abzeichen vergeben, Nachweis gelöscht`
+    : art === 'nein'
+      ? `${f.name || 'Firma'}: Nachweis abgelehnt und gelöscht – die Firma kann einen neuen hochladen`
+      : `${f.name || 'Firma'}: Abzeichen entzogen`)
+  await ladeFirmen()
 }
 
 function firmaKarte(f) {
@@ -421,6 +481,18 @@ function firmaKarte(f) {
     aktionen = `<button type="button" class="btn btn-green" data-frei-firma="${f.id}">✓ Wieder freigeben</button>`
   }
 
+  // Gewerbenachweis (22.11.2026)
+  let gewerbe = ''
+  if (f.gewerbe_geprueft) {
+    gewerbe = `<div class="admin-gewerbe"><span class="firma-marke">✓ Gewerbe nachgewiesen</span>
+      <button type="button" class="btn btn-outline" style="color:var(--coral);" data-gewerbe-weg="${f.id}">Abzeichen entziehen</button></div>`
+  } else if (f.gewerbe_url) {
+    gewerbe = `<div class="admin-gewerbe">
+      <button type="button" class="btn btn-dark admin-dok-btn" data-dok="${escapeHtml(f.gewerbe_url)}" data-spalte="gewerbe_url" data-name="${escapeHtml(f.name || '')}">📄 Gewerbenachweis ansehen</button>
+      <button type="button" class="btn btn-green" data-gewerbe-ok="${f.id}">✓ Gewerbe bestätigen</button>
+      <button type="button" class="btn btn-outline" style="color:var(--coral);" data-gewerbe-nein="${f.id}">Nachweis ablehnen</button></div>`
+  }
+
   return `
     <div class="admin-karte">
       <div class="admin-karte-kopf">
@@ -432,6 +504,7 @@ function firmaKarte(f) {
       </div>
       ${hinweisListe}
       ${jobListe}
+      ${gewerbe}
       <div class="admin-aktionen">${aktionen}</div>
     </div>`
 }
