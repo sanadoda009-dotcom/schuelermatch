@@ -45,7 +45,7 @@ create index if not exists meldungen_nachricht_id_idx    on public.meldungen (na
 -- NACHHER PRUEFEN
 -- ------------------------------------------------------------
 --   select proacl from pg_proc where proname = 'schuetze_job_alarm_felder';
---     -> nur postgres und service_role
+--     -> nur postgres und die Service-Rolle
 --   select indexname from pg_indexes where indexname like '%\_idx' and schemaname = 'public';
 --     -> die sieben neuen
 --

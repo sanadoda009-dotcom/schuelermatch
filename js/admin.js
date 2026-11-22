@@ -15,6 +15,7 @@ import { toast } from './toast.js'
 import { sichereMediaUrl } from './sicher.js'
 import { istPdf } from './dokument-pfad.js'
 import { hinweiseZu } from './firmen-pruefung.js'
+import { zweiterFaktor } from './admin-mfa.js'
 
 let profile
 let alleSchueler = []
@@ -43,6 +44,10 @@ async function init() {
       '<div class="empty-state"><p>Dieser Bereich ist nur für Administratoren.</p></div>'
     return
   }
+
+  // Ohne zweiten Faktor gibt die Datenbank keine Admin-Rechte heraus
+  // (supabase/admin-zwei-faktor.sql) - erst den Code, dann alles andere.
+  if (!(await zweiterFaktor(document.querySelector('main')))) return
 
   document.getElementById('logout-btn').addEventListener('click', logout)
   document.getElementById('dok-close').addEventListener('click', schliesseDok)

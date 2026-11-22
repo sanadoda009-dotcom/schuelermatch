@@ -99,6 +99,14 @@ Kurzfassung dessen, was `pg_policies` sagt:
 - **`meldungen`** nur die eigenen — und Admin.
 - **`job_alarme`, `gemerkte_jobs`** ausschließlich die eigenen Zeilen.
 
+**„Admin" heißt: mit zweitem Faktor angemeldet (seit 22.11.2026).** Jede
+Admin-Regel oben, die Storage-Regeln der Ablage `verifizierung`,
+`betreiber_statistik()` und die Schutz-Trigger fragen `ist_admin()`. Die
+Funktion ist nur wahr, wenn `profiles.ist_admin` stimmt **und** im
+Anmelde-Token `aal = aal2` steht (`supabase/admin-zwei-faktor.sql`). Ein
+gestohlenes Admin-Passwort allein öffnet nichts. Der Betreiber-Bereich
+richtet den Faktor ein bzw. fragt den Code ab (`js/admin-mfa.js`).
+
 **Gesperrte Firmen (seit 20.10.2026):** Vier **einschränkende** Regeln
 (`as restrictive`) aus `supabase/firma-gesperrt-kein-kontakt.sql` trennen
 eine gesperrte Firma von Nachrichten, Bewerbungen, fremden Profilen und

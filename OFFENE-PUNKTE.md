@@ -37,7 +37,7 @@ Nachgeprüft: Der ausgerollte Quelltext stimmt mit
 **Merksatz:** Edge Functions gehen nicht mit `git push` live. Nach jeder
 Änderung in `supabase/functions/` einzeln ausrollen.
 
-## ✅ Eingespielt am 20.10.2026: neunzehn SQL-Dateien
+## ✅ Eingespielt am 20.10.2026: zwanzig SQL-Dateien
 
 Sanad hat am 20.10. gesagt „mach alles selber". Jede Datei wurde **vorher
 gegen die laufende Datenbank geprüft** (stimmen die Namen, die sie
@@ -65,6 +65,7 @@ nicht dem „success" geglaubt.
 | `supabase/pruef-funktionen-nicht-fuer-gaeste.sql` | Ohne Anmeldung ließ sich zu jeder Konto-Id abfragen, ob ein Schüler verifiziert oder eine Firma gesperrt ist (`ist_verifiziert`, `ist_gesperrte_firma`). Jetzt nur noch für Angemeldete – nur deren Regeln brauchen sie. Jobbörse für Gäste geprüft: unverändert. |
 | `supabase/chat-abschaffen.sql` | **22.11.2026, Sanads Entscheidung:** Kein Chat mehr – ein Kanal, in dem ein Erwachsener einem Kind frei schreibt, kann zu Skandalen führen. Nachrichten endgültig gelöscht (zwei, Testdaten), Tabelle zu. Nach einer Zusage meldet sich die Firma per Telefon (freiwillige Nummer beim Bewerben, `bewerbungen.telefon`) oder E-Mail. |
 | `supabase/datenbank-pflege.sql` | **22.11.2026, nach der Supabase-Prüfung:** Die letzte von außen aufrufbare Trigger-Funktion (`schuetze_job_alarm_felder`) ist zu, sieben Fremdschlüssel haben einen Index. Was bewusst so bleibt, steht in der Datei. |
+| `supabase/admin-zwei-faktor.sql` | **22.11.2026:** Admin-Rechte nur noch mit zweitem Faktor. `ist_admin()` verlangt `aal2` im Anmelde-Token; der Betreiber-Bereich richtet die Authenticator-App ein bzw. fragt den Code ab (`js/admin-mfa.js`). Notfall siehe unten „Admin-Zwei-Faktor“. |
 
 ### Zwei Fallen, die erst beim Einspielen auffielen
 
@@ -490,8 +491,29 @@ Ein umfassender Audit wurde durchgeführt; 8 von 11 Befunden sind bereits gefixt
 1. ~~**Leaked-Password-Schutz an** (#7)~~ — TEILS ERLEDIGT: Mindest-Passwortlänge am 28.7. von 6 auf **10** erhöht ✓. Der „Prevent use of leaked passwords"-Schalter (HaveIBeenPwned) ist **nur im Pro-Plan** verfügbar → auf Free nicht aktivierbar, Advisor-Warnung bleibt bestehen (kein echtes Loch).
 2. **MFA** (#9) — WICHTIGSTER TEIL ERLEDIGT: **2FA auf dem GitHub-Konto** (`sanadoda009-dotcom`) am 28.7. per Authenticator-App aktiviert ✓. Das schützt den Generalschlüssel, denn der Supabase-Dashboard-Login läuft über „Continue with GitHub" → Zugriff auf DB + alle Schülerdaten.
    - ⚠️ Recovery-Codes sicher aufbewahren! Nachträglich unter github.com/settings/auth/recovery-codes
-   - NOCH OFFEN: MFA **innerhalb der App** für Admins (admin.html). Braucht Frontend-Ausbau (Einrichtungs-/Abfrage-Bildschirme + Supabase-TOTP-Anbindung) — eigenes kleines Projekt, kein Dashboard-Schalter.
+   - ✅ **Seit 22.11.2026 auch in der App** – siehe „Admin-Zwei-Faktor“ direkt hierunter.
 3. **Gate vor Launch entfernen** (#11): `js/gate.js` → `GATE_AKTIV=false` (ist bewusst client-seitig, nur Bauphasen-Schild).
+
+### 🔐 Admin-Zwei-Faktor (seit 22.11.2026)
+
+Der Betreiber-Bereich braucht neben dem Passwort einen 6-stelligen Code
+aus einer Authenticator-App. **Beim ersten Besuch nach dem Update**
+zeigt er einen QR-Code: mit Google oder Microsoft Authenticator scannen,
+Code eingeben, fertig. Ab dann fragt er nach jeder Anmeldung den Code ab.
+**Das gilt für beide Admin-Konten** – das zweite richtet sich beim
+nächsten Besuch genauso ein.
+
+Der Schutz sitzt in der Datenbank, nicht in der Seite: `ist_admin()` ist
+ohne zweiten Faktor falsch, dann zeigt auch die Datenbank-Schnittstelle
+keine Ausweise, Meldungen oder fremden Profile.
+
+**Handy verloren?** Im Supabase-SQL-Editor (der läuft über dein
+GitHub-Login mit eigener 2FA) den Faktor löschen:
+
+    delete from auth.mfa_factors
+     where user_id = (select id from auth.users where email = 'DEINE@ADRESSE');
+
+Beim nächsten Besuch richtet der Betreiber-Bereich einen neuen ein.
 
 ## 🗓 Wiedervorlage: Ferientermine
 Der Ferienkalender auf `ferienjob.html` steht fest in `js/ferien.js`.

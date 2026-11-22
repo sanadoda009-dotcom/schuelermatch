@@ -307,6 +307,47 @@ async function installFakeSupabase(context, db) {
       })
     }
 
+    // Zweiter Faktor (22.11.2026, js/admin-mfa.js). Der Zustand steht in
+    // db.__auth: { user, factors, aufrufe }. Gueltiger Code ist 123456.
+    if (pfad.startsWith('/auth/v1/')) {
+      const auth = db.__auth || (db.__auth = { user: null, factors: [], aufrufe: [] })
+      const json = (status, daten) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(daten) })
+      const faktorPfad = pfad.match(/^\/auth\/v1\/factors(?:\/([^/]+))?(?:\/(challenge|verify))?$/)
+      if (req.method() === 'GET' && pfad === '/auth/v1/user') {
+        auth.aufrufe.push('user')
+        return json(200, { ...authNutzer(auth.user), factors: auth.factors })
+      }
+      if (faktorPfad) {
+        const [, id, schritt] = faktorPfad
+        if (req.method() === 'POST' && !id) {
+          auth.aufrufe.push('enroll')
+          const neu = { id: 'faktor-' + (auth.factors.length + 1), friendly_name: body?.friendly_name,
+            factor_type: 'totp', status: 'unverified', created_at: '2026-11-22T00:00:00Z', updated_at: '2026-11-22T00:00:00Z' }
+          auth.factors.push(neu)
+          return json(200, { id: neu.id, type: 'totp', friendly_name: neu.friendly_name,
+            totp: { qr_code: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>', secret: 'TESTGEHEIMNIS', uri: 'otpauth://totp/test' } })
+        }
+        if (req.method() === 'DELETE' && id) {
+          auth.aufrufe.push('unenroll:' + id)
+          auth.factors = auth.factors.filter(f => f.id !== id)
+          return json(200, { id })
+        }
+        if (req.method() === 'POST' && schritt === 'challenge') {
+          auth.aufrufe.push('challenge:' + id)
+          return json(200, { id: 'challenge-' + id, type: 'totp', expires_at: Math.floor(Date.now() / 1000) + 300 })
+        }
+        if (req.method() === 'POST' && schritt === 'verify') {
+          auth.aufrufe.push('verify:' + id + ':' + body?.code)
+          if (body?.code !== '123456') {
+            return json(422, { code: 422, error_code: 'mfa_verification_failed', msg: 'Invalid TOTP code entered' })
+          }
+          auth.factors = auth.factors.map(f => f.id === id ? { ...f, status: 'verified' } : f)
+          return json(200, { access_token: testJwt(auth.user, 'aal2'), refresh_token: 'test-refresh-token',
+            token_type: 'bearer', expires_in: 3600 * 24 * 365, user: { ...authNutzer(auth.user), factors: auth.factors } })
+        }
+      }
+    }
+
     // Auth: signOut/logout/refresh usw. -> harmlos bestätigen
     if (pfad.startsWith('/auth/v1/')) {
       return route.fulfill({ status: 204, contentType: 'application/json', body: '' })
@@ -326,9 +367,9 @@ async function installFakeSupabase(context, db) {
 
 // Setzt eine gültige Supabase-Session in localStorage, BEVOR die Seite lädt.
 // supabase.auth.getSession() liest diese und hält den Nutzer für eingeloggt.
-function sessionInitScript({ key, user, ablaufTs }) {
+function sessionInitScript({ key, user, ablaufTs, token, factors }) {
   const session = {
-    access_token: 'test-access-token',
+    access_token: token,
     refresh_token: 'test-refresh-token',
     token_type: 'bearer',
     expires_in: 3600 * 24 * 365,
@@ -342,9 +383,29 @@ function sessionInitScript({ key, user, ablaufTs }) {
       user_metadata: { name: user.name, role: user.role },
       created_at: '2026-01-01T00:00:00Z',
       updated_at: '2026-01-01T00:00:00Z',
+      factors,
     },
   }
   localStorage.setItem(key, JSON.stringify(session))
+}
+
+// Ein echt aufgebautes (aber unsigniertes) Anmelde-Token. supabase-js liest
+// daraus die Anmeldestufe (`aal`) - mit einer beliebigen Zeichenkette wirft
+// getAuthenticatorAssuranceLevel() einen Fehler (22.11.2026).
+function testJwt(user, aal) {
+  const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url')
+  return [b64({ alg: 'HS256', typ: 'JWT' }),
+    b64({ sub: user?.id, role: 'authenticated', aal, exp: Math.floor(Date.now() / 1000) + 3600 * 24 * 365 }),
+    'dGVzdA'].join('.')
+}
+
+function authNutzer(user) {
+  return {
+    id: user?.id, aud: 'authenticated', role: 'authenticated', email: user?.email,
+    app_metadata: { provider: 'email', providers: ['email'] },
+    user_metadata: { name: user?.name, role: user?.role },
+    created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z',
+  }
 }
 
 // ---------- Bausteine für die Specs ----------------------------------------
@@ -357,9 +418,14 @@ async function bypassGate(context) {
 }
 
 // Nutzer eingeloggt machen (Session in localStorage vor dem ersten Paint).
-async function seedSession(context, user) {
+// `auth.aal` / `auth.factors`: Anmeldestufe und zweite Faktoren. Ohne
+// Angabe ist die Sitzung schon mit zweitem Faktor bestaetigt (aal2) - so
+// bleibt fuer alle Tests ausser tests/admin-zwei-faktor.spec.js alles wie
+// vorher.
+async function seedSession(context, user, auth = {}) {
   const ablaufTs = Math.floor(Date.now() / 1000) + 3600 * 24 * 365
-  await context.addInitScript(sessionInitScript, { key: STORAGE_KEY, user, ablaufTs })
+  const token = testJwt(user, auth.aal || 'aal2')
+  await context.addInitScript(sessionInitScript, { key: STORAGE_KEY, user, ablaufTs, token, factors: auth.factors || [] })
 }
 
 // Open-Meteo-Geocoding (beim Job-Posten) abfangen -> feste Koordinate, hermetisch.
@@ -402,10 +468,11 @@ async function cacheJsdelivr(context) {
 }
 
 // Komfort: Gate weg + Fake-DB + Geocode-Mock + optional eingeloggt. Vor page.goto() aufrufen.
-async function setupDashboard(context, { db, user } = {}) {
+async function setupDashboard(context, { db, user, auth } = {}) {
   const datenbank = db || defaultDb()
+  datenbank.__auth = { user: user || null, factors: [...(auth?.factors || [])], aufrufe: [] }
   await bypassGate(context)
-  if (user) await seedSession(context, user)
+  if (user) await seedSession(context, user, auth)
   await installFakeSupabase(context, datenbank)
   await installGeocodeMock(context)
   await blockiereSchwereCdns(context)
