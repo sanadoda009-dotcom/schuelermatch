@@ -37,7 +37,7 @@ Nachgeprüft: Der ausgerollte Quelltext stimmt mit
 **Merksatz:** Edge Functions gehen nicht mit `git push` live. Nach jeder
 Änderung in `supabase/functions/` einzeln ausrollen.
 
-## ✅ Eingespielt am 20.10.2026: achtzehn SQL-Dateien
+## ✅ Eingespielt am 20.10.2026: neunzehn SQL-Dateien
 
 Sanad hat am 20.10. gesagt „mach alles selber". Jede Datei wurde **vorher
 gegen die laufende Datenbank geprüft** (stimmen die Namen, die sie
@@ -64,6 +64,7 @@ nicht dem „success" geglaubt.
 | `supabase/firmenname-fest.sql` | **Ebenfalls nachgeschoben:** Eine freigegebene Firma konnte ihren geprüften Namen ändern, und auf eine Anzeige ließ sich über die API **jeder** Name schreiben (der Browser kopierte ihn nur). Jetzt: Name nach der Freigabe fest (Formular gesperrt, mit Hinweis), Anzeigen bekommen ihn immer aus dem Profil. Vier alte Test-Anzeigen ohne Namen bleiben unangetastet. |
 | `supabase/pruef-funktionen-nicht-fuer-gaeste.sql` | Ohne Anmeldung ließ sich zu jeder Konto-Id abfragen, ob ein Schüler verifiziert oder eine Firma gesperrt ist (`ist_verifiziert`, `ist_gesperrte_firma`). Jetzt nur noch für Angemeldete – nur deren Regeln brauchen sie. Jobbörse für Gäste geprüft: unverändert. |
 | `supabase/chat-abschaffen.sql` | **22.11.2026, Sanads Entscheidung:** Kein Chat mehr – ein Kanal, in dem ein Erwachsener einem Kind frei schreibt, kann zu Skandalen führen. Nachrichten endgültig gelöscht (zwei, Testdaten), Tabelle zu. Nach einer Zusage meldet sich die Firma per Telefon (freiwillige Nummer beim Bewerben, `bewerbungen.telefon`) oder E-Mail. |
+| `supabase/datenbank-pflege.sql` | **22.11.2026, nach der Supabase-Prüfung:** Die letzte von außen aufrufbare Trigger-Funktion (`schuetze_job_alarm_felder`) ist zu, sieben Fremdschlüssel haben einen Index. Was bewusst so bleibt, steht in der Datei. |
 
 ### Zwei Fallen, die erst beim Einspielen auffielen
 
@@ -86,35 +87,25 @@ außen nicht aufrufbar. Die Meldung „Security Definer View" für
 `firmen_oeffentlich` ist **Absicht** – genau so zeigt die Sicht nur sechs
 Spalten, ohne `profiles` öffentlich zu machen.
 
-**Noch offen bei dir:** In den Supabase-Einstellungen unter *Auth →
-Passwörter* den Schutz gegen geleakte Passwörter einschalten (Prüfung
-gegen HaveIBeenPwned). Ein Schalter, kein Code.
+**Schutz gegen geleakte Passwörter:** Gibt es nur im Pro-Plan; das
+Projekt läuft im kostenlosen Plan (am 22.11. nachgesehen). Die
+Mindestlänge steht auf 10. Die Warnung im Advisor bleibt deshalb stehen.
 
-### 🔴 Zwei Ausweisdokumente liegen noch da — deine Entscheidung
+### ✅ Die zwei alten Ausweisdokumente sind gelöscht (22.11.2026)
 
-Am 5.9.2026 in der Ablage `verifizierung` gefunden: **zwei Dateien, beide
-bei bereits verifizierten Schülern**, hochgeladen am 1. und 5. Juli. Bei
-beiden steht der Pfad noch im Profil.
+Am 5.9. in der Ablage `verifizierung` gefunden: zwei Dateien bei längst
+verifizierten Schülern (hochgeladen 1. und 5. Juli), obwohl die
+Freischalt-Mail verspricht, das Dokument sei gelöscht. Entstanden, weil
+`verifiziert` damals im Dashboard statt über den Admin-Knopf gesetzt wurde
+– die Mail verschickt ein Trigger, kein Knopf.
 
-Die Freischalt-Mail sagt diesen Schülern wörtlich: „Übrigens: Dein
-hochgeladenes Dokument haben wir nach der Prüfung direkt wieder
-gelöscht.“ Das stimmt bei ihnen nicht.
+**Sanad hat am 22.11. „ja, löschen“ gesagt.** Gelöscht über das
+Supabase-Dashboard (*Storage → verifizierung*; per SQL blockiert
+`protect_objects_delete`), danach die zwei Pfade im Profil auf leer
+gesetzt. Nachgezählt: 0 Dateien in der Ablage, beide Schüler bleiben
+verifiziert.
 
-Der Betreiber-Bereich ist nicht schuld — der Knopf dort löscht die Datei
-zuerst und bricht ab, wenn das misslingt. Aber die **Mail verschickt ein
-Trigger**, kein Knopf: Wird `verifiziert` im SQL-Editor oder im
-Supabase-Dashboard gesetzt, geht die Zusage trotzdem raus. Genau so sind
-die beiden Fälle entstanden — der Admin-Knopf hätte die Pfade auf NULL
-gesetzt, sie stehen aber noch da.
-
-**Ich habe die Dateien nicht angefasst.** Es sind Ausweisdokumente von
-Minderjährigen, das Löschen ist endgültig, und es ist deine Entscheidung.
-Die Abfrage zum Ansehen steht in `supabase/ausweis-weg-bei-freigabe.sql`.
-**Per SQL löschen geht seit dem Supabase-Update nicht mehr** – nur über
-das Dashboard (*Storage → verifizierung*) oder im Betreiber-Bereich: Konto
-zurückziehen und neu freischalten.
-
-Der Betreiber-Bereich zeigt so einen Fall jetzt an — als eigene Zahl
+Der Betreiber-Bereich zeigt so einen Fall künftig an – als eigene Zahl
 („Ausweis liegt noch da“) und mit einem Hinweis darunter.
 
 ### 📅 Zwei Angaben, die von selbst veralten
