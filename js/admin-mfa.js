@@ -139,7 +139,7 @@ async function einrichten(kasten) {
         <li>Installiere eine Authenticator-App, zum Beispiel Google Authenticator oder Microsoft Authenticator.</li>
         <li>Tippe dort auf <b>+</b> und scanne diesen Code:</li>
       </ol>
-      <img class="mfa-qr" id="mfa-qr" alt="QR-Code zum Einrichten der Authenticator-App" width="200" height="200">
+      <img class="mfa-qr" id="mfa-qr" alt="QR-Code zum Einrichten der Authenticator-App" width="320" height="320">
       <details class="mfa-schluessel">
         <summary>Scannen geht nicht? Schlüssel von Hand eingeben</summary>
         <code id="mfa-geheimnis" class="mono"></code>

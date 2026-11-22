@@ -1398,9 +1398,13 @@ footer .logo { color: white; }
 .mfa-box p { color: var(--ink-soft); line-height: 1.55; margin: 0 0 12px; }
 .mfa-schritte { padding-left: 20px; margin: 0 0 12px; line-height: 1.55; }
 .mfa-schritte li + li { margin-top: 4px; }
+/* 23.11.2026: Mit 200 px liess sich der Code vom Bildschirm nicht
+   scannen - die Adresse darin ist lang, die Punkte wurden zu fein. Gross,
+   mit weissem Rand (Ruhezone) und ohne Weichzeichnen. */
 .mfa-qr {
-  display: block; width: 200px; height: 200px; margin: 4px auto 14px;
-  background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px;
+  display: block; width: min(320px, 100%); height: auto; aspect-ratio: 1; margin: 4px auto 14px;
+  background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px;
+  image-rendering: pixelated;
 }
 .mfa-schluessel { margin: 0 0 14px; font-size: 0.9rem; }
 .mfa-schluessel summary { cursor: pointer; color: var(--indigo); min-height: 44px; display: flex; align-items: center; }
