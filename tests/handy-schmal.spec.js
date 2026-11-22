@@ -45,35 +45,5 @@ for (const [rolle, user, url] of [['Schüler', SCHUELER, '/dashboard-schueler.ht
   }
 }
 
-for (const [breite, hoehe] of [[360, 640], [360, 760], [375, 667]]) {
-  test(`Chat auf ${breite} × ${hoehe}: das Eingabefeld ist im Bild`, async ({ page }) => {
-    await page.setViewportSize({ width: breite, height: hoehe })
-    const db = defaultDb({
-      profiles: [profilZeile(SCHUELER, { verifiziert: true }), profilZeile(FIRMA)],
-      bewerbungen: [{ id: 'bw-1', job_id: 'aaaaaaaa-0000-4000-8000-000000000002', schueler_id: SCHUELER.id,
-        status: 'angenommen', erstellt_am: '2026-09-10T10:00:00Z' }],
-      nachrichten: Array.from({ length: 8 }, (_, i) => ({ id: 'n' + i, bewerbung_id: 'bw-1',
-        absender_id: i % 2 ? SCHUELER.id : FIRMA.id, text: 'Nachricht ' + i, gelesen: true,
-        erstellt_am: `2026-09-11T1${i}:00:00Z` })),
-    })
-    await setupDashboard(page.context(), { user: SCHUELER, db })
-    await page.goto('/dashboard-schueler.html')
-    await warteAufDashboard(page)
-    await page.evaluate(() => document.querySelector('.sidebar-item[data-view="nachrichten"]').click())
-    await page.locator('#view-nachrichten').getByText('Chat öffnen').first().click()
-    await expect(page.locator('.chat-input')).toBeAttached({ timeout: 20_000 })
-    await page.waitForTimeout(800)
-
-    const m = await page.evaluate(fn => {
-      const z = new Function('return ' + fn)()
-      return {
-        inputUnten: Math.round(document.querySelector('.chat-input').getBoundingClientRect().bottom),
-        vh: innerHeight,
-        zurueck: z(document.querySelector('.chat-kopf .zurueck')),
-      }
-    }, zeilen.toString())
-    expect(m.inputUnten, `Eingabefeld endet bei ${m.inputUnten}px, Bildschirm ist ${m.vh}px hoch`)
-      .toBeLessThanOrEqual(m.vh)
-    expect(m.zurueck, '„← Zurück" umgebrochen').toBe(1)
-  })
-}
+// Die Chat-Tests (2. und 3. oben) sind am 22.11.2026 entfallen: Den Chat
+// gibt es nicht mehr.

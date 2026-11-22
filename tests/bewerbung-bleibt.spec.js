@@ -68,13 +68,14 @@ test.describe('Löschen mit Bewerbungen', () => {
     await expect(meldung).toContainText('2 Bewerbungen', { timeout: 20_000 })
   })
 
-  test('und dass der Chat mit verschwindet', async ({ page }) => {
-    // Über `nachrichten.bewerbung_id -> bewerbungen CASCADE` hängt der
-    // ganze Chat daran. Das ist der Teil, den niemand erwartet.
+  test('und was die Schüler danach sehen', async ({ page }) => {
+    // Seit bewerbung-bleibt.sql (eingespielt 20.10.2026) bleiben die
+    // Bewerbungen stehen. Bis zum 22.11. warnte der Knopf noch, sie und
+    // der Chat verschwaenden mit - das stimmte da schon nicht mehr.
     await setupDashboard(page.context(), { db: db(true), user: FIRMA })
     await zurAnzeigenliste(page)
     await page.locator('[data-delete]').click()
-    await expect(page.locator('.toast, #toast')).toContainText('Chat', { timeout: 20_000 })
+    await expect(page.locator('.toast, #toast')).toContainText('Anzeige entfernt', { timeout: 20_000 })
   })
 
   test('und nennt den sanfteren Weg', async ({ page }) => {

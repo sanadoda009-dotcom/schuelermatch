@@ -156,14 +156,15 @@ export function pruefeAnschreiben(text, job = {}) {
 
   if (!t) return [{ art: 'fehlt', text: 'Noch nichts geschrieben. Beantworte oben die drei Fragen – daraus wird ein Anschreiben.' }]
 
-  // KONTAKTDATEN. Dieselbe Erkennung wie im Chat (js/chat-warnung.js),
-  // damit es dafür nur eine Quelle gibt. Hier wiegt es sogar schwerer:
-  // Die Handynummer eines Minderjährigen steht dann dauerhaft in einer
-  // Bewerbung, die der Arbeitgeber behält.
+  // KONTAKTDATEN. Dieselbe Erkennung wie frueher im Chat
+  // (js/chat-warnung.js), damit es dafür nur eine Quelle gibt. Seit dem
+  // 22.11.2026 gibt es fuer die Rueckmeldung ein eigenes Feld - eine
+  // Nummer im Anschreiben waere doppelt und laesst sich nicht wieder
+  // herausnehmen.
   if (warnungFuer(t) === 'kontakt') {
     rueck.push({
       art: 'achtung',
-      text: 'Sieht so aus, als stünde da eine Handynummer oder E-Mail. Lass sie lieber weg – ihr schreibt hier im Chat, und der ist geschützt.'
+      text: 'Sieht so aus, als stünde da eine Handynummer oder E-Mail. Lass sie hier lieber weg – für die Rückmeldung gibt es unten ein eigenes Feld.'
     })
   }
 

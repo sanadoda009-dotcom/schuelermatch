@@ -60,8 +60,11 @@ test('man sieht, dass es freiwillig ist', async ({ page }) => {
   // Ein freiwilliges Feld, das nicht als freiwillig zu erkennen ist, wird
   // aus Pflichtgefühl ausgefüllt – und wer nichts weiß, bricht ab.
   await oeffneBewerbung(page, db())
-  await expect(page.locator('.feld-freiwillig')).toBeVisible()
-  await expect(page.locator('#bewerbung-form .feld-hilfe')).toContainText('ohne')
+  // Seit 22.11. hat auch das Telefonfeld ein Freiwillig-Schild - deshalb
+  // gezielt das am Anschreiben.
+  await expect(page.locator('label[for="bewerbung-motivation"] .feld-freiwillig')).toBeVisible()
+  await expect(page.locator('label[for="bewerbung-telefon"] .feld-freiwillig')).toBeVisible()
+  await expect(page.locator('#bewerbung-form .feld-hilfe').first()).toContainText('ohne')
 })
 
 test('eine Bewerbung ohne Anschreiben kommt an', async ({ page }) => {

@@ -6,7 +6,6 @@ import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
 import { initSidebar, oeffneAnsichtAusAdresse } from './sidebar.js'
 import { toast } from './toast.js'
-import { ladeChat } from './chat.js'
 import { initGlocke } from './notifications.js'
 import { geocode, uebernehmeKoordinaten } from './geo.js'
 import { sichereMediaUrl } from './sicher.js'
@@ -143,13 +142,6 @@ async function init() {
   const avatar = document.getElementById('sidebar-avatar')
   avatar.textContent = (profile.name || '?')[0].toUpperCase()
   document.getElementById('sidebar-name').textContent = profile.name || 'Firma'
-
-  const chatClose = () => {
-    document.getElementById('chat-overlay').classList.remove('open')
-    if (firmaChatCleanup) { firmaChatCleanup(); firmaChatCleanup = null }
-  }
-  document.getElementById('chat-close').addEventListener('click', chatClose)
-  document.getElementById('chat-overlay').addEventListener('click', e => { if (e.target.id === 'chat-overlay') chatClose() })
 
   initGlocke({
     rolle: 'firma',
@@ -511,9 +503,12 @@ async function loescheJob(jobId, btn) {
     btn.textContent = mitBewerbungen ? 'Trotzdem löschen?' : 'Wirklich löschen?'
     btn.classList.add('btn-confirm')
     if (mitBewerbungen) {
-      toast(`Damit verschwinden auch ${mitBewerbungen} Bewerbung`
-        + `${mitBewerbungen === 1 ? '' : 'en'} und der Chat dazu — auch für die `
-        + 'Schüler. Soll die Anzeige nur weg vom Schwarzen Brett, nimm „Pausieren".',
+      // Seit bewerbung-bleibt.sql (eingespielt 20.10.2026) bleiben die
+      // Bewerbungen den Schuelern erhalten, mit dem Titel als Kopie. Die
+      // Warnung behauptete bis zum 22.11. noch, sie verschwaenden mit.
+      toast(`An dieser Anzeige hängen ${mitBewerbungen} Bewerbung`
+        + `${mitBewerbungen === 1 ? '' : 'en'}. Die Schüler sehen dann nur noch „Anzeige entfernt". `
+        + 'Soll die Anzeige nur weg vom Schwarzen Brett, nimm „Pausieren".',
         'fehler')
     }
     clearTimeout(btn._t)
@@ -586,7 +581,10 @@ function bewerberItemHtml(b, job) {
           <button type="button" class="btn btn-green bew-knopf" data-status-id="${b.id}" data-status-wert="angenommen" ${daten}>Annehmen</button>
         </div>` : ''}
         ${b.status === 'angenommen' ? `
-        <button type="button" class="btn btn-green bew-knopf" data-chat="${b.id}" data-chat-name="${escapeHtml(b.bewerber.name || 'Bewerber')}">💬 Nachricht schreiben</button>` : ''}
+        <div class="bew-melden-sie-sich">
+          <b>Jetzt meldest du dich</b> – der Schüler wartet auf deinen Anruf oder deine Mail:
+          ${b.telefon ? `<a href="tel:${escapeHtml(b.telefon.replace(/[^0-9+]/g, ''))}">${escapeHtml(b.telefon)}</a> · ` : ''}<a href="mailto:${escapeHtml(b.bewerber.email || '')}">${escapeHtml(b.bewerber.email || 'E-Mail')}</a>
+        </div>` : ''}
       </div>
     </div>`
 }
@@ -875,9 +873,6 @@ async function ladeEigeneJobs() {
       window.open(data.signedUrl, '_blank')
     })
   })
-  bewListe.querySelectorAll('[data-chat]').forEach(btn => {
-    btn.addEventListener('click', () => oeffneFirmaChat(btn.dataset.chat, btn.dataset.chatName))
-  })
   // Eine Entscheidung schreiben. Die drei Spalten aus
   // supabase/bewerbung-stand.sql sind noch nicht eingespielt - PostgREST
   // weist ein Update auf eine unbekannte Spalte KOMPLETT zurueck. Ohne
@@ -968,14 +963,6 @@ function statusLabel(status) {
   if (status === 'angenommen') return '✓ Angenommen'
   if (status === 'abgelehnt') return 'Abgelehnt'
   return 'Ausstehend'
-}
-
-let firmaChatCleanup = null
-async function oeffneFirmaChat(bewerbungId, name) {
-  document.getElementById('chat-name').textContent = name
-  document.getElementById('chat-overlay').classList.add('open')
-  if (firmaChatCleanup) { firmaChatCleanup(); firmaChatCleanup = null }
-  firmaChatCleanup = await ladeChat(document.getElementById('firma-chat-inner'), bewerbungId, profile.id)
 }
 
 function renderStats(jobCount, bewerbungCount) {

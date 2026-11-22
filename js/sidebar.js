@@ -45,7 +45,11 @@ export function oeffneAnsichtAusAdresse() {
   adresse.searchParams.delete('ansicht')
   history.replaceState(null, '', adresse.pathname + adresse.search + adresse.hash)
   if (!/^[a-z]+$/.test(ansicht)) return false
-  const eintrag = document.querySelector(`.sidebar-item[data-view="${ansicht}"]`)
+  // Den Chat gibt es seit dem 22.11.2026 nicht mehr. Aeltere Zusage-Mails
+  // verlinken noch "?ansicht=nachrichten" - dort steht jetzt in der
+  // Bewerbung, wie es weitergeht.
+  const ziel = ansicht === 'nachrichten' ? 'bewerbungen' : ansicht
+  const eintrag = document.querySelector(`.sidebar-item[data-view="${ziel}"]`)
   if (!eintrag) return false
   eintrag.click()
   return true

@@ -57,17 +57,20 @@ test('die Glocke wartet nicht auf die Job-Liste', async ({ page }) => {
   const reihenfolge = []
   page.on('request', r => {
     if (!r.url().includes(HOST + '/rest/v1/')) return
-    reihenfolge.push(new URL(r.url()).pathname.replace('/rest/v1/', '').split('?')[0])
+    // Die Glocke fragt seit 22.11.2026 (kein Chat mehr) nur noch die
+    // entschiedenen Bewerbungen ab - erkennbar an status=in.(...).
+    const pfad = new URL(r.url()).pathname.replace('/rest/v1/', '').split('?')[0]
+    reihenfolge.push(pfad === 'bewerbungen' && decodeURIComponent(r.url()).includes('status=in.') ? 'glocke' : pfad)
   })
   await page.goto('/dashboard-schueler.html')
   await warteAufDashboard(page)
   await page.waitForTimeout(1500)
 
-  const nachrichten = reihenfolge.indexOf('nachrichten')
+  const glocke = reihenfolge.indexOf('glocke')
   const gemerkte = reihenfolge.indexOf('gemerkte_jobs')
-  expect(nachrichten, 'Nachrichten-Abfrage gestartet').toBeGreaterThanOrEqual(0)
+  expect(glocke, `Glocken-Abfrage gestartet (${reihenfolge.join(', ')})`).toBeGreaterThanOrEqual(0)
   // Sie darf nicht als Letzte kommen – dann hing sie wieder am Ende der Kette.
-  if (gemerkte >= 0) expect(nachrichten).toBeLessThan(gemerkte)
+  if (gemerkte >= 0) expect(glocke).toBeLessThan(gemerkte)
 })
 
 test('öffentliche Seiten kommen mit einer Abfrage aus', async ({ page }) => {

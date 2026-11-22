@@ -170,10 +170,13 @@ Deno.serve(async (req) => {
             `<h2 style="font-family:sans-serif">Du hast eine Zusage! 🎉</h2>
              <p>Hallo ${vorname(schueler?.name)}, <b>${esc(firma?.name ?? 'die Firma')}</b> hat deine Bewerbung
              für <b>„${jobTitel}"</b> angenommen.</p>
-             <p>Öffne den Chat im Dashboard, um die nächsten Schritte zu klären.</p>
-             <p><a href="${SITE_URL}/dashboard-schueler.html?ansicht=nachrichten"
+             <p>Die Firma meldet sich jetzt bei dir – ${b.telefon
+               ? 'per Telefon unter der Nummer, die du bei der Bewerbung angegeben hast, oder per E-Mail.'
+               : 'per E-Mail an diese Adresse.'}
+             Sag deinen Eltern Bescheid, bevor du zusagst oder zu einem Treffen gehst.</p>
+             <p><a href="${SITE_URL}/dashboard-schueler.html?ansicht=bewerbungen"
                style="display:inline-block;background-color:#00795c;background-image:linear-gradient(120deg,#00795c,#2b2f8f);color:#fff;padding:11px 20px;border-radius:10px;text-decoration:none">
-               Zum Chat</a></p>`,
+               Zu deiner Bewerbung</a></p>`,
           )
         } else {
           await sendeMail(

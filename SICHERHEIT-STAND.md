@@ -48,7 +48,7 @@ brauchen die Edge Functions.
 | Tabelle | eingefroren | also änderbar bleibt |
 |---|---|---|
 | `bewerbungen` | `id`, `job_id`, `schueler_id`, `motivationsschreiben`, `zeugnis_url`, `lebenslauf_url`, `erstellt_am`, `job_titel`; `angesehen_am` nur einmal setzbar (`bewerbung-titel-festnageln.sql`) | `status`, `entschieden_am`, `absage_grund` |
-| `nachrichten` | `id`, `bewerbung_id`, `absender_id`, `text`, `erstellt_am` | **nur `gelesen`** |
+| `nachrichten` | (Trigger bleibt, Tabelle ist seit 22.11.2026 zu und leer) | – |
 | `profiles` | `ist_admin`, `verifiziert`, `firma_status`, `role`, `email`; `alter_jahre` ab der Verifizierung; `name` einer freigegebenen Firma; Dokumentpfade nur im eigenen Ordner (Admins ausgenommen, `alter-nach-verifizierung-fest.sql`, `firmenname-fest.sql`) | Ort, Schule, Foto, Name/Alter vor der Prüfung, … |
 | `bewertungen` | über `schuetze_bewertung_felder()` | Sterne, Kommentar |
 | `jobs` | über `schuetze_job_felder()`; `firma_name` setzt `trg_job_firmenname` immer aus dem Profil (`firmenname-fest.sql`) | die Anzeigenfelder |
@@ -87,8 +87,13 @@ Kurzfassung dessen, was `pg_policies` sagt:
   erreichen (`ist_verifiziert` + `ist_alt_genug`,
   `supabase/bewerben-nur-alt-genug.sql`). Eine Bewerbung je Anzeige,
   nur drei Stände (`supabase/bewerbung-grenzen.sql`).
-- **`nachrichten`** lesen beide Seiten der Bewerbung; **schreiben nur bei
-  `status = 'angenommen'`** (`supabase/chat-erst-nach-zusage.sql`).
+- **`nachrichten`** – **seit 22.11.2026 kein Chat mehr** (`supabase/chat-abschaffen.sql`,
+  löst `supabase/chat-erst-nach-zusage.sql` ab):
+  keine einzige Regel, RLS an, also weder lesen noch schreiben; alle
+  Nachrichten gelöscht. Die Tabelle bleibt nur wegen `meldungen.nachricht_id`.
+  Nach einer Zusage meldet sich die Firma per Telefon oder E-Mail; die
+  freiwillige Rückrufnummer steht in `bewerbungen.telefon` (nur die Firma
+  dieser Anzeige sieht sie, nach dem Absenden eingefroren).
 - **`bewertungen`** öffentlich lesbar; schreiben nur, wer bei dieser Firma
   `status = 'angenommen'` hat. Eine je Firma und Schüler.
 - **`meldungen`** nur die eigenen — und Admin.

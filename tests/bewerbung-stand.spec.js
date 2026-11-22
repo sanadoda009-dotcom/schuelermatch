@@ -76,7 +76,7 @@ test.describe('die Zeitleiste sagt die Wahrheit', () => {
     await expect(karte).toContainText('Antwort steht aus')
   })
 
-  test('Zusage: mit Datum und dem Weg zum Chat', async ({ page }) => {
+  test('Zusage: mit Datum und dem, was jetzt passiert', async ({ page }) => {
     await meineBewerbungen(page, bewerbung({
       status: 'angenommen',
       angesehen_am: '2026-08-27T09:00:00Z',
@@ -85,7 +85,8 @@ test.describe('die Zeitleiste sagt die Wahrheit', () => {
     const karte = page.locator('.bew-card').first()
     await expect(karte).toContainText('Zusage')
     await expect(karte).toContainText('28. Aug')
-    await expect(karte.locator('[data-chat-bewerbung]')).toBeVisible()
+    // Seit 22.11.2026 kein Chat: die Firma meldet sich per Telefon oder E-Mail.
+    await expect(karte.locator('.bew-zusage-weiter')).toContainText('Die Firma meldet sich bei dir')
   })
 })
 

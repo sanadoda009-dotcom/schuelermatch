@@ -1,5 +1,9 @@
 // Warnhinweise im Chat (26.8.).
 //
+// SEIT 22.11.2026 GIBT ES KEINEN CHAT MEHR. Das Modul js/chat-warnung.js
+// bleibt: js/anschreiben.js erkennt damit Kontaktdaten im Anschreiben.
+// Die Faelle unten pruefen weiter die Erkennung selbst.
+//
 // Im Chat schreibt ein Minderjähriger mit einem fremden Erwachsenen.
 // Seit dem 22.8. gibt es Hinweise bei Kontaktdaten, Geldforderungen und
 // Treffen unter vier Augen — geprüft wurde die Erkennung aber nie: Sie
@@ -109,13 +113,6 @@ test.describe('Treffen unter vier Augen', () => {
   })
 })
 
-test('die Warnung erscheint nur an fremden Nachrichten', async ({ page }) => {
-  // Sich selbst vor der eigenen Nachricht zu warnen wäre sinnlos —
-  // die Prüfung sitzt in chat.js an `fremd`.
-  const quelle = await page.evaluate(async () => (await fetch('/js/chat.js')).text())
-  expect(quelle).toMatch(/fremd \? warnungHtml/)
-})
-
 test('jede Warnart hat einen Text', async ({ page }) => {
   const fehlt = await page.evaluate(async () => {
     const m = await import('/js/chat-warnung.js')
@@ -179,13 +176,4 @@ test.describe('was eltern.html verspricht', () => {
     })
   }
 
-  test('die Eltern-Seite verspricht noch genau diese drei Fälle', async () => {
-    // Ändert sich der Satz dort, gehören die Fälle oben neu gefasst.
-    const fs = require('fs')
-    const path = require('path')
-    const html = fs.readFileSync(path.join(__dirname, '..', 'eltern.html'), 'utf8')
-    expect(html).toMatch(/nach der Handynummer/)
-    expect(html).toMatch(/Vorauszahlungen/)
-    expect(html).toMatch(/Treffen allein/)
-  })
 })

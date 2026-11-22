@@ -37,7 +37,7 @@ Nachgeprüft: Der ausgerollte Quelltext stimmt mit
 **Merksatz:** Edge Functions gehen nicht mit `git push` live. Nach jeder
 Änderung in `supabase/functions/` einzeln ausrollen.
 
-## ✅ Eingespielt am 20.10.2026: siebzehn SQL-Dateien
+## ✅ Eingespielt am 20.10.2026: achtzehn SQL-Dateien
 
 Sanad hat am 20.10. gesagt „mach alles selber". Jede Datei wurde **vorher
 gegen die laufende Datenbank geprüft** (stimmen die Namen, die sie
@@ -63,6 +63,7 @@ nicht dem „success" geglaubt.
 | `supabase/alter-nach-verifizierung-fest.sql` | **Ebenfalls nachgeschoben:** Ein verifizierter Schüler konnte sein Alter im Profil frei ändern – genau die Zahl, nach der die Datenbank das Bewerben erlaubt. Jetzt nach der Verifizierung eingefroren (Formular gesperrt, mit Hinweis); Dokumentpfade nur im eigenen Ordner. **Folge:** Nach einem Geburtstag trägt der Betreiber das neue Alter ein. Sauberer wäre ein Geburtsdatum statt eines Alters – größere Umstellung, nicht begonnen. |
 | `supabase/firmenname-fest.sql` | **Ebenfalls nachgeschoben:** Eine freigegebene Firma konnte ihren geprüften Namen ändern, und auf eine Anzeige ließ sich über die API **jeder** Name schreiben (der Browser kopierte ihn nur). Jetzt: Name nach der Freigabe fest (Formular gesperrt, mit Hinweis), Anzeigen bekommen ihn immer aus dem Profil. Vier alte Test-Anzeigen ohne Namen bleiben unangetastet. |
 | `supabase/pruef-funktionen-nicht-fuer-gaeste.sql` | Ohne Anmeldung ließ sich zu jeder Konto-Id abfragen, ob ein Schüler verifiziert oder eine Firma gesperrt ist (`ist_verifiziert`, `ist_gesperrte_firma`). Jetzt nur noch für Angemeldete – nur deren Regeln brauchen sie. Jobbörse für Gäste geprüft: unverändert. |
+| `supabase/chat-abschaffen.sql` | **22.11.2026, Sanads Entscheidung:** Kein Chat mehr – ein Kanal, in dem ein Erwachsener einem Kind frei schreibt, kann zu Skandalen führen. Nachrichten endgültig gelöscht (zwei, Testdaten), Tabelle zu. Nach einer Zusage meldet sich die Firma per Telefon (freiwillige Nummer beim Bewerben, `bewerbungen.telefon`) oder E-Mail. |
 
 ### Zwei Fallen, die erst beim Einspielen auffielen
 

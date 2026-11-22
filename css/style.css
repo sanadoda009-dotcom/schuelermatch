@@ -712,56 +712,16 @@ section { padding: 130px 24px; }
 .benachr-leer { padding: 24px 12px; text-align: center; color: var(--ink-soft); font-size: 0.85rem; }
 @media (max-width: 640px) { .glocke-dropdown { width: calc(100vw - 32px); right: -60px; } }
 
-/* CHAT / NACHRICHTEN */
-.konv-liste { display: flex; flex-direction: column; gap: 10px; max-width: 720px; }
-.konv-item {
-  display: flex; align-items: center; gap: 12px; text-align: left; width: 100%;
-  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-  padding: 14px 16px; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; transition: border-color 0.15s, transform 0.15s;
-}
-.konv-item:hover { border-color: rgba(0,200,150,0.4); transform: translateY(-2px); }
-.konv-item .cv-photo-preview { width: 42px; height: 42px; font-size: 1rem; }
-.konv-item b { font-size: 0.95rem; display: block; }
-.konv-item span { font-size: 0.8rem; color: var(--ink-soft); }
-.konv-item .konv-badge { margin-left: auto; background: var(--coral); color: #fff; font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 100px; display: flex; align-items: center; justify-content: center; }
-
-.chat-box { max-width: 720px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
-.chat-kopf { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
-.chat-kopf .cv-photo-preview { width: 40px; height: 40px; font-size: 0.95rem; }
-.chat-kopf b { font-size: 0.95rem; }
-.chat-kopf .zurueck { margin-left: auto; background: none; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 0.82rem; color: var(--ink-soft); }
-/* Chat des Schülers auf dem Handy (13.9.2026). Auf 360 × 760 lag das
-   Eingabefeld unter dem Bildschirmrand (gemessen: Unterkante 833px):
-   Der Verlauf war fest 380px hoch, darüber Seitenüberschrift, Chat-Kopf
-   und Sicherheitshinweis. Und die Silbentrennung machte aus „← Zurück"
-   drei Zeilen „Zu-rück". Jetzt passt der Verlauf sich der Bildschirmhöhe
-   an, und beim Öffnen rückt der Chat nach oben (js/dashboard-schueler.js). */
-.chat-kopf b { min-width: 0; }
-.chat-kopf .zurueck { white-space: nowrap; hyphens: none; flex-shrink: 0; }
-#chat-container .chat-box { scroll-margin-top: 84px; }
 /* Kopfzeile der Dashboards auf schmalen Handys (13.9.2026). Auf 360 und
    375px – gängige iPhone-Breiten – brach „Logout" in eine zweite Zeile,
    die Kopfzeile wurde 120 statt 80px hoch. Es fehlte ein Pixel: Knöpfe
-   und Logo 328px, Seitenrand 48px, zusammen 376px. */
+   und Logo 328px, Seitenrand 48px, zusammen 376px. (Stand bis 22.11. im
+   Chat-Block und wäre beim Entfernen des Chats fast mitgegangen –
+   tests/handy-schmal.spec.js hat es gefangen.) */
 @media (max-width: 400px) {
   nav { padding-left: 16px; padding-right: 16px; }
   nav #logout-btn { padding: 12px 14px; min-height: 44px; }
 }
-@media (max-width: 600px) {
-  #chat-container .chat-thread {
-    height: calc(100vh - 300px); height: calc(100dvh - 300px);
-    min-height: 220px; max-height: 380px;
-  }
-}
-.chat-thread { height: 380px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: var(--paper); }
-.chat-msg { max-width: 75%; padding: 10px 14px; border-radius: 16px; font-size: 0.9rem; line-height: 1.45; position: relative; }
-.chat-msg p { margin: 0; white-space: pre-wrap; word-break: break-word; }
-.chat-msg--ich { align-self: flex-end; background: var(--match-green); color: var(--ink); border-bottom-right-radius: 4px; }
-.chat-msg--anderer { align-self: flex-start; background: var(--card); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
-.chat-zeit { display: block; font-size: 0.66rem; opacity: 0.6; margin-top: 3px; text-align: right; }
-.chat-form { display: flex; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--line); }
-.chat-input { flex: 1; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.92rem; background: var(--paper); outline: none; }
-.chat-input:focus { border-color: var(--match-green); }
 
 /* TOAST-NACHRICHTEN */
 .toast-container {
@@ -1652,14 +1612,7 @@ footer .logo { color: white; }
   border-radius: 8px; padding: 11px 13px; margin-top: 4px;
 }
 
-/* Melde-Button im Chat: nur bei Hover auf fremder Nachricht zeigen */
-.chat-msg { position: relative; }
-.chat-msg--anderer .melde-btn { opacity: 0; transition: opacity 0.15s; }
-.chat-msg--anderer:hover .melde-btn,
-.chat-msg--anderer .melde-btn:focus-visible { opacity: 1; }
 @media (pointer: coarse) {
-  .chat-msg--anderer .melde-btn { opacity: 1; }
-
   /* Am Finger war der Melden-Knopf nur 24px hoch - zu wenig zum sicheren
      Treffen. Aufgefallen erst am 27.8., als er auch auf der
      Anzeigenseite auftauchte und der Tippziel-Test ihn zu sehen bekam;
@@ -1690,30 +1643,6 @@ footer .logo { color: white; }
   background: var(--paper); border-radius: 0 8px 8px 0;
 }
 .meldung-meta { font-size: 0.75rem; color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; }
-
-/* ---------- SICHERHEIT IM CHAT ---------- */
-.chat-sicherheit {
-  border-bottom: 1px solid var(--line);
-  background: rgba(43,47,143,0.04);
-  font-size: 0.82rem;
-}
-.chat-sicherheit summary {
-  display: flex; align-items: center; gap: 7px;
-  padding: 10px 20px; cursor: pointer; color: var(--indigo);
-  font-weight: 600; list-style: none; user-select: none;
-}
-.chat-sicherheit summary::-webkit-details-marker { display: none; }
-.chat-sicherheit summary::after {
-  content: '▾'; margin-left: auto; transition: transform 0.2s; opacity: 0.7;
-}
-.chat-sicherheit[open] summary::after { transform: rotate(180deg); }
-.chat-sicherheit summary:hover { background: rgba(43,47,143,0.07); }
-.chat-sicherheit summary svg { flex-shrink: 0; }
-.chat-sicherheit ul {
-  margin: 0; padding: 0 20px 14px 40px; color: var(--ink-soft); line-height: 1.65;
-}
-.chat-sicherheit li { margin-bottom: 5px; }
-.chat-sicherheit li b { color: var(--ink); font-weight: 600; }
 
 .chat-warnung {
   align-self: flex-start; max-width: 85%;
@@ -3340,6 +3269,24 @@ main[tabindex="-1"]:focus { outline: none; }
   margin-top: 12px; padding: 12px 14px;
   background: var(--paper); border: 1px solid var(--line);
   border-radius: 12px;
+}
+/* Nach einer Zusage: wie es weitergeht (seit 22.11.2026 ohne Chat). */
+.bew-zusage-weiter {
+  margin-top: 12px; padding: 12px 14px;
+  background: rgba(0, 200, 150, 0.08); border: 1px solid rgba(0, 121, 92, 0.25);
+  border-radius: 12px; font-size: 0.88rem; line-height: 1.5;
+}
+.bew-zusage-weiter p { margin: 0; }
+.bew-zusage-weiter p + p { margin-top: 6px; color: var(--ink-soft); font-size: 0.82rem; }
+.bew-zusage-weiter a { color: var(--indigo); text-decoration: underline; }
+.bew-melden-sie-sich {
+  flex-basis: 100%; padding: 10px 12px; font-size: 0.85rem; line-height: 1.5;
+  background: rgba(0, 200, 150, 0.08); border: 1px solid rgba(0, 121, 92, 0.25);
+  border-radius: 10px;
+}
+.bew-melden-sie-sich a {
+  color: var(--match-green-dark); font-weight: 600; overflow-wrap: anywhere;
+  display: inline-block; min-height: 44px; line-height: 44px;
 }
 .bew-absage-grund {
   margin: 0 0 6px; font-size: 0.9rem; font-weight: 600; color: var(--ink);

@@ -49,10 +49,6 @@
     <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-5M5 4h14a1 1 0 011 1v15l-3-2-3 2-3-2-3 2-3-2V5a1 1 0 011-1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Bewerbungen<span class="sidebar-badge" id="badge-bewerbungen-s"></span>
   </button>
-  <button class="sidebar-item" data-view="nachrichten">
-    <svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4V5z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    Nachrichten<span class="sidebar-badge" id="badge-nachrichten"></span>
-  </button>
   <div class="sidebar-label">Mein Profil</div>
   <button class="sidebar-item" data-view="lebenslauf">
     <svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M14 3v6h6M9 13h6M9 17h4" stroke-linecap="round"/></svg>
@@ -212,16 +208,6 @@
     <div id="bewerbungen-container">
       <div class="skeleton-card" style="height:90px;"></div>
     </div>
-  </div>
-
-  <!-- NACHRICHTEN -->
-  <div class="dashboard-view" id="view-nachrichten">
-    <div class="jobs-header">
-      <h2>Nachrichten</h2>
-      <p style="color:var(--ink-soft);">Chats mit Firmen, die deine Bewerbung angenommen haben.</p>
-    </div>
-    <div id="konv-container"></div>
-    <div id="chat-container"></div>
   </div>
 
   <!-- LEBENSLAUF -->
@@ -492,8 +478,8 @@
         <h3>Konto löschen</h3>
       </div>
       <p class="einst-erklaerung">
-        Dabei verschwindet alles: dein Profil, dein Lebenslauf, deine Bewerbungen,
-        die Chats dazu und alle hochgeladenen Dateien. <b>Das lässt sich nicht
+        Dabei verschwindet alles: dein Profil, dein Lebenslauf, deine Bewerbungen
+        und alle hochgeladenen Dateien. <b>Das lässt sich nicht
         rückgängig machen</b> – auch wir können es danach nicht wiederherstellen.
       </p>
       <p class="einst-erklaerung">
@@ -574,12 +560,24 @@
              Motivationstext schreiben, bevor der Knopf ueberhaupt ging.
              Der Coach daneben bleibt - als Hilfe, nicht als Huerde. -->
         <textarea id="bewerbung-motivation" maxlength="2000" placeholder="Freiwillig – z.B. warum gerade dieser Job zu dir passt." style="min-height:120px;"></textarea>
-        <!-- 2000 wie bei den Chat-Nachrichten. Die Zahl steht auch als
-             Regel in der Datenbank (supabase/bewerbung-grenzen.sql) –
-             beide muessen dieselbe sein, sonst sagt das Formular „passt"
-             und die Datenbank lehnt danach ab. -->
-        <p class="mono feld-grenze">Höchstens 2000 Zeichen – für mehr ist der Chat da.</p>
+        <!-- Die Zahl steht auch als Regel in der Datenbank
+             (supabase/bewerbung-grenzen.sql) – beide muessen dieselbe sein,
+             sonst sagt das Formular „passt" und die Datenbank lehnt ab. -->
+        <p class="mono feld-grenze">Höchstens 2000 Zeichen.</p>
         <div class="coach-rueckmeldung" id="coach-rueckmeldung" role="status"></div>
+      </div>
+      <!-- Seit 22.11.2026 gibt es keinen Chat mehr: Nach einer Zusage meldet
+           sich die Firma per Telefon oder E-Mail (supabase/chat-abschaffen.sql).
+           Die Nummer ist freiwillig und sieht nur die Firma dieser Anzeige;
+           dieselbe Formatregel steht in der Datenbank. -->
+      <div class="form-group">
+        <label for="bewerbung-telefon">Telefon für die Rückmeldung <span class="feld-freiwillig">freiwillig</span></label>
+        <input type="tel" id="bewerbung-telefon" maxlength="25" autocomplete="tel"
+               pattern="[0-9 +()/\-]{6,25}" placeholder="z.B. 0170 1234567" aria-describedby="telefon-hilfe">
+        <p class="feld-hilfe" id="telefon-hilfe">
+          Gern die Nummer deiner Eltern. Nur diese Firma sieht sie – und nur, um dir nach
+          einer Zusage Bescheid zu geben. Ohne Nummer meldet sie sich per E-Mail.
+        </p>
       </div>
       <div class="form-group">
         <label>Lebenslauf</label>

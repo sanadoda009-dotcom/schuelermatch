@@ -19,29 +19,9 @@ const GRENZE = 8
 // Sammelt Benachrichtigungen je nach Rolle.
 async function sammle(rolle, profileId) {
   const items = []
-
-  // Ungelesene Nachrichten (beide Rollen) – RLS liefert nur eigene Konversationen
-  const { data: msgs } = await supabase.from('nachrichten')
-    .select('bewerbung_id, gelesen, absender_id, bewerbung:bewerbung_id(job:job_id(titel))')
-    .eq('gelesen', false).neq('absender_id', profileId)
-  const proKonv = {}
-  ;(msgs || []).forEach(m => {
-    const t = m.bewerbung?.job?.titel || 'Job'
-    proKonv[t] = (proKonv[t] || 0) + 1
-  })
-  // Wohin der Klick fuehrt, haengt an der Rolle: Der Schueler hat eine
-  // eigene Ansicht "Nachrichten", die Firma nicht - dort sitzt der Chat
-  // am jeweiligen Bewerber, also in "Bewerbungen".
-  //
-  // Vorher stand hier fuer BEIDE `ziel: 'nachrichten'`. Im
-  // Firmen-Dashboard gibt es diese Ansicht nicht, der Klick tat also
-  // schlicht nichts - still, und deshalb schwer zu bemerken. Gefunden
-  // vom Waechter in tests/glocke-ziel.spec.js, der jedes Ziel gegen die
-  // Ansichten BEIDER Dashboards haelt.
-  const nachrichtenZiel = rolle === 'schueler' ? 'nachrichten' : 'bewerbungen'
-  Object.entries(proKonv).forEach(([titel, n]) => {
-    items.push({ icon: '💬', text: `<b>${n} neue Nachricht${n > 1 ? 'en' : ''}</b> · ${escapeHtml(titel)}`, ziel: nachrichtenZiel, frisch: true })
-  })
+  // Den Chat gibt es seit dem 22.11.2026 nicht mehr (supabase/chat-abschaffen.sql):
+  // Nach einer Zusage meldet sich die Firma per Telefon oder E-Mail. Die
+  // Glocke kennt deshalb nur noch Bewerbungen und Entscheidungen.
 
   if (rolle === 'schueler') {
     const gesehen = ladeGesehen('schueler', profileId)
@@ -60,7 +40,7 @@ async function sammle(rolle, profileId) {
           : `Bewerbung für ${escapeHtml(b.job?.titel || 'Job')}: <b>nicht geklappt</b>`,
         // Die Entscheidung steht in der Ansicht "Bewerbungen", nicht auf
         // dem Jobbrett: dort sind die Zeitleiste, der Absagegrund und -
-        // bei einer Zusage - der Knopf zum Chat. Wer erfaehrt, dass er
+        // bei einer Zusage - was jetzt passiert. Wer erfaehrt, dass er
         // angenommen wurde, und dann auf einer Liste fremder Anzeigen
         // landet, muss selbst weitersuchen.
         ziel: 'bewerbungen', frisch, schluessel: key,
@@ -94,10 +74,10 @@ async function sammle(rolle, profileId) {
     })
   }
 
-  return { items, ungelesen: (msgs || []).length }
+  return { items }
 }
 
-export function initGlocke({ rolle, profileId, onNavigate, onUngelesen }) {
+export function initGlocke({ rolle, profileId, onNavigate }) {
   const btn = document.getElementById('glocke-btn')
   const badge = document.getElementById('glocke-badge')
   const dd = document.getElementById('glocke-dropdown')
@@ -108,11 +88,7 @@ export function initGlocke({ rolle, profileId, onNavigate, onUngelesen }) {
   let letzteSchluessel = []
 
   async function render() {
-    const { items, ungelesen } = await sammle(rolle, profileId)
-    // Die Zahl weitergeben, statt sie das Dashboard separat abfragen zu
-    // lassen - das war eine komplett doppelte Abfrage auf dieselbe Tabelle
-    // mit derselben Bedingung.
-    onUngelesen?.(ungelesen)
+    const { items } = await sammle(rolle, profileId)
     letzteSchluessel = items.filter(i => i.schluessel).map(i => i.schluessel)
     const frischN = items.filter(i => i.frisch).length
     badge.textContent = frischN

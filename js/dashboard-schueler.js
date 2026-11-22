@@ -6,7 +6,6 @@ import { ICONS } from './icons.js'
 import { ladeLebenslaufAlsPdf, erzeugeLebenslaufPdf, lebenslaufAlsBlob } from './pdf.js'
 import { initSidebar, oeffneAnsichtAusAdresse } from './sidebar.js'
 import { toast } from './toast.js'
-import { ladeChat, zaehleUngelesen } from './chat.js'
 import { initGlocke } from './notifications.js'
 import { geocode, distanzKm, uebernehmeKoordinaten } from './geo.js'
 import { passtZurSuche } from './suche.js'
@@ -167,12 +166,9 @@ async function init() {
   // Die Glocke VOR dem Warten auf die Jobs starten: Sie braucht nur die
   // eigene Profil-ID und kann parallel laufen. Vorher stand sie dahinter
   // und verlaengerte die Kette um rund eine Sekunde.
-  // Sie liefert die Zahl ungelesener Nachrichten gleich mit - das spart
-  // die separate Zaehl-Abfrage, die exakt dasselbe wissen wollte.
   initGlocke({
     rolle: 'schueler',
     profileId: profile.id,
-    onUngelesen: setzeNachrichtenBadge,
     onNavigate: (ziel) => document.querySelector(`.sidebar-item[data-view="${ziel}"]`)?.click()
   })
 
@@ -250,84 +246,13 @@ function zeigeView(view) {
   if (view === 'lebenslauf') renderCvPreview()
   if (view === 'abzeichen') renderAbzeichen()
   if (view === 'bewerbungen') renderMeineBewerbungen()
-  if (view === 'nachrichten') renderKonversationen()
-  else if (chatCleanup) { chatCleanup(); chatCleanup = null }
 }
 
-/* ---------- NACHRICHTEN ---------- */
-
-let chatCleanup = null
-
-function setzeNachrichtenBadge(n) {
-  const el = document.getElementById('badge-nachrichten')
-  if (el) el.textContent = n > 0 ? n : ''
-}
-
-// Nach dem Lesen eines Chats muss das Badge neu gezaehlt werden - dann
-// gibt es keine laufende Glocken-Abfrage, aus der man die Zahl nehmen
-// koennte, also hier weiterhin ein eigener (seltener) Aufruf.
-async function aktualisiereNachrichtenBadge() {
-  setzeNachrichtenBadge(await zaehleUngelesen(profile.id))
-}
-
-async function renderKonversationen() {
-  const container = document.getElementById('konv-container')
-  document.getElementById('chat-container').innerHTML = ''
-  container.style.display = 'block'
-  container.innerHTML = '<div class="skeleton-card" style="height:70px;"></div>'
-
-  const { data } = await supabase.from('bewerbungen')
-    .select('id, job:job_id(titel)')
-    .eq('schueler_id', profile.id)
-    .eq('status', 'angenommen')
-    .order('erstellt_am', { ascending: false })
-
-  if (!data || !data.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 10h32v22H16l-8 8V10z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <p>Noch keine Chats. Sobald eine Firma deine Bewerbung annimmt, kannst du hier sicher schreiben.</p>
-      </div>`
-    return
-  }
-
-  container.innerHTML = `<div class="konv-liste">${data.map(b => `
-    <button class="konv-item" data-bewerbung="${b.id}" data-titel="${escapeHtml(b.job?.titel || b.job_titel || 'Job')}">
-      <div class="cv-photo-preview" style="background:linear-gradient(135deg,var(--match-green),var(--indigo));">💬</div>
-      <div><b>${escapeHtml(b.job?.titel || b.job_titel || 'Job')}</b><span>Angenommen · Chat öffnen</span></div>
-    </button>`).join('')}</div>`
-
-  container.querySelectorAll('.konv-item').forEach(btn =>
-    btn.addEventListener('click', () => oeffneChat(btn.dataset.bewerbung, btn.dataset.titel)))
-}
-
-async function oeffneChat(bewerbungId, titel) {
-  if (chatCleanup) { chatCleanup(); chatCleanup = null }
-  document.getElementById('konv-container').style.display = 'none'
-  const cc = document.getElementById('chat-container')
-  cc.innerHTML = `
-    <div class="chat-box">
-      <div class="chat-kopf">
-        <div class="cv-photo-preview" style="background:linear-gradient(135deg,var(--match-green),var(--indigo));">💬</div>
-        <b>${escapeHtml(titel)}</b>
-        <button type="button" class="zurueck">← Zurück</button>
-      </div>
-      <div id="chat-inner"></div>
-    </div>`
-  cc.querySelector('.zurueck').addEventListener('click', () => {
-    if (chatCleanup) { chatCleanup(); chatCleanup = null }
-    renderKonversationen()
-    aktualisiereNachrichtenBadge()
-  })
-  chatCleanup = await ladeChat(cc.querySelector('#chat-inner'), bewerbungId, profile.id)
-  // Auf dem Handy den Chat nach oben rücken: Sonst stehen Überschrift und
-  // Einleitung der Ansicht darüber, und das Eingabefeld liegt unter dem
-  // Bildschirmrand (13.9.2026, gemessen auf 360 × 760).
-  if (window.matchMedia?.('(max-width: 600px)').matches) {
-    cc.querySelector('.chat-box')?.scrollIntoView({ block: 'start' })
-  }
-  setTimeout(aktualisiereNachrichtenBadge, 500)
-}
+// Den Chat gibt es seit dem 22.11.2026 nicht mehr (Sanads Entscheidung,
+// supabase/chat-abschaffen.sql): Ein Kanal, in dem ein Erwachsener einem
+// Kind frei schreibt, kann zu Skandalen fuehren. Wie bei den grossen
+// Jobboersen meldet sich nach einer Zusage die Firma - per Telefon (wenn
+// beim Bewerben angegeben) oder E-Mail.
 
 /* ---------- ANSCHREIBEN-COACH ----------
    Vorher warf ein Knopf einen von drei fertigen Beispieltexten ins Feld.
@@ -529,13 +454,6 @@ async function renderMeineBewerbungen() {
     <div class="bew-liste">
       ${liste.map(b => bewerbungKarte(b)).join('')}
     </div>`
-
-  container.querySelectorAll('[data-chat-bewerbung]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelector('.sidebar-item[data-view="nachrichten"]')?.click()
-      oeffneChat(btn.dataset.chatBewerbung, btn.dataset.chatTitel)
-    })
-  })
 }
 
 function bewerbungKarte(b) {
@@ -603,7 +521,15 @@ function bewerbungKarte(b) {
         <div class="bew-linie ${entschieden ? 'done' : ''}"></div>
         ${schritt3}
       </div>
-      ${status === 'angenommen' ? `<button type="button" class="btn btn-green" style="margin-top:12px;" data-chat-bewerbung="${b.id}" data-chat-titel="${escapeHtml(titel || 'Job')}">💬 Zum Chat mit der Firma</button>` : ''}
+      ${status === 'angenommen' ? `
+        <div class="bew-zusage-weiter">
+          <p><b>Die Firma meldet sich bei dir</b> – ${b.telefon
+            ? `per Telefon unter <span class="mono">${escapeHtml(b.telefon)}</span> oder per E-Mail.`
+            : 'per E-Mail an die Adresse deines Kontos.'}</p>
+          <p>Sag deinen Eltern Bescheid, bevor du zusagst oder zu einem Treffen gehst.
+          Kommt dir etwas komisch vor – etwa eine Bitte um Geld oder ein Treffen allein –,
+          <a href="eltern.html">lies hier nach</a> oder melde die Anzeige.</p>
+        </div>` : ''}
       ${absage ? `
         <div class="bew-absage">
           <p class="bew-absage-grund">${escapeHtml(absage.satz)}</p>
@@ -1757,6 +1683,7 @@ async function oeffneBewerbungsModal(jobId, jobTitel, btn) {
 
   document.getElementById('bewerbung-job-titel').textContent = jobTitel
   document.getElementById('bewerbung-motivation').value = ''
+  document.getElementById('bewerbung-telefon').value = ''
   document.getElementById('bewerbung-zeugnis-status').textContent = 'Kein Zeugnis ausgewählt'
 
   // Coach zuruecksetzen - sonst stuenden die Antworten zum vorigen Job
@@ -1866,6 +1793,16 @@ async function sendeBewerbung(e) {
   const { jobId, zeugnisDatei } = aktuelleBewerbung
   let zeugnis_url = null
 
+  // Freiwillige Rueckrufnummer. Dieselbe Regel wie in der Datenbank
+  // (bewerbungen_telefon_check) - sonst lehnt sie erst nach dem Hochladen ab.
+  const telefon = document.getElementById('bewerbung-telefon').value.trim().replace(/\s+/g, ' ') || null
+  if (telefon && !/^[0-9 +()/-]{6,25}$/.test(telefon)) {
+    toast('Die Telefonnummer sieht nicht richtig aus – nur Ziffern, Leerzeichen und + ( ) / - . Oder lass das Feld leer.', 'fehler')
+    btn.disabled = false
+    btn.textContent = 'Bewerbung absenden'
+    return
+  }
+
   if (zeugnisDatei) {
     const pruefung = pruefeFuerBucket(zeugnisDatei, 'zeugnisse')
     if (!pruefung.ok) {
@@ -1929,6 +1866,9 @@ async function sendeBewerbung(e) {
     // Firmen-Dashboard als "Anschreiben vorhanden" durchgeht.
     motivationsschreiben: document.getElementById('bewerbung-motivation').value.trim() || null,
     zeugnis_url,
+    // Nur mitschicken, wenn angegeben: So bleibt das Absenden auch dann
+    // moeglich, wenn die Spalte (noch) fehlt.
+    ...(telefon ? { telefon } : {}),
     // Gleich mit anlegen statt nachtraeglich per UPDATE (2.9.2026).
     //
     // Vorher stand der Pfad in einem UPDATE hinter dem INSERT - mit dem

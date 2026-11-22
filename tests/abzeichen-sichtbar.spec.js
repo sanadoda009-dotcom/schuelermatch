@@ -92,16 +92,16 @@ test.describe('in der Seitenleiste bleibt es, wie es war', () => {
     await page.goto('/dashboard-schueler.html')
     await warteAufDashboard(page)
 
-    await page.evaluate(() => { document.getElementById('badge-nachrichten').textContent = '3' })
+    await page.evaluate(() => { document.getElementById('badge-bewerbungen-s').textContent = '3' })
 
-    const a = await abzeichen(page, 'badge-nachrichten')
+    const a = await abzeichen(page, 'badge-bewerbungen-s')
     expect(istPille(a), JSON.stringify(a)).toBe(true)
 
     // `margin-left: auto` gilt nur in der Seitenleiste — der Rand rechts
     // muss also schmal bleiben. Genau diese Zeile hätte man beim
     // Entzerren der Regel verlieren können.
     const rand = await page.evaluate(() => {
-      const b = document.getElementById('badge-nachrichten')
+      const b = document.getElementById('badge-bewerbungen-s')
       const eintrag = b.closest('.sidebar-item')
       return eintrag.getBoundingClientRect().right - b.getBoundingClientRect().right
     })

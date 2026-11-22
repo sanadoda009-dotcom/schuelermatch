@@ -48,7 +48,8 @@ function neueSpalten(tabelle) {
 
 // Die neueste Fassung der Trigger-Funktion: die Datei, die sie zuletzt
 // ersetzt. Hier fest benannt, damit eine aeltere Fassung nicht zaehlt.
-const TRIGGER_DATEI = 'bewerbung-titel-festnageln.sql'
+// 22.11.2026: chat-abschaffen.sql ersetzt die Funktion (friert telefon ein).
+const TRIGGER_DATEI = 'chat-abschaffen.sql'
 
 test('jede neue Spalte an bewerbungen ist eingefroren oder bewusst aenderbar', async () => {
   const trigger = code(TRIGGER_DATEI)

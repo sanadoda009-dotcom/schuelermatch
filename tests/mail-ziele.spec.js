@@ -37,11 +37,13 @@ test.describe('?ansicht= öffnet die genannte Ansicht', () => {
     expect(new URL(page.url()).search, 'der Parameter verschwindet aus der Adresse').toBe('')
   })
 
-  test('Schüler: nachrichten', async ({ page }) => {
+  test('Schüler: nachrichten (alte Mails) landet bei den Bewerbungen', async ({ page }) => {
+    // Den Chat gibt es seit 22.11.2026 nicht mehr; aeltere Zusage-Mails
+    // verlinken ihn noch.
     await setupDashboard(page.context(), { user: SCHUELER })
     await page.goto('/dashboard-schueler.html?ansicht=nachrichten')
     await warteAufDashboard(page)
-    await expect(page.locator('#view-nachrichten')).toHaveClass(/active/, { timeout: 20_000 })
+    await expect(page.locator('#view-bewerbungen')).toHaveClass(/active/, { timeout: 20_000 })
   })
 
   test('eine unbekannte Ansicht wird still übergangen', async ({ page }) => {
@@ -93,9 +95,9 @@ test.describe('die Mail-Texte', () => {
   const ereignis = lies('supabase/functions/mail-ereignis/index.ts')
   const digest = lies('supabase/functions/mail-digest/index.ts')
 
-  test('„Zum Chat" führt in den Chat', async () => {
-    const stelle = ereignis.slice(ereignis.indexOf('Du hast eine Zusage!'), ereignis.indexOf('Zum Chat</a>'))
-    expect(stelle).toContain('dashboard-schueler.html?ansicht=nachrichten')
+  test('die Zusage-Mail führt zur Bewerbung', async () => {
+    const stelle = ereignis.slice(ereignis.indexOf('Du hast eine Zusage!'), ereignis.indexOf('Zu deiner Bewerbung</a>'))
+    expect(stelle).toContain('dashboard-schueler.html?ansicht=bewerbungen')
   })
 
   test('„Bewerbung(en) ansehen" führt zu den Bewerbungen – sofort und täglich', async () => {

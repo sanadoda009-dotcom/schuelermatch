@@ -1,0 +1,4 @@
+# Fremde Werkzeuge und Testausgaben gehoeren nicht in den Projektplan
+.claude/
+test-results/
+playwright-report/

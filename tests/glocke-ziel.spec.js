@@ -89,7 +89,7 @@ test.describe('Wächter', () => {
     const quelle = fs.readFileSync(path.join(WURZEL, 'js', 'notifications.js'), 'utf8')
     const ziele = [...quelle.matchAll(/ziel:\s*'([a-z]+)'/g)].map(m => m[1])
     expect(ziele.length, 'keine Ziele gefunden? Dann prüft der Test nichts')
-      .toBeGreaterThan(2)
+      .toBeGreaterThanOrEqual(2)
 
     const ansichten = {}
     for (const seite of ['dashboard-schueler.html', 'dashboard-firma.html']) {
@@ -109,12 +109,9 @@ test.describe('Wächter', () => {
       expect(irgendwo, `kein Dashboard kennt die Ansicht "${z}"`).toBe(true)
     }
 
-    // Und der rollenabhängige Fall ausdrücklich.
-    expect(ansichten['dashboard-schueler.html'].has('nachrichten')).toBe(true)
-    expect(ansichten['dashboard-firma.html'].has('nachrichten'),
-      'die Firma hat keine Nachrichten-Ansicht - das Ziel muss dort ein anderes sein')
-      .toBe(false)
-    expect(quelle).toContain("rolle === 'schueler' ? 'nachrichten' : 'bewerbungen'")
+    // Seit 22.11.2026 gibt es keinen Chat und keine Ansicht "nachrichten"
+    // mehr - die Glocke darf auch nicht mehr dorthin zeigen.
+    expect(ziele).not.toContain('nachrichten')
   })
 
   test('beide Dashboards benutzen das übergebene Ziel', async () => {
