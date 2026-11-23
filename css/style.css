@@ -3631,3 +3631,152 @@ main[tabindex="-1"]:focus { outline: none; }
   .mb-details dl { grid-template-columns: 1fr; gap: 2px; }
   .mb-details dd { margin-bottom: 8px; }
 }
+
+/* ============================================================
+   MEINE ANZEIGEN (Firma) – neu gestaltet am 23.11.2026
+   Eigene Klassen (anz-*). .job-card bleibt als Haken fuer Tests und
+   Klicks; was die oeffentliche Jobkarte mitbringt (Verlaufskante,
+   Hochspringen beim Darueberfahren), wird hier zurueckgenommen.
+   ============================================================ */
+.anz-header { margin-bottom: 22px; }
+.anz-kopf { margin-bottom: 18px; }
+.anz-kopf h1 { font-size: clamp(1.6rem, 3.2vw, 2.1rem); letter-spacing: -0.02em; margin: 2px 0 6px; }
+
+/* Zahlen */
+.anz-stats.stats-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 0; }
+.anz-stat {
+  min-width: 0; padding: 18px 18px 16px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(22,26,31,0.04);
+  display: grid; grid-template-columns: 1fr auto; column-gap: 10px; align-content: start;
+}
+.anz-stat-icon {
+  grid-column: 2; grid-row: 1 / span 2; align-self: start;
+  width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;
+}
+.anz-stat-icon svg { width: 19px; height: 19px; }
+.anz-stat--online .anz-stat-icon { background: rgba(0,200,150,0.12); color: var(--match-green-dark); }
+.anz-stat--bewerbungen .anz-stat-icon { background: rgba(43,47,143,0.08); color: var(--indigo); }
+.anz-stat--aufrufe .anz-stat-icon { background: rgba(240,180,41,0.16); color: #8a5a00; }
+.anz-stat-zahl {
+  grid-column: 1; grid-row: 1; font-family: 'Bricolage Grotesque', sans-serif; font-size: 2rem; line-height: 1.05;
+  font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums;
+}
+.anz-stat-name { grid-column: 1; grid-row: 2; font-size: 0.86rem; font-weight: 600; color: var(--ink); margin-top: 2px; }
+.anz-stat-zusatz { grid-column: 1 / -1; margin-top: 8px; font-size: 0.76rem; color: var(--ink-soft); }
+
+/* Liste */
+.jobs-grid.anz-liste { display: flex; flex-direction: column; gap: 14px; }
+.job-card.anz-karte {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 28px; align-items: center;
+  padding: 22px 24px 0; border-radius: 18px; border: 1px solid var(--line); background: var(--card);
+  box-shadow: 0 1px 2px rgba(22,26,31,0.04);
+  transition: box-shadow .2s ease, border-color .2s ease;
+  animation: none;
+}
+.job-card.anz-karte::before { display: none; }
+.job-card.anz-karte:hover { transform: none; }
+@media (hover: hover) {
+  .job-card.anz-karte:hover { border-color: #d8d3c7; box-shadow: 0 10px 28px -14px rgba(22,26,31,0.22); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .job-card.anz-karte { animation: mb-einblenden .3s ease both; animation-delay: calc(var(--i, 0) * 45ms); }
+}
+.anz-karte--pausiert, .anz-karte--pruefung { background: #fcfbf8; }
+
+.anz-haupt { min-width: 0; }
+.anz-kopfzeile { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 10px; }
+.anz-status {
+  display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px 4px 9px;
+  border-radius: 999px; border: 1px solid transparent;
+  font-size: 0.76rem; font-weight: 600; line-height: 1.3;
+}
+.anz-punkt { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.anz-status--online   { color: var(--match-green-dark); background: rgba(0,200,150,0.1); border-color: rgba(0,121,92,0.22); }
+.anz-status--online .anz-punkt { box-shadow: 0 0 0 3px rgba(0,200,150,0.22); }
+.anz-status--pausiert { color: var(--ink-soft); background: var(--paper); border-color: var(--line); }
+.anz-status--pruefung { color: #7a5000; background: rgba(240,180,41,0.16); border-color: rgba(240,180,41,0.38); }
+.anz-kategorie {
+  font-size: 0.74rem; font-weight: 600; color: var(--indigo);
+  background: rgba(43,47,143,0.06); border: 1px solid rgba(43,47,143,0.14);
+  padding: 3px 9px; border-radius: 999px;
+}
+.anz-datum { font-size: 0.76rem; color: var(--ink-soft); }
+
+.job-card .anz-titel { margin: 0; font-size: 1.18rem; line-height: 1.3; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.anz-titel a { color: var(--ink); text-decoration: none; }
+.anz-titel a:hover, .anz-titel a:focus-visible { color: var(--indigo); text-decoration: underline; text-underline-offset: 3px; }
+.anz-karte--pausiert .anz-titel { color: var(--ink-soft); }
+
+.anz-fakten {
+  list-style: none; margin: 10px 0 0; padding: 0;
+  display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.86rem; color: var(--ink-soft);
+}
+.anz-fakten li { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.anz-fakten .meta-icon { width: 15px; height: 15px; }
+
+/* Kennzahlen je Anzeige */
+.anz-zahlen {
+  margin: 0; display: grid; grid-template-columns: repeat(3, minmax(84px, auto));
+  border: 1px solid var(--line); border-radius: 14px; background: var(--paper); overflow: hidden;
+}
+.anz-zahl { padding: 10px 16px; text-align: center; }
+.anz-zahl + .anz-zahl { border-left: 1px solid var(--line); }
+.anz-zahl dt { font-size: 0.7rem; color: var(--ink-soft); letter-spacing: 0.02em; }
+.anz-zahl dd {
+  margin: 2px 0 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 1.35rem; font-weight: 700;
+  color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1.15;
+}
+.anz-zahl--offen dd { color: #8a5a00; }
+
+.anz-karte .job-ohne-ort { grid-column: 1 / -1; margin: 0; }
+
+/* Fusszeile: Weg zu den Bewerbungen + Werkzeuge */
+.anz-fuss {
+  grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap;
+  margin: 0 -24px; padding: 12px 24px; border-top: 1px solid var(--line);
+}
+.job-bew-hinweis.anz-bew { margin: 0; padding: 0; border: 0; }
+.job-bew-link.anz-bew-knopf {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 14px;
+  border-radius: 10px; background: rgba(0,200,150,0.1); color: var(--match-green-dark);
+  font-size: 0.88rem; transition: background-color .15s ease;
+}
+.anz-bew-knopf svg { width: 15px; height: 15px; transition: transform .15s ease; }
+.job-bew-link.anz-bew-knopf:hover { text-decoration: none; background: rgba(0,200,150,0.17); }
+.anz-bew-knopf:hover svg { transform: translateX(2px); }
+.anz-bew-leer { font-size: 0.86rem; color: var(--ink-soft); }
+
+.anz-aktionen { display: flex; flex-wrap: wrap; gap: 4px; }
+.anz-aktion {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 8px 12px;
+  border: 1px solid transparent; border-radius: 10px; background: transparent; cursor: pointer;
+  font: inherit; font-size: 0.86rem; font-weight: 600; color: var(--ink-soft);
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+.anz-aktion svg { width: 16px; height: 16px; flex: none; }
+.anz-aktion:hover { background: var(--paper); border-color: var(--line); color: var(--ink); }
+.anz-aktion:focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; }
+.anz-aktion:disabled { opacity: 0.55; cursor: progress; }
+.anz-aktion--loeschen { color: var(--coral); }
+.anz-aktion--loeschen:hover { background: rgba(165,68,44,0.06); border-color: rgba(165,68,44,0.2); color: var(--coral); }
+
+@media (max-width: 880px) {
+  .job-card.anz-karte { grid-template-columns: minmax(0, 1fr); }
+  .anz-zahlen { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .anz-stats.stats-row { gap: 8px; }
+  .anz-stat { padding: 14px 12px 12px; border-radius: 14px; }
+  .anz-stat-icon, .anz-stat-zusatz { display: none; }
+  .anz-stat-zahl { font-size: 1.6rem; }
+  .anz-stat { padding: 12px 10px 10px; }
+  .anz-stat-name { font-size: 0.72rem; hyphens: manual; overflow-wrap: normal; }
+  .job-card.anz-karte { padding: 18px 16px 0; }
+  .anz-fuss { margin: 0 -16px; padding: 10px 12px 12px; }
+  .anz-bew { width: 100%; }
+  .job-bew-link.anz-bew-knopf { width: 100%; justify-content: center; }
+  .anz-aktionen { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .anz-aktion { border-color: var(--line); }
+  .anz-zahl { padding: 8px 6px; }
+}

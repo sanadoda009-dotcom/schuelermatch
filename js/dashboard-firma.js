@@ -140,6 +140,9 @@ async function init() {
     document.querySelectorAll('.dashboard-view').forEach(v => v.classList.remove('active'))
     document.getElementById('view-' + view).classList.add('active')
   })
+  document.querySelector('[data-anz-neu]')?.addEventListener('click', () => {
+    document.querySelector('.sidebar-item[data-view="posten"]')?.click()
+  })
 
   const avatar = document.getElementById('sidebar-avatar')
   avatar.textContent = (profile.name || '?')[0].toUpperCase()
@@ -501,7 +504,7 @@ async function loescheJob(jobId, btn) {
   // Zwei-Klick-Bestätigung statt nervigem Browser-Popup
   if (btn && btn.dataset.confirm !== '1') {
     btn.dataset.confirm = '1'
-    btn.dataset.orig = btn.textContent
+    btn.dataset.orig = btn.innerHTML
     btn.textContent = mitBewerbungen ? 'Trotzdem löschen?' : 'Wirklich löschen?'
     btn.classList.add('btn-confirm')
     if (mitBewerbungen) {
@@ -515,7 +518,7 @@ async function loescheJob(jobId, btn) {
     }
     clearTimeout(btn._t)
     btn._t = setTimeout(() => {
-      btn.textContent = btn.dataset.orig
+      btn.innerHTML = btn.dataset.orig
       btn.dataset.confirm = '0'
       btn.classList.remove('btn-confirm')
     }, mitBewerbungen ? 9000 : 4000)
@@ -672,6 +675,97 @@ function renderBewerbungen(jobs, bewerberByJob) {
     </section>`).join('')
 }
 
+// Eine Anzeige in "Meine Anzeigen" (neu gestaltet am 23.11.2026).
+// Vorher: eine schmale Karte mit Buchstaben-Logo, Emojis als Symbole und
+// vier gleich lauten Knoepfen. Der Buchstabe war nur der Anfang des
+// Titels, also ohne Aussage. Jetzt steht vorn, was eine Firma zuerst
+// wissen will: Ist die Anzeige online, wie laeuft sie, was wartet.
+// Die Haken fuer Tests und Klicks (.job-card, data-edit, data-duplicate,
+// data-pause, data-delete, data-zu-bewerbungen, .job-ohne-ort) bleiben.
+const ANZ_ICON = {
+  signal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1a10 10 0 010-14.2M19.1 4.9a10 10 0 010 14.2M7.8 16.2a6 6 0 010-8.4M16.2 7.8a6 6 0 010 8.4"/><circle cx="12" cy="12" r="1.6"/></svg>',
+  post: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.5-6.9A2 2 0 0016.7 4H7.3a2 2 0 00-1.8 1.1z"/></svg>',
+  auge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  stift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>',
+  kopie: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
+  start: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 4.5v15l12-7.5z"/></svg>',
+  muell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6M10 11v6M14 11v6"/></svg>',
+  pfeil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+}
+
+function anzeigeStand(job) {
+  if (profile.firma_status !== 'freigegeben') return { art: 'pruefung', text: 'In Prüfung' }
+  return job.aktiv ? { art: 'online', text: 'Online' } : { art: 'pausiert', text: 'Pausiert' }
+}
+
+function lohnText(wert) {
+  const n = Number(wert)
+  if (!Number.isFinite(n)) return escapeHtml(String(wert))
+  return n.toLocaleString('de-DE', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 })
+}
+
+function anzeigeKarte(job, bewerbungen, index) {
+  const stand = anzeigeStand(job)
+  const anzahl = bewerbungen.length
+  const offen = bewerbungen.filter(b => (b.status || 'ausstehend') === 'ausstehend').length
+  const titel = escapeHtml(job.titel || 'Ohne Titel')
+  const datum = job.erstellt_am
+    ? new Date(job.erstellt_am).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })
+    : ''
+  // Ein Link auf die oeffentliche Seite nur, wenn die Anzeige dort auch
+  // zu sehen ist - sonst fuehrt er ins Leere.
+  const titelHtml = stand.art === 'online'
+    ? `<a href="job.html?id=${encodeURIComponent(job.id)}" title="So sehen Schüler die Anzeige">${titel}</a>`
+    : titel
+  const fakten = [
+    job.ort ? `${ICONS.pin}<span>${escapeHtml(job.ort)}</span>` : '',
+    job.stundenlohn ? `${ICONS.money}<span>${lohnText(job.stundenlohn)} €/Std.</span>` : '',
+    job.verfuegbarkeit ? `${ICONS.clock}<span>${escapeHtml(job.verfuegbarkeit)}</span>` : '',
+    `${ICONS.age}<span>${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} Jahren`}</span>`,
+  ].filter(Boolean).map(f => `<li>${f}</li>`).join('')
+
+  return `
+    <article class="job-card anz-karte anz-karte--${stand.art}" style="--i:${Math.min(index, 8)}">
+      <div class="anz-haupt">
+        <div class="anz-kopfzeile">
+          <span class="anz-status anz-status--${stand.art}"><span class="anz-punkt" aria-hidden="true"></span>${stand.text}</span>
+          ${job.kategorie ? `<span class="anz-kategorie">${escapeHtml(job.kategorie)}</span>` : ''}
+          ${datum ? `<span class="anz-datum">Erstellt am ${datum}</span>` : ''}
+        </div>
+        <h3 class="anz-titel">${titelHtml}</h3>
+        <ul class="anz-fakten">${fakten}</ul>
+      </div>
+
+      <dl class="anz-zahlen">
+        <div class="anz-zahl"><dt>Aufrufe</dt><dd>${(Number(job.aufrufe) || 0).toLocaleString('de-DE')}</dd></div>
+        <div class="anz-zahl"><dt>Bewerbungen</dt><dd>${anzahl}</dd></div>
+        <div class="anz-zahl${offen ? ' anz-zahl--offen' : ''}"><dt>Unbeantwortet</dt><dd>${offen}</dd></div>
+      </dl>
+
+      ${(job.lat == null || job.lon == null) ? `
+      <p class="job-ohne-ort">
+        <b>Ohne Ortszuordnung.</b> Diese Anzeige erscheint nicht, wenn ein Schüler
+        „im Umkreis von X km" sucht — und das ist die übliche Suche. Öffne
+        „Bearbeiten", prüfe die Schreibweise des Orts und speichere erneut.
+      </p>` : ''}
+
+      <div class="anz-fuss">
+        <p class="job-bew-hinweis anz-bew">
+          ${anzahl
+            ? `<button type="button" class="job-bew-link anz-bew-knopf" data-zu-bewerbungen="${job.id}">${anzahl} Bewerbung${anzahl === 1 ? '' : 'en'} ansehen ${ANZ_ICON.pfeil}</button>`
+            : '<span class="anz-bew-leer">Noch keine Bewerbungen</span>'}
+        </p>
+        <div class="anz-aktionen" role="group" aria-label="Aktionen für ${titel}">
+          <button type="button" class="anz-aktion" data-edit="${job.id}">${ANZ_ICON.stift}<span>Bearbeiten</span></button>
+          <button type="button" class="anz-aktion" data-duplicate="${job.id}">${ANZ_ICON.kopie}<span>Duplizieren</span></button>
+          <button type="button" class="anz-aktion" data-pause="${job.id}" data-aktiv="${job.aktiv}">${job.aktiv ? ANZ_ICON.pause : ANZ_ICON.start}<span>${job.aktiv ? 'Pausieren' : 'Aktivieren'}</span></button>
+          <button type="button" class="anz-aktion anz-aktion--loeschen" data-delete="${job.id}" data-bew="${anzahl}">${ANZ_ICON.muell}<span>Löschen</span></button>
+        </div>
+      </div>
+    </article>`
+}
+
 async function ladeEigeneJobs() {
   const list = document.getElementById('meine-jobs')
 
@@ -684,13 +778,13 @@ async function ladeEigeneJobs() {
   // Wichtig für Firmen: "Störung" darf nie wie "deine Anzeigen sind weg"
   // aussehen – das wäre ein Grund, die Plattform nicht mehr zu nutzen.
   if (gestoert) {
-    renderStats(0, 0)
+    renderStats([], [])
     zeigeLadefehler(list, ladeEigeneJobs, 'Deine Anzeigen konnten gerade nicht geladen werden.')
     return
   }
 
   if (!jobs.length) {
-    renderStats(0, 0)
+    renderStats([], [])
     list.innerHTML = `
       <div class="empty-state">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="14" width="36" height="26" rx="4"/><path d="M17 14v-3a4 4 0 014-4h6a4 4 0 014 4v3" stroke-linecap="round"/><path d="M6 24h36" /></svg>
@@ -738,7 +832,7 @@ async function ladeEigeneJobs() {
       .then(() => {}, () => {})
   }
 
-  renderStats(jobs.length, bewerbungen?.length || 0)
+  renderStats(jobs, bewerbungen || [])
   const offen = (bewerbungen || []).filter(b => (b.status || 'ausstehend') === 'ausstehend').length
   document.getElementById('badge-bewerbungen').textContent = offen > 0 ? offen : ''
 
@@ -748,47 +842,7 @@ async function ladeEigeneJobs() {
     bewerberByJob[b.job_id].push(b)
   })
 
-  list.innerHTML = jobs.map(job => {
-    const alleBewFuerJob = bewerberByJob[job.id] || []
-    const bewerbungenFuerJob = bewerberFilter
-      ? alleBewFuerJob.filter(b => (b.status || 'ausstehend') === bewerberFilter)
-      : alleBewFuerJob
-    const inPruefung = profile.firma_status !== 'freigegeben'
-    return `
-    <div class="job-card" style="${job.aktiv && !inPruefung ? '' : 'opacity:0.65;'}">
-      <div class="job-card-top">
-        <div class="company-logo">${escapeHtml((job.titel || '?')[0].toUpperCase())}</div>
-        <span class="job-badge ${inPruefung ? 'job-badge--pruefung' : (job.aktiv ? '' : 'job-badge--pausiert')}">${inPruefung ? '⏳ In Prüfung' : (job.aktiv ? `${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} J.`}` : '⏸ Pausiert')}</span>
-      </div>
-      <h3>${escapeHtml(job.titel)}</h3>
-      <p class="company-name">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}</p>
-      <div class="job-meta">
-        ${job.stundenlohn ? `<span>${ICONS.money} ${job.stundenlohn} €/Std</span>` : ''}
-        ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
-      </div>
-      <div class="job-insights">
-        <span>👁 <b>${job.aufrufe || 0}</b> Aufrufe</span>
-        <span>📨 <b>${alleBewFuerJob.length}</b> Bewerbung${alleBewFuerJob.length === 1 ? '' : 'en'}</span>
-      </div>
-      <div style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">
-        <button class="btn btn-outline" style="flex:1 1 45%; padding:9px;" data-edit="${job.id}">Bearbeiten</button>
-        <button class="btn btn-outline" style="flex:1 1 45%; padding:9px;" data-duplicate="${job.id}">⧉ Duplizieren</button>
-        <button class="btn btn-outline" style="flex:1 1 45%; padding:9px;" data-pause="${job.id}" data-aktiv="${job.aktiv}">${job.aktiv ? 'Pausieren' : 'Aktivieren'}</button>
-        <button class="btn btn-outline" style="flex:1 1 45%; padding:9px; color:var(--coral);" data-delete="${job.id}" data-bew="${alleBewFuerJob.length}">Löschen</button>
-      </div>
-      ${(job.lat == null || job.lon == null) ? `
-      <p class="job-ohne-ort">
-        <b>Ohne Ortszuordnung.</b> Diese Anzeige erscheint nicht, wenn ein Schüler
-        „im Umkreis von X km" sucht — und das ist die übliche Suche. Öffne
-        „Bearbeiten", prüfe die Schreibweise des Orts und speichere erneut.
-      </p>` : ''}
-      <p class="job-bew-hinweis">
-        ${alleBewFuerJob.length
-          ? `<button type="button" class="job-bew-link" data-zu-bewerbungen="${job.id}">${alleBewFuerJob.length} Bewerbung${alleBewFuerJob.length === 1 ? '' : 'en'} ansehen →</button>`
-          : 'Noch keine Bewerbungen'}
-      </p>
-    </div>
-  `}).join('')
+  list.innerHTML = jobs.map((job, i) => anzeigeKarte(job, bewerberByJob[job.id] || [], i)).join('')
 
   // Die Bewerber stehen seit dem 2.9.2026 in EIGENER Ansicht. Vorher
   // steckten sie in der Anzeigenliste - die Ansicht hiess selbst "Meine
@@ -967,11 +1021,28 @@ function statusLabel(status) {
   return 'Ausstehend'
 }
 
-function renderStats(jobCount, bewerbungCount) {
-  document.getElementById('stats-row').innerHTML = `
-    <div class="stat-box"><b>${jobCount}</b><span>Aktive Jobs</span></div>
-    <div class="stat-box"><b>${bewerbungCount}</b><span>Bewerbungen gesamt</span></div>
-  `
+// Die drei Zahlen ueber den Anzeigen (neu am 23.11.2026).
+// "Aktive Jobs" zaehlte bis dahin ALLE Anzeigen, auch pausierte. Jetzt
+// steht da, was wirklich online ist - und daneben, wie viele es insgesamt
+// sind, damit keine Zahl ohne ihren Bezug dasteht.
+function renderStats(jobs = [], bewerbungen = []) {
+  const inPruefung = profile?.firma_status !== 'freigegeben'
+  const online = inPruefung ? 0 : jobs.filter(j => j.aktiv).length
+  const offen = bewerbungen.filter(b => (b.status || 'ausstehend') === 'ausstehend').length
+  const aufrufe = jobs.reduce((summe, j) => summe + (Number(j.aufrufe) || 0), 0)
+  const kachel = (art, icon, zahl, name, zusatz) => `
+    <div class="anz-stat anz-stat--${art}">
+      <span class="anz-stat-icon" aria-hidden="true">${icon}</span>
+      <b class="anz-stat-zahl">${zahl}</b>
+      <span class="anz-stat-name">${name}</span>
+      <span class="anz-stat-zusatz">${zusatz}</span>
+    </div>`
+  document.getElementById('stats-row').innerHTML =
+    kachel('online', ANZ_ICON.signal, online, online === 1 ? 'Anzeige online' : 'Anzeigen online',
+      inPruefung && jobs.length ? 'sichtbar nach der Freigabe' : `von ${jobs.length} insgesamt`)
+    + kachel('bewerbungen', ANZ_ICON.post, bewerbungen.length, bewerbungen.length === 1 ? 'Bewerbung' : 'Bewerbungen',
+      offen ? `${offen} ${offen === 1 ? 'wartet' : 'warten'} auf Antwort` : (bewerbungen.length ? 'alle beantwortet' : 'noch keine eingegangen'))
+    + kachel('aufrufe', ANZ_ICON.auge, aufrufe.toLocaleString('de-DE'), 'Aufrufe', 'über alle Anzeigen')
 }
 
 function escapeHtml(str) {

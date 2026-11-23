@@ -196,11 +196,18 @@
 
   <!-- MEINE JOBS & BEWERBER (eigener Reiter) -->
   <div class="dashboard-view" id="view-jobs">
-    <div class="jobs-header">
-      <h1 style="font-size:1.6rem;">Meine Anzeigen</h1>
-      <div class="stats-row" id="stats-row"></div>
+    <div class="jobs-header anz-header">
+      <div class="mb-kopf anz-kopf">
+        <div>
+          <p class="mb-kopf-zeile">Deine Stellenanzeigen</p>
+          <h1>Meine Anzeigen</h1>
+          <p class="mb-kopf-text">Hier siehst du, wie deine Anzeigen laufen, und kommst mit einem Klick zu neuen Bewerbungen.</p>
+        </div>
+        <button type="button" class="btn btn-green mb-kopf-knopf" data-anz-neu>+ Neue Anzeige</button>
+      </div>
+      <div class="stats-row anz-stats" id="stats-row"></div>
     </div>
-    <div class="jobs-grid" id="meine-jobs">
+    <div class="jobs-grid anz-liste" id="meine-jobs">
       <div class="skeleton-card"></div><div class="skeleton-card"></div>
     </div>
   </div>
