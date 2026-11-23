@@ -35,6 +35,8 @@ async function init() {
   document.getElementById('logout-btn').addEventListener('click', logout)
 
   initSidebar(zeigeView)
+  document.querySelector('[data-mb-zu-jobs]')?.addEventListener('click', () =>
+    document.querySelector('.sidebar-item[data-view="jobs"]')?.click())
   aktualisiereSidebarUser()
   zeigeAdminLink()
 
@@ -409,30 +411,97 @@ function renderOnboarding() {
 }
 
 /* ---------- MEINE BEWERBUNGEN ---------- */
+//
+// Neu gestaltet am 23.11.2026 (Sanad: "zu schlicht, unuebersichtlich").
+// Was gleich geblieben ist und bleiben muss:
+//   - dieselbe Abfrage (eigene Bewerbungen, Job eingebettet) - die Rechte
+//     regelt weiter die Datenbank
+//   - die Zustaende kommen NUR aus den echten Spalten: status
+//     (ausstehend/angenommen/abgelehnt) und angesehen_am. Einen Status
+//     "Vorstellungsgespraech" gibt es in der Datenbank nicht, also auch
+//     hier nicht.
+//   - Zeitleiste, Zusage- und Absage-Kasten mit ihren Texten
+// Neu: Firmenlogo (aus der oeffentlichen Sicht firmen_oeffentlich), Filter,
+// Sortierung, Status-Abzeichen, "Was du geschickt hast" zum Aufklappen.
+
+const MB_ICON = {
+  stapel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg>',
+  uhr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+  stern: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3.5 2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z"/></svg>',
+  gesendet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3 10 14"/><path d="M21 3 14.5 21l-4.5-7-7-4.5z"/></svg>',
+  angesehen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  zusage: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.6 2.6L16 9.6"/></svg>',
+  absage: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>',
+  kalender: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+  pfeil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+}
+
+const MB_STAND = {
+  gesendet:  { label: 'Gesendet',  icon: MB_ICON.gesendet },
+  angesehen: { label: 'Angesehen', icon: MB_ICON.angesehen },
+  zusage:    { label: 'Zusage',    icon: MB_ICON.zusage },
+  absage:    { label: 'Absage',    icon: MB_ICON.absage },
+}
+
+const MB_FILTER = [
+  { key: 'alle',    label: 'Alle',    passt: () => true },
+  { key: 'offen',   label: 'Offen',   passt: b => !istEntschieden(b) },
+  { key: 'zusagen', label: 'Zusagen', passt: b => b.status === 'angenommen' },
+  { key: 'absagen', label: 'Absagen', passt: b => b.status === 'abgelehnt' },
+]
+
+let meineBewerbungen = []
+let mbFirmen = new Map()
+let mbFilter = 'alle'
+let mbSortierung = 'neu'
+
+function istEntschieden(b) {
+  return b.status === 'angenommen' || b.status === 'abgelehnt'
+}
+
+// Der eine Zustand, den das Abzeichen zeigt - nur aus echten Spalten.
+function bewerbungsStand(b) {
+  if (b.status === 'angenommen') return 'zusage'
+  if (b.status === 'abgelehnt') return 'absage'
+  return b.angesehen_am ? 'angesehen' : 'gesendet'
+}
+
+function langesDatum(iso) {
+  return iso ? new Date(iso).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+}
+
+function mbSkelett() {
+  return `
+    <div class="bew-stats mb-stats" aria-hidden="true">
+      <div class="skeleton-card mb-skelett-zahl"></div><div class="skeleton-card mb-skelett-zahl"></div><div class="skeleton-card mb-skelett-zahl"></div>
+    </div>
+    <div class="skeleton-card mb-skelett-karte" aria-hidden="true"></div>
+    <div class="skeleton-card mb-skelett-karte" aria-hidden="true"></div>`
+}
 
 async function renderMeineBewerbungen() {
   const container = document.getElementById('bewerbungen-container')
-  container.innerHTML = '<div class="skeleton-card" style="height:90px;"></div>'
+  container.innerHTML = mbSkelett()
+  container.setAttribute('aria-busy', 'true')
 
   const { data } = await supabase.from('bewerbungen')
-    // `*` statt einer Spaltenliste: Solange supabase/bewerbung-stand.sql
-    // nicht eingespielt ist, gibt es angesehen_am/entschieden_am/
-    // absage_grund nicht. Eine ausdrueckliche Liste wuerde die Abfrage
-    // dann mit einem Fehler beantworten - mit `*` kommt einfach weniger.
-    .select('*, job:job_id(id, titel, ort, stundenlohn, kategorie, firma_name, aktiv)')
+    // `*` statt einer Spaltenliste: Fehlt eine neuere Spalte, kommt einfach
+    // weniger zurueck, statt dass die ganze Abfrage scheitert.
+    .select('*, job:job_id(id, titel, ort, stundenlohn, kategorie, firma_name, firma_id, aktiv)')
     .eq('schueler_id', profile.id)
     .order('erstellt_am', { ascending: false })
 
-  const liste = data || []
-  if (!liste.length) {
+  meineBewerbungen = data || []
+  container.removeAttribute('aria-busy')
+
+  if (!meineBewerbungen.length) {
     container.innerHTML = `
-      <div class="empty-state">
-        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8h24v32H12z M18 16h12M18 22h12M18 28h8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <p>Noch keine Bewerbungen.</p>
-        <p class="fehler-hinweis">Such dir einen Job aus – bewerben dauert keine Minute.</p>
-        <div class="fehler-knoepfe">
-          <button type="button" class="btn btn-green" id="bew-zu-jobs">Jobs ansehen</button>
-        </div>
+      <div class="mb-leer">
+        <div class="mb-leer-bild" aria-hidden="true">${MB_ICON.stapel}</div>
+        <h3>Noch keine Bewerbungen</h3>
+        <p>Such dir einen Job aus, der zu dir passt – bewerben dauert keine Minute.
+           Hier siehst du danach, wann die Firma deine Bewerbung angesehen hat und wie sie entschieden hat.</p>
+        <button type="button" class="btn btn-green" id="bew-zu-jobs">Jobs ansehen</button>
       </div>`
     document.getElementById('bew-zu-jobs')?.addEventListener('click', (e) => {
       e.preventDefault()
@@ -441,51 +510,113 @@ async function renderMeineBewerbungen() {
     return
   }
 
-  // Kopf-Statistik wie bei LinkedIn "My Jobs"
-  const offen = liste.filter(b => b.status !== 'angenommen' && b.status !== 'abgelehnt').length
-  const zusagen = liste.filter(b => b.status === 'angenommen').length
+  // Firmenlogos aus der oeffentlichen Sicht - schlaegt das fehl, steht der
+  // Anfangsbuchstabe da. Die Liste selbst haengt nicht daran.
+  mbFirmen = new Map()
+  const firmaIds = [...new Set(meineBewerbungen.map(b => b.job?.firma_id).filter(Boolean))]
+  if (firmaIds.length) {
+    try {
+      const { data: firmen } = await supabase.from('firmen_oeffentlich').select('*').in('id', firmaIds)
+      for (const f of firmen || []) mbFirmen.set(f.id, f)
+    } catch { /* ohne Logos weiter */ }
+  }
 
-  container.innerHTML = `
-    <div class="bew-stats">
-      <div><b>${liste.length}</b><span>Gesamt</span></div>
-      <div><b>${offen}</b><span>In Prüfung</span></div>
-      <div><b>${zusagen}</b><span>Zusagen</span></div>
-    </div>
-    <div class="bew-liste">
-      ${liste.map(b => bewerbungKarte(b)).join('')}
-    </div>`
+  zeichneMeineBewerbungen()
 }
 
-function bewerbungKarte(b) {
+function zeichneMeineBewerbungen() {
+  const container = document.getElementById('bewerbungen-container')
+  const liste = meineBewerbungen
+  const offen = liste.filter(b => !istEntschieden(b))
+  const angesehenOffen = offen.filter(b => b.angesehen_am).length
+  const zusagen = liste.filter(b => b.status === 'angenommen').length
+  const quote = Math.round(zusagen / liste.length * 100)
+  const letzte = liste.reduce((a, b) => (!a || (b.erstellt_am || '') > a ? b.erstellt_am : a), '')
+
+  const filter = MB_FILTER.find(f => f.key === mbFilter) || MB_FILTER[0]
+  const gezeigt = liste.filter(filter.passt).sort((a, b) => {
+    const d = String(a.erstellt_am || '').localeCompare(String(b.erstellt_am || ''))
+    return mbSortierung === 'alt' ? d : -d
+  })
+
+  container.innerHTML = `
+    <div class="bew-stats mb-stats">
+      <div class="mb-stat mb-stat--gesamt">
+        <span class="mb-stat-icon">${MB_ICON.stapel}</span>
+        <b class="mb-stat-zahl">${liste.length}</b>
+        <span class="mb-stat-name">Gesamt</span>
+        <small class="mb-stat-zusatz">${letzte ? 'zuletzt am ' + escapeHtml(kurzesDatum(letzte)) : ''}</small>
+      </div>
+      <div class="mb-stat mb-stat--offen">
+        <span class="mb-stat-icon">${MB_ICON.uhr}</span>
+        <b class="mb-stat-zahl">${offen.length}</b>
+        <span class="mb-stat-name">In Prüfung</span>
+        <small class="mb-stat-zusatz">${offen.length ? `${angesehenOffen} davon angesehen` : 'alle beantwortet'}</small>
+      </div>
+      <div class="mb-stat mb-stat--zusage">
+        <span class="mb-stat-icon">${MB_ICON.stern}</span>
+        <b class="mb-stat-zahl">${zusagen}</b>
+        <span class="mb-stat-name">Zusagen</span>
+        <span class="mb-stat-balken" role="img" aria-label="${quote} Prozent deiner Bewerbungen mit Zusage"><span style="width:${quote}%"></span></span>
+      </div>
+    </div>
+
+    <div class="mb-werkzeuge">
+      <div class="mb-filter" role="group" aria-label="Bewerbungen filtern">
+        ${MB_FILTER.map(f => {
+          const n = liste.filter(f.passt).length
+          return `<button type="button" class="mb-filter-knopf" data-mb-filter="${f.key}" aria-pressed="${f.key === mbFilter}">${f.label}<span class="mb-filter-zahl">${n}</span></button>`
+        }).join('')}
+      </div>
+      <label class="mb-sortierung">
+        <span class="sr-only">Sortierung</span>
+        <select id="mb-sortierung">
+          <option value="neu" ${mbSortierung === 'neu' ? 'selected' : ''}>Neueste zuerst</option>
+          <option value="alt" ${mbSortierung === 'alt' ? 'selected' : ''}>Älteste zuerst</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="bew-liste mb-liste">
+      ${gezeigt.length
+        ? gezeigt.map((b, i) => bewerbungKarte(b, i)).join('')
+        : `<div class="mb-leer mb-leer--filter">
+             <p>Keine Bewerbungen in „${escapeHtml(filter.label)}“.</p>
+             <button type="button" class="btn btn-outline" data-mb-filter="alle">Alle zeigen</button>
+           </div>`}
+    </div>`
+
+  container.querySelectorAll('[data-mb-filter]').forEach(k => k.addEventListener('click', () => {
+    mbFilter = k.dataset.mbFilter
+    zeichneMeineBewerbungen()
+    container.querySelector(`.mb-filter-knopf[data-mb-filter="${mbFilter}"]`)?.focus()
+  }))
+  container.querySelector('#mb-sortierung')?.addEventListener('change', (e) => {
+    mbSortierung = e.target.value
+    zeichneMeineBewerbungen()
+    container.querySelector('#mb-sortierung')?.focus()
+  })
+}
+
+function bewerbungKarte(b, index = 0) {
   const status = b.status || 'ausstehend'
   const job = b.job || {}
+  const stand = bewerbungsStand(b)
+  const firma = mbFirmen.get(job.firma_id)
 
-  // Der Titel der Anzeige, auch wenn es die Anzeige nicht mehr gibt.
-  //
-  // `bewerbungen.job_id -> jobs` haengt heute auf ON DELETE CASCADE: Loescht
-  // die Firma ihre Anzeige, ist die Bewerbung des Schuelers mit weg.
-  // supabase/bewerbung-bleibt.sql aendert das auf SET NULL und legt dafuer
-  // `bewerbungen.job_titel` als Kopie an. Bis die Datei eingespielt ist,
-  // gibt es die Spalte nicht — dann ist sie schlicht `undefined` und es
-  // bleibt beim bisherigen Text.
+  // Der Titel der Anzeige, auch wenn es die Anzeige nicht mehr gibt:
+  // Seit bewerbung-bleibt.sql steht er als Kopie in `job_titel`.
   const titel = job.titel || b.job_titel || ''
+  const geloescht = !job.titel && Boolean(titel)
   const inaktiv = job.aktiv === false
-  const datum = b.erstellt_am ? new Date(b.erstellt_am).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
+  const zurAnzeige = job.id && job.aktiv !== false ? `job.html?id=${encodeURIComponent(job.id)}` : ''
+  const firmenName = job.firma_name || firma?.name || ''
+  const logo = sichereMediaUrl(firma?.foto_url)
 
-  // Die Zeitleiste hatte drei Schritte, aber nur zwei Zustaende: "In
-  // Pruefung" wurde abgehakt, sobald der Status nicht mehr `ausstehend`
-  // war - also erst, wenn die Entscheidung schon gefallen war. Der
-  // mittlere Schritt sagte damit nichts.
-  //
-  // Jetzt haengt er an `angesehen_am`: Sobald die Firma die Bewerbungen zu
-  // ihrer Anzeige oeffnet, wird er gesetzt. Der Schueler sieht dann, dass
-  // sein Text ueberhaupt angekommen ist - das ist der Punkt, an dem man
-  // sonst anfaengt, an sich zu zweifeln.
-  //
-  // Solange supabase/bewerbung-stand.sql nicht eingespielt ist, gibt es
-  // die Spalte nicht. Dann faellt der Schritt auf das alte Verhalten
-  // zurueck, statt kaputt auszusehen.
-  const entschieden = status === 'angenommen' || status === 'abgelehnt'
+  // Zeitleiste. Der mittlere Schritt haengt an `angesehen_am`: Sobald die
+  // Firma die Bewerbungen zu ihrer Anzeige oeffnet, wird er gesetzt. Fehlt
+  // die Spalte (aeltere Datenbank), faellt er auf "entschieden" zurueck.
+  const entschieden = istEntschieden(b)
   const spalteDa = b.angesehen_am !== undefined
   const gesehen = spalteDa ? Boolean(b.angesehen_am) : entschieden
 
@@ -495,32 +626,50 @@ function bewerbungKarte(b) {
     : '<div class="bew-schritt aktiv"><span class="punkt">◐</span>Wartet auf die Firma</div>'
 
   const schritt3 = status === 'angenommen'
-    ? `<div class="bew-schritt done gruen"><span class="punkt">🎉</span>Zusage!${
+    ? `<div class="bew-schritt done gruen"><span class="punkt">★</span>Zusage!${
         b.entschieden_am ? `<em>${kurzesDatum(b.entschieden_am)}</em>` : ''}</div>`
     : status === 'abgelehnt'
-      ? `<div class="bew-schritt done"><span class="punkt">•</span>Diesmal nicht geklappt${
+      ? `<div class="bew-schritt done neutral"><span class="punkt">•</span>Diesmal nicht geklappt${
           b.entschieden_am ? `<em>${kurzesDatum(b.entschieden_am)}</em>` : ''}</div>`
       : '<div class="bew-schritt"><span class="punkt">○</span>Antwort steht aus</div>'
 
   const absage = status === 'abgelehnt' ? absageTextFuerSchueler(b.absage_grund) : null
+  const anschreiben = (b.motivationsschreiben || '').trim()
+
+  const fakten = [
+    job.ort ? `<li>${ICONS.pin}<span>${escapeHtml(job.ort)}</span></li>` : '',
+    job.stundenlohn ? `<li>${ICONS.money}<span>${escapeHtml(String(job.stundenlohn))} €/Std</span></li>` : '',
+    job.kategorie ? `<li>${ICONS.tag}<span>${escapeHtml(job.kategorie)}</span></li>` : '',
+    b.erstellt_am ? `<li>${MB_ICON.kalender}<span>Beworben am ${escapeHtml(langesDatum(b.erstellt_am))}</span></li>` : '',
+  ].join('')
 
   return `
-    <div class="bew-card ${status === 'angenommen' ? 'bew-card--zusage' : ''}">
-      <div class="bew-card-kopf">
-        <div>
-          <b>${escapeHtml(titel || 'Anzeige nicht mehr verfügbar')}</b>${
-            !job.titel && titel ? '<span class="bew-geloescht">Anzeige wurde entfernt</span>' : ''}
-          <span class="bew-meta">${job.ort ? escapeHtml(job.ort) : ''}${job.stundenlohn ? ' · ' + job.stundenlohn + ' €/Std' : ''}${job.kategorie ? ' · ' + escapeHtml(job.kategorie) : ''}${inaktiv ? ' · <i>Anzeige pausiert</i>' : ''}</span>
+    <article class="bew-card mb-karte mb-karte--${stand} ${status === 'angenommen' ? 'bew-card--zusage' : ''}" style="--i:${Math.min(index, 8)}">
+      <div class="mb-karte-kopf">
+        <div class="mb-logo" ${logo ? `style="background-image:url('${logo}')"` : ''} aria-hidden="true">${
+          logo ? '' : escapeHtml(((firmenName || titel || '?').trim()[0] || '?').toUpperCase())}</div>
+        <div class="mb-titelblock">
+          <h3 class="mb-titel">${zurAnzeige
+            ? `<a href="${zurAnzeige}">${escapeHtml(titel || 'Anzeige')}</a>`
+            : escapeHtml(titel || 'Anzeige nicht mehr verfügbar')}</h3>
+          <p class="mb-firma">${firmenName ? 'bei ' + escapeHtml(firmenName) : ''}${
+            firma?.gewerbe_geprueft ? ' <span class="firma-marke">✓ Gewerbe nachgewiesen</span>' : ''}${
+            geloescht ? '<span class="bew-geloescht">Anzeige wurde entfernt</span>' : ''}${
+            inaktiv ? '<span class="bew-geloescht">Anzeige pausiert</span>' : ''}</p>
         </div>
-        <span class="bew-datum mono">${datum}</span>
+        <span class="mb-status mb-status--${stand}">${MB_STAND[stand].icon}${MB_STAND[stand].label}</span>
       </div>
-      <div class="bew-timeline">
+
+      ${fakten ? `<ul class="mb-fakten">${fakten}</ul>` : ''}
+
+      <div class="bew-timeline" aria-label="Stand der Bewerbung">
         <div class="bew-schritt done"><span class="punkt">✓</span>Eingereicht</div>
         <div class="bew-linie ${gesehen ? 'done' : ''}"></div>
         ${schritt2}
         <div class="bew-linie ${entschieden ? 'done' : ''}"></div>
         ${schritt3}
       </div>
+
       ${status === 'angenommen' ? `
         <div class="bew-zusage-weiter">
           <p><b>Die Firma meldet sich bei dir</b> – ${b.telefon
@@ -535,7 +684,20 @@ function bewerbungKarte(b) {
           <p class="bew-absage-grund">${escapeHtml(absage.satz)}</p>
           <p class="bew-trost">${escapeHtml(absage.trost)}</p>
         </div>` : ''}
-    </div>`
+
+      <div class="mb-fuss">
+        <details class="mb-details">
+          <summary>Was du geschickt hast</summary>
+          <dl>
+            <dt>Lebenslauf</dt><dd>${b.lebenslauf_url ? 'als PDF angehängt' : '—'}</dd>
+            ${b.zeugnis_url ? '<dt>Zeugnis</dt><dd>angehängt</dd>' : ''}
+            <dt>Rückrufnummer</dt><dd>${b.telefon ? `<span class="mono">${escapeHtml(b.telefon)}</span>` : 'keine – die Firma schreibt dir eine E-Mail'}</dd>
+            <dt>Anschreiben</dt><dd>${anschreiben ? `<span class="mb-anschreiben">${escapeHtml(anschreiben)}</span>` : 'ohne Anschreiben beworben'}</dd>
+          </dl>
+        </details>
+        ${zurAnzeige ? `<a class="mb-zur-anzeige" href="${zurAnzeige}">Zur Anzeige ${MB_ICON.pfeil}</a>` : ''}
+      </div>
+    </article>`
 }
 
 // Admin-Link nur für Administratoren einblenden – inkl. Anzahl offener Prüfungen

@@ -201,9 +201,14 @@
 
   <!-- MEINE BEWERBUNGEN -->
   <div class="dashboard-view" id="view-bewerbungen">
-    <div class="jobs-header">
-      <h2>Meine Bewerbungen</h2>
-      <p style="color:var(--ink-soft);">Alle deine Bewerbungen und ihr aktueller Stand – auf einen Blick.</p>
+    <!-- Neu gestaltet am 23.11.2026 (js/dashboard-schueler.js, "MEINE BEWERBUNGEN") -->
+    <div class="mb-kopf">
+      <div>
+        <p class="mb-kopf-zeile mono">Dein Bewerbungsstand</p>
+        <h2>Meine Bewerbungen</h2>
+        <p class="mb-kopf-text">Hier siehst du, wo jede Bewerbung gerade steht – ob die Firma sie schon angesehen hat und wie sie entschieden hat.</p>
+      </div>
+      <button type="button" class="btn btn-outline mb-kopf-knopf" data-mb-zu-jobs>Jobs entdecken</button>
     </div>
     <div id="bewerbungen-container">
       <div class="skeleton-card" style="height:90px;"></div>
