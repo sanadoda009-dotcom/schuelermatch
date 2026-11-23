@@ -178,7 +178,10 @@ async function init() {
   document.querySelectorAll('#bewerber-filter .pill').forEach(p => {
     p.addEventListener('click', () => {
       bewerberFilter = p.dataset.bf
-      document.querySelectorAll('#bewerber-filter .pill').forEach(x => x.classList.toggle('active', x.dataset.bf === bewerberFilter))
+      document.querySelectorAll('#bewerber-filter .pill').forEach(x => {
+        x.classList.toggle('active', x.dataset.bf === bewerberFilter)
+        x.setAttribute('aria-pressed', String(x.dataset.bf === bewerberFilter))
+      })
       ladeEigeneJobs()
     })
   })
@@ -547,6 +550,25 @@ async function loescheJob(jobId, btn) {
 // Jetzt eine Karte mit zwei Seiten: links, WER sich beworben hat (und
 // in welchem Stand), rechts, was man damit TUN kann. Der Status steht
 // vorn, weil er als Erstes zählt; die Knöpfe sind so breit wie ihr Text.
+// Neu gestaltet am 23.11.2026 im Stil von "Meine Anzeigen": Symbole
+// statt Haekchen-Zeichen, Schule/Klasse sichtbar, das Anschreiben direkt
+// lesbar (vorher nur im PDF), und der Hinweis nach der Zusage als eigene
+// Zeile unter der Person statt eingeklemmt neben den Knoepfen.
+// Haken fuer Tests und Klicks bleiben: .bewerber-item, .bew-person,
+// .bew-marken (Status zuerst), .signal, data-pdf-id, data-status-id,
+// .bew-entscheidung (wird beim Ablehnen durch die Gruende ersetzt),
+// .bew-melden-sie-sich.
+const BK_ICON = {
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+  tel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg>',
+  kalender: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>',
+  schule: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>',
+  datei: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
+  haken: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>',
+  kreuz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  uhr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+}
+
 function bewerberItemHtml(b, job) {
   const foto = sichereMediaUrl(b.bewerber.foto_url)
   const signale = bewerberSignale(b.bewerber, b)
@@ -555,9 +577,19 @@ function bewerberItemHtml(b, job) {
     b.bewerber.alter_jahre ? `${b.bewerber.alter_jahre} Jahre` : null,
     b.bewerber.ort ? escapeHtml(b.bewerber.ort) : null,
   ].filter(Boolean).join(' · ')
-  const daten = `data-email="${escapeHtml(b.bewerber.email || '')}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}"`
+  const schule = [
+    b.bewerber.schule ? escapeHtml(b.bewerber.schule) : null,
+    b.bewerber.klasse ? `Klasse ${escapeHtml(b.bewerber.klasse)}` : null,
+  ].filter(Boolean).join(' · ')
+  const anschreiben = (b.motivationsschreiben || '').trim()
+  const datum = b.erstellt_am
+    ? new Date(b.erstellt_am).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })
+    : ''
+  const email = escapeHtml(b.bewerber.email || '')
+  const daten = `data-email="${email}" data-name="${escapeHtml(b.bewerber.name || '')}" data-jobtitel="${escapeHtml(job.titel || '')}"`
+  const statusIcon = status === 'angenommen' ? BK_ICON.haken : status === 'abgelehnt' ? BK_ICON.kreuz : BK_ICON.uhr
   return `
-    <div class="bewerber-item">
+    <article class="bewerber-item bk-karte bk-karte--${escapeHtml(status)}">
       <div class="bew-person">
         <div class="cv-photo-preview bew-foto" ${foto ? `style="background-image:url('${foto}')"` : ''}>${foto ? '' : escapeHtml((b.bewerber.name || '?')[0].toUpperCase())}</div>
         <div class="bew-angaben">
@@ -565,33 +597,42 @@ function bewerberItemHtml(b, job) {
             <strong>${escapeHtml(b.bewerber.name || 'Unbekannt')}</strong>
             ${meta ? `<span class="bew-meta">${meta}</span>` : ''}
           </div>
+          ${schule ? `<p class="bk-schule">${BK_ICON.schule}<span>${schule}</span></p>` : ''}
           <div class="bew-marken">
-            <span class="status-badge status-${escapeHtml(status)}">${statusLabel(b.status)}</span>
+            <span class="status-badge status-${escapeHtml(status)}">${statusIcon}${statusLabel(b.status)}</span>
             ${signale.map(sig => `<span class="signal ${sig.klasse}"><span class="signal-punkt"></span>${sig.text}</span>`).join('')}
           </div>
           <div class="bew-kontakt">
-            <a href="mailto:${escapeHtml(b.bewerber.email || '')}">${escapeHtml(b.bewerber.email || '')}</a>
-            ${b.erstellt_am ? `<span>beworben am ${new Date(b.erstellt_am).toLocaleDateString('de-DE')}</span>` : ''}
+            ${email ? `<a href="mailto:${email}">${BK_ICON.mail}<span>${email}</span></a>` : ''}
+            ${datum ? `<span>${BK_ICON.kalender}beworben am ${datum}</span>` : ''}
           </div>
         </div>
       </div>
       <div class="bew-aktionen">
         <div class="bew-unterlagen">
-          <button type="button" class="btn btn-outline bew-knopf" data-pdf-id="${b.id}">Lebenslauf</button>
-          ${b.zeugnis_url ? `<button type="button" class="btn btn-outline bew-knopf" data-zeugnis-id="${b.id}">Zeugnis</button>` : ''}
+          <button type="button" class="btn btn-outline bew-knopf bk-knopf" data-pdf-id="${b.id}">${BK_ICON.datei}<span>Lebenslauf</span></button>
+          ${b.zeugnis_url ? `<button type="button" class="btn btn-outline bew-knopf bk-knopf" data-zeugnis-id="${b.id}">${BK_ICON.datei}<span>Zeugnis</span></button>` : ''}
         </div>
         ${status === 'ausstehend' ? `
         <div class="bew-entscheidung">
-          <button type="button" class="btn btn-outline bew-knopf bew-ablehnen" data-status-id="${b.id}" data-status-wert="abgelehnt" ${daten}>Ablehnen</button>
-          <button type="button" class="btn btn-green bew-knopf" data-status-id="${b.id}" data-status-wert="angenommen" ${daten}>Annehmen</button>
-        </div>` : ''}
-        ${b.status === 'angenommen' ? `
-        <div class="bew-melden-sie-sich">
-          <b>Jetzt meldest du dich</b> – der Schüler wartet auf deinen Anruf oder deine Mail:
-          ${b.telefon ? `<a href="tel:${escapeHtml(b.telefon.replace(/[^0-9+]/g, ''))}">${escapeHtml(b.telefon)}</a> · ` : ''}<a href="mailto:${escapeHtml(b.bewerber.email || '')}">${escapeHtml(b.bewerber.email || 'E-Mail')}</a>
+          <button type="button" class="btn btn-outline bew-knopf bk-knopf bew-ablehnen" data-status-id="${b.id}" data-status-wert="abgelehnt" ${daten}>Ablehnen</button>
+          <button type="button" class="btn btn-green bew-knopf bk-knopf" data-status-id="${b.id}" data-status-wert="angenommen" ${daten}>Annehmen</button>
         </div>` : ''}
       </div>
-    </div>`
+      ${anschreiben ? `
+      <details class="bk-anschreiben">
+        <summary>Anschreiben lesen</summary>
+        <p>${escapeHtml(anschreiben)}</p>
+      </details>` : ''}
+      ${status === 'angenommen' ? `
+      <div class="bew-melden-sie-sich">
+        <p><b>Jetzt meldest du dich.</b> Der Schüler wartet auf deinen Anruf oder deine Mail.</p>
+        <div class="bk-wege">
+          ${b.telefon ? `<a href="tel:${escapeHtml(b.telefon.replace(/[^0-9+]/g, ''))}">${escapeHtml(b.telefon)}</a>` : ''}
+          <a href="mailto:${email}">${email || 'E-Mail'}</a>
+        </div>
+      </div>` : ''}
+    </article>`
 }
 
 // Was hier steht, muss zur eigenen Einstellung der Firma passen.
@@ -629,6 +670,16 @@ function renderBewerbungen(jobs, bewerberByJob) {
   const ziel = document.getElementById('bewerbungen-liste')
   if (!ziel) return
 
+  // Wie viele Bewerbungen hinter jedem Filter stehen - vorher sah man
+  // das erst nach dem Klick.
+  const alleBew = Object.values(bewerberByJob).flat()
+  document.querySelectorAll('[data-bf-zahl]').forEach(el => {
+    const wert = el.dataset.bfZahl
+    el.textContent = wert
+      ? alleBew.filter(b => (b.status || 'ausstehend') === wert).length
+      : alleBew.length
+  })
+
   const gruppen = jobs.map(job => {
     const alle = bewerberByJob[job.id] || []
     const gezeigt = bewerberFilter
@@ -663,16 +714,20 @@ function renderBewerbungen(jobs, bewerberByJob) {
     return
   }
 
-  ziel.innerHTML = gruppen.map(({ job, alle, gezeigt }) => `
+  ziel.innerHTML = gruppen.map(({ job, alle, gezeigt }) => {
+    const offen = alle.filter(b => (b.status || 'ausstehend') === 'ausstehend').length
+    return `
     <section class="bew-gruppe">
       <div class="bew-gruppe-kopf">
         <h2>${escapeHtml(job.titel)}</h2>
+        ${offen ? `<span class="bk-offen">${offen} ${offen === 1 ? 'wartet' : 'warten'} auf Antwort</span>` : ''}
         <span class="mono">${bewerberFilter
           ? `${gezeigt.length} von ${alle.length}`
           : `${alle.length} Bewerbung${alle.length === 1 ? '' : 'en'}`}</span>
       </div>
       ${gezeigt.map(b => bewerberItemHtml(b, job)).join('')}
-    </section>`).join('')
+    </section>`
+  }).join('')
 }
 
 // Eine Anzeige in "Meine Anzeigen" (neu gestaltet am 23.11.2026).
@@ -897,19 +952,20 @@ async function ladeEigeneJobs() {
       const b = (bewerbungen || []).find(x => x.id === btn.dataset.pdfId)
       if (!b) return
       btn.disabled = true
+      const vorher = btn.innerHTML
       btn.textContent = 'Wird geladen...'
       // Bevorzugt: das bei der Bewerbung angehängte PDF (Snapshot bzw. eigene Datei)
       if (b.lebenslauf_url) {
         const { data, error } = await supabase.storage.from('zeugnisse').createSignedUrl(b.lebenslauf_url, 60)
         btn.disabled = false
-        btn.textContent = 'Lebenslauf (PDF)'
+        btn.innerHTML = vorher
         if (!error && data?.signedUrl) { window.open(data.signedUrl, '_blank'); return }
         // Anhang nicht lesbar -> auf Live-Erzeugung zurückfallen
       }
       btn.textContent = 'Wird erstellt...'
       ladeLebenslaufAlsPdf({ ...b.bewerber, bloecke: b.bewerber.lebenslauf_bloecke, motivationsschreiben: b.motivationsschreiben }).finally(() => {
         btn.disabled = false
-        btn.textContent = 'Lebenslauf (PDF)'
+        btn.innerHTML = vorher
       })
     })
   })
@@ -918,10 +974,11 @@ async function ladeEigeneJobs() {
       const b = (bewerbungen || []).find(x => x.id === btn.dataset.zeugnisId)
       if (!b) return
       btn.disabled = true
+      const vorher = btn.innerHTML
       btn.textContent = 'Lädt...'
       const { data, error } = await supabase.storage.from('zeugnisse').createSignedUrl(b.zeugnis_url, 60)
       btn.disabled = false
-      btn.textContent = 'Zeugnis'
+      btn.innerHTML = vorher
       if (error) {
         toast(verstaendlich(error), 'fehler')
         return
@@ -1016,9 +1073,9 @@ async function ladeEigeneJobs() {
 }
 
 function statusLabel(status) {
-  if (status === 'angenommen') return '✓ Angenommen'
+  if (status === 'angenommen') return 'Angenommen'
   if (status === 'abgelehnt') return 'Abgelehnt'
-  return 'Ausstehend'
+  return 'Offen'
 }
 
 // Die drei Zahlen ueber den Anzeigen (neu am 23.11.2026).

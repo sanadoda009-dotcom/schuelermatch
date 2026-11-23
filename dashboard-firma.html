@@ -219,16 +219,20 @@
        eine Wand. Beim Schueler sind Jobs und Bewerbungen laengst getrennt.
        Jetzt hier auch. -->
   <div class="dashboard-view" id="view-bewerbungen">
-    <div class="jobs-header">
-      <h1 style="font-size:1.6rem;">Bewerbungen</h1>
-      <p style="color:var(--ink-soft);">Wer sich bei dir beworben hat – nach Anzeige geordnet.</p>
+    <div class="jobs-header anz-header">
+      <div class="mb-kopf anz-kopf">
+        <div>
+          <p class="mb-kopf-zeile">Eingegangene Bewerbungen</p>
+          <h1>Bewerbungen</h1>
+          <p class="mb-kopf-text">Wer sich bei dir beworben hat, nach Anzeige geordnet. Eine schnelle Antwort freut jeden Schüler, auch eine Absage.</p>
+        </div>
+      </div>
     </div>
-    <div class="pill-row" id="bewerber-filter" style="margin-bottom:18px;">
-      <span class="mono" style="font-size:0.72rem; color:var(--ink-soft); align-self:center; margin-right:4px;">ZEIGEN:</span>
-      <button type="button" class="pill active" data-bf="">Alle</button>
-      <button type="button" class="pill" data-bf="ausstehend">🕐 Ausstehend</button>
-      <button type="button" class="pill" data-bf="angenommen">✓ Angenommen</button>
-      <button type="button" class="pill" data-bf="abgelehnt">Abgelehnt</button>
+    <div class="pill-row bk-filter" id="bewerber-filter" role="group" aria-label="Bewerbungen filtern">
+      <button type="button" class="pill active" data-bf="" aria-pressed="true">Alle <span class="bk-zahl" data-bf-zahl="">0</span></button>
+      <button type="button" class="pill" data-bf="ausstehend" aria-pressed="false">Offen <span class="bk-zahl" data-bf-zahl="ausstehend">0</span></button>
+      <button type="button" class="pill" data-bf="angenommen" aria-pressed="false">Angenommen <span class="bk-zahl" data-bf-zahl="angenommen">0</span></button>
+      <button type="button" class="pill" data-bf="abgelehnt" aria-pressed="false">Abgelehnt <span class="bk-zahl" data-bf-zahl="abgelehnt">0</span></button>
     </div>
     <div id="bewerbungen-liste">
       <div class="skeleton-card" style="height:90px;"></div>
