@@ -90,6 +90,32 @@ export function kurzBeschreibung(text) {
     .split('\n').map(t => t.trim()).filter(Boolean).join(' · ')
 }
 
+// Die volle Beschreibung als HTML: gegliedert mit Zwischenueberschriften,
+// sonst Zeilen als Liste. Gilt fuer job.html und die Vorschau-Fenster.
+export function beschreibungHtml(text) {
+  if (!text || !text.trim()) {
+    return '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'
+  }
+  // Seit 24.11.2026 entsteht die Beschreibung aus drei Fragen
+  // (js/job-karte.js). Dann je Abschnitt eine Zwischenueberschrift.
+  const teile = zerlegeBeschreibung(text)
+  if (teile.gegliedert) {
+    return ABSCHNITTE.filter(a => teile[a.schluessel])
+      .map(a => `<div class="job-abschnitt"><h3>${escapeHtml(a.titel)}</h3>${punkteHtml(teile[a.schluessel])}</div>`)
+      .join('')
+  }
+  return punkteHtml(text)
+}
+
+export function punkteHtml(text) {
+  const zeilen = text.split('\n')
+    .map(z => z.replace(/^\s*[-–—•*]\s*/, '').trim())
+    .filter(Boolean)
+
+  if (zeilen.length < 2) return `<p>${escapeHtml(text.trim())}</p>`
+  return `<ul class="job-punkte">${zeilen.map(z => `<li>${escapeHtml(z)}</li>`).join('')}</ul>`
+}
+
 // Wie lange eine Anzeige als "NEU" gilt.
 export const NEU_STUNDEN = 72
 

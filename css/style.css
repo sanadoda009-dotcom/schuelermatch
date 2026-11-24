@@ -4091,3 +4091,7 @@ main[tabindex="-1"]:focus { outline: none; }
   100% { opacity: 0; transform: translate(var(--x), calc(var(--y) + 90px)) rotate(calc(var(--r) + 360deg)); }
 }
 @keyframes feier-text { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Beschreibung in den Vorschau-Fenstern (24.11.2026), wie auf job.html */
+.job-beschreibung-fenster { font-size: 0.95rem; line-height: 1.7; color: var(--ink); }
+.job-beschreibung-fenster p { margin: 0; }

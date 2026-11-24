@@ -2,7 +2,7 @@ import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
 import { hole, zeigeLadefehler } from './zustand.js'
 import { meldeMitAnmeldung, meldeButtonHtml } from './melden.js'
-import { jobKarteHtml, istNeu, lohnText } from './job-karte.js'
+import { jobKarteHtml, istNeu, lohnText, beschreibungHtml } from './job-karte.js'
 import { MIN_ALTER, ALTERSOPTIONEN } from './jugendschutz.js'
 import { filtere, entlastungen, zaehleNach } from './filter-vorschlag.js'
 
@@ -396,7 +396,7 @@ function oeffneDetail(jobId) {
       ${job.stundenlohn ? `<span class="lohn-highlight">${lohnText(job.stundenlohn)} €/Std</span>` : ''}
       ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
     </div>
-    ${job.beschreibung ? `<p style="font-size:0.95rem; line-height:1.7; color:var(--ink); white-space:pre-wrap;">${escapeHtml(job.beschreibung)}</p>` : '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'}
+    <div class="job-beschreibung-fenster">${beschreibungHtml(job.beschreibung)}</div>
     <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
       <a href="job.html?id=${job.id}" class="share-btn" style="text-decoration:none;">Als eigene Seite öffnen ↗</a>
       <button type="button" class="share-btn" id="detail-share">

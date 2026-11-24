@@ -10,7 +10,7 @@ import { initGlocke } from './notifications.js'
 import { geocode, distanzKm, uebernehmeKoordinaten } from './geo.js'
 import { passtZurSuche } from './suche.js'
 import { MIN_ALTER } from './jugendschutz.js'
-import { jobKarteHtml, lohnText } from './job-karte.js'
+import { jobKarteHtml, lohnText, beschreibungHtml } from './job-karte.js'
 import { absageTextFuerSchueler, kurzesDatum } from './absage.js'
 import { oeffneMeldeDialog, meldeButtonHtml } from './melden.js'
 import { fragenFuer, baueAnschreiben, pruefeAnschreiben } from './anschreiben.js'
@@ -1701,7 +1701,7 @@ function oeffneDetail(jobId) {
       ${job.stundenlohn ? `<span class="lohn-highlight">${lohnText(job.stundenlohn)} €/Std</span>` : ''}
       ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
     </div>
-    ${job.beschreibung ? `<p style="font-size:0.95rem; line-height:1.7; color:var(--ink); white-space:pre-wrap;">${escapeHtml(job.beschreibung)}</p>` : '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'}
+    <div class="job-beschreibung-fenster">${beschreibungHtml(job.beschreibung)}</div>
     <div style="margin-top:12px; text-align:right;">${meldeButtonHtml('data-melde-job')}</div>
   `
 

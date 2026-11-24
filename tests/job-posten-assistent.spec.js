@@ -120,3 +120,16 @@ test.describe('Firmenprofil', () => {
     await expect(page.locator('#profil-oeffentlich')).toBeHidden()
   })
 })
+
+test('auch das Vorschau-Fenster der Jobbörse zeigt die Abschnitte als Überschriften', async ({ page }) => {
+  // Fund der Fehlersuche vom 24.11.2026: Dort stand "Das machst du:" als
+  // rohe Zeile, waehrend job.html sie als Ueberschrift zeigte.
+  const db = defaultDb()
+  db.jobs[0].beschreibung = 'Das machst du:\nEis verkaufen\n\nDas bieten wir:\nGute Laune'
+  await setupDashboard(page.context(), { db })
+  await page.goto('/jobs.html')
+  await page.locator(`.job-card[data-detail="${db.jobs[0].id}"]`).click({ timeout: 20_000 })
+  const fenster = page.locator('.job-beschreibung-fenster')
+  await expect(fenster.locator('.job-abschnitt h3')).toHaveText(['Das machst du', 'Das bieten wir'])
+  await expect(fenster).not.toContainText('Das machst du:')
+})

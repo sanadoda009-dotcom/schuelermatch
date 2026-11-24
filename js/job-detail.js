@@ -2,7 +2,7 @@ import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
 import { hole, zeigeLadefehler } from './zustand.js'
 import { meldeMitAnmeldung, meldeButtonHtml } from './melden.js'
-import { alterText, istAlt, lohnText, zerlegeBeschreibung, ABSCHNITTE } from './job-karte.js'
+import { alterText, istAlt, lohnText, beschreibungHtml } from './job-karte.js'
 
 // Wie lange die Seite gegenueber Google fuer eine Anzeige geradesteht.
 // Die Frist laeuft ab HEUTE, nicht ab dem Einstelldatum - warum, steht
@@ -130,29 +130,8 @@ function eckdatenHtml(job) {
 //
 // Umgebrochen wird nur, was die Firma selbst umgebrochen hat. Aus einem
 // Fließtext eine Liste zu erfinden, wäre geraten.
-function beschreibungHtml(text) {
-  if (!text || !text.trim()) {
-    return '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'
-  }
-  // Seit 24.11.2026 entsteht die Beschreibung aus drei Fragen
-  // (js/job-karte.js). Dann je Abschnitt eine Zwischenueberschrift.
-  const teile = zerlegeBeschreibung(text)
-  if (teile.gegliedert) {
-    return ABSCHNITTE.filter(a => teile[a.schluessel])
-      .map(a => `<div class="job-abschnitt"><h3>${escapeHtml(a.titel)}</h3>${punkteHtml(teile[a.schluessel])}</div>`)
-      .join('')
-  }
-  return punkteHtml(text)
-}
-
-function punkteHtml(text) {
-  const zeilen = text.split('\n')
-    .map(z => z.replace(/^\s*[-–—•*]\s*/, '').trim())
-    .filter(Boolean)
-
-  if (zeilen.length < 2) return `<p>${escapeHtml(text.trim())}</p>`
-  return `<ul class="job-punkte">${zeilen.map(z => `<li>${escapeHtml(z)}</li>`).join('')}</ul>`
-}
+// beschreibungHtml() wohnt seit 24.11.2026 in js/job-karte.js - die Vorschau-Fenster
+// der Jobboerse und des Schueler-Dashboards brauchen dieselbe Darstellung.
 
 // Eine Anzeige, die es nicht mehr gibt, darf nicht im Google-Index
 // stehen bleiben.
