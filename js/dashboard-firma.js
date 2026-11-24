@@ -3,7 +3,7 @@ import { pruefeMindestalter, hinweisFuer } from './jugendschutz.js'
 import { hole, zeigeLadefehler, verstaendlich } from './zustand.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
-import { lohnText } from './job-karte.js'
+import { lohnText, jobKarteHtml, baueBeschreibung, zerlegeBeschreibung, ABSCHNITTE } from './job-karte.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
 import { initSidebar, oeffneAnsichtAusAdresse } from './sidebar.js'
 import { toast } from './toast.js'
@@ -20,29 +20,67 @@ let editingJobId = null
 let bewerberFilter = ''
 
 // Anzeigen-Vorlagen: 1 Klick -> Formular fertig vorausgefüllt
+// Anzeigen-Vorlagen: 1 Klick -> Formular fertig vorausgefuellt.
+// Seit 24.11.2026 mit den drei Abschnitten statt einem Fliesstext.
 const JOB_VORLAGEN = {
-  eisverkauf: { titel: 'Eisverkäufer/in (Sa/So)', beschreibung: 'Eis verkaufen, kassieren, Theke sauber halten. Wir zeigen dir alles – wichtig sind Freundlichkeit und Zuverlässigkeit.', kategorie: 'Verkauf', arbeitszeit: 'Wochenende', mindestalter: '15', verfuegbarkeit: 'Sa & So, nach Absprache' },
-  nachhilfe: { titel: 'Nachhilfe für Unterstufe gesucht', beschreibung: 'Du bist gut in Mathe oder Deutsch und kannst geduldig erklären? Unterstütze jüngere Schüler 1–2x pro Woche.', kategorie: 'Nachhilfe', arbeitszeit: 'Nachmittags', mindestalter: '14', verfuegbarkeit: '1–2x pro Woche, nachmittags' },
-  babysitten: { titel: 'Babysitter/in gesucht', beschreibung: 'Liebevolle Betreuung für unser Kind, gelegentlich nachmittags oder abends. Erfahrung mit jüngeren Geschwistern ist ein Plus.', kategorie: 'Babysitten', arbeitszeit: 'Flexibel', mindestalter: '15', verfuegbarkeit: 'Nach Absprache' },
-  garten: { titel: 'Hilfe für Garten & Haushalt', beschreibung: 'Rasen mähen, Laub rechen, Einkäufe tragen – praktische Unterstützung rund um Haus und Garten.', kategorie: 'Haushalt & Garten', arbeitszeit: 'Flexibel', mindestalter: '13', verfuegbarkeit: 'Flexibel, ca. 2–4 Std/Woche' },
-  regale: { titel: 'Aushilfe Regale einräumen', beschreibung: 'Waren einräumen, Regale ordentlich halten, kleine Aufgaben im Laden. Zuverlässigkeit ist uns am wichtigsten.', kategorie: 'Verkauf', arbeitszeit: 'Nachmittags', mindestalter: '16', verfuegbarkeit: 'Mo–Fr nachmittags, nach Stundenplan' },
-  zeitung: { titel: 'Zeitungen/Prospekte austragen', beschreibung: 'Wöchentliche Verteilung im festen Gebiet. Perfekt als erster Job – du brauchst nur Zuverlässigkeit und ein Fahrrad.', kategorie: 'Lieferung & Kurier', arbeitszeit: 'Flexibel', mindestalter: '13', verfuegbarkeit: '1x pro Woche, freie Zeiteinteilung' },
-  gassi: { titel: 'Gassigeher/in für unseren Hund', beschreibung: 'Unser freundlicher Hund braucht nachmittags eine Runde. Du solltest Erfahrung mit Hunden haben und zuverlässig sein.', kategorie: 'Tierbetreuung', arbeitszeit: 'Nachmittags', mindestalter: '14', verfuegbarkeit: 'Mo–Fr nachmittags, ca. 45 Min' }
+  eisverkauf: { titel: 'Eisverkäufer/in (Sa/So)', kategorie: 'Verkauf', arbeitszeit: 'Wochenende', mindestalter: '15', verfuegbarkeit: 'Sa & So, nach Absprache',
+    aufgaben: 'Eis portionieren und verkaufen\nKassieren\nTheke sauber halten',
+    mitbringen: 'Freundlichkeit und Zuverlässigkeit – alles andere zeigen wir dir',
+    bieten: 'Feste Zeiten am Wochenende, eine ruhige Einarbeitung' },
+  nachhilfe: { titel: 'Nachhilfe für Unterstufe gesucht', kategorie: 'Nachhilfe', arbeitszeit: 'Nachmittags', mindestalter: '14', verfuegbarkeit: '1–2x pro Woche, nachmittags',
+    aufgaben: 'Jüngere Schüler 1–2x pro Woche in Mathe oder Deutsch unterstützen\nHausaufgaben gemeinsam durchgehen',
+    mitbringen: 'Gute Noten im Fach und Geduld beim Erklären',
+    bieten: 'Flexible Termine nach deinem Stundenplan' },
+  babysitten: { titel: 'Babysitter/in gesucht', kategorie: 'Babysitten', arbeitszeit: 'Flexibel', mindestalter: '15', verfuegbarkeit: 'Nach Absprache',
+    aufgaben: 'Unser Kind gelegentlich nachmittags oder abends betreuen\nSpielen, vorlesen, ins Bett bringen',
+    mitbringen: 'Erfahrung mit jüngeren Geschwistern ist ein Plus',
+    bieten: 'Ein Kennenlernen vorab, feste Ansprechpartner' },
+  garten: { titel: 'Hilfe für Garten & Haushalt', kategorie: 'Haushalt & Garten', arbeitszeit: 'Flexibel', mindestalter: '13', verfuegbarkeit: 'Flexibel, ca. 2–4 Std/Woche',
+    aufgaben: 'Rasen mähen, Laub rechen\nEinkäufe tragen',
+    mitbringen: 'Lust, draußen mit anzupacken',
+    bieten: 'Freie Zeiteinteilung' },
+  regale: { titel: 'Aushilfe Regale einräumen', kategorie: 'Verkauf', arbeitszeit: 'Nachmittags', mindestalter: '16', verfuegbarkeit: 'Mo–Fr nachmittags, nach Stundenplan',
+    aufgaben: 'Waren einräumen\nRegale ordentlich halten\nKleine Aufgaben im Laden',
+    mitbringen: 'Zuverlässigkeit ist uns am wichtigsten',
+    bieten: 'Zeiten passend zu deinem Stundenplan' },
+  zeitung: { titel: 'Zeitungen/Prospekte austragen', kategorie: 'Lieferung & Kurier', arbeitszeit: 'Flexibel', mindestalter: '13', verfuegbarkeit: '1x pro Woche, freie Zeiteinteilung',
+    aufgaben: 'Zeitungen und Prospekte einmal pro Woche im festen Gebiet verteilen',
+    mitbringen: 'Zuverlässigkeit und ein Fahrrad',
+    bieten: 'Perfekt als erster Job – du teilst dir die Zeit selbst ein' },
+  gassi: { titel: 'Gassigeher/in für unseren Hund', kategorie: 'Tierbetreuung', arbeitszeit: 'Nachmittags', mindestalter: '14', verfuegbarkeit: 'Mo–Fr nachmittags, ca. 45 Min',
+    aufgaben: 'Unseren freundlichen Hund nachmittags ausführen',
+    mitbringen: 'Erfahrung mit Hunden und Zuverlässigkeit',
+    bieten: 'Kurze Wege, jeden Tag dieselbe Zeit' }
 }
 
 function wendeJobVorlageAn(name) {
   const v = JOB_VORLAGEN[name]
   if (!v) return
-  const titelFeld = document.getElementById('job-titel')
-  titelFeld.value = v.titel
-  document.getElementById('job-beschreibung').value = v.beschreibung
+  document.getElementById('job-titel').value = v.titel
   document.getElementById('job-kategorie').value = v.kategorie
   document.getElementById('job-arbeitszeit').value = v.arbeitszeit
   document.getElementById('job-mindestalter').value = v.mindestalter
   zeigeAltersHinweis()
   document.getElementById('job-verfuegbarkeit').value = v.verfuegbarkeit
+  for (const a of ABSCHNITTE) document.getElementById('job-f-' + a.schluessel).value = v[a.schluessel] || ''
+  setzeBeschreibung()
   zeigeWizardSchritt(3, 'vor') // direkt zum Ort – der Rest ist vorausgefüllt
   toast('Vorlage eingefügt – nur noch Ort & Lohn ergänzen!')
+}
+
+// Die drei Antworten -> das eine (verborgene) Feld, das gespeichert wird.
+function setzeBeschreibung() {
+  const teile = {}
+  for (const a of ABSCHNITTE) teile[a.schluessel] = document.getElementById('job-f-' + a.schluessel)?.value || ''
+  const feld = document.getElementById('job-beschreibung')
+  if (feld) feld.value = baueBeschreibung(teile)
+}
+
+// Umgekehrt beim Bearbeiten einer Anzeige.
+function fuelleAbschnitte(text) {
+  const teile = zerlegeBeschreibung(text)
+  for (const a of ABSCHNITTE) document.getElementById('job-f-' + a.schluessel).value = teile[a.schluessel] || ''
+  setzeBeschreibung()
 }
 
 /* ---------- SCHRITT-FÜR-SCHRITT-ASSISTENT (Job posten) ---------- */
@@ -63,11 +101,18 @@ function zeigeWizardSchritt(n, richtung = 'vor') {
   })
   document.getElementById('wizard-fill').style.width = (wizardSchritt / WIZARD_MAX * 100) + '%'
   document.getElementById('wizard-zaehler').textContent = `Schritt ${wizardSchritt} von ${WIZARD_MAX}`
+  document.querySelectorAll('[data-wz-schritt]').forEach(k => {
+    const n = Number(k.dataset.wzSchritt)
+    k.classList.toggle('an', n === wizardSchritt)
+    k.classList.toggle('fertig', n < wizardSchritt)
+    if (n === wizardSchritt) k.setAttribute('aria-current', 'step'); else k.removeAttribute('aria-current')
+  })
   document.getElementById('wizard-zurueck').style.visibility = wizardSchritt === 1 ? 'hidden' : 'visible'
 
   const letzter = wizardSchritt === WIZARD_MAX
   document.getElementById('wizard-weiter').style.display = letzter ? 'none' : 'inline-block'
   document.getElementById('wizard-posten').style.display = letzter ? 'inline-block' : 'none'
+  zeigeVorschau()
   if (letzter) baueZusammenfassung()
   else {
     const feld = document.querySelector(`.wizard-step[data-step="${wizardSchritt}"] input, .wizard-step[data-step="${wizardSchritt}"] select, .wizard-step[data-step="${wizardSchritt}"] textarea`)
@@ -101,7 +146,7 @@ function baueZusammenfassung() {
     zeile('Stundenlohn', d.stundenlohn ? lohnText(d.stundenlohn) + ' €/Std' : '', 3) +
     zeile('Mindestalter', 'ab ' + d.mindestalter + ' Jahren', 4) +
     zeile('Verfügbarkeit', d.verfuegbarkeit, 4) +
-    zeile('Beschreibung', d.beschreibung, 5)
+    ABSCHNITTE.map(a => zeile(a.titel, zerlegeBeschreibung(d.beschreibung)[a.schluessel], 5)).join('')
   box.querySelectorAll('[data-goto]').forEach(el =>
     el.addEventListener('click', () => zeigeWizardSchritt(Number(el.dataset.goto), 'zurueck')))
 }
@@ -113,6 +158,11 @@ async function init() {
   document.getElementById('user-name').textContent = profile.name || 'Firma'
   document.getElementById('logout-btn').addEventListener('click', logout)
   document.getElementById('job-form').addEventListener('submit', speichereJob)
+  // Live-Vorschau: jede Eingabe zeichnet die Karte neu.
+  document.getElementById('job-form').addEventListener('input', zeigeVorschau)
+  document.getElementById('job-form').addEventListener('change', zeigeVorschau)
+  document.querySelectorAll('[data-wz-schritt]').forEach(k =>
+    k.addEventListener('click', () => zeigeWizardSchritt(Number(k.dataset.wzSchritt), Number(k.dataset.wzSchritt) < wizardSchritt ? 'zurueck' : 'vor')))
 
   // Hinweis zum gewaehlten Mindestalter. Die wenigsten Arbeitgeber
   // wissen, was fuer 13-Jaehrige gilt - und im ganzen Ablauf stand es
@@ -173,6 +223,8 @@ async function init() {
   document.getElementById('wizard-weiter').addEventListener('click', wizardWeiter)
   document.getElementById('wizard-zurueck').addEventListener('click', wizardZurueck)
   zeigeWizardSchritt(1)
+  zeigeVorschau()
+  zeigeProfilStand()
 
   zeigeFirmaStatusBanner()
 
@@ -256,7 +308,8 @@ function zeigeLogo() {
   if (!kasten) return
   const url = sichereMediaUrl(profile.foto_url)
   kasten.style.backgroundImage = url ? `url('${url}')` : ''
-  kasten.textContent = url ? '' : '🏢'
+  kasten.innerHTML = url ? '' : FIRMA_SYMBOL
+  zeigeProfilStand()
   const btn = document.getElementById('firma-logo-btn')
   if (btn) btn.textContent = url ? 'Logo ändern' : 'Logo hochladen'
 }
@@ -346,6 +399,7 @@ async function speichereProfil(e) {
 
   profile = { ...profile, ...updates }
   document.getElementById('user-name').textContent = profile.name
+  zeigeProfilStand()
   toast('Firmenprofil gespeichert!')
 }
 
@@ -359,6 +413,7 @@ function zeigeAltersHinweis() {
 }
 
 function sammleFormular() {
+  setzeBeschreibung()
   return {
     titel: document.getElementById('job-titel').value,
     beschreibung: document.getElementById('job-beschreibung').value,
@@ -464,6 +519,7 @@ function starteBearbeitung(job) {
   document.querySelector('.sidebar-item[data-view="posten"]')?.click() // zum Assistenten
   editingJobId = job.id
   document.getElementById('job-titel').value = job.titel || ''
+  fuelleAbschnitte(job.beschreibung)
   document.getElementById('job-beschreibung').value = job.beschreibung || ''
   document.getElementById('job-kategorie').value = job.kategorie || ''
   document.getElementById('job-ort').value = job.ort || ''
@@ -482,8 +538,9 @@ function starteBearbeitung(job) {
 function beendeBearbeitung() {
   editingJobId = null
   document.getElementById('job-form').reset()
-  document.getElementById('wizard-posten').textContent = 'Job veröffentlichen 🚀'
+  document.getElementById('wizard-posten').textContent = 'Job veröffentlichen'
   document.getElementById('cancel-edit-btn').style.display = 'none'
+  setzeBeschreibung()
   zeigeWizardSchritt(1)
 }
 
@@ -1110,3 +1167,61 @@ function escapeHtml(str) {
 }
 
 init()
+
+/* ---------- LIVE-VORSCHAU beim Posten (24.11.2026) ----------
+   Firmen sahen bisher erst nach dem Veroeffentlichen, wie ihre Anzeige
+   bei Schuelern aussieht. Jetzt steht daneben dieselbe Karte wie in der
+   Jobboerse (jobKarteHtml aus js/job-karte.js) - keine Nachbildung, die
+   irgendwann abweicht. */
+function zeigeVorschau() {
+  const karte = document.getElementById('pv-karte')
+  if (!karte || !profile) return
+  const d = sammleFormular()
+  const job = {
+    ...d,
+    id: 'vorschau',
+    titel: d.titel?.trim() || 'Dein Job-Titel',
+    ort: d.ort?.trim() || 'Dein Ort',
+    firma_name: profile.name || '',
+    erstellt_am: new Date().toISOString(),
+  }
+  karte.innerHTML = jobKarteHtml(job, {})
+  // Die Vorschau fuehrt nirgendwohin: Klick-Merkmale der Karte entfernen,
+  // damit sie nicht klickbar aussieht (tests/job-karte.spec.js).
+  karte.querySelectorAll('[data-detail]').forEach(el => {
+    el.removeAttribute('data-detail')
+    el.classList.remove('job-card--clickable')
+  })
+  const teile = zerlegeBeschreibung(d.beschreibung)
+  const abschnitte = ABSCHNITTE.filter(a => teile[a.schluessel])
+  document.getElementById('pv-details').innerHTML = abschnitte.length
+    ? abschnitte.map(a => `<div class="pv-abschnitt"><h3>${escapeHtml(a.titel)}</h3><p>${escapeHtml(teile[a.schluessel])}</p></div>`).join('')
+    : '<p class="pv-leer">Die Beschreibung entsteht in Schritt 5 aus drei kurzen Antworten.</p>'
+}
+
+/* ---------- FIRMENPROFIL: wie vollstaendig? (24.11.2026) ----------
+   Ein Schueler (und seine Eltern) entscheidet an Name, Logo und ein paar
+   Saetzen, ob er sich bewirbt. Die Liste sagt der Firma, was noch fehlt. */
+const FIRMA_SYMBOL = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6M9 10h.01M15 10h.01"/></svg>'
+
+function zeigeProfilStand() {
+  const liste = document.getElementById('profil-stand-liste')
+  if (!liste || !profile) return
+  const punkte = [
+    { text: 'Name geprüft', fertig: profile.firma_status === 'freigegeben', hinweis: 'Prüfen wir nach der Anmeldung' },
+    { text: 'Standort', fertig: Boolean(profile.ort?.trim()) },
+    { text: 'Logo', fertig: Boolean(profile.foto_url) },
+    { text: '„Wer ihr seid“', fertig: Boolean(profile.ueber_mich?.trim()) },
+  ]
+  const fertig = punkte.filter(p => p.fertig).length
+  document.getElementById('profil-stand-fill').style.width = Math.round(fertig / punkte.length * 100) + '%'
+  document.getElementById('profil-stand-zahl').textContent = `${fertig} von ${punkte.length}`
+  const haken = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>'
+  const kreis = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg>'
+  liste.innerHTML = punkte.map(p => `<li class="${p.fertig ? 'fertig' : ''}">${p.fertig ? haken : kreis}<span>${p.text}${!p.fertig && p.hinweis ? ` <small>${p.hinweis}</small>` : ''}</span></li>`).join('')
+  const link = document.getElementById('profil-oeffentlich')
+  if (link) {
+    link.hidden = profile.firma_status !== 'freigegeben'
+    link.href = `firma.html?id=${encodeURIComponent(profile.id)}`
+  }
+}

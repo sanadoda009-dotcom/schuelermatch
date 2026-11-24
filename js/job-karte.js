@@ -36,6 +36,60 @@ export function lohnText(wert) {
   return n.toLocaleString('de-DE', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 })
 }
 
+// Die Beschreibung einer Anzeige in drei Abschnitten (24.11.2026).
+//
+// Vorher bekam eine Firma ein leeres Textfeld - und schrieb entweder
+// einen Satz oder einen Roman. Jetzt beantwortet sie drei Fragen, und
+// daraus wird EIN Text mit Zwischenueberschriften. Gespeichert wird er
+// weiter in der einen Spalte `jobs.beschreibung`, damit Google Jobs,
+// Mails und alte Anzeigen unveraendert funktionieren.
+export const ABSCHNITTE = [
+  { schluessel: 'aufgaben',   titel: 'Das machst du' },
+  { schluessel: 'mitbringen', titel: 'Das bringst du mit' },
+  { schluessel: 'bieten',     titel: 'Das bieten wir' },
+]
+
+export function baueBeschreibung(teile = {}) {
+  return ABSCHNITTE
+    .map(a => [a.titel, String(teile[a.schluessel] ?? '').trim()])
+    .filter(([, text]) => text)
+    .map(([titel, text]) => `${titel}:\n${text}`)
+    .join('\n\n')
+}
+
+// Umkehrung fuer das Bearbeiten. Ein Text ohne die Ueberschriften (jede
+// Anzeige von vor dem 24.11.2026) landet vollstaendig bei "aufgaben" -
+// nichts geht verloren, nichts wird geraten.
+export function zerlegeBeschreibung(text) {
+  const leer = { aufgaben: '', mitbringen: '', bieten: '', gegliedert: false }
+  const roh = String(text ?? '')
+  if (!roh.trim()) return leer
+  const muster = new RegExp(`^(${ABSCHNITTE.map(a => a.titel).join('|')}):\\s*$`)
+  const teile = { ...leer }
+  let aktuell = null
+  for (const zeile of roh.split('\n')) {
+    const treffer = zeile.trim().match(muster)
+    if (treffer) {
+      aktuell = ABSCHNITTE.find(a => a.titel === treffer[1]).schluessel
+      teile.gegliedert = true
+      continue
+    }
+    if (!aktuell) { teile.gegliedert = false; return { ...leer, aufgaben: roh.trim() } }
+    teile[aktuell] += (teile[aktuell] ? '\n' : '') + zeile
+  }
+  for (const a of ABSCHNITTE) teile[a.schluessel] = teile[a.schluessel].trim()
+  return teile
+}
+
+// Fuer die Karte: der erste Abschnitt ohne Ueberschrift, sonst der Text.
+export function kurzBeschreibung(text) {
+  const z = zerlegeBeschreibung(text)
+  // Mehrere Zeilen werden auf der Karte zu einer Zeile mit Trennpunkt.
+  if (!z.gegliedert) return String(text ?? '')
+  return (z.aufgaben || z.mitbringen || z.bieten)
+    .split('\n').map(t => t.trim()).filter(Boolean).join(' · ')
+}
+
 // Wie lange eine Anzeige als "NEU" gilt.
 export const NEU_STUNDEN = 72
 
@@ -151,7 +205,7 @@ export function jobKarteHtml(job, o = {}) {
         job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${
         job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
 
-      ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
+      ${job.beschreibung ? `<p class="job-description">${escapeHtml(kurzBeschreibung(job.beschreibung))}</p>` : ''}
 
       <div class="job-meta">
         ${job.stundenlohn ? `<span class="lohn-highlight">${lohnText(job.stundenlohn)} €/Std</span>` : ''}

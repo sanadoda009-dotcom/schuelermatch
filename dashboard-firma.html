@@ -65,12 +65,26 @@
 
   <!-- JOB POSTEN (eigener Reiter) -->
   <div class="dashboard-view active" id="view-posten">
-    <div class="jobs-header">
-      <h1>Job posten</h1>
-      <p style="color:var(--ink-soft);">Kostenlos, in wenigen Minuten online – Schritt für Schritt.</p>
+    <div class="jobs-header anz-header">
+      <div class="mb-kopf anz-kopf">
+        <div>
+          <p class="mb-kopf-zeile">Neue Stellenanzeige</p>
+          <h1>Job posten</h1>
+          <p class="mb-kopf-text">Kostenlos und in wenigen Minuten online. Rechts siehst du live, wie Schüler deine Anzeige sehen.</p>
+        </div>
+      </div>
     </div>
 
+    <div class="posten-raster">
     <div class="post-job-box wizard-box">
+      <ol class="wz-schritte" aria-label="Schritte">
+        <li><button type="button" data-wz-schritt="1"><b>1</b><span>Titel</span></button></li>
+        <li><button type="button" data-wz-schritt="2"><b>2</b><span>Art</span></button></li>
+        <li><button type="button" data-wz-schritt="3"><b>3</b><span>Ort &amp; Lohn</span></button></li>
+        <li><button type="button" data-wz-schritt="4"><b>4</b><span>Für wen</span></button></li>
+        <li><button type="button" data-wz-schritt="5"><b>5</b><span>Aufgabe</span></button></li>
+        <li><button type="button" data-wz-schritt="6"><b>6</b><span>Prüfen</span></button></li>
+      </ol>
       <div class="wizard-progress"><div class="wizard-progress-fill" id="wizard-fill"></div></div>
       <p class="wizard-zaehler mono" id="wizard-zaehler">Schritt 1 von 6</p>
 
@@ -79,15 +93,15 @@
         <div class="wizard-step active" data-step="1">
           <h2 class="wizard-frage">Wie heißt der Job?</h2>
           <p class="wizard-hint">Ein klarer Titel bekommt mehr Bewerbungen – oder starte mit einer Vorlage.</p>
-          <p class="mono wizard-block-label">SCHNELLSTART (füllt alles vor)</p>
-          <div class="cv-templates" style="margin-bottom:20px;">
-            <button type="button" class="cv-template-chip" data-jobvorlage="eisverkauf">🍦 Eisverkauf</button>
-            <button type="button" class="cv-template-chip" data-jobvorlage="nachhilfe">📚 Nachhilfe</button>
-            <button type="button" class="cv-template-chip" data-jobvorlage="babysitten">🧸 Babysitten</button>
-            <button type="button" class="cv-template-chip" data-jobvorlage="garten">🌿 Garten & Haushalt</button>
-            <button type="button" class="cv-template-chip" data-jobvorlage="regale">🛒 Regale & Verkauf</button>
-            <button type="button" class="cv-template-chip" data-jobvorlage="zeitung">📰 Zeitungen austragen</button>
-            <button type="button" class="cv-template-chip" data-jobvorlage="gassi">🐕 Gassi gehen</button>
+          <p class="wizard-block-label wz-vorlagen-label">Schnellstart: Vorlage wählen, alles ist vorausgefüllt</p>
+          <div class="wz-vorlagen">
+            <button type="button" class="cv-template-chip wz-vorlage" data-jobvorlage="eisverkauf"><span class="wz-vorlage-ico" style="--ico:#e0457b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11a5 5 0 0110 0"/><path d="M6.5 11h11L12 22z"/></svg></span>Eisverkauf</button>
+            <button type="button" class="cv-template-chip wz-vorlage" data-jobvorlage="nachhilfe"><span class="wz-vorlage-ico" style="--ico:#4b51c9"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 21V5M9 8h6"/></svg></span>Nachhilfe</button>
+            <button type="button" class="cv-template-chip wz-vorlage" data-jobvorlage="babysitten"><span class="wz-vorlage-ico" style="--ico:#c2410c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 000-7.8z"/></svg></span>Babysitten</button>
+            <button type="button" class="cv-template-chip wz-vorlage" data-jobvorlage="garten"><span class="wz-vorlage-ico" style="--ico:#00795c"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 019.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10z"/><path d="M2 21c0-3 1.9-5.4 5.1-6"/></svg></span>Garten &amp; Haushalt</button>
+            <button type="button" class="cv-template-chip wz-vorlage" data-jobvorlage="regale"><span class="wz-vorlage-ico" style="--ico:#b45309"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg></span>Regale &amp; Verkauf</button>
+            <button type="button" class="cv-template-chip wz-vorlage" data-jobvorlage="zeitung"><span class="wz-vorlage-ico" style="--ico:#5a6270"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-4 0V11h4"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg></span>Zeitungen austragen</button>
+            <button type="button" class="cv-template-chip wz-vorlage" data-jobvorlage="gassi"><span class="wz-vorlage-ico" style="--ico:#7c4a1e"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="6" cy="10" r="2.2"/><circle cx="10" cy="6" r="2.2"/><circle cx="14" cy="6" r="2.2"/><circle cx="18" cy="10" r="2.2"/><path d="M12 11c-3 0-6 4-6 6.5 0 2 2 2.5 3 2.2 1.3-.4 2-.9 3-.9s1.7.5 3 .9c1 .3 3-.2 3-2.2C18 15 15 11 12 11z"/></svg></span>Gassi gehen</button>
           </div>
           <div class="form-group">
             <input type="text" id="job-titel" class="wizard-gross" placeholder="z.B. Eisverkäufer/in (Sa/So)" required>
@@ -168,13 +182,28 @@
           </div>
         </div>
 
-        <!-- Schritt 5: Beschreibung -->
+        <!-- Schritt 5: Beschreibung in drei Fragen (24.11.2026).
+             Vorher ein leeres Textfeld. Die Antworten werden zu EINEM Text
+             mit Zwischenueberschriften zusammengesetzt (js/job-karte.js,
+             baueBeschreibung) und landen wie bisher in `jobs.beschreibung`. -->
         <div class="wizard-step" data-step="5">
           <h2 class="wizard-frage">Beschreib die Aufgabe</h2>
-          <p class="wizard-hint">Je konkreter, desto passendere Bewerbungen bekommst du.</p>
+          <p class="wizard-hint">Drei kurze Antworten reichen. Daraus wird die Beschreibung, die Schüler sehen.</p>
           <div class="form-group">
-            <textarea id="job-beschreibung" rows="6" maxlength="4000" placeholder="Was sind die Aufgaben? Was sollte der Schüler mitbringen?"></textarea>
+            <label for="job-f-aufgaben">Was macht der Schüler bei dir?</label>
+            <textarea id="job-f-aufgaben" rows="3" maxlength="1300" placeholder="Eis portionieren, kassieren, Gäste beraten"></textarea>
+            <p class="ll-feldhilfe">Zwei, drei konkrete Aufgaben, gern eine pro Zeile.</p>
           </div>
+          <div class="form-group">
+            <label for="job-f-mitbringen">Was sollte er mitbringen?</label>
+            <textarea id="job-f-mitbringen" rows="2" maxlength="1300" placeholder="Freundlich, pünktlich, Spaß am Umgang mit Menschen"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="job-f-bieten">Was bietest du?</label>
+            <textarea id="job-f-bieten" rows="2" maxlength="1300" placeholder="Feste Zeiten am Wochenende, Einarbeitung, ein Eis pro Schicht"></textarea>
+            <p class="ll-feldhilfe">Gerade das liest ein Schüler zuerst.</p>
+          </div>
+          <textarea id="job-beschreibung" maxlength="4000" hidden aria-label="Beschreibung, wird aus den drei Antworten zusammengesetzt"></textarea>
         </div>
 
         <!-- Schritt 6: Zusammenfassung -->
@@ -187,10 +216,17 @@
         <div class="wizard-nav">
           <button type="button" class="btn btn-outline wizard-btn-zurueck" id="wizard-zurueck">← Zurück</button>
           <button type="button" class="btn btn-green" id="wizard-weiter">Weiter →</button>
-          <button type="submit" class="btn btn-green" id="wizard-posten" style="display:none;">Job veröffentlichen 🚀</button>
+          <button type="submit" class="btn btn-green" id="wizard-posten" style="display:none;">Job veröffentlichen</button>
           <button type="button" id="cancel-edit-btn" class="btn btn-outline" style="display:none;">Abbrechen</button>
         </div>
       </form>
+    </div>
+    <aside class="posten-vorschau" aria-label="Vorschau deiner Anzeige">
+      <p class="pv-kopf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>So sehen Schüler deine Anzeige</p>
+      <div id="pv-karte" class="pv-karte jobs-grid"></div>
+      <div id="pv-details" class="pv-details"></div>
+      <p class="pv-hinweis">Nur eine Vorschau. Online geht die Anzeige erst mit „Job veröffentlichen“.</p>
+    </aside>
     </div>
   </div>
 
@@ -240,45 +276,47 @@
   </div>
 
   <!-- FIRMENPROFIL -->
+  <!-- FIRMENPROFIL (neu gestaltet am 24.11.2026): links das Formular,
+       rechts, wie vollstaendig das Profil ist, und der Gewerbenachweis. -->
   <div class="dashboard-view" id="view-profil">
-    <div class="jobs-header">
-      <h1 style="font-size:1.6rem;">Firmenprofil</h1>
-    </div>
-    <div class="post-job-box">
-      <form id="profile-form">
-        <div class="form-group">
-          <label for="profile-name">Firmenname</label>
-          <input type="text" id="profile-name" required aria-describedby="name-fest-hinweis">
-          <!-- Seit 20.10.2026 friert die Datenbank den Namen einer freigegebenen
-               Firma ein (supabase/firmenname-fest.sql): Geprueft wurde dieser
-               Name. Ohne Hinweis saehe die Firma "gespeichert" und beim
-               naechsten Laden wieder den alten. -->
-          <p class="feld-hilfe" id="name-fest-hinweis" hidden>
-            Diesen Namen haben wir bei der Freigabe geprüft – deshalb steht er fest
-            und erscheint so auf allen deinen Anzeigen. Hat sich euer Name geändert?
-            Schreib uns (Kontakt im <a href="impressum.html">Impressum</a>), dann passen wir ihn an.
-          </p>
+    <div class="jobs-header anz-header">
+      <div class="mb-kopf anz-kopf">
+        <div>
+          <p class="mb-kopf-zeile">Dein Auftritt bei Schülern</p>
+          <h1>Firmenprofil</h1>
+          <p class="mb-kopf-text">Das sehen Schüler auf deiner Firmenseite und bei jeder Anzeige. Ein vollständiges Profil schafft Vertrauen, auch bei Eltern.</p>
         </div>
+      </div>
+    </div>
+
+    <div class="profil-raster">
+      <form id="profile-form" class="post-job-box profil-form">
+        <!-- Bis zum 2.9.2026 bestand das Firmenprofil aus Name, Ort und der
+             Mail-Einstellung. Die Felder `foto_url` und `ueber_mich` gab es
+             in der Datenbank laengst, nur genutzt hat sie keine Firma. -->
+        <div class="profil-kopf">
+          <div class="cv-photo-preview profil-logo" id="firma-logo-preview"></div>
+          <div class="profil-name form-group">
+            <label for="profile-name">Firmenname</label>
+            <input type="text" id="profile-name" required aria-describedby="name-fest-hinweis">
+          </div>
+          <div class="profil-logo-knopf">
+            <input type="file" id="firma-logo-datei" accept="image/*" aria-label="Firmenlogo auswählen" style="display:none;">
+            <button type="button" class="btn btn-outline" id="firma-logo-btn">Logo hochladen</button>
+          </div>
+        </div>
+        <!-- Seit 20.10.2026 friert die Datenbank den Namen einer freigegebenen
+             Firma ein (supabase/firmenname-fest.sql). -->
+        <p class="feld-hilfe profil-name-hilfe" id="name-fest-hinweis" hidden>
+          Diesen Namen haben wir bei der Freigabe geprüft – deshalb steht er fest
+          und erscheint so auf allen deinen Anzeigen. Hat sich euer Name geändert?
+          Schreib uns (Kontakt im <a href="impressum.html">Impressum</a>), dann passen wir ihn an.
+        </p>
+        <p class="ll-feldhilfe">Logo freiwillig, höchstens 3 MB. Ohne Logo steht der erste Buchstabe deines Namens da.</p>
+
         <div class="form-group">
           <label for="profile-ort">Standort</label>
-          <input type="text" id="profile-ort">
-        </div>
-        <!-- Bis zum 2.9.2026 bestand das Firmenprofil aus Name, Ort und der
-             Mail-Einstellung. Ein Schueler sah auf einer Anzeige einen Namen
-             und einen Buchstaben im Kreis - weniger als bei einem
-             Kleinanzeigen-Inserat. Die beiden Felder darunter gab es in der
-             Datenbank laengst (`foto_url`, `ueber_mich`), nur genutzt hat
-             sie keine Firma. -->
-        <div class="form-group">
-          <label>Logo</label>
-          <div class="ll-foto-zeile">
-            <div class="cv-photo-preview" id="firma-logo-preview">🏢</div>
-            <div>
-              <input type="file" id="firma-logo-datei" accept="image/*" aria-label="Firmenlogo auswählen" style="display:none;">
-              <button type="button" class="btn btn-outline" id="firma-logo-btn">Logo hochladen</button>
-              <p class="ll-feldhilfe">Freiwillig. Ohne Logo steht der erste Buchstabe deines Namens da. Höchstens 3 MB.</p>
-            </div>
-          </div>
+          <input type="text" id="profile-ort" placeholder="z.B. München-Schwabing">
         </div>
 
         <div class="form-group">
@@ -294,16 +332,25 @@
             <option value="sofort">Sofort bei jeder Bewerbung</option>
             <option value="aus">Keine E-Mails</option>
           </select>
-          <p class="mono" style="font-size:0.7rem; color:var(--ink-soft); margin-top:6px;">Im Dashboard siehst du neue Bewerbungen immer sofort – das steuert nur die E-Mails.</p>
+          <p class="ll-feldhilfe">Im Dashboard siehst du neue Bewerbungen immer sofort – das steuert nur die E-Mails.</p>
         </div>
-        <button type="submit" class="btn btn-green">Speichern</button>
+        <div class="profil-speichern"><button type="submit" class="btn btn-green">Speichern</button></div>
       </form>
-    </div>
-    <!-- Seit 22.11.2026: freiwilliger Gewerbenachweis fuer das Abzeichen
-         "Gewerbe nachgewiesen" (js/gewerbe-nachweis.js). -->
-    <div class="post-job-box gewerbe-kasten">
-      <h2 style="font-size:1.15rem; margin:0 0 8px;">Gewerbe nachweisen</h2>
-      <div id="gewerbe-box"></div>
+
+      <aside class="profil-seite">
+        <div class="post-job-box profil-stand">
+          <div class="profil-stand-kopf"><h2>Profil vollständig</h2><span id="profil-stand-zahl"></span></div>
+          <div class="profil-stand-balken"><span id="profil-stand-fill"></span></div>
+          <ul id="profil-stand-liste" class="profil-stand-liste"></ul>
+          <a id="profil-oeffentlich" class="profil-oeffentlich" hidden>So sehen Schüler deine Firmenseite →</a>
+        </div>
+        <!-- Seit 22.11.2026: freiwilliger Gewerbenachweis fuer das Abzeichen
+             "Gewerbe nachgewiesen" (js/gewerbe-nachweis.js). -->
+        <div class="post-job-box gewerbe-kasten">
+          <h2 class="profil-kasten-titel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Gewerbe nachweisen</h2>
+          <div id="gewerbe-box"></div>
+        </div>
+      </aside>
     </div>
   </div>
 

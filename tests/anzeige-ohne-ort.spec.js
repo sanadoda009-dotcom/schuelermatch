@@ -51,7 +51,7 @@ async function zurAnzeigenliste(page) {
   await warteAufDashboard(page)
   await page.locator('#sidebar-toggle').click()
   await page.locator('.sidebar-item[data-view="jobs"]').click()
-  await expect(page.locator('.job-card').first()).toBeVisible({ timeout: 20_000 })
+  await expect(page.locator('#meine-jobs .job-card').first()).toBeVisible({ timeout: 20_000 })
 }
 
 test.describe('im Firmen-Dashboard', () => {
