@@ -4000,3 +4000,94 @@ main[tabindex="-1"]:focus { outline: none; }
   .profil-logo-knopf { grid-column: 1 / -1; }
   .profil-logo-knopf .btn { width: 100%; }
 }
+
+/* ============================================================
+   MATCH-MOMENT nach dem Veroeffentlichen (24.11.2026, js/feier.js)
+   Zwei Punkte (Schueler-Gruen, Firmen-Blau) treffen sich, das Logo
+   springt heraus, Konfetti in den Markenfarben.
+   ============================================================ */
+.feier-overlay { background: rgba(11,14,18,0.55); backdrop-filter: blur(6px); z-index: 150; }
+.feier-karte {
+  position: relative; width: 100%; max-width: 440px; overflow: hidden;
+  background: var(--card); border-radius: 28px; box-shadow: 0 40px 90px -20px rgba(11,14,18,0.55);
+}
+.feier-zu {
+  position: absolute; top: 12px; right: 12px; z-index: 3; width: 44px; height: 44px; border-radius: 50%;
+  border: 0; background: rgba(255,255,255,0.1); color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer;
+}
+.feier-zu:hover { background: rgba(255,255,255,0.2); }
+.feier-buehne {
+  position: relative; height: 230px; overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 70%, rgba(0,200,150,0.35), transparent 55%),
+    radial-gradient(circle at 75% 30%, rgba(60,66,200,0.45), transparent 55%),
+    #0e1218;
+}
+.feier-punkt {
+  position: absolute; top: 50%; left: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
+  opacity: 0;
+}
+.feier-punkt--schueler { background: #19f0b8; box-shadow: 0 0 24px #19f0b8; }
+.feier-punkt--firma { background: #7c83ff; box-shadow: 0 0 24px #7c83ff; }
+.feier-ring {
+  position: absolute; top: 50%; left: 50%; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%;
+  border: 3px solid rgba(25,240,184,0.8); opacity: 0;
+}
+.feier-ring--2 { border-color: rgba(124,131,255,0.7); }
+.feier-logo {
+  position: absolute; top: 50%; left: 50%; width: 112px; height: 112px; margin: -56px 0 0 -56px;
+  border-radius: 30px; background: #fff; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 18px 40px -10px rgba(0,0,0,0.6);
+}
+.feier-logo img { width: 84px; height: 84px; }
+.feier-haken {
+  position: absolute; right: -10px; bottom: -10px; width: 40px; height: 40px; border-radius: 50%;
+  background: #00c896; color: #04261d; border: 4px solid #0e1218;
+  display: flex; align-items: center; justify-content: center;
+}
+.feier-haken svg { width: 20px; height: 20px; }
+.feier-konfetti i {
+  position: absolute; top: 50%; left: 50%; width: 9px; height: 14px; margin: -7px 0 0 -4px; border-radius: 3px; opacity: 0;
+}
+.feier-text { padding: 24px 28px 28px; text-align: center; }
+.feier-text h2 { margin: 0 0 8px; font-size: 1.55rem; letter-spacing: -0.02em; }
+.feier-text p { margin: 0 auto 22px; max-width: 34ch; color: var(--ink-soft); line-height: 1.55; overflow-wrap: anywhere; }
+.feier-knoepfe { display: flex; flex-direction: column; gap: 10px; }
+.feier-knoepfe .btn { width: 100%; min-height: 48px; justify-content: center; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .feier-los .feier-karte { animation: feier-karte .45s cubic-bezier(.2,.9,.3,1.2) both; }
+  .feier-los .feier-punkt--schueler { animation: feier-links .62s cubic-bezier(.6,0,.4,1) .15s both; }
+  .feier-los .feier-punkt--firma { animation: feier-rechts .62s cubic-bezier(.6,0,.4,1) .15s both; }
+  .feier-los .feier-ring { animation: feier-ring .9s ease-out .74s both; }
+  .feier-los .feier-ring--2 { animation-delay: .86s; }
+  .feier-los .feier-logo { animation: feier-logo .62s cubic-bezier(.2,1.4,.4,1) .74s both; }
+  .feier-los .feier-haken { animation: feier-haken .42s cubic-bezier(.2,1.6,.4,1) 1.25s both; }
+  .feier-los .feier-konfetti i { animation: feier-konfetti 1.4s cubic-bezier(.15,.7,.3,1) calc(.8s + var(--v)) both; }
+  .feier-los .feier-text > * { animation: feier-text .5s ease-out both; }
+  .feier-los .feier-text h2 { animation-delay: .8s; }
+  .feier-los .feier-text p { animation-delay: .9s; }
+  .feier-los .feier-text .feier-knoepfe { animation-delay: 1s; }
+}
+@keyframes feier-karte { from { opacity: 0; transform: translateY(24px) scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes feier-links {
+  0% { opacity: 0; transform: translateX(-190px) scale(.6); }
+  20% { opacity: 1; }
+  90% { opacity: 1; transform: translateX(-4px) scale(1); }
+  100% { opacity: 0; transform: translateX(0) scale(1.6); }
+}
+@keyframes feier-rechts {
+  0% { opacity: 0; transform: translateX(190px) scale(.6); }
+  20% { opacity: 1; }
+  90% { opacity: 1; transform: translateX(4px) scale(1); }
+  100% { opacity: 0; transform: translateX(0) scale(1.6); }
+}
+@keyframes feier-ring { 0% { opacity: 0; transform: scale(.3); } 10% { opacity: .9; } 100% { opacity: 0; transform: scale(2.6); } }
+@keyframes feier-logo { 0% { opacity: 0; transform: scale(.2) rotate(-25deg); } 100% { opacity: 1; transform: none; } }
+@keyframes feier-haken { 0% { opacity: 0; transform: scale(0); } 100% { opacity: 1; transform: none; } }
+@keyframes feier-konfetti {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--x), calc(var(--y) + 90px)) rotate(calc(var(--r) + 360deg)); }
+}
+@keyframes feier-text { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }

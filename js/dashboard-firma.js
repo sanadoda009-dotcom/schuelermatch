@@ -3,6 +3,7 @@ import { pruefeMindestalter, hinweisFuer } from './jugendschutz.js'
 import { hole, zeigeLadefehler, verstaendlich } from './zustand.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
+import { zeigeVeroeffentlicht } from './feier.js'
 import { lohnText, jobKarteHtml, baueBeschreibung, zerlegeBeschreibung, ABSCHNITTE } from './job-karte.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
 import { initSidebar, oeffneAnsichtAusAdresse } from './sidebar.js'
@@ -491,15 +492,22 @@ async function speichereJob(e) {
 
   if (error) {
     toast(verstaendlich(error), 'fehler')
-    btn.textContent = editingJobId ? 'Änderungen speichern 🚀' : 'Job veröffentlichen 🚀'
+    btn.textContent = editingJobId ? 'Änderungen speichern' : 'Job veröffentlichen'
     return
   }
 
   const warBearbeitung = Boolean(editingJobId)
   beendeBearbeitung()
   if (warBearbeitung) toast('Job aktualisiert')
-  else if (profile.firma_status === 'freigegeben') toast('Job veröffentlicht! 🎉')
-  else toast('Job gespeichert – sichtbar, sobald dein Konto freigegeben ist', 'info')
+  else {
+    // Der Match-Moment statt eines Hinweises in der Ecke (js/feier.js).
+    zeigeVeroeffentlicht({
+      titel: daten.titel,
+      inPruefung: profile.firma_status !== 'freigegeben',
+      zuAnzeigen: () => document.querySelector('.sidebar-item[data-view="jobs"]')?.click(),
+      nochEiner: () => document.querySelector('.sidebar-item[data-view="posten"]')?.click(),
+    })
+  }
   if (ortUnbekannt) {
     // Ohne Koordinaten taucht die Anzeige in der Umkreissuche der Schüler
     // nicht auf - das sollte die Firma wissen.
@@ -529,7 +537,7 @@ function starteBearbeitung(job) {
   document.getElementById('job-verfuegbarkeit').value = job.verfuegbarkeit || ''
   document.getElementById('job-arbeitszeit').value = job.arbeitszeit || ''
 
-  document.getElementById('wizard-posten').textContent = 'Änderungen speichern 🚀'
+  document.getElementById('wizard-posten').textContent = 'Änderungen speichern'
   document.getElementById('cancel-edit-btn').style.display = 'inline-block'
   zeigeWizardSchritt(1)
   document.querySelector('.post-job-box').scrollIntoView({ behavior: 'smooth' })

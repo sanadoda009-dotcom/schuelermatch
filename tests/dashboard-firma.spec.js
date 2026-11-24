@@ -131,7 +131,8 @@ test.describe('Job posten', () => {
 
     await expect.poll(() => db.jobs.length).toBe(1)
     expect(db.jobs[0]).toMatchObject({ titel: expect.stringContaining('Eisverkäufer'), ort: 'München', firma_id: FIRMA.id })
-    await expect(page.locator('.toast', { hasText: 'veröffentlicht' })).toBeVisible()
+    // Seit 24.11.2026 der Match-Moment statt eines Hinweises (tests/veroeffentlicht-feier.spec.js).
+    await expect(page.locator('#feier')).toContainText('Deine Anzeige ist online!')
   })
 })
 
