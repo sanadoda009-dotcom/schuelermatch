@@ -10,11 +10,12 @@ import { initGlocke } from './notifications.js'
 import { geocode, distanzKm, uebernehmeKoordinaten } from './geo.js'
 import { passtZurSuche } from './suche.js'
 import { MIN_ALTER } from './jugendschutz.js'
-import { jobKarteHtml } from './job-karte.js'
+import { jobKarteHtml, lohnText } from './job-karte.js'
 import { absageTextFuerSchueler, kurzesDatum } from './absage.js'
 import { oeffneMeldeDialog, meldeButtonHtml } from './melden.js'
 import { fragenFuer, baueAnschreiben, pruefeAnschreiben } from './anschreiben.js'
 import { sichereMediaUrl } from './sicher.js'
+import { initBilder, bilderVorbereiten, anzeigeUrl, speicherVerweis, pfadAusVerweis } from './bilder.js'
 import { initJobAlarm } from './job-alarm.js'
 import { initKontoLoeschen } from './konto-loeschen.js'
 
@@ -29,6 +30,8 @@ let bewerbungsStatus = {}
 
 async function init() {
   profile = await requireAuth('schueler')
+  initBilder(supabase)
+  if (profile) await bilderVorbereiten([profile.foto_url, ...(profile.lebenslauf_bloecke || []).map(b => b.bild_url)])
   if (!profile) return
 
   document.getElementById('user-name').textContent = profile.name || 'Schüler'
@@ -127,6 +130,7 @@ async function init() {
   })
 
   renderVerifyStatus()
+  await bilderVorbereiten(bloecke.map(b => b.bild_url))
   renderBlockEditor()
   renderCvPreview()
 
@@ -638,7 +642,7 @@ function bewerbungKarte(b, index = 0) {
 
   const fakten = [
     job.ort ? `<li>${ICONS.pin}<span>${escapeHtml(job.ort)}</span></li>` : '',
-    job.stundenlohn ? `<li>${ICONS.money}<span>${escapeHtml(String(job.stundenlohn))} €/Std</span></li>` : '',
+    job.stundenlohn ? `<li>${ICONS.money}<span>${lohnText(job.stundenlohn)} €/Std</span></li>` : '',
     job.kategorie ? `<li>${ICONS.tag}<span>${escapeHtml(job.kategorie)}</span></li>` : '',
     b.erstellt_am ? `<li>${MB_ICON.kalender}<span>Beworben am ${escapeHtml(langesDatum(b.erstellt_am))}</span></li>` : '',
   ].join('')
@@ -719,7 +723,7 @@ async function zeigeAdminLink() {
 
 function aktualisiereSidebarUser() {
   const avatar = document.getElementById('sidebar-avatar')
-  if (sichereMediaUrl(profile.foto_url)) { avatar.style.backgroundImage = `url("${sichereMediaUrl(profile.foto_url)}")`; avatar.textContent = '' }
+  if (anzeigeUrl(profile.foto_url)) { avatar.style.backgroundImage = `url("${anzeigeUrl(profile.foto_url)}")`; avatar.textContent = '' }
   else avatar.textContent = (profile.name || '?')[0].toUpperCase()
   document.getElementById('sidebar-name').textContent = profile.name || 'Schüler'
   document.getElementById('sidebar-status').textContent = profile.verifiziert ? '✓ verifiziert' : 'nicht verifiziert'
@@ -823,7 +827,7 @@ function renderBlockEditor() {
           <button type="button" class="btn btn-outline block-bild-btn" style="padding:8px 14px; font-size:0.82rem;">${b.bild_url ? 'Bild ändern' : 'Bild auswählen'}</button>
           ${b.bild_url ? `<button type="button" class="btn btn-outline block-bild-remove" style="padding:8px 14px; font-size:0.82rem; color:var(--coral);">Entfernen</button>` : ''}
         </div>
-        ${sichereMediaUrl(b.bild_url) ? `<img src="${sichereMediaUrl(b.bild_url)}" class="block-image-preview">` : ''}
+        ${anzeigeUrl(b.bild_url) ? `<img src="${anzeigeUrl(b.bild_url)}" class="block-image-preview">` : ''}
       ` : ''}
       ${b.typ === 'sprachen' ? `
         ${(b.sprachen || []).map((s, i) => `
@@ -913,11 +917,11 @@ async function ladeBlockBildHoch(blockId, file) {
   if (!pruefung.ok) { toast(pruefung.fehler, 'fehler'); return }
 
   // Pfad aus dem MIME-Typ, nicht aus dem Dateinamen - sonst bleibt beim
-  // Wechsel von .jpg auf .png die alte Datei liegen. Und dieser Bucket
-  // ist OEFFENTLICH: Sie waere unter ihrer alten Adresse weiter fuer
-  // jeden abrufbar. Siehe js/dokument-pfad.js.
+  // Wechsel von .jpg auf .png die alte Datei liegen. Die Ablage ist seit
+  // 24.11.2026 privat (js/bilder.js); alte Werte waren noch Adressen.
   const path = dokumentPfad(profile.id, blockId, file.type)
-  const alterPfad = verwaisterPfad(pfadAusUrl(block?.bild_url, 'lebenslauf-bilder'), path)
+  const alterPfad = verwaisterPfad(
+    pfadAusVerweis(block?.bild_url, 'lebenslauf-bilder') ?? pfadAusUrl(block?.bild_url, 'lebenslauf-bilder'), path)
 
   const { error: uploadError } = await supabase.storage.from('lebenslauf-bilder').upload(path, file, { upsert: true })
   if (uploadError) {
@@ -927,8 +931,8 @@ async function ladeBlockBildHoch(blockId, file) {
 
   if (alterPfad) await supabase.storage.from('lebenslauf-bilder').remove([alterPfad])
 
-  const { data } = supabase.storage.from('lebenslauf-bilder').getPublicUrl(path)
-  block.bild_url = data.publicUrl + '?t=' + Date.now()
+  block.bild_url = speicherVerweis('lebenslauf-bilder', path)
+  await bilderVorbereiten([block.bild_url])
   renderBlockEditor()
   renderCvPreview()
 }
@@ -948,7 +952,7 @@ function renderCvPreview() {
       return `<div class="cv-preview-section"><h4>${ICONS.tag}${escapeHtml(b.titel || 'Fähigkeiten')}</h4>${tags.length ? `<div class="cv-tags">${tags.map(t => `<span class="cv-tag">${escapeHtml(t)}</span>`).join('')}</div>` : '<p class="cv-preview-empty">Noch keine Angaben</p>'}</div>`
     }
     if (b.typ === 'bild') {
-      return `<div class="cv-preview-section"><h4>${ICONS.image}${escapeHtml(b.titel || 'Bild')}</h4>${sichereMediaUrl(b.bild_url) ? `<img src="${sichereMediaUrl(b.bild_url)}" class="cv-preview-image">` : '<p class="cv-preview-empty">Noch kein Bild hochgeladen</p>'}</div>`
+      return `<div class="cv-preview-section"><h4>${ICONS.image}${escapeHtml(b.titel || 'Bild')}</h4>${anzeigeUrl(b.bild_url) ? `<img src="${anzeigeUrl(b.bild_url)}" class="cv-preview-image">` : '<p class="cv-preview-empty">Noch kein Bild hochgeladen</p>'}</div>`
     }
     if (b.typ === 'sprachen') {
       const sprachen = (b.sprachen || []).filter(s => s.name?.trim())
@@ -963,7 +967,7 @@ function renderCvPreview() {
 
   document.getElementById('cv-preview').innerHTML = `
     <div class="cv-preview-header">
-      <div class="cv-preview-photo" style="${sichereMediaUrl(fotoUrl) ? `background-image:url('${sichereMediaUrl(fotoUrl)}')` : ''}">${sichereMediaUrl(fotoUrl) ? '' : escapeHtml(name[0]?.toUpperCase() || '?')}</div>
+      <div class="cv-preview-photo" style="${anzeigeUrl(fotoUrl) ? `background-image:url('${anzeigeUrl(fotoUrl)}')` : ''}">${anzeigeUrl(fotoUrl) ? '' : escapeHtml(name[0]?.toUpperCase() || '?')}</div>
       <div>
         <div class="cv-preview-name">${escapeHtml(name)}</div>
         <div class="cv-preview-school">${escapeHtml(schule || 'Schule noch nicht angegeben')}${klasse ? ' · ' + escapeHtml(klasse) : ''}</div>
@@ -1224,7 +1228,7 @@ async function ladeVerifizierungsDokument(e, dateiname, spalte) {
 
 function setzePhotoPreview(url) {
   const box = document.getElementById('cv-photo-preview')
-  const sicher = sichereMediaUrl(url)
+  const sicher = anzeigeUrl(url)
   if (sicher) {
     box.style.backgroundImage = `url("${sicher}")`
     box.textContent = ''
@@ -1238,7 +1242,7 @@ async function ladeFotoHoch(e) {
   const file = e.target.files[0]
   if (!file) return
 
-  const pruefung = pruefeFuerBucket(file, 'avatars')
+  const pruefung = pruefeFuerBucket(file, 'profilfotos')
   if (!pruefung.ok) {
     toast(pruefung.fehler, 'fehler')
     e.target.value = ''
@@ -1249,15 +1253,17 @@ async function ladeFotoHoch(e) {
   btn.disabled = true
   btn.textContent = 'Wird hochgeladen...'
 
-  // Pfad aus dem MIME-Typ. Vorher entstand bei jedem Formatwechsel eine
-  // zweite Datei, die niemand mehr loeschen konnte - und `avatars` ist
-  // ein OEFFENTLICHER Bucket: Das alte Foto des Schuelers waere unter
-  // seiner alten Adresse fuer immer abrufbar geblieben.
+  // Seit 24.11.2026 in der PRIVATEN Ablage `profilfotos` (vorher die
+  // oeffentliche `avatars`, siehe js/bilder.js). Pfad aus dem MIME-Typ,
+  // damit `upsert` wirklich ueberschreibt und nichts liegen bleibt.
   const path = dokumentPfad(profile.id, 'avatar', file.type)
-  const alterPfad = verwaisterPfad(pfadAusUrl(profile.foto_url, 'avatars'), path)
+  const alterPfad = verwaisterPfad(pfadAusVerweis(profile.foto_url, 'profilfotos'), path)
+  // Ein Foto aus der Zeit vor der Umstellung liegt noch OEFFENTLICH in
+  // `avatars` - das kommt beim ersten neuen Upload weg.
+  const altOeffentlich = pfadAusUrl(profile.foto_url, 'avatars')
 
   const { error: uploadError } = await supabase.storage
-    .from('avatars')
+    .from('profilfotos')
     .upload(path, file, { upsert: true })
 
   if (uploadError) {
@@ -1267,11 +1273,10 @@ async function ladeFotoHoch(e) {
     return
   }
 
-  if (alterPfad) await supabase.storage.from('avatars').remove([alterPfad])
+  if (alterPfad) await supabase.storage.from('profilfotos').remove([alterPfad])
+  if (altOeffentlich) await supabase.storage.from('avatars').remove([altOeffentlich])
 
-  const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-  const foto_url = data.publicUrl + '?t=' + Date.now()
-
+  const foto_url = speicherVerweis('profilfotos', path)
   const { error: updateError } = await supabase.from('profiles').update({ foto_url }).eq('id', profile.id)
 
   btn.disabled = false
@@ -1283,6 +1288,7 @@ async function ladeFotoHoch(e) {
   }
 
   profile.foto_url = foto_url
+  await bilderVorbereiten([foto_url])
   setzePhotoPreview(foto_url)
   aktualisiereSidebarUser()
   renderCvPreview()
@@ -1692,7 +1698,7 @@ function oeffneDetail(jobId) {
     <p class="company-name" style="margin-top:4px;">${ICONS.pin} ${escapeHtml(job.ort || '')}${job.kategorie ? ` <span class="kategorie-chip">${escapeHtml(job.kategorie)}</span>` : ''}${job.arbeitszeit ? ` <span class="arbeitszeit-chip">🕐 ${escapeHtml(job.arbeitszeit)}</span>` : ''}</p>
     <div class="job-meta" style="margin:14px 0;">
       <span>${ICONS.age} ${job.mindestalter == null ? 'Alter auf Anfrage' : `ab ${job.mindestalter} Jahren`}</span>
-      ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
+      ${job.stundenlohn ? `<span class="lohn-highlight">${lohnText(job.stundenlohn)} €/Std</span>` : ''}
       ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
     </div>
     ${job.beschreibung ? `<p style="font-size:0.95rem; line-height:1.7; color:var(--ink); white-space:pre-wrap;">${escapeHtml(job.beschreibung)}</p>` : '<p class="cv-preview-empty">Keine weitere Beschreibung vorhanden.</p>'}

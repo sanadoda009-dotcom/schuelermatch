@@ -2,7 +2,7 @@ import { supabase } from './supabase.js'
 import { ICONS } from './icons.js'
 import { hole, zeigeLadefehler } from './zustand.js'
 import { meldeMitAnmeldung, meldeButtonHtml } from './melden.js'
-import { alterText, istAlt } from './job-karte.js'
+import { alterText, istAlt, lohnText } from './job-karte.js'
 
 // Wie lange die Seite gegenueber Google fuer eine Anzeige geradesteht.
 // Die Frist laeuft ab HEUTE, nicht ab dem Einstelldatum - warum, steht
@@ -106,7 +106,7 @@ async function firmenVorstellungHtml(firmaId) {
 // alle gleich gewichtet.
 function eckdatenHtml(job) {
   const felder = [
-    ['Verdienst', job.stundenlohn ? `${job.stundenlohn} €/Std` : 'nach Absprache'],
+    ['Verdienst', job.stundenlohn ? `${lohnText(job.stundenlohn)} €/Std` : 'nach Absprache'],
     ['Ab', job.mindestalter == null ? 'auf Anfrage' : `${job.mindestalter} Jahren`],
     ['Wann', job.arbeitszeit || job.verfuegbarkeit || 'nach Absprache'],
     ['Wo', job.ort || 'auf Anfrage'],
@@ -265,14 +265,14 @@ async function ladeJob() {
   setzeMeta('og:title', `${job.titel}${job.ort ? ' in ' + job.ort : ''} – SchülerMatch`)
   setzeMeta('og:url', location.href)
   const teile = []
-  if (job.stundenlohn) teile.push(`${job.stundenlohn} € pro Stunde`)
+  if (job.stundenlohn) teile.push(`${lohnText(job.stundenlohn)} € pro Stunde`)
   if (job.mindestalter) teile.push(`ab ${job.mindestalter} Jahren`)
   if (job.verfuegbarkeit) teile.push(job.verfuegbarkeit)
   setzeMeta('og:description', teile.length
     ? teile.join(' · ') + '. Kostenlos bewerben auf SchülerMatch.'
     : 'Jugendschutzgeprüfter Minijob, kostenlos für Schüler.')
   document.querySelector('meta[name="description"]')?.setAttribute('content',
-    `${job.titel}${job.ort ? ' in ' + job.ort : ''}${job.mindestalter ? ' – ab ' + job.mindestalter + ' Jahren' : ''}${job.stundenlohn ? ', ' + job.stundenlohn + ' €/Std' : ''}. Kostenlos bewerben auf SchülerMatch.`)
+    `${job.titel}${job.ort ? ' in ' + job.ort : ''}${job.mindestalter ? ' – ab ' + job.mindestalter + ' Jahren' : ''}${job.stundenlohn ? ', ' + lohnText(job.stundenlohn) + ' €/Std' : ''}. Kostenlos bewerben auf SchülerMatch.`)
 
   el.innerHTML = `
     <a href="jobs.html" class="mono" style="color:var(--ink-soft); font-size:0.82rem;">← Alle Jobs</a>

@@ -1,3 +1,4 @@
+import { bildAdresse } from './bilder.js'
 // Lebenslauf-PDF nach fester Typografie-Spezifikation.
 // Zweispaltiges A4-Dokument (jsPDF, direktes Zeichnen in mm) –
 // KEIN html2canvas (war unzuverlässig), damit das PDF nie leer ausfällt.
@@ -467,7 +468,9 @@ async function bildAlsJpeg(url, maxBreitePx) {
 
 async function _bildAlsJpeg(url, maxBreitePx) {
   try {
-    const res = await fetch(url)
+    const adresse = await bildAdresse(url)
+    if (!adresse) return null
+    const res = await fetch(adresse)
     if (!res.ok) return null
     const blob = await res.blob()
     const bmp = await createImageBitmap(blob)
@@ -495,7 +498,9 @@ async function bildRund(url, groessePx, bandRgb) {
 
 async function _bildRund(url, groessePx, bandRgb) {
   try {
-    const res = await fetch(url)
+    const adresse = await bildAdresse(url)
+    if (!adresse) return null
+    const res = await fetch(adresse)
     if (!res.ok) return null
     const blob = await res.blob()
     const bmp = await createImageBitmap(blob)

@@ -37,7 +37,7 @@ Nachgeprüft: Der ausgerollte Quelltext stimmt mit
 **Merksatz:** Edge Functions gehen nicht mit `git push` live. Nach jeder
 Änderung in `supabase/functions/` einzeln ausrollen.
 
-## ✅ Eingespielt am 20.10.2026: einundzwanzig SQL-Dateien
+## ✅ Eingespielt am 20.10.2026: zweiundzwanzig SQL-Dateien
 
 Sanad hat am 20.10. gesagt „mach alles selber". Jede Datei wurde **vorher
 gegen die laufende Datenbank geprüft** (stimmen die Namen, die sie
@@ -67,6 +67,7 @@ nicht dem „success" geglaubt.
 | `supabase/datenbank-pflege.sql` | **22.11.2026, nach der Supabase-Prüfung:** Die letzte von außen aufrufbare Trigger-Funktion (`schuetze_job_alarm_felder`) ist zu, sieben Fremdschlüssel haben einen Index. Was bewusst so bleibt, steht in der Datei. |
 | `supabase/admin-zwei-faktor.sql` | **22.11.2026:** Admin-Rechte nur noch mit zweitem Faktor. `ist_admin()` verlangt `aal2` im Anmelde-Token; der Betreiber-Bereich richtet die Authenticator-App ein bzw. fragt den Code ab (`js/admin-mfa.js`). Notfall siehe unten „Admin-Zwei-Faktor“. |
 | `supabase/gewerbe-nachweis.sql` | **22.11.2026:** Abzeichen „✓ Gewerbe nachgewiesen“. Firmen laden freiwillig Gewerbeanmeldung oder Handelsregisterauszug hoch (Ablage `verifizierung`, Spalte `gewerbe_url`), der Betreiber prüft im Reiter Firmen → „Gewerbenachweis“. Das Abzeichen (`gewerbe_geprueft`) setzt nur ein Admin, und erst wenn der Nachweis gelöscht ist. Sichtbar auf Firmenseite und Anzeige. |
+| `supabase/schuelerbilder-privat.sql` | **24.11.2026:** Profilfotos und Lebenslauf-Bilder der Schüler liegen **privat** (Ablage `profilfotos` neu, `lebenslauf-bilder` umgestellt). Angezeigt über signierte Adressen, die nach einer Stunde verfallen (`js/bilder.js`). Sehen dürfen sie der Schüler, eine Firma, bei der er sich beworben hat, und der Betreiber. `avatars` bleibt öffentlich, nur noch für Firmenlogos. |
 
 ### Zwei Fallen, die erst beim Einspielen auffielen
 
@@ -117,7 +118,7 @@ merkt. Deshalb hier notiert statt nur im Quelltext.
 
 | Was | Stand | Läuft aus |
 |---|---|---|
-| **Mindestlohn** in `ferienjob.html` (13,90 €) | September 2026 | Bei der nächsten Anpassung. Die aktuelle Höhe steht beim [Bundesministerium für Arbeit](https://www.bmas.de/DE/Arbeit/Arbeitsrecht/Mindestlohn/mindestlohn.html). |
+| **Mindestlohn** in `ferienjob.html` (13,90 €, ab 1.1.2027: 14,60 €) und **Minijob-Grenze** auf vier Seiten (603 €, ab 2027: 633 €) | November 2026 | Ab Januar 2027 die alten Beträge streichen; die nächste Anpassung gilt ab 2028. Die aktuelle Höhe steht beim [Bundesministerium für Arbeit](https://www.bmas.de/DE/Arbeit/Arbeitsrecht/Mindestlohn/mindestlohn.html). |
 | **Ferientermine** in `js/ferien.js` (`STAND`) | August 2026 | Nach den Sommerferien 2027. Danach zeigt `ferienjob.html` ehrlich an, dass keine Termine hinterlegt sind — das ist getestet, aber die Seite ist dann eben leer. |
 
 Die Zahl im Ratgeber trägt jetzt Datum und Quelle direkt daneben, und
@@ -406,7 +407,12 @@ Schüler finden die nie. Kostet nichts, braucht keine Einwilligung, und der
 Platz kann später etwas anderes tragen. Fürs Geldverdienen ist die
 **Arbeitgeberseite** der Hebel, nicht die Schülerseite.
 
-## 🖼 Zu überdenken: Fotos liegen in öffentlichen Ablagen
+## ✅ Erledigt am 24.11.2026: Schülerfotos sind privat
+
+Siehe `supabase/schuelerbilder-privat.sql` in der Tabelle oben. Der Text
+darunter ist der alte Befund, zum Nachlesen.
+
+### (alt) Fotos lagen in öffentlichen Ablagen
 
 `avatars` und `lebenslauf-bilder` sind **öffentliche** Buckets – wer die Adresse
 kennt, sieht das Foto eines Schülers ohne Anmeldung. Die Startseite verspricht

@@ -40,8 +40,11 @@ const BILD_UND_PDF = [...NUR_BILD, 'application/pdf']
 export const BUCKETS = {
   'verifizierung':     { maxBytes: 6291456, typen: BILD_UND_PDF, oeffentlich: false },
   'zeugnisse':         { maxBytes: 6291456, typen: BILD_UND_PDF, oeffentlich: false },
+  // Seit 24.11.2026 nur noch fuer FIRMENLOGOS - die sollen ja jeder sehen.
   'avatars':           { maxBytes: 3145728, typen: NUR_BILD,     oeffentlich: true },
-  'lebenslauf-bilder': { maxBytes: 3145728, typen: NUR_BILD,     oeffentlich: true }
+  // Schuelerbilder: privat, angezeigt ueber signierte Adressen (js/bilder.js).
+  'profilfotos':       { maxBytes: 3145728, typen: NUR_BILD,     oeffentlich: false },
+  'lebenslauf-bilder': { maxBytes: 3145728, typen: NUR_BILD,     oeffentlich: false }
 }
 
 // Welche Endung ein MIME-Typ bekommt. Alles, was hier nicht steht, wird

@@ -3,12 +3,14 @@ import { pruefeMindestalter, hinweisFuer } from './jugendschutz.js'
 import { hole, zeigeLadefehler, verstaendlich } from './zustand.js'
 import { requireAuth, logout } from './session.js'
 import { ICONS } from './icons.js'
+import { lohnText } from './job-karte.js'
 import { ladeLebenslaufAlsPdf } from './pdf.js'
 import { initSidebar, oeffneAnsichtAusAdresse } from './sidebar.js'
 import { toast } from './toast.js'
 import { initGlocke } from './notifications.js'
 import { geocode, uebernehmeKoordinaten } from './geo.js'
 import { sichereMediaUrl } from './sicher.js'
+import { initBilder, bilderVorbereiten, anzeigeUrl } from './bilder.js'
 import { dokumentPfad, pruefeFuerBucket } from './dokument-pfad.js'
 import { initGewerbe } from './gewerbe-nachweis.js'
 import { ABSAGE_GRUENDE } from './absage.js'
@@ -96,7 +98,7 @@ function baueZusammenfassung() {
     zeile('Kategorie', d.kategorie, 2) +
     zeile('Arbeitszeit', d.arbeitszeit, 2) +
     zeile('Ort', d.ort, 3) +
-    zeile('Stundenlohn', d.stundenlohn ? d.stundenlohn + ' €/Std' : '', 3) +
+    zeile('Stundenlohn', d.stundenlohn ? lohnText(d.stundenlohn) + ' €/Std' : '', 3) +
     zeile('Mindestalter', 'ab ' + d.mindestalter + ' Jahren', 4) +
     zeile('Verfügbarkeit', d.verfuegbarkeit, 4) +
     zeile('Beschreibung', d.beschreibung, 5)
@@ -570,7 +572,7 @@ const BK_ICON = {
 }
 
 function bewerberItemHtml(b, job) {
-  const foto = sichereMediaUrl(b.bewerber.foto_url)
+  const foto = anzeigeUrl(b.bewerber.foto_url)
   const signale = bewerberSignale(b.bewerber, b)
   const status = b.status || 'ausstehend'
   const meta = [
@@ -754,11 +756,6 @@ function anzeigeStand(job) {
   return job.aktiv ? { art: 'online', text: 'Online' } : { art: 'pausiert', text: 'Pausiert' }
 }
 
-function lohnText(wert) {
-  const n = Number(wert)
-  if (!Number.isFinite(n)) return escapeHtml(String(wert))
-  return n.toLocaleString('de-DE', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 })
-}
 
 function anzeigeKarte(job, bewerbungen, index) {
   const stand = anzeigeStand(job)
@@ -886,6 +883,10 @@ async function ladeEigeneJobs() {
       .in('id', ungesehen)
       .then(() => {}, () => {})
   }
+
+  // Fotos der Bewerber liegen privat - erst signierte Adressen holen.
+  initBilder(supabase)
+  await bilderVorbereiten((bewerbungen || []).map(b => b.bewerber?.foto_url))
 
   renderStats(jobs, bewerbungen || [])
   const offen = (bewerbungen || []).filter(b => (b.status || 'ausstehend') === 'ausstehend').length

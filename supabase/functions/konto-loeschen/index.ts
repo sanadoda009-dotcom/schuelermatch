@@ -43,7 +43,7 @@ const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 // Alle Ablagen, in denen ein Schüler Dateien liegen haben kann.
 // Der erste Ordner ist immer die Nutzer-Id (siehe js/dokument-pfad.js).
-const ABLAGEN = ['avatars', 'lebenslauf-bilder', 'verifizierung', 'zeugnisse']
+const ABLAGEN = ['avatars', 'profilfotos', 'lebenslauf-bilder', 'verifizierung', 'zeugnisse']
 
 function antwort(daten: unknown, status = 200): Response {
   return new Response(JSON.stringify(daten), {

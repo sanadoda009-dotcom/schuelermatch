@@ -369,14 +369,18 @@ create policy "Admin loescht Meldungen" on public.meldungen
 -- daher überall storage.foldername(name)[1].
 -- ============================================================
 
--- Profilbilder
+-- Firmenlogos (bis 24.11.2026 auch die Profilfotos der Schueler).
+-- Hochladen nur noch fuer Firmen; Schueler duerfen ihr altes Foto hier
+-- weiter loeschen. Siehe supabase/schuelerbilder-privat.sql.
 drop policy if exists "Avatar Upload eigene Datei" on storage.objects;
 create policy "Avatar Upload eigene Datei" on storage.objects
-  for insert with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+  for insert with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]
+    and exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'firma'));
 
 drop policy if exists "Avatar Update eigene Datei" on storage.objects;
 create policy "Avatar Update eigene Datei" on storage.objects
-  for update using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+  for update using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]
+    and exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'firma'));
 
 -- SELECT und DELETE fehlten hier bis zum 27.8. - und ohne sie hat der
 -- Foto-Upload NIE funktioniert: `POST /object/avatars/<uid>/avatar.png`
@@ -414,6 +418,41 @@ create policy "Lebenslauf Bild eigenes lesen" on storage.objects
 drop policy if exists "Lebenslauf Bild eigenes loeschen" on storage.objects;
 create policy "Lebenslauf Bild eigenes loeschen" on storage.objects
   for delete using (bucket_id = 'lebenslauf-bilder' and auth.uid()::text = (storage.foldername(name))[1]);
+
+-- Profilfotos der Schueler: PRIVAT seit 24.11.2026 (schuelerbilder-privat.sql).
+drop policy if exists "Profilfoto Upload eigene Datei" on storage.objects;
+create policy "Profilfoto Upload eigene Datei" on storage.objects
+  for insert with check (bucket_id = 'profilfotos' and auth.uid()::text = (storage.foldername(name))[1]);
+
+drop policy if exists "Profilfoto Update eigene Datei" on storage.objects;
+create policy "Profilfoto Update eigene Datei" on storage.objects
+  for update using (bucket_id = 'profilfotos' and auth.uid()::text = (storage.foldername(name))[1]);
+
+drop policy if exists "Profilfoto eigenes lesen" on storage.objects;
+create policy "Profilfoto eigenes lesen" on storage.objects
+  for select using (bucket_id = 'profilfotos' and auth.uid()::text = (storage.foldername(name))[1]);
+
+drop policy if exists "Profilfoto eigenes loeschen" on storage.objects;
+create policy "Profilfoto eigenes loeschen" on storage.objects
+  for delete using (bucket_id = 'profilfotos' and auth.uid()::text = (storage.foldername(name))[1]);
+
+-- Wer ausser dem Schueler Profilfoto und Lebenslauf-Bilder sehen darf:
+-- eine Firma, bei der er sich beworben hat, und der Betreiber.
+drop policy if exists "Firma sieht Bilder von Bewerbern" on storage.objects;
+create policy "Firma sieht Bilder von Bewerbern" on storage.objects
+  for select to authenticated using (
+    bucket_id in ('profilfotos', 'lebenslauf-bilder')
+    and exists (select 1 from public.bewerbungen b join public.jobs j on j.id = b.job_id
+                where b.schueler_id::text = (storage.foldername(name))[1] and j.firma_id = auth.uid()));
+
+drop policy if exists "Admin sieht Schuelerbilder" on storage.objects;
+create policy "Admin sieht Schuelerbilder" on storage.objects
+  for select to authenticated using (bucket_id in ('profilfotos', 'lebenslauf-bilder') and public.ist_admin());
+
+drop policy if exists "Gesperrte Firma: keine Schuelerbilder" on storage.objects;
+create policy "Gesperrte Firma: keine Schuelerbilder" on storage.objects
+  as restrictive for select to authenticated using (
+    bucket_id not in ('profilfotos', 'lebenslauf-bilder') or not public.ist_gesperrte_firma(auth.uid()));
 
 -- Schülerausweis / Verifizierung: privat. Nur der Schüler selbst und
 -- der Betreiber. Wird nach der Prüfung gelöscht.
@@ -471,9 +510,15 @@ create policy "Firma sieht Zeugnis von Bewerbern" on storage.objects
 -- Ausweis- oder Zeugnischarakter ist privat und nur über eine
 -- signierte Adresse erreichbar.
 -- ============================================================
+-- Oeffentlich nur noch die Firmenlogos (avatars). Schuelerbilder sind
+-- seit 24.11.2026 privat (schuelerbilder-privat.sql).
 update storage.buckets set public = true,  file_size_limit = 3145728,
   allowed_mime_types = array['image/png','image/jpeg','image/jpg','image/webp','image/gif']
-  where id in ('avatars','lebenslauf-bilder');
+  where id = 'avatars';
+
+update storage.buckets set public = false, file_size_limit = 3145728,
+  allowed_mime_types = array['image/png','image/jpeg','image/jpg','image/webp','image/gif']
+  where id in ('profilfotos','lebenslauf-bilder');
 
 update storage.buckets set public = false, file_size_limit = 6291456,
   allowed_mime_types = array['image/png','image/jpeg','image/jpg','image/webp','image/gif','application/pdf']

@@ -117,8 +117,9 @@ neben jeder erlaubenden Regel.
 
 | Bucket | öffentlich | Grenzen | wer liest |
 |---|---|---|---|
-| `avatars` | **ja** | 3 MB, nur Bild | jeder mit der Adresse |
-| `lebenslauf-bilder` | **ja** | 3 MB, nur Bild | jeder mit der Adresse |
+| `avatars` | **ja** | 3 MB, nur Bild | jeder mit der Adresse – **nur noch Firmenlogos**, hochladen dürfen nur Firmen |
+| `profilfotos` | nein | 3 MB, nur Bild | der Schüler, Firmen, bei denen er sich beworben hat, Betreiber (signierte Adresse, 1 Stunde) |
+| `lebenslauf-bilder` | nein (seit 24.11.2026) | 3 MB, nur Bild | wie `profilfotos` |
 | `verifizierung` | nein | 6 MB, Bild/PDF | der Schüler selbst (Ausweis) bzw. die Firma selbst (Gewerbenachweis, seit 22.11.2026), Admin |
 | `zeugnisse` | nein | 6 MB, Bild/PDF | der Schüler selbst; die Firma seiner Bewerbung |
 

@@ -201,8 +201,11 @@ test.describe('jede Ablage hat ihre eigenen Grenzen', () => {
     expect(b['zeugnisse'].maxBytes).toBe(6291456)
     expect(b['avatars'].maxBytes).toBe(3145728)
     expect(b['lebenslauf-bilder'].maxBytes).toBe(3145728)
+    // Seit 24.11.2026: oeffentlich nur noch die Firmenlogos.
+    expect(b['profilfotos'].maxBytes).toBe(3145728)
     expect(b['avatars'].oeffentlich).toBe(true)
-    expect(b['lebenslauf-bilder'].oeffentlich).toBe(true)
+    expect(b['profilfotos'].oeffentlich).toBe(false)
+    expect(b['lebenslauf-bilder'].oeffentlich).toBe(false)
     expect(b['verifizierung'].oeffentlich).toBe(false)
     expect(b['zeugnisse'].oeffentlich).toBe(false)
   })
@@ -307,13 +310,16 @@ test('alle fünf Uploads benutzen das Modul', async ({ page }) => {
   expect((ll.match(/dokumentPfad\(/g) || []).length).toBeGreaterThanOrEqual(2)
 })
 
-test('bei den öffentlichen Ablagen wird die alte Datei entfernt', async ({ page }) => {
-  // Der eigentliche Schutz: `avatars` und `lebenslauf-bilder` sind
-  // öffentlich. Bleibt eine Datei liegen, ist sie weiter abrufbar.
+test('beim Austauschen wird die alte Datei entfernt', async ({ page }) => {
+  // Seit 24.11.2026 liegen Schuelerbilder privat (js/bilder.js). Die
+  // Vorgaengerdatei kommt trotzdem weg - und ein altes, noch OEFFENTLICHES
+  // Foto in `avatars` erst recht.
   for (const datei of ['/js/dashboard-schueler.js', '/js/lebenslauf.js']) {
     const quelle = await page.evaluate(async d => (await fetch(d)).text(), datei)
     expect(quelle, `${datei}: altes Foto muss gelöscht werden`)
-      .toMatch(/from\('avatars'\)\.remove\(\[alterPfad\]\)/)
+      .toMatch(/from\('profilfotos'\)\.remove\(\[alterPfad\]\)/)
+    expect(quelle, `${datei}: das alte öffentliche Foto muss weg`)
+      .toMatch(/from\('avatars'\)\.remove\(\[altOeffentlich\]\)/)
     expect(quelle, `${datei}: altes Lebenslauf-Bild muss gelöscht werden`)
       .toMatch(/from\('lebenslauf-bilder'\)\.remove\(\[alterPfad\]\)/)
   }

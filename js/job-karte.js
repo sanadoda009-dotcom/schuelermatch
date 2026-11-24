@@ -25,6 +25,17 @@ function escapeHtml(str) {
   return div.innerHTML
 }
 
+// Der Lohn in deutscher Schreibweise (23.11.2026).
+// Stand bis dahin roh im Text: Aus 13.5 wurde "13.5 €/Std" - mit Punkt und
+// ohne zweite Nachkommastelle. Auf einer deutschen Seite liest man das als
+// Tippfehler. Ganze Betraege bleiben ganz (14), alle anderen bekommen zwei
+// Stellen (13,50).
+export function lohnText(wert) {
+  const n = Number(wert)
+  if (!Number.isFinite(n)) return escapeHtml(String(wert ?? ''))
+  return n.toLocaleString('de-DE', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 })
+}
+
 // Wie lange eine Anzeige als "NEU" gilt.
 export const NEU_STUNDEN = 72
 
@@ -143,7 +154,7 @@ export function jobKarteHtml(job, o = {}) {
       ${job.beschreibung ? `<p class="job-description">${escapeHtml(job.beschreibung)}</p>` : ''}
 
       <div class="job-meta">
-        ${job.stundenlohn ? `<span class="lohn-highlight">${job.stundenlohn} €/Std</span>` : ''}
+        ${job.stundenlohn ? `<span class="lohn-highlight">${lohnText(job.stundenlohn)} €/Std</span>` : ''}
         ${job.verfuegbarkeit ? `<span>${ICONS.clock} ${escapeHtml(job.verfuegbarkeit)}</span>` : ''}
       </div>
 

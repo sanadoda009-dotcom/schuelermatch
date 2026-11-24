@@ -46,12 +46,13 @@ test('führt jeden Schutz-Trigger auf, den es gibt', async () => {
   expect(STAND).toContain('schuetze_')
 })
 
-test('führt alle vier Ablagen mit ihrer Sichtbarkeit auf', async () => {
+test('führt alle fünf Ablagen mit ihrer Sichtbarkeit auf', async () => {
+  // Fünf seit 24.11.2026: `profilfotos` kam dazu (supabase/schuelerbilder-privat.sql).
   // Die Liste muss zu js/dokument-pfad.js passen — dort stehen dieselben
   // Buckets samt Grenzen, und die Datei ist die, der der Browser folgt.
   const modul = lies('js/dokument-pfad.js')
   const buckets = [...modul.matchAll(/'([a-z-]+)':\s*\{ maxBytes/g)].map(m => m[1])
-  expect(buckets.length, 'keine Buckets im Modul gefunden?').toBe(4)
+  expect(buckets.length, 'keine Buckets im Modul gefunden?').toBe(5)
   for (const b of buckets) {
     expect(STAND, `Ablage ${b} fehlt in der Übersicht`).toContain(b)
   }

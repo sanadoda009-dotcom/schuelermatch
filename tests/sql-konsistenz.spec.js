@@ -160,6 +160,7 @@ test.describe('jede Ablage hat alle Regeln, die der Code braucht', () => {
   // und den Aufrufstellen.
   const GEBRAUCHT = {
     'avatars':           ['insert', 'update', 'select', 'delete'],
+    'profilfotos':       ['insert', 'update', 'select', 'delete'],
     'lebenslauf-bilder': ['insert', 'update', 'select', 'delete'],
     'verifizierung':     ['insert', 'update', 'select', 'delete'],
     // zeugnisse ohne DELETE: Der Code loescht dort nie - ein Zeugnis

@@ -39,6 +39,14 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 )
 
+// Lohn in deutscher Schreibweise: 13,50 statt 13.5 (23.11.2026).
+// Dieselbe Regel wie lohnText() in js/job-karte.js.
+function lohnText(wert: unknown): string {
+  const n = Number(wert)
+  if (!Number.isFinite(n)) return String(wert ?? '')
+  return n.toLocaleString('de-DE', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 })
+}
+
 // Höchstens so viele Jobs pro Mail auflisten. Mehr liest ohnehin niemand.
 const MAX_JOBS = 8
 
@@ -148,7 +156,7 @@ Deno.serve(async () => {
     const abmeldeLink = `${SITE_URL}/job-alarm-aus.html?token=${alarm.abmelde_token}`
     const anzahl = treffer.length
     const liste = treffer.slice(0, MAX_JOBS).map(j => {
-      const teile = [j.ort, j.stundenlohn ? `${j.stundenlohn} €/Std` : null, j.kategorie]
+      const teile = [j.ort, j.stundenlohn ? `${lohnText(j.stundenlohn)} €/Std` : null, j.kategorie]
         .filter(Boolean).map(esc).join(' &middot; ')
       return `<li style="margin-bottom:10px">
         <a href="${SITE_URL}/job.html?id=${encodeURIComponent(j.id)}"

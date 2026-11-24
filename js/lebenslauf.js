@@ -7,7 +7,7 @@ import { requireAuth } from './session.js'
 import { toast } from './toast.js'
 import { verstaendlich } from './zustand.js'
 import { erzeugeLebenslaufPdfMitAnkern, ladeLebenslaufAlsPdf } from './pdf.js'
-import { sichereMediaUrl } from './sicher.js'
+import { initBilder, bilderVorbereiten, anzeigeUrl, speicherVerweis, pfadAusVerweis } from './bilder.js'
 import { dokumentPfad, pfadAusUrl, pruefeFuerBucket, verwaisterPfad } from './dokument-pfad.js'
 
 let profile
@@ -243,6 +243,7 @@ async function init() {
   // Weiterleitung (nicht angemeldet) bliebe sie sonst kurz sichtbar,
   // genau der Effekt, der hier weg soll.
   if (!profile) return
+  initBilder(supabase)
   zeigeEditor()
 
   bloecke = Array.isArray(profile.lebenslauf_bloecke) && profile.lebenslauf_bloecke.length
@@ -258,6 +259,8 @@ async function init() {
       if (e.klasse) profile.klasse = e.klasse
     }
   } catch {}
+
+  await bilderVorbereiten([profile.foto_url, ...bloecke.map(b => b.bild_url)])
 
   // Design: DB-Wert als Basis (gilt geräteübergreifend), lokaler Cache gewinnt falls vorhanden
   if (profile.cv_design?.layout) cvDesign = profile.cv_design
@@ -369,7 +372,7 @@ function renderKarten() {
       </summary>
       <div class="ll-karte-body">
         <div class="ll-foto-zeile">
-          <div class="cv-photo-preview" id="ll-foto-preview" style="${sichereMediaUrl(profile.foto_url) ? `background-image:url('${sichereMediaUrl(profile.foto_url)}')` : ''}">${sichereMediaUrl(profile.foto_url) ? '' : '📷'}</div>
+          <div class="cv-photo-preview" id="ll-foto-preview" style="${anzeigeUrl(profile.foto_url) ? `background-image:url('${anzeigeUrl(profile.foto_url)}')` : ''}">${anzeigeUrl(profile.foto_url) ? '' : '📷'}</div>
           <div>
             <input type="file" id="ll-foto" accept="image/*" aria-label="Profilbild auswählen" style="display:none;">
             <button type="button" class="btn btn-outline ll-foto-knopf" id="ll-foto-btn">${profile.foto_url ? 'Foto ändern' : 'Foto hochladen'}</button>
@@ -481,7 +484,7 @@ function editorFuer(b) {
       <button type="button" class="btn btn-outline ll-bild-btn" data-id="${b.id}">${b.bild_url ? 'Bild ändern' : 'Bild auswählen'}</button>
       ${b.bild_url ? `<button type="button" class="btn btn-outline ll-bild-weg" data-id="${b.id}">Entfernen</button>` : ''}
     </div>
-    ${sichereMediaUrl(b.bild_url) ? `<img src="${sichereMediaUrl(b.bild_url)}" class="block-image-preview" alt="Vorschau des hochgeladenen Bildes">` : ''}`
+    ${anzeigeUrl(b.bild_url) ? `<img src="${anzeigeUrl(b.bild_url)}" class="block-image-preview" alt="Vorschau des hochgeladenen Bildes">` : ''}`
 
   return ''
 }
@@ -945,28 +948,29 @@ async function ladeFotoHoch(e) {
   if (!file) return
   // Groesse UND Dateiart pruefen. Ohne die Typpruefung kaeme
   // dokumentPfad() mit null zurueck und der Upload liefe ins Leere.
-  const pruefung = pruefeFuerBucket(file, 'avatars')
+  const pruefung = pruefeFuerBucket(file, 'profilfotos')
   if (!pruefung.ok) { toast(pruefung.fehler, 'fehler'); e.target.value = ''; return }
 
   const btn = document.getElementById('ll-foto-btn')
   btn.disabled = true; btn.textContent = 'Wird hochgeladen…'
 
-  // Pfad aus dem MIME-Typ, nicht aus dem Dateinamen - und `avatars` ist
-  // ein OEFFENTLICHER Bucket: Eine zurueckgebliebene Datei waere unter
-  // ihrer alten Adresse fuer immer abrufbar. Siehe js/dokument-pfad.js.
+  // Private Ablage `profilfotos` (seit 24.11.2026, siehe js/bilder.js).
+  // Ein altes, noch oeffentliches Foto in `avatars` kommt dabei weg.
   const path = dokumentPfad(profile.id, 'avatar', file.type)
-  const alterPfad = verwaisterPfad(pfadAusUrl(profile.foto_url, 'avatars'), path)
-  const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+  const alterPfad = verwaisterPfad(pfadAusVerweis(profile.foto_url, 'profilfotos'), path)
+  const altOeffentlich = pfadAusUrl(profile.foto_url, 'avatars')
+  const { error: upErr } = await supabase.storage.from('profilfotos').upload(path, file, { upsert: true })
   if (upErr) { toast(verstaendlich(upErr, 'Das Hochladen'), 'fehler'); btn.disabled = false; btn.textContent = 'Foto hochladen'; return }
-  if (alterPfad) await supabase.storage.from('avatars').remove([alterPfad])
+  if (alterPfad) await supabase.storage.from('profilfotos').remove([alterPfad])
+  if (altOeffentlich) await supabase.storage.from('avatars').remove([altOeffentlich])
 
-  const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-  const foto_url = data.publicUrl + '?t=' + Date.now()
+  const foto_url = speicherVerweis('profilfotos', path)
   const { error: dbErr } = await supabase.from('profiles').update({ foto_url }).eq('id', profile.id)
   btn.disabled = false
   if (dbErr) { toast(verstaendlich(dbErr, 'Das Speichern'), 'fehler'); return }
 
   profile.foto_url = foto_url
+  await bilderVorbereiten([foto_url])
   toast('Foto gespeichert!')
   renderKarten()
   planeVorschau()
@@ -979,14 +983,15 @@ async function ladeBlockBildHoch(blockId, file) {
   const pruefung = pruefeFuerBucket(file, 'lebenslauf-bilder')
   if (!pruefung.ok) { toast(pruefung.fehler, 'fehler'); return }
 
-  // Pfad aus dem MIME-Typ. Auch dieser Bucket ist oeffentlich.
+  // Pfad aus dem MIME-Typ. Die Ablage ist seit 24.11.2026 privat.
   const path = dokumentPfad(profile.id, blockId, file.type)
-  const alterPfad = verwaisterPfad(pfadAusUrl(b?.bild_url, 'lebenslauf-bilder'), path)
+  const alterPfad = verwaisterPfad(
+    pfadAusVerweis(b?.bild_url, 'lebenslauf-bilder') ?? pfadAusUrl(b?.bild_url, 'lebenslauf-bilder'), path)
   const { error } = await supabase.storage.from('lebenslauf-bilder').upload(path, file, { upsert: true })
   if (error) { toast(verstaendlich(error, 'Das Hochladen'), 'fehler'); return }
   if (alterPfad) await supabase.storage.from('lebenslauf-bilder').remove([alterPfad])
-  const { data } = supabase.storage.from('lebenslauf-bilder').getPublicUrl(path)
-  b.bild_url = data.publicUrl + '?t=' + Date.now()
+  b.bild_url = speicherVerweis('lebenslauf-bilder', path)
+  await bilderVorbereiten([b.bild_url])
   geaendert(true)
 }
 
