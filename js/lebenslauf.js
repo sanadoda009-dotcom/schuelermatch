@@ -970,7 +970,7 @@ async function ladeFotoHoch(e) {
   if (dbErr) { toast(verstaendlich(dbErr, 'Das Speichern'), 'fehler'); return }
 
   profile.foto_url = foto_url
-  await bilderVorbereiten([foto_url])
+  await bilderVorbereiten([foto_url, ...bloecke.map(b => b.bild_url)]) // alle: abgelaufene Adressen auffrischen
   toast('Foto gespeichert!')
   renderKarten()
   planeVorschau()
@@ -991,7 +991,7 @@ async function ladeBlockBildHoch(blockId, file) {
   if (error) { toast(verstaendlich(error, 'Das Hochladen'), 'fehler'); return }
   if (alterPfad) await supabase.storage.from('lebenslauf-bilder').remove([alterPfad])
   b.bild_url = speicherVerweis('lebenslauf-bilder', path)
-  await bilderVorbereiten([b.bild_url])
+  await bilderVorbereiten([profile.foto_url, ...bloecke.map(x => x.bild_url)]) // alle: abgelaufene Adressen auffrischen
   geaendert(true)
 }
 

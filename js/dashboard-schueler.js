@@ -932,7 +932,7 @@ async function ladeBlockBildHoch(blockId, file) {
   if (alterPfad) await supabase.storage.from('lebenslauf-bilder').remove([alterPfad])
 
   block.bild_url = speicherVerweis('lebenslauf-bilder', path)
-  await bilderVorbereiten([block.bild_url])
+  await bilderVorbereiten([profile.foto_url, ...bloecke.map(b => b.bild_url)]) // alle: abgelaufene Adressen auffrischen
   renderBlockEditor()
   renderCvPreview()
 }
@@ -1288,7 +1288,7 @@ async function ladeFotoHoch(e) {
   }
 
   profile.foto_url = foto_url
-  await bilderVorbereiten([foto_url])
+  await bilderVorbereiten([foto_url, ...bloecke.map(b => b.bild_url)]) // alle: abgelaufene Adressen auffrischen
   setzePhotoPreview(foto_url)
   aktualisiereSidebarUser()
   renderCvPreview()
